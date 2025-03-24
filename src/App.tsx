@@ -12,6 +12,7 @@ import Index from "./pages/Index";
 import Courses from "./pages/Courses";
 import Assessments from "./pages/Assessments";
 import Qualifications from "./pages/Qualifications";
+import Flashcards from "./pages/Flashcards";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import NotFound from "./pages/NotFound";
@@ -63,6 +64,14 @@ const App = () => (
                   element={
                     <ProtectedRoute>
                       <Qualifications />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/flashcards" 
+                  element={
+                    <ProtectedRoute>
+                      <Flashcards />
                     </ProtectedRoute>
                   } 
                 />
