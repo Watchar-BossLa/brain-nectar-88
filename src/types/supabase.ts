@@ -1,4 +1,3 @@
-
 import { Session, User } from '@supabase/supabase-js';
 
 export type Profile = {
@@ -65,6 +64,7 @@ export type UserProgress = {
   last_accessed_at: string;
   created_at: string;
   updated_at: string;
+  content?: Content;
 };
 
 export type Flashcard = {

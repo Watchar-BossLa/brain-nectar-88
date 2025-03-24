@@ -8,7 +8,7 @@ import { Module, Topic, UserProgress, Qualification } from '@/types/supabase';
 export const generateLearningPath = async (userId: string, qualificationId: string) => {
   try {
     // Get user's learning history and progress
-    const { data: userProgress, error: progressError } = await supabase
+    const { data: progressData, error: progressError } = await supabase
       .from('user_progress')
       .select('*, content:content_id(*)')
       .eq('user_id', userId);
@@ -17,6 +17,13 @@ export const generateLearningPath = async (userId: string, qualificationId: stri
       console.error('Error fetching user progress:', progressError);
       return { data: null, error: progressError };
     }
+    
+    // Convert the data to match our UserProgress type
+    const userProgress: UserProgress[] = progressData?.map(progress => ({
+      ...progress,
+      content_id: progress.content_id,
+      status: progress.status as "not_started" | "in_progress" | "completed"
+    })) || [];
 
     // Get all modules for the selected qualification
     const { data: modules, error: modulesError } = await supabase
@@ -93,9 +100,11 @@ const calculateTopicMastery = (
     mastery[topic.id] = 0;
     
     // Find all progress entries related to this topic's content
-    const relatedProgress = userProgress.filter(progress => 
-      progress.content?.topic_id === topic.id
-    );
+    const relatedProgress = userProgress.filter(progress => {
+      // Access content_id directly instead of through content property
+      const progressData = progress as unknown as { content: { topic_id: string } };
+      return progressData.content?.topic_id === topic.id;
+    });
     
     if (relatedProgress.length > 0) {
       // Calculate average progress percentage
