@@ -88,10 +88,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
+      // Determine the correct redirect URL based on environment
+      const redirectTo = window.location.hostname === 'localhost' 
+        ? `${window.location.origin}`
+        : 'https://www.studybee.info';
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin,
+          redirectTo,
         }
       });
       
