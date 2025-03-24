@@ -71,3 +71,72 @@ export const createFlashcard = async (
     return { data: null, error };
   }
 };
+
+/**
+ * Get all flashcards for the current user
+ */
+export const getUserFlashcards = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('flashcards')
+      .select('*')
+      .eq('user_id', userId)
+      .order('next_review_date', { ascending: true });
+      
+    if (error) {
+      console.error('Error fetching flashcards:', error);
+      return { data: null, error };
+    }
+    
+    return { data, error: null };
+  } catch (error) {
+    console.error('Error in getUserFlashcards:', error);
+    return { data: null, error };
+  }
+};
+
+/**
+ * Delete a flashcard
+ */
+export const deleteFlashcard = async (flashcardId: string) => {
+  try {
+    const { error } = await supabase
+      .from('flashcards')
+      .delete()
+      .eq('id', flashcardId);
+      
+    if (error) {
+      console.error('Error deleting flashcard:', error);
+      return { error };
+    }
+    
+    return { error: null };
+  } catch (error) {
+    console.error('Error in deleteFlashcard:', error);
+    return { error };
+  }
+};
+
+/**
+ * Get flashcards by topic ID
+ */
+export const getFlashcardsByTopic = async (userId: string, topicId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('flashcards')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('topic_id', topicId)
+      .order('next_review_date', { ascending: true });
+      
+    if (error) {
+      console.error('Error fetching flashcards by topic:', error);
+      return { data: null, error };
+    }
+    
+    return { data, error: null };
+  } catch (error) {
+    console.error('Error in getFlashcardsByTopic:', error);
+    return { data: null, error };
+  }
+};

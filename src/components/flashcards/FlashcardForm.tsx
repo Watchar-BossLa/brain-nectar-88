@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { createFlashcard } from '@/services/flashcardService';
+import { createFlashcard } from '@/services/spacedRepetition';
 import { Flashcard } from '@/types/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -52,6 +51,7 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({
 
     try {
       const { data, error } = await createFlashcard(
+        user.id,
         frontContent, 
         backContent, 
         topicId || undefined

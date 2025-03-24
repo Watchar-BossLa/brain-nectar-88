@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { getUserFlashcards, deleteFlashcard } from '@/services/flashcardService';
+import { getUserFlashcards, deleteFlashcard } from '@/services/spacedRepetition';
 import { Flashcard } from '@/types/supabase';
 import FlashcardCard from './FlashcardCard';
 import { Button } from '@/components/ui/button';
@@ -17,6 +16,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from '@/context/AuthContext';
 
 interface FlashcardListProps {
   onAddNew: () => void;
@@ -28,11 +28,16 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ onAddNew }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [flashcardToDelete, setFlashcardToDelete] = useState<string | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const fetchFlashcards = async () => {
     setLoading(true);
     try {
-      const { data, error } = await getUserFlashcards();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+      
+      const { data, error } = await getUserFlashcards(user.id);
       if (error) {
         throw new Error(error.message);
       }
@@ -50,8 +55,10 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ onAddNew }) => {
   };
 
   useEffect(() => {
-    fetchFlashcards();
-  }, []);
+    if (user) {
+      fetchFlashcards();
+    }
+  }, [user]);
 
   const handleDeleteClick = (id: string) => {
     setFlashcardToDelete(id);
@@ -67,7 +74,6 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ onAddNew }) => {
         throw new Error(error.message);
       }
       
-      // Remove from state
       setFlashcards(flashcards.filter(card => card.id !== flashcardToDelete));
       
       toast({
@@ -87,7 +93,6 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ onAddNew }) => {
     }
   };
 
-  // Get due flashcards
   const dueFlashcards = flashcards.filter(card => {
     const reviewDate = new Date(card.next_review_date || '');
     const now = new Date();

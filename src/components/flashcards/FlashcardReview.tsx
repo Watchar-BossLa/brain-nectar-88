@@ -1,12 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
-import { getDueFlashcards, updateFlashcardAfterReview } from '@/services/flashcardService';
+import { getDueFlashcards, updateFlashcardAfterReview } from '@/services/spacedRepetition';
 import { Flashcard } from '@/types/supabase';
 import FlashcardCard from './FlashcardCard';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const FlashcardReview: React.FC = () => {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
@@ -14,11 +14,16 @@ const FlashcardReview: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isReviewing, setIsReviewing] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const fetchDueFlashcards = async () => {
     setLoading(true);
     try {
-      const { data, error } = await getDueFlashcards();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+      
+      const { data, error } = await getDueFlashcards(user.id);
       if (error) {
         throw new Error(error.message);
       }
@@ -38,8 +43,10 @@ const FlashcardReview: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchDueFlashcards();
-  }, []);
+    if (user) {
+      fetchDueFlashcards();
+    }
+  }, [user]);
 
   const handleRating = async (rating: number) => {
     if (!flashcards.length || currentIndex >= flashcards.length) return;
