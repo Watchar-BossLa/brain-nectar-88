@@ -53,11 +53,16 @@ const SignIn = () => {
         <Card className="w-full shadow-lg">
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-4">
-              <div className="rounded-xl bg-primary p-2 w-12 h-12 flex items-center justify-center">
-                <LogInIcon className="h-6 w-6 text-primary-foreground" />
+              <div className="flex flex-col items-center">
+                <img 
+                  src="/lovable-uploads/bdd6fb81-843d-4e3b-afe9-a8bdac7c4360.png" 
+                  alt="Study Bee Logo" 
+                  className="w-20 h-20 object-contain"
+                />
+                <h2 className="text-2xl font-bold text-primary-foreground mt-2">Study Bee</h2>
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold">Sign In</CardTitle>
+            <CardTitle className="text-2xl font-bold mt-4">Sign In</CardTitle>
             <CardDescription>
               Enter your email and password to access your account
             </CardDescription>

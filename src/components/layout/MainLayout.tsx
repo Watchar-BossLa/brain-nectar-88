@@ -60,10 +60,14 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            <div className="rounded-xl bg-primary p-2 w-10 h-10 flex items-center justify-center">
-              <GraduationCap className="h-5 w-5 text-primary-foreground" />
+            <div className="w-10 h-10 flex items-center justify-center">
+              <img 
+                src="/lovable-uploads/bdd6fb81-843d-4e3b-afe9-a8bdac7c4360.png" 
+                alt="Study Bee Logo" 
+                className="w-10 h-10 object-contain"
+              />
             </div>
-            <h1 className="text-xl font-semibold">Study Bee</h1>
+            <h1 className="text-xl font-semibold text-primary-foreground">Study Bee</h1>
           </motion.div>
         </div>
         
