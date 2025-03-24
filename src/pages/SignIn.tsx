@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -53,11 +54,13 @@ const SignIn = () => {
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-4">
               <div className="flex flex-col items-center">
-                <img 
-                  src="/lovable-uploads/bdd6fb81-843d-4e3b-afe9-a8bdac7c4360.png" 
-                  alt="Study Bee Logo" 
-                  className="w-20 h-20 logo-image"
-                />
+                <div className="bg-transparent">
+                  <img 
+                    src="/lovable-uploads/bdd6fb81-843d-4e3b-afe9-a8bdac7c4360.png" 
+                    alt="Study Bee Logo" 
+                    className="w-20 h-20 logo-image"
+                  />
+                </div>
                 <h2 className="text-2xl font-bold bg-gradient-to-b from-[#f5d742] to-[#333] inline-block text-transparent bg-clip-text font-sans mt-2">Study Bee</h2>
               </div>
             </div>

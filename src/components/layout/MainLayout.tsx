@@ -1,3 +1,4 @@
+
 import React, { ReactNode, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -59,7 +60,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            <div className="w-10 h-10 flex items-center justify-center">
+            <div className="w-10 h-10 flex items-center justify-center bg-transparent">
               <img 
                 src="/lovable-uploads/bdd6fb81-843d-4e3b-afe9-a8bdac7c4360.png" 
                 alt="Study Bee Logo" 
