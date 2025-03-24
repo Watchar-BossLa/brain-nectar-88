@@ -122,9 +122,5 @@
     @apply bg-gradient-to-b from-[#f5d742] to-[#333] inline-block text-transparent bg-clip-text font-bold;
   }
   
-  .logo-image {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
+  /* Removing the .logo-image class since we're using object-contain directly */
 }
