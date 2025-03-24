@@ -776,4 +776,3 @@ const AdaptiveQuizPlatform = () => {
 };
 
 export default AdaptiveQuizPlatform;
-</lov-code
