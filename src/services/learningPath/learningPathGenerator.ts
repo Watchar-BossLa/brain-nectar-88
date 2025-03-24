@@ -25,9 +25,6 @@ export const generateLearningPath = async (userId: string, qualificationId: stri
     // Cast the progress data to make TypeScript happy
     const userProgress = progressData as unknown as UserProgress[];
     
-    // Calculate mastery for each topic
-    const topicMasteryMap = calculateTopicMastery(userProgress);
-    
     // Get all modules for this qualification
     const { data: modules, error: modulesError } = await supabase
       .from('modules')
@@ -40,6 +37,12 @@ export const generateLearningPath = async (userId: string, qualificationId: stri
       console.error('Error fetching modules:', modulesError);
       return { data: null, error: modulesError };
     }
+    
+    // Extract all topics from modules
+    const allTopics = modules.flatMap(module => module.topics || []);
+    
+    // Calculate mastery for each topic, passing both required arguments
+    const topicMasteryMap = calculateTopicMastery(userProgress, allTopics);
     
     // Generate learning path based on topic mastery
     const learningPath = modules.map(module => {
