@@ -235,6 +235,7 @@ const Flashcards = () => {
                 flashcards={flashcards} 
                 isLoading={isLoading} 
                 onFlashcardsUpdated={fetchFlashcards}
+                onAddNew={handleCreateFlashcard}
               />
             </TabsContent>
             
@@ -251,7 +252,7 @@ const Flashcards = () => {
             <TabsContent value="create">
               {isCreating && (
                 <FlashcardForm 
-                  onFlashcardCreated={handleFlashcardCreated}
+                  onSuccess={handleFlashcardCreated}
                   onCancel={() => {
                     setIsCreating(false);
                     setActiveTab('all');

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,12 +12,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 interface FlashcardFormProps {
   onSuccess?: (flashcard: Flashcard) => void;
+  onFlashcardCreated?: () => void;
+  onCancel?: () => void;
   flashcard?: Flashcard;
   topics?: Array<{ id: string; title: string }>;
 }
 
 const FlashcardForm: React.FC<FlashcardFormProps> = ({ 
   onSuccess, 
+  onFlashcardCreated,
+  onCancel,
   flashcard,
   topics = []
 }) => {
@@ -71,9 +76,13 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({
       setBackContent('');
       setTopicId('');
 
-      // Call success callback
+      // Call success callbacks
       if (onSuccess && data[0]) {
         onSuccess(data[0]);
+      }
+      
+      if (onFlashcardCreated) {
+        onFlashcardCreated();
       }
     } catch (error) {
       console.error("Error creating flashcard:", error);
@@ -135,7 +144,12 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({
             </div>
           )}
         </CardContent>
-        <CardFooter className="flex justify-end space-x-2">
+        <CardFooter className="flex justify-between space-x-2">
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+          )}
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Saving...' : flashcard ? 'Update' : 'Create'}
           </Button>

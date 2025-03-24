@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { getUserFlashcards, deleteFlashcard } from '@/services/spacedRepetition';
 import { Flashcard } from '@/types/supabase';
@@ -20,9 +21,17 @@ import { useAuth } from '@/context/AuthContext';
 
 interface FlashcardListProps {
   onAddNew: () => void;
+  flashcards?: Flashcard[];
+  isLoading?: boolean;
+  onFlashcardsUpdated?: () => void;
 }
 
-const FlashcardList: React.FC<FlashcardListProps> = ({ onAddNew }) => {
+const FlashcardList: React.FC<FlashcardListProps> = ({ 
+  onAddNew, 
+  flashcards: propFlashcards,
+  isLoading: propIsLoading,
+  onFlashcardsUpdated
+}) => {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -31,6 +40,12 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ onAddNew }) => {
   const { user } = useAuth();
 
   const fetchFlashcards = async () => {
+    if (propFlashcards) {
+      setFlashcards(propFlashcards);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       if (!user) {
@@ -55,10 +70,13 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ onAddNew }) => {
   };
 
   useEffect(() => {
-    if (user) {
+    if (propFlashcards) {
+      setFlashcards(propFlashcards);
+      setLoading(false);
+    } else if (user) {
       fetchFlashcards();
     }
-  }, [user]);
+  }, [user, propFlashcards]);
 
   const handleDeleteClick = (id: string) => {
     setFlashcardToDelete(id);
@@ -80,6 +98,10 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ onAddNew }) => {
         title: 'Success',
         description: 'Flashcard deleted successfully'
       });
+
+      if (onFlashcardsUpdated) {
+        onFlashcardsUpdated();
+      }
     } catch (error) {
       console.error('Error deleting flashcard:', error);
       toast({
@@ -99,7 +121,7 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ onAddNew }) => {
     return reviewDate <= now;
   });
 
-  if (loading) {
+  if (propIsLoading || (loading && !propFlashcards)) {
     return (
       <div className="flex justify-center items-center min-h-[300px]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

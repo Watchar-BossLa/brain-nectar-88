@@ -103,6 +103,9 @@ export class SpacedRepetitionService {
         return false;
       }
       
+      // Record the review in the user's history (skipping this for now as flashcard_reviews table doesn't exist)
+      // We'll add this functionality later when we create the table
+
       return true;
     } catch (error) {
       console.error('Error recording flashcard review:', error);
@@ -225,20 +228,20 @@ export class SpacedRepetitionService {
       const averageDifficulty = difficultyData && difficultyData.length > 0
         ? difficultyData.reduce((sum, card) => sum + (card.difficulty || 0), 0) / difficultyData.length
         : 0;
-        
-      // Get reviews done today
+      
+      // For reviews today, we'll use an approximation based on flashcards updated today
+      // since we don't have a flashcard_reviews table yet
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
       const { count: reviewsToday, error: reviewsError } = await supabase
-        .from('flashcard_reviews') // Assuming we have a table to track reviews
+        .from('flashcards')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', userId)
-        .gte('reviewed_at', today.toISOString());
+        .gte('updated_at', today.toISOString());
         
       if (reviewsError) {
-        // If the table doesn't exist, we'll just return 0
-        console.warn('Error getting today\'s reviews:', reviewsError);
+        console.error('Error getting today\'s reviews:', reviewsError);
         return {
           totalCards: totalCards || 0,
           masteredCards: masteredCards || 0,
