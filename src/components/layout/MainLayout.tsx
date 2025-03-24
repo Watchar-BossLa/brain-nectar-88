@@ -60,11 +60,12 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            <div className="w-10 h-10 relative">
+            <div className="w-10 h-10 relative bg-transparent">
               <img 
                 src="/lovable-uploads/0d1e3e9b-51a0-4dff-87fc-047ce00b238a.png" 
                 alt="Study Bee Logo" 
                 className="w-full h-full object-contain"
+                style={{ mixBlendMode: 'multiply' }}
               />
             </div>
             <h1 className="text-2xl font-extrabold bg-gradient-to-b from-[#f5d742] to-[#1e3a8a] inline-block text-transparent bg-clip-text font-sans">Study Bee</h1>

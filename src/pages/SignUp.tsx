@@ -70,11 +70,12 @@ const SignUp = () => {
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-4">
               <div className="flex flex-col items-center">
-                <div className="w-20 h-20 relative">
+                <div className="w-20 h-20 relative bg-transparent">
                   <img 
                     src="/lovable-uploads/0d1e3e9b-51a0-4dff-87fc-047ce00b238a.png" 
                     alt="Study Bee Logo" 
                     className="w-full h-full object-contain"
+                    style={{ mixBlendMode: 'multiply' }}
                   />
                 </div>
                 <h2 className="text-3xl font-extrabold bg-gradient-to-b from-[#f5d742] to-[#1e3a8a] inline-block text-transparent bg-clip-text font-sans mt-2">Study Bee</h2>
