@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -61,7 +60,7 @@ const SignIn = () => {
                     className="logo-image absolute inset-0"
                   />
                 </div>
-                <h2 className="text-2xl font-bold bg-gradient-to-b from-[#f5d742] to-[#333] inline-block text-transparent bg-clip-text font-sans mt-2">Study Bee</h2>
+                <h2 className="text-2xl font-bold bg-gradient-to-b from-[#f5d742] to-[#1e3a8a] inline-block text-transparent bg-clip-text font-sans mt-2">Study Bee</h2>
               </div>
             </div>
             <CardTitle className="text-2xl font-bold mt-4">Sign In</CardTitle>
