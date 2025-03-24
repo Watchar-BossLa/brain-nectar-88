@@ -60,11 +60,11 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            <div className="w-10 h-10 flex items-center justify-center bg-transparent">
+            <div className="w-10 h-10 relative">
               <img 
                 src="/lovable-uploads/bdd6fb81-843d-4e3b-afe9-a8bdac7c4360.png" 
                 alt="Study Bee Logo" 
-                className="w-10 h-10 logo-image"
+                className="logo-image absolute inset-0"
               />
             </div>
             <h1 className="text-xl font-bold bg-gradient-to-b from-[#f5d742] to-[#333] inline-block text-transparent bg-clip-text font-sans">Study Bee</h1>
