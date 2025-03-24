@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -59,118 +60,108 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [toast]);
 
-  const value = {
-    session,
-    user,
-    loading,
-    signIn: async (email: string, password: string) => {
-      try {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-          toast({
-            title: 'Sign in failed',
-            description: error.message,
-            variant: 'destructive',
-          });
-          return { error };
-        }
-        toast({
-          title: 'Welcome back!',
-          description: 'You have successfully signed in.',
-        });
-        return { error: null };
-      } catch (error) {
+  const signIn = async (email: string, password: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
         toast({
           title: 'Sign in failed',
-          description: 'An unexpected error occurred.',
+          description: error.message,
           variant: 'destructive',
         });
-        return { error: error as Error };
+        return { error };
       }
-    },
-    signInWithGoogle: async () => {
-      try {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: window.location.origin,
-          }
-        });
-        
-        if (error) {
-          toast({
-            title: 'Google sign in failed',
-            description: error.message,
-            variant: 'destructive',
-          });
-          return { error };
-        }
-        
-        // No success toast here as the page will redirect to Google
-        return { error: null };
-      } catch (error) {
-        toast({
-          title: 'Google sign in failed',
-          description: 'An unexpected error occurred.',
-          variant: 'destructive',
-        });
-        return { error: error as Error };
-      }
-    },
-    signUp: async (email: string, password: string) => {
-      try {
-        const { error } = await supabase.auth.signUp({ email, password });
-        if (error) {
-          toast({
-            title: 'Sign up failed',
-            description: error.message,
-            variant: 'destructive',
-          });
-          return { error };
-        }
-        toast({
-          title: 'Welcome to Study Bee!',
-          description: 'Your account has been created successfully.',
-        });
-        return { error: null };
-      } catch (error) {
-        toast({
-          title: 'Sign up failed',
-          description: 'An unexpected error occurred.',
-          variant: 'destructive',
-        });
-        return { error: error as Error };
-      }
-    },
-    signOut: async () => {
-      try {
-        await supabase.auth.signOut();
-        toast({
-          title: 'Signed out',
-          description: 'You have been successfully signed out.',
-        });
-      } catch (error) {
-        console.error('Error signing out:', error);
-        toast({
-          title: 'Sign out failed',
-          description: 'An error occurred while signing out.',
-          variant: 'destructive',
-        });
-      }
-    },
+      toast({
+        title: 'Welcome back!',
+        description: 'You have successfully signed in.',
+      });
+      return { error: null };
+    } catch (error) {
+      toast({
+        title: 'Sign in failed',
+        description: 'An unexpected error occurred.',
+        variant: 'destructive',
+      });
+      return { error: error as Error };
+    }
   };
 
-  return <AuthContext.Provider value={session && user ? {
+  const signInWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        }
+      });
+      
+      if (error) {
+        toast({
+          title: 'Google sign in failed',
+          description: error.message,
+          variant: 'destructive',
+        });
+        return { error };
+      }
+      
+      // No success toast here as the page will redirect to Google
+      return { error: null };
+    } catch (error) {
+      toast({
+        title: 'Google sign in failed',
+        description: 'An unexpected error occurred.',
+        variant: 'destructive',
+      });
+      return { error: error as Error };
+    }
+  };
+
+  const signUp = async (email: string, password: string) => {
+    try {
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) {
+        toast({
+          title: 'Sign up failed',
+          description: error.message,
+          variant: 'destructive',
+        });
+        return { error };
+      }
+      toast({
+        title: 'Welcome to Study Bee!',
+        description: 'Your account has been created successfully.',
+      });
+      return { error: null };
+    } catch (error) {
+      toast({
+        title: 'Sign up failed',
+        description: 'An unexpected error occurred.',
+        variant: 'destructive',
+      });
+      return { error: error as Error };
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: 'Signed out',
+        description: 'You have been successfully signed out.',
+      });
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast({
+        title: 'Sign out failed',
+        description: 'An error occurred while signing out.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  return <AuthContext.Provider value={{
     session,
     user,
-    loading,
-    signIn,
-    signUp,
-    signInWithGoogle,
-    signOut,
-  } : {
-    session: null,
-    user: null,
     loading,
     signIn,
     signUp,
