@@ -18,101 +18,91 @@ export class FeedbackAgent extends BaseAgent {
     
     switch (taskType) {
       case 'FEEDBACK_GENERATION':
-        return this.generateFeedback(userId, data.activityId, data.activityType, data.result);
+        return this.generateFeedback(userId, data);
       default:
         throw new Error(`Unsupported task type for Feedback Agent: ${taskType}`);
     }
   }
   
   /**
-   * Generate personalized feedback for a learning activity
+   * Generate personalized feedback
    */
-  private async generateFeedback(
-    userId: string, 
-    activityId: string, 
-    activityType: string, 
-    result: any
-  ): Promise<any> {
-    this.log(`Generating feedback for user ${userId} on ${activityType} ${activityId}`);
+  private async generateFeedback(userId: string, data: any): Promise<any> {
+    this.log(`Generating feedback for user ${userId}`);
     
-    // This is a placeholder implementation
-    // In a real system, this would analyze the activity result and generate personalized feedback
+    // Extract relevant data
+    const { contentType, assessmentResults, userResponses } = data;
     
-    let feedback;
+    // In a real implementation, this would:
+    // 1. Analyze assessment results
+    // 2. Identify knowledge gaps
+    // 3. Generate targeted feedback
+    // 4. Tailor messaging based on user confidence
     
-    switch (activityType) {
-      case 'assessment':
-        feedback = this.generateAssessmentFeedback(result);
-        break;
-      case 'flashcard_review':
-        feedback = this.generateFlashcardFeedback(result);
-        break;
-      default:
-        feedback = {
-          message: 'Great job completing this activity!',
-          suggestions: ['Continue practicing regularly to reinforce your learning.']
-        };
+    // For demonstration purposes, generate different feedback based on content type
+    if (contentType === 'assessment') {
+      return this.generateAssessmentFeedback(assessmentResults);
+    } else if (contentType === 'learning_session') {
+      return this.generateLearningFeedback(userResponses);
+    } else {
+      return {
+        feedbackType: 'general',
+        generalFeedback: 'Continue to engage with the learning material regularly.',
+        specificPoints: [],
+        recommendedActions: ['Review challenging concepts', 'Practice with more exercises']
+      };
     }
-    
+  }
+  
+  /**
+   * Generate feedback for assessments
+   */
+  private generateAssessmentFeedback(results: any): any {
+    // Sample feedback for assessment results
     return {
-      userId,
-      activityId,
-      activityType,
-      feedback,
-      generatedAt: new Date().toISOString()
+      feedbackType: 'assessment',
+      overallPerformance: {
+        score: results?.score || 75,
+        strengths: ['Conceptual understanding', 'Application of principles'],
+        areasForImprovement: ['Calculation accuracy', 'Terminology precision']
+      },
+      specificFeedback: [
+        {
+          questionId: '1',
+          correctness: true,
+          feedback: 'Excellent understanding of the core concept.'
+        },
+        {
+          questionId: '2',
+          correctness: false,
+          feedback: 'Consider reviewing the formula for present value calculations.'
+        }
+      ],
+      nextSteps: [
+        'Review calculation methods for time value of money',
+        'Practice with more complex scenarios'
+      ]
     };
   }
   
   /**
-   * Generate feedback for an assessment
+   * Generate feedback for learning sessions
    */
-  private generateAssessmentFeedback(result: any): any {
-    // This is a simplified implementation
-    const score = result?.score || 0;
-    
-    if (score >= 90) {
-      return {
-        message: 'Excellent work! You've demonstrated a strong understanding of the material.',
-        strengths: ['Comprehensive knowledge', 'Accurate application of concepts'],
-        suggestions: ['Challenge yourself with more advanced topics']
-      };
-    } else if (score >= 70) {
-      return {
-        message: 'Good job! You've shown solid knowledge with some areas to strengthen.',
-        strengths: ['Good fundamental understanding'],
-        suggestions: ['Review the questions you missed', 'Practice applying concepts in different contexts']
-      };
-    } else {
-      return {
-        message: 'You're making progress, but there are important concepts to review.',
-        strengths: ['You're engaging with challenging material'],
-        suggestions: ['Focus on the fundamentals before moving forward', 'Try different learning formats for difficult concepts']
-      };
-    }
-  }
-  
-  /**
-   * Generate feedback for flashcard review
-   */
-  private generateFlashcardFeedback(result: any): any {
-    const difficulty = result?.averageDifficulty || 3;
-    
-    if (difficulty <= 2) {
-      return {
-        message: 'You found these cards challenging. That's a great opportunity for growth!',
-        suggestions: ['Increase review frequency for difficult cards', 'Try creating mnemonic devices for hard-to-remember concepts']
-      };
-    } else if (difficulty <= 3.5) {
-      return {
-        message: 'You're making good progress with these flashcards.',
-        suggestions: ['Continue regular review to strengthen retention']
-      };
-    } else {
-      return {
-        message: 'You're showing strong mastery of these concepts!',
-        suggestions: ['Consider adding more challenging cards to your deck', 'Begin connecting these concepts to more advanced topics']
-      };
-    }
+  private generateLearningFeedback(responses: any): any {
+    // Sample feedback for learning activities
+    return {
+      feedbackType: 'learning',
+      engagementLevel: 'high',
+      paceAssessment: 'appropriate',
+      comprehensionIndicators: {
+        conceptualQuestions: 'strong',
+        practicalApplications: 'moderate'
+      },
+      recommendedNextTopics: [
+        'Advanced applications',
+        'Integration with related concepts'
+      ]
+    };
   }
   
   /**
@@ -122,16 +112,31 @@ export class FeedbackAgent extends BaseAgent {
     const { type, content, data } = message;
     
     switch (content) {
+      case 'ASSESSMENT_COMPLETED':
+        // Generate and send feedback for completed assessment
+        if (data.userId && data.assessmentId && data.results) {
+          this.log(`Assessment completed: ${data.assessmentId}`);
+          
+          // In a real implementation, this would trigger a feedback generation task
+          // For now, log the event
+        }
+        break;
+        
       case 'REQUEST_FEEDBACK':
-        // Handle requests to generate feedback
-        if (data.userId && data.activityId && data.activityType && data.result) {
-          this.generateFeedback(data.userId, data.activityId, data.activityType, data.result)
-            .then(feedbackResult => {
-              if (message.senderId) {
-                this.sendMessage(message.senderId, 'FEEDBACK_RESULT', { feedbackResult });
+        // Generate and send feedback upon request
+        if (data.userId && data.contentType) {
+          this.sendMessage(
+            message.senderId as AgentType,
+            'FEEDBACK_RESPONSE',
+            {
+              userId: data.userId,
+              feedback: {
+                type: data.contentType,
+                suggestions: ['Focus on concept X', 'Practice more Y'],
+                encouragement: 'You\'re making good progress!'
               }
-            })
-            .catch(error => console.error('Error generating feedback:', error));
+            }
+          );
         }
         break;
         

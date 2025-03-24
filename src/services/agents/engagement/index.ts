@@ -18,33 +18,30 @@ export class EngagementAgent extends BaseAgent {
     
     switch (taskType) {
       case 'ENGAGEMENT_OPTIMIZATION':
-        return this.generateEngagementStrategy(userId);
+        return this.optimizeEngagement(userId, data);
       default:
         throw new Error(`Unsupported task type for Engagement Agent: ${taskType}`);
     }
   }
   
   /**
-   * Generate an engagement strategy for a user
+   * Optimize user engagement
    */
-  private async generateEngagementStrategy(userId: string): Promise<any> {
-    this.log(`Generating engagement strategy for user ${userId}`);
+  private async optimizeEngagement(userId: string, data: any): Promise<any> {
+    this.log(`Optimizing engagement for user ${userId}`);
     
-    // This is a placeholder implementation
-    // In a real system, this would analyze user behavior and generate personalized strategies
+    // In a real implementation, this would:
+    // 1. Analyze user engagement patterns
+    // 2. Identify optimal study times
+    // 3. Create personalized motivation strategies
     
+    // For now, return some sample engagement strategies
     return {
-      userId,
-      recommendedActivities: [
-        { type: 'assessment', reason: 'Maintain active recall' },
-        { type: 'flashcard_review', reason: 'Strengthen memory through spaced repetition' }
-      ],
-      motivationalMessages: [
-        'Keep up the great work! You're making steady progress.',
-        'You're 70% through this module. The finish line is in sight!'
-      ],
-      optimalStudyTimes: ['morning', 'early_evening'],
-      generatedAt: new Date().toISOString()
+      optimalStudyTimes: ["morning", "early_evening"],
+      recommendedSessionLength: 25,
+      motivationalTriggers: ["progress_visualization", "achievement_badges"],
+      disengagementRisk: "low",
+      recommendedInterventions: []
     };
   }
   
@@ -55,16 +52,27 @@ export class EngagementAgent extends BaseAgent {
     const { type, content, data } = message;
     
     switch (content) {
-      case 'REQUEST_ENGAGEMENT_STRATEGY':
-        // Handle requests to generate an engagement strategy
+      case 'USER_ACTIVITY_UPDATE':
+        // Process user activity data
+        this.log('Received user activity update');
+        break;
+        
+      case 'REQUEST_ENGAGEMENT_METRICS':
+        // Generate and send engagement metrics to requesting agent
         if (data.userId) {
-          this.generateEngagementStrategy(data.userId)
-            .then(strategy => {
-              if (message.senderId) {
-                this.sendMessage(message.senderId, 'ENGAGEMENT_STRATEGY_RESULT', { strategy });
+          this.sendMessage(
+            message.senderId as AgentType, 
+            'ENGAGEMENT_METRICS_RESPONSE', 
+            {
+              userId: data.userId,
+              metrics: {
+                currentStreak: 5,
+                averageSessionTime: 27,
+                completionRate: 0.72,
+                dropoffPoints: []
               }
-            })
-            .catch(error => console.error('Error generating engagement strategy:', error));
+            }
+          );
         }
         break;
         
