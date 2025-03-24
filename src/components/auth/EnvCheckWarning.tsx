@@ -24,7 +24,7 @@ export const EnvCheckWarning = () => {
       <AlertCircle className="h-4 w-4" />
       <AlertTitle>Environment Configuration Required</AlertTitle>
       <AlertDescription>
-        Supabase configuration is missing or using default values. This is fine for development, but you'll need to set proper environment variables for production use.
+        Supabase configuration is missing or using default values. Please create a .env file in your project root with the VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY variables.
         See the .env.example file for required variables.
       </AlertDescription>
     </Alert>
