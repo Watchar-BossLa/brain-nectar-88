@@ -5,20 +5,14 @@ import { Search, Filter } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Button } from '@/components/ui/button';
 import LearningModule from '@/components/ui/learning-module';
-
-export interface Topic {
-  id: string;
-  title: string;
-  duration: string;
-  isCompleted: boolean;
-}
+import { TopicItemProps } from '@/components/ui/learning-module';
 
 export interface ModuleType {
   id: string;
   title: string;
   progress: number;
   totalDuration: string;
-  topics: Topic[];
+  topics: TopicItemProps[];
 }
 
 interface ModulesListProps {
