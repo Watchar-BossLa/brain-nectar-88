@@ -75,6 +75,7 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
   /* Custom scrollbar for webkit browsers */
@@ -116,5 +117,9 @@
   
   .page-transition-enter {
     @apply animate-fade-in animate-slide-up;
+  }
+
+  .gold-gradient-text {
+    @apply bg-gradient-to-b from-[#f5d742] to-[#333] inline-block text-transparent bg-clip-text font-bold;
   }
 }
