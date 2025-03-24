@@ -8,7 +8,8 @@ import {
   BarChart2, 
   Settings, 
   Home,
-  User
+  User,
+  Award
 } from 'lucide-react';
 
 interface MainLayoutProps {
@@ -44,6 +45,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             {[
               { icon: <Home size={18} />, label: 'Dashboard', path: '/' },
               { icon: <BookOpen size={18} />, label: 'My Courses', path: '/courses' },
+              { icon: <Award size={18} />, label: 'Qualifications', path: '/qualifications' },
               { icon: <GraduationCap size={18} />, label: 'Assessments', path: '/assessments' },
               { icon: <BarChart2 size={18} />, label: 'Progress', path: '/progress' },
               { icon: <User size={18} />, label: 'Profile', path: '/profile' },
