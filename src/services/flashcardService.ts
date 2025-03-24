@@ -1,7 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Flashcard } from '@/types/supabase';
-import { useToast } from '@/hooks/use-toast';
 
 // SM-2 Spaced Repetition Algorithm parameters
 const INITIAL_EASINESS_FACTOR = 2.5;
