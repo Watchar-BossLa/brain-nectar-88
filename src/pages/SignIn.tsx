@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -57,8 +56,7 @@ const SignIn = () => {
                 <img 
                   src="/lovable-uploads/bdd6fb81-843d-4e3b-afe9-a8bdac7c4360.png" 
                   alt="Study Bee Logo" 
-                  className="w-20 h-20 object-contain"
-                  style={{ filter: 'drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.1))' }}
+                  className="w-20 h-20 logo-image"
                 />
                 <h2 className="text-2xl font-bold bg-gradient-to-b from-[#f5d742] to-[#333] inline-block text-transparent bg-clip-text font-sans mt-2">Study Bee</h2>
               </div>

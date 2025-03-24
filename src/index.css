@@ -122,4 +122,10 @@
   .gold-gradient-text {
     @apply bg-gradient-to-b from-[#f5d742] to-[#333] inline-block text-transparent bg-clip-text font-bold;
   }
+  
+  .logo-image {
+    @apply object-contain;
+    mix-blend-mode: multiply;
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.15));
+  }
 }
