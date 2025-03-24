@@ -1,3 +1,4 @@
+
 import React, { ReactNode, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -66,7 +67,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                 className="logo-image absolute inset-0"
               />
             </div>
-            <h1 className="text-xl font-bold bg-gradient-to-b from-[#f5d742] to-[#1e3a8a] inline-block text-transparent bg-clip-text font-sans">Study Bee</h1>
+            <h1 className="text-2xl font-extrabold bg-gradient-to-b from-[#f5d742] to-[#1e3a8a] inline-block text-transparent bg-clip-text font-sans">Study Bee</h1>
           </motion.div>
         </div>
         
