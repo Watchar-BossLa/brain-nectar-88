@@ -1,7 +1,6 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
-import { supabase, getCurrentUser } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 type AuthContextType = {
@@ -23,7 +22,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check for active session
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
+    );
+
+    // THEN check for existing session
     const initialSession = async () => {
       try {
         const { data } = await supabase.auth.getSession();
@@ -45,15 +53,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     initialSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
 
     return () => {
       subscription.unsubscribe();
@@ -161,7 +160,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={session && user ? {
+    session,
+    user,
+    loading,
+    signIn,
+    signUp,
+    signInWithGoogle,
+    signOut,
+  } : {
+    session: null,
+    user: null,
+    loading,
+    signIn,
+    signUp,
+    signInWithGoogle,
+    signOut,
+  }}>{children}</AuthContext.Provider>;
 }
 
 export const useAuth = () => {
