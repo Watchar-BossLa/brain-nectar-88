@@ -62,7 +62,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           >
             <div className="w-10 h-10 relative">
               <img 
-                src="/lovable-uploads/bdd6fb81-843d-4e3b-afe9-a8bdac7c4360.png" 
+                src="/lovable-uploads/latest-upload.png" 
                 alt="Study Bee Logo" 
                 className="logo-image absolute inset-0"
               />
