@@ -4,6 +4,14 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+// Add platform owner information
+const PLATFORM_OWNER = {
+  name: "Kelvin Antoine",
+  email: "kelvin.w.antoine@gmail.com",
+  phone: "+1758 7197506",
+  role: "Administrator"
+};
+
 type AuthContextType = {
   session: Session | null;
   user: User | null;
@@ -12,6 +20,8 @@ type AuthContextType = {
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  platformOwner: typeof PLATFORM_OWNER;
+  isAdmin: boolean;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,6 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -28,6 +39,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // Check if the current user is the platform administrator
+        if (session?.user?.email === PLATFORM_OWNER.email) {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+        }
+        
         setLoading(false);
       }
     );
@@ -40,6 +59,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (data.session?.user) {
           setUser(data.session.user);
+          
+          // Check if the current user is the platform administrator
+          if (data.session.user.email === PLATFORM_OWNER.email) {
+            setIsAdmin(true);
+          }
         }
       } catch (error) {
         console.error('Error fetching session:', error);
@@ -172,6 +196,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signInWithGoogle,
     signOut,
+    platformOwner: PLATFORM_OWNER,
+    isAdmin,
   }}>{children}</AuthContext.Provider>;
 }
 
