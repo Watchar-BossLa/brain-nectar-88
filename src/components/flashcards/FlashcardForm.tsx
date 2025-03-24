@@ -9,6 +9,10 @@ import { createFlashcard } from '@/services/spacedRepetition';
 import { Flashcard } from '@/types/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import 'katex/dist/katex.min.css';
+import { InlineMath } from 'react-katex';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface FlashcardFormProps {
   onSuccess?: (flashcard: Flashcard) => void;
@@ -29,8 +33,33 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({
   const [backContent, setBackContent] = useState(flashcard?.back_content || '');
   const [topicId, setTopicId] = useState(flashcard?.topic_id || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [useLatex, setUseLatex] = useState(
+    flashcard?.front_content?.includes('$$') || flashcard?.back_content?.includes('$$') || false
+  );
+  const [previewTab, setPreviewTab] = useState<'front' | 'back'>('front');
   const { toast } = useToast();
   const { user } = useAuth();
+
+  // Helper function to render LaTeX and plain text content
+  const renderContent = (content: string) => {
+    if (!useLatex) return content;
+    
+    // Replace $$formula$$ with LaTeX rendered formula
+    const parts = content.split(/(\\?\$\$[^$]*\$\$)/g);
+    
+    return parts.map((part, index) => {
+      if (part.startsWith('$$') && part.endsWith('$$')) {
+        const formula = part.slice(2, -2);
+        try {
+          return <InlineMath key={index} math={formula} />;
+        } catch (error) {
+          console.error('LaTeX rendering error:', error);
+          return <span key={index} className="text-red-500">{part}</span>;
+        }
+      }
+      return <span key={index}>{part}</span>;
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,31 +129,66 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({
     <Card className="max-w-md mx-auto">
       <CardHeader>
         <CardTitle>{flashcard ? 'Edit Flashcard' : 'Create New Flashcard'}</CardTitle>
+        <div className="flex items-center space-x-2 mt-2">
+          <Switch 
+            id="latex-toggle" 
+            checked={useLatex} 
+            onCheckedChange={setUseLatex}
+          />
+          <Label htmlFor="latex-toggle">Enable LaTeX for math formulas (use $$formula$$)</Label>
+        </div>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="front-content">Front (Question)</Label>
-            <Textarea
-              id="front-content"
-              placeholder="Enter the question or prompt"
-              value={frontContent}
-              onChange={(e) => setFrontContent(e.target.value)}
-              rows={3}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="back-content">Back (Answer)</Label>
-            <Textarea
-              id="back-content"
-              placeholder="Enter the answer or explanation"
-              value={backContent}
-              onChange={(e) => setBackContent(e.target.value)}
-              rows={3}
-              required
-            />
-          </div>
+          <Tabs defaultValue="edit" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="edit">Edit</TabsTrigger>
+              <TabsTrigger value="preview">Preview</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="edit" className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="front-content">Front (Question)</Label>
+                <Textarea
+                  id="front-content"
+                  placeholder="Enter the question or prompt (use $$formula$$ for math formulas)"
+                  value={frontContent}
+                  onChange={(e) => setFrontContent(e.target.value)}
+                  rows={3}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="back-content">Back (Answer)</Label>
+                <Textarea
+                  id="back-content"
+                  placeholder="Enter the answer or explanation (use $$formula$$ for math formulas)"
+                  value={backContent}
+                  onChange={(e) => setBackContent(e.target.value)}
+                  rows={3}
+                  required
+                />
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="preview">
+              <div className="border rounded-md p-4 mb-4">
+                <Tabs defaultValue="front">
+                  <TabsList>
+                    <TabsTrigger value="front">Front</TabsTrigger>
+                    <TabsTrigger value="back">Back</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="front" className="min-h-[100px] pt-4">
+                    {renderContent(frontContent) || <span className="text-muted-foreground">Question preview will appear here</span>}
+                  </TabsContent>
+                  <TabsContent value="back" className="min-h-[100px] pt-4">
+                    {renderContent(backContent) || <span className="text-muted-foreground">Answer preview will appear here</span>}
+                  </TabsContent>
+                </Tabs>
+              </div>
+            </TabsContent>
+          </Tabs>
+          
           {topics.length > 0 && (
             <div className="space-y-2">
               <Label htmlFor="topic">Topic (Optional)</Label>
