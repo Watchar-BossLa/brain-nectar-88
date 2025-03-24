@@ -4,7 +4,7 @@ import { NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   BookOpen, 
-  Graduation, 
+  GraduationCap, 
   BarChart2, 
   Settings, 
   Home,
@@ -33,7 +33,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             transition={{ delay: 0.2 }}
           >
             <div className="rounded-xl bg-primary p-2 w-10 h-10 flex items-center justify-center">
-              <Graduation className="h-5 w-5 text-primary-foreground" />
+              <GraduationCap className="h-5 w-5 text-primary-foreground" />
             </div>
             <h1 className="text-xl font-semibold">Study Bee</h1>
           </motion.div>
@@ -44,7 +44,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             {[
               { icon: <Home size={18} />, label: 'Dashboard', path: '/' },
               { icon: <BookOpen size={18} />, label: 'My Courses', path: '/courses' },
-              { icon: <Graduation size={18} />, label: 'Assessments', path: '/assessments' },
+              { icon: <GraduationCap size={18} />, label: 'Assessments', path: '/assessments' },
               { icon: <BarChart2 size={18} />, label: 'Progress', path: '/progress' },
               { icon: <User size={18} />, label: 'Profile', path: '/profile' },
               { icon: <Settings size={18} />, label: 'Settings', path: '/settings' },
