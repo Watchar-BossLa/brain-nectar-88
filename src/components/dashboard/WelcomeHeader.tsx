@@ -1,11 +1,38 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const WelcomeHeader = () => {
-  const { user } = useAuth();
-  const firstName = "Kelvin"; // Default to Kelvin even if user data isn't available
+  const { user, platformOwner } = useAuth();
+  const [firstName, setFirstName] = useState<string>("Kelvin"); // Default to platform owner
+  
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user) {
+        try {
+          // Try to get user's profile from the profiles table
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('first_name')
+            .eq('id', user.id)
+            .single();
+            
+          if (data && data.first_name) {
+            setFirstName(data.first_name);
+          } else if (user.email === platformOwner.email) {
+            // If it's the admin, use their name from the platform owner constant
+            setFirstName(platformOwner.name.split(' ')[0]);
+          }
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+        }
+      }
+    };
+    
+    fetchUserProfile();
+  }, [user, platformOwner]);
 
   return (
     <motion.div 
