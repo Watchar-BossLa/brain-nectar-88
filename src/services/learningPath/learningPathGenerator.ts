@@ -1,18 +1,20 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Module, Topic, UserProgress } from '@/types/supabase';
+import { UserProgress, Content } from '@/types/supabase';
 import { calculateTopicMastery } from './topicMasteryUtils';
-import { createAdaptivePath } from './pathCreationUtils';
 
 /**
- * Generates an adaptive learning path based on user's progress, assessments, and learning preferences
+ * Generates a personalized learning path based on user performance
  */
 export const generateLearningPath = async (userId: string, qualificationId: string) => {
   try {
-    // Get user's learning history and progress
+    // Get user's progress for this qualification
     const { data: progressData, error: progressError } = await supabase
       .from('user_progress')
-      .select('*, content:content_id(*)')
+      .select(`
+        *,
+        content:content_id(*)
+      `)
       .eq('user_id', userId);
     
     if (progressError) {
@@ -20,17 +22,16 @@ export const generateLearningPath = async (userId: string, qualificationId: stri
       return { data: null, error: progressError };
     }
     
-    // Convert the data to match our UserProgress type
-    const userProgress: UserProgress[] = progressData?.map(progress => ({
-      ...progress,
-      content_id: progress.content_id,
-      status: progress.status as "not_started" | "in_progress" | "completed"
-    })) || [];
-
-    // Get all modules for the selected qualification
+    // Cast the progress data to make TypeScript happy
+    const userProgress = progressData as unknown as UserProgress[];
+    
+    // Calculate mastery for each topic
+    const topicMasteryMap = calculateTopicMastery(userProgress);
+    
+    // Get all modules for this qualification
     const { data: modules, error: modulesError } = await supabase
       .from('modules')
-      .select('*')
+      .select('*, topics(*)')
       .eq('qualification_id', qualificationId)
       .eq('is_active', true)
       .order('order_index', { ascending: true });
@@ -39,47 +40,29 @@ export const generateLearningPath = async (userId: string, qualificationId: stri
       console.error('Error fetching modules:', modulesError);
       return { data: null, error: modulesError };
     }
-
-    // Get all topics for these modules
-    const moduleIds = modules?.map(module => module.id) || [];
-    const { data: topics, error: topicsError } = await supabase
-      .from('topics')
-      .select('*')
-      .in('module_id', moduleIds)
-      .eq('is_active', true)
-      .order('order_index', { ascending: true });
     
-    if (topicsError) {
-      console.error('Error fetching topics:', topicsError);
-      return { data: null, error: topicsError };
-    }
-
-    // Calculate mastery for each topic based on user progress
-    const topicMastery = calculateTopicMastery(topics, userProgress);
+    // Generate learning path based on topic mastery
+    const learningPath = modules.map(module => {
+      return {
+        ...module,
+        topics: module.topics.map(topic => {
+          const mastery = topicMasteryMap[topic.id] || 0;
+          return {
+            ...topic,
+            mastery: mastery,
+            recommended: mastery < 70 // Recommend topics with less than 70% mastery
+          };
+        }).sort((a, b) => {
+          // Sort topics by mastery (ascending) and then by order_index
+          if (a.mastery === b.mastery) {
+            return a.order_index - b.order_index;
+          }
+          return a.mastery - b.mastery;
+        })
+      };
+    });
     
-    // Generate a personalized learning path
-    const learningPath = createAdaptivePath(modules, topics, topicMastery);
-    
-    // Save the generated learning path
-    const { data: savedPath, error: saveError } = await supabase
-      .from('study_plans')
-      .insert({
-        user_id: userId,
-        qualification_id: qualificationId,
-        title: 'Personalized Learning Path',
-        description: 'Automatically generated based on your progress',
-        start_date: new Date().toISOString(),
-        is_active: true
-      })
-      .select()
-      .single();
-    
-    if (saveError) {
-      console.error('Error saving learning path:', saveError);
-      return { data: null, error: saveError };
-    }
-
-    return { data: { path: learningPath, plan: savedPath }, error: null };
+    return { data: learningPath, error: null };
   } catch (error) {
     console.error('Error in generateLearningPath:', error);
     return { data: null, error };

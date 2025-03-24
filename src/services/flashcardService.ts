@@ -1,10 +1,10 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Flashcard } from '@/types/supabase';
-
-// SM-2 Spaced Repetition Algorithm parameters
-const INITIAL_EASINESS_FACTOR = 2.5;
-const MIN_EASINESS_FACTOR = 1.3;
+import { 
+  calculateNextReviewDate, 
+  INITIAL_EASINESS_FACTOR 
+} from './spacedRepetition';
 
 // Calculate the next review date based on the SM-2 algorithm
 export const calculateNextReviewDate = (
