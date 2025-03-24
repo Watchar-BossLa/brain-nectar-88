@@ -96,21 +96,28 @@ export const getDueFlashcards = async () => {
 // Create a new flashcard
 export const createFlashcard = async (frontContent: string, backContent: string, topicId?: string) => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.error('No authenticated user found');
+      return { data: null, error: new Error('User not authenticated') };
+    }
+    
     // Default next review date is today (cards are due immediately after creation)
     const nextReviewDate = new Date().toISOString();
     
     const { data, error } = await supabase
       .from('flashcards')
-      .insert([
-        {
-          front_content: frontContent,
-          back_content: backContent,
-          topic_id: topicId || null,
-          difficulty: 3, // Default medium difficulty
-          repetition_count: 0,
-          next_review_date: nextReviewDate,
-        }
-      ])
+      .insert({
+        front_content: frontContent,
+        back_content: backContent,
+        topic_id: topicId || null,
+        difficulty: 3, // Default medium difficulty
+        repetition_count: 0,
+        next_review_date: nextReviewDate,
+        user_id: user.id // Add the user_id field required by RLS
+      })
       .select();
       
     if (error) {
