@@ -1,3 +1,4 @@
+
 import { AgentTask, AgentType, TaskStatus } from '../types';
 import { createAgentRegistry } from './agentRegistry';
 
@@ -42,7 +43,8 @@ export class TaskProcessor {
       
       if (targetAgents.length === 0) {
         console.warn('No suitable agent found for task:', task);
-        return { success: false, error: 'No suitable agent found' };
+        // Instead of returning an object, just log the error
+        console.error('No suitable agent found');
       } else {
         // Distribute the task to the appropriate agent(s)
         for (const agentType of targetAgents) {
@@ -52,14 +54,13 @@ export class TaskProcessor {
           }
         }
         
-        return { success: true };
+        // Instead of returning a success object, just log success
+        console.log('Task processed successfully');
       }
     } catch (error) {
       console.error('Error processing task:', error);
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Unknown error' 
-      };
+      // Instead of returning an error object, just log the error
+      console.error('Task processing failed:', error instanceof Error ? error.message : 'Unknown error');
     } finally {
       // Continue processing the queue
       this.processTaskQueue();
