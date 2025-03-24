@@ -10,6 +10,7 @@ type AuthContextType = {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 };
 
@@ -82,6 +83,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         toast({
           title: 'Sign in failed',
+          description: 'An unexpected error occurred.',
+          variant: 'destructive',
+        });
+        return { error: error as Error };
+      }
+    },
+    signInWithGoogle: async () => {
+      try {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: window.location.origin,
+          }
+        });
+        
+        if (error) {
+          toast({
+            title: 'Google sign in failed',
+            description: error.message,
+            variant: 'destructive',
+          });
+          return { error };
+        }
+        
+        // No success toast here as the page will redirect to Google
+        return { error: null };
+      } catch (error) {
+        toast({
+          title: 'Google sign in failed',
           description: 'An unexpected error occurred.',
           variant: 'destructive',
         });
