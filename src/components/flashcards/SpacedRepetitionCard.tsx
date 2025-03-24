@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,13 +7,19 @@ import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import 'katex/dist/katex.min.css';
 import { InlineMath } from 'react-katex';
+import { Loader2 } from 'lucide-react';
 
 interface SpacedRepetitionCardProps {
   flashcard: Flashcard;
   onComplete: () => void;
+  onUpdateStats?: () => void;
 }
 
-const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({ flashcard, onComplete }) => {
+const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({ 
+  flashcard, 
+  onComplete,
+  onUpdateStats
+}) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [difficultyRating, setDifficultyRating] = useState<number | null>(null);
@@ -39,6 +44,11 @@ const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({ flashcard, 
       
       if (error) {
         throw new Error(error.message);
+      }
+      
+      // Update stats if callback is provided
+      if (onUpdateStats) {
+        onUpdateStats();
       }
       
       // Short delay to show the selected rating
@@ -166,6 +176,12 @@ const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({ flashcard, 
           >
             Show Answer
           </Button>
+        )}
+        
+        {isSubmitting && (
+          <div className="flex justify-center mt-4">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          </div>
         )}
       </CardFooter>
     </Card>

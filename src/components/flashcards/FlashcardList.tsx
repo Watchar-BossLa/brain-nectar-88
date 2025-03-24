@@ -2,22 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import { getUserFlashcards, deleteFlashcard } from '@/services/spacedRepetition';
 import { Flashcard } from '@/types/supabase';
-import FlashcardCard from './FlashcardCard';
-import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Loader2 } from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from '@/context/AuthContext';
+import FlashcardListHeader from './FlashcardListHeader';
+import EmptyFlashcardState from './EmptyFlashcardState';
+import FlashcardGrid from './FlashcardGrid';
+import DeleteFlashcardDialog from './DeleteFlashcardDialog';
 
 interface FlashcardListProps {
   onAddNew: () => void;
@@ -131,22 +123,10 @@ const FlashcardList: React.FC<FlashcardListProps> = ({
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">My Flashcards</h2>
-        <Button onClick={onAddNew}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Add New
-        </Button>
-      </div>
+      <FlashcardListHeader onAddNew={onAddNew} />
 
       {flashcards.length === 0 ? (
-        <div className="text-center p-8 border border-dashed rounded-lg">
-          <p className="text-muted-foreground mb-4">You don't have any flashcards yet.</p>
-          <Button onClick={onAddNew}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Create Your First Flashcard
-          </Button>
-        </div>
+        <EmptyFlashcardState onAddNew={onAddNew} />
       ) : (
         <Tabs defaultValue="all">
           <TabsList className="mb-4">
@@ -155,51 +135,26 @@ const FlashcardList: React.FC<FlashcardListProps> = ({
           </TabsList>
           
           <TabsContent value="all">
-            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-              {flashcards.map(flashcard => (
-                <FlashcardCard
-                  key={flashcard.id}
-                  flashcard={flashcard}
-                  onDelete={() => handleDeleteClick(flashcard.id)}
-                />
-              ))}
-            </div>
+            <FlashcardGrid 
+              flashcards={flashcards} 
+              onDelete={handleDeleteClick} 
+            />
           </TabsContent>
           
           <TabsContent value="due">
-            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-              {dueFlashcards.length > 0 ? (
-                dueFlashcards.map(flashcard => (
-                  <FlashcardCard
-                    key={flashcard.id}
-                    flashcard={flashcard}
-                    onDelete={() => handleDeleteClick(flashcard.id)}
-                  />
-                ))
-              ) : (
-                <div className="col-span-full text-center p-4">
-                  <p>No flashcards due for review right now.</p>
-                </div>
-              )}
-            </div>
+            <FlashcardGrid 
+              flashcards={dueFlashcards} 
+              onDelete={handleDeleteClick} 
+            />
           </TabsContent>
         </Tabs>
       )}
 
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete this flashcard. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteFlashcardDialog 
+        isOpen={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 };

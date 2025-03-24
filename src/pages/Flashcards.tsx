@@ -20,6 +20,7 @@ const Flashcards = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [flashcards, setFlashcards] = useState<any[]>([]);
   const [dueFlashcards, setDueFlashcards] = useState<any[]>([]);
+  const [currentReviewCard, setCurrentReviewCard] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isReviewing, setIsReviewing] = useState(false);
   const [stats, setStats] = useState({
@@ -70,6 +71,11 @@ const Flashcards = () => {
     try {
       const dueCards = await spacedRepetitionService.getDueFlashcards(user.id);
       setDueFlashcards(dueCards);
+      
+      // Set the first due card for review if we're in review mode
+      if (dueCards.length > 0 && isReviewing) {
+        setCurrentReviewCard(dueCards[0]);
+      }
     } catch (error) {
       console.error('Error fetching due flashcards:', error);
     }
@@ -114,19 +120,29 @@ const Flashcards = () => {
     }
     
     setIsReviewing(true);
+    setCurrentReviewCard(dueFlashcards[0]);
     setActiveTab('review');
   };
 
   const handleCompleteReview = () => {
-    setIsReviewing(false);
-    fetchDueFlashcards();
-    fetchStats();
-    setActiveTab('all');
-    
-    toast({
-      title: 'Review complete',
-      description: 'Your progress has been saved.',
-    });
+    // Move to the next card or finish review
+    const currentIndex = dueFlashcards.findIndex(card => card.id === currentReviewCard.id);
+    if (currentIndex < dueFlashcards.length - 1) {
+      // Move to next card
+      setCurrentReviewCard(dueFlashcards[currentIndex + 1]);
+    } else {
+      // Finish review
+      setIsReviewing(false);
+      setCurrentReviewCard(null);
+      fetchDueFlashcards();
+      fetchStats();
+      setActiveTab('all');
+      
+      toast({
+        title: 'Review complete',
+        description: 'Your progress has been saved.',
+      });
+    }
   };
 
   const handleUpdateStats = () => {
@@ -240,9 +256,9 @@ const Flashcards = () => {
             </TabsContent>
             
             <TabsContent value="review">
-              {isReviewing && (
+              {isReviewing && currentReviewCard && (
                 <SpacedRepetitionCard 
-                  flashcards={dueFlashcards}
+                  flashcard={currentReviewCard}
                   onComplete={handleCompleteReview}
                   onUpdateStats={handleUpdateStats}
                 />

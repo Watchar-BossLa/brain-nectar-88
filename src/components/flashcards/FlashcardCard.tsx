@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,19 +10,21 @@ import { InlineMath } from 'react-katex';
 interface FlashcardCardProps {
   flashcard: Flashcard;
   onDelete?: (id: string) => void;
+  isReviewMode?: boolean;
+  onRating?: (rating: number) => Promise<void>;
 }
 
 const FlashcardCard: React.FC<FlashcardCardProps> = ({ 
   flashcard, 
-  onDelete 
+  onDelete,
+  isReviewMode = false,
+  onRating
 }) => {
   const [isFlipped, setIsFlipped] = useState(false);
   
   const renderContent = (content: string) => {
-    // Check if content has LaTeX formulas
     if (!content.includes('$$')) return content;
     
-    // Replace $$formula$$ with LaTeX rendered formula
     const parts = content.split(/(\\?\$\$[^$]*\$\$)/g);
     
     return parts.map((part, index) => {
@@ -47,21 +48,51 @@ const FlashcardCard: React.FC<FlashcardCardProps> = ({
       const reviewDate = new Date(flashcard.next_review_date);
       const today = new Date();
       
-      // If the date is today
       if (reviewDate.toDateString() === today.toDateString()) {
         return 'Due today';
       }
       
-      // If the date is in the past
       if (reviewDate < today) {
         return 'Overdue';
       }
       
-      // Format the date
       return `Due ${format(reviewDate, 'MMM d, yyyy')}`;
     } catch (error) {
       console.error('Error formatting due date:', error);
       return 'Date error';
+    }
+  };
+
+  const renderReviewUI = () => {
+    if (!isReviewMode || !isFlipped || !onRating) return null;
+    
+    return (
+      <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2 p-2">
+        {[1, 2, 3, 4, 5].map((rating) => (
+          <Button
+            key={rating}
+            size="sm"
+            variant={getRatingVariant(rating)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onRating(rating);
+            }}
+          >
+            {rating}
+          </Button>
+        ))}
+      </div>
+    );
+  };
+
+  const getRatingVariant = (rating: number): "default" | "destructive" | "outline" | "secondary" | "ghost" | "link" => {
+    switch (rating) {
+      case 1: return "destructive";
+      case 2: return "outline";
+      case 3: return "secondary";
+      case 4: return "outline";
+      case 5: return "default";
+      default: return "default";
     }
   };
 
@@ -104,7 +135,9 @@ const FlashcardCard: React.FC<FlashcardCardProps> = ({
         </CardContent>
       </div>
       
-      {onDelete && (
+      {renderReviewUI()}
+      
+      {onDelete && !isReviewMode && (
         <CardFooter className="absolute bottom-0 left-0 right-0 justify-end p-2">
           <Button 
             variant="ghost" 
