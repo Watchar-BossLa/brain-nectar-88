@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import MainLayout from '@/components/layout/MainLayout';
@@ -197,7 +196,7 @@ const Assessments = () => {
                         <Badge variant="outline">{assessment.type}</Badge>
                         <Badge variant="secondary">{assessment.subject}</Badge>
                         {assessment.status === 'passed' ? (
-                          <Badge variant="success" className="bg-green-500/10 text-green-600 hover:bg-green-500/20">Passed</Badge>
+                          <Badge variant="default" className="bg-green-500/10 text-green-600 hover:bg-green-500/20">Passed</Badge>
                         ) : (
                           <Badge variant="destructive">Failed</Badge>
                         )}
