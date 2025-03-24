@@ -1,14 +1,13 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/auth';
 import { userLearningPathService } from '@/services/learningPath/userLearningPathService';
-import { useToast } from '@/hooks/use-toast';
 
-// Define types for our learning path data
+// Define types for the learning path
 type LearningPathTopic = {
   id: string;
   title: string;
-  description: string;
+  description: string | null;
   position: number;
   status: 'not_started' | 'in_progress' | 'completed';
   mastery_level: number;
@@ -17,7 +16,7 @@ type LearningPathTopic = {
 type LearningPathModule = {
   id: string;
   title: string;
-  description: string;
+  description: string | null;
   position: number;
   status: 'not_started' | 'in_progress' | 'completed';
   topics: LearningPathTopic[];
@@ -27,14 +26,14 @@ type LearningPath = {
   id: string;
   created_at: string;
   updated_at: string;
-  status: 'generating' | 'active' | 'archived';
+  status: 'active' | 'inactive' | 'completed';
   path_data: Record<string, any>;
   modules: LearningPathModule[];
 };
 
 type LearningPathContextType = {
   currentPath: LearningPath | null;
-  isLoading: boolean;
+  loading: boolean;
   error: Error | null;
   refreshPath: () => Promise<void>;
   updateTopicProgress: (
@@ -49,40 +48,37 @@ const LearningPathContext = createContext<LearningPathContextType | undefined>(u
 export const LearningPathProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [currentPath, setCurrentPath] = useState<LearningPath | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
-  const { toast } = useToast();
-  
-  // Default qualification ID - in a real app, this might be selected by the user
-  const DEFAULT_QUALIFICATION_ID = 'acca-qualification';
-  
-  const fetchLearningPath = async () => {
-    if (!user) return;
-    
-    setIsLoading(true);
-    setError(null);
-    
+
+  const loadLearningPath = async () => {
+    if (!user) {
+      setCurrentPath(null);
+      setLoading(false);
+      return;
+    }
+
     try {
-      const path = await userLearningPathService.getUserLearningPath(
-        user.id, 
-        DEFAULT_QUALIFICATION_ID
-      );
+      setLoading(true);
+      // This is a temporary implementation using a mock qualification ID
+      // In a real implementation, we would get the user's selected qualification
+      const mockQualificationId = '123';
       
-      setCurrentPath(path);
+      const path = await userLearningPathService.getUserLearningPath(user.id, mockQualificationId);
+      setCurrentPath(path as LearningPath);
+      setError(null);
     } catch (err) {
-      console.error('Error fetching learning path:', err);
+      console.error('Error loading learning path:', err);
       setError(err as Error);
-      
-      toast({
-        title: 'Error',
-        description: 'Failed to load your learning path. Please try again.',
-        variant: 'destructive',
-      });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
-  
+
+  const refreshPath = async () => {
+    await loadLearningPath();
+  };
+
   const updateTopicProgress = async (
     topicId: string, 
     status: 'not_started' | 'in_progress' | 'completed',
@@ -91,56 +87,28 @@ export const LearningPathProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (!user) return;
     
     try {
-      await userLearningPathService.updateTopicProgress(
-        user.id,
-        topicId,
-        status,
-        masteryLevel
-      );
-      
-      // Refresh the learning path to reflect the updates
-      await fetchLearningPath();
-      
-      toast({
-        title: 'Progress updated',
-        description: 'Your learning progress has been saved.',
-      });
+      await userLearningPathService.updateTopicProgress(user.id, topicId, status, masteryLevel);
+      await refreshPath();
     } catch (err) {
       console.error('Error updating topic progress:', err);
-      
-      toast({
-        title: 'Error',
-        description: 'Failed to update your progress. Please try again.',
-        variant: 'destructive',
-      });
+      setError(err as Error);
     }
   };
-  
-  // Initialize learning path when the user changes
+
   useEffect(() => {
-    if (user) {
-      // First try to fetch existing learning path
-      fetchLearningPath();
-      
-      // If no path exists, initialize one (the service will check if one exists)
-      userLearningPathService.initializeForUser(user.id, DEFAULT_QUALIFICATION_ID)
-        .catch(err => {
-          console.error('Error initializing learning path:', err);
-        });
-    } else {
-      setCurrentPath(null);
-      setIsLoading(false);
-    }
+    loadLearningPath();
   }, [user]);
-  
+
   return (
-    <LearningPathContext.Provider value={{
-      currentPath,
-      isLoading,
-      error,
-      refreshPath: fetchLearningPath,
-      updateTopicProgress
-    }}>
+    <LearningPathContext.Provider 
+      value={{ 
+        currentPath, 
+        loading, 
+        error, 
+        refreshPath,
+        updateTopicProgress
+      }}
+    >
       {children}
     </LearningPathContext.Provider>
   );

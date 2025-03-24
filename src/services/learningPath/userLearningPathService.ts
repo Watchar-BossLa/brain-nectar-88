@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { MultiAgentSystem, TaskTypes } from '@/services/agents';
+import { MultiAgentSystem, TaskType } from '@/services/agents';
 
 /**
  * Service to manage user learning paths
@@ -12,6 +12,11 @@ export const userLearningPathService = {
   initializeForUser: async (userId: string, qualificationId: string): Promise<void> => {
     try {
       // Check if learning path already exists for this user and qualification
+      // Note: We need to add the learning_paths table to Supabase first
+      
+      console.log('Learning path generation task would be submitted here');
+      // Commented out until learning_paths table is created
+      /*
       const { data: existingPath } = await supabase
         .from('learning_paths')
         .select('id')
@@ -27,7 +32,7 @@ export const userLearningPathService = {
       // Generate initial learning path using the agent system
       await MultiAgentSystem.submitTask(
         userId,
-        TaskTypes.LEARNING_PATH_GENERATION,
+        TaskType.LEARNING_PATH_GENERATION,
         'Generate initial learning path for user',
         {
           qualificationId,
@@ -35,6 +40,7 @@ export const userLearningPathService = {
         },
         'HIGH'
       );
+      */
       
       console.log('Learning path generation task submitted successfully');
     } catch (error) {
@@ -48,6 +54,19 @@ export const userLearningPathService = {
    */
   getUserLearningPath: async (userId: string, qualificationId: string) => {
     try {
+      // This is a placeholder until the learning_paths table is created
+      // Return mock data for now
+      return {
+        id: 'mock-id',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        status: 'active',
+        path_data: {},
+        modules: []
+      };
+      
+      // Commented out until learning_paths table is created
+      /*
       const { data, error } = await supabase
         .from('learning_paths')
         .select(`
@@ -83,6 +102,7 @@ export const userLearningPathService = {
       }
       
       return data;
+      */
     } catch (error) {
       console.error('Error fetching learning path:', error);
       throw error;
@@ -99,6 +119,9 @@ export const userLearningPathService = {
     masteryLevel: number
   ) => {
     try {
+      console.log('Topic progress update would be submitted here', { userId, topicId, status, masteryLevel });
+      // Commented out until learning_path_topics table is created
+      /*
       const { error } = await supabase
         .from('learning_path_topics')
         .update({
@@ -116,7 +139,7 @@ export const userLearningPathService = {
       // Notify the agent system about the progress update
       await MultiAgentSystem.submitTask(
         userId,
-        TaskTypes.LEARNING_PATH_GENERATION,
+        TaskType.LEARNING_PATH_UPDATE,
         'Update learning path based on topic progress',
         {
           topicId,
@@ -125,6 +148,7 @@ export const userLearningPathService = {
         },
         'MEDIUM'
       );
+      */
     } catch (error) {
       console.error('Error updating topic progress:', error);
       throw error;

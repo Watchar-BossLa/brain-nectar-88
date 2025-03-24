@@ -1,72 +1,53 @@
+import { generateLearningPath } from './learningPathAgent';
+import { assessTopicMastery } from './topicMasteryAgent';
+import { TaskType } from './types';
+import { submitTask as submitTaskToQueue } from './taskQueue';
 
-import { mcp } from './mcp';
-import { AgentTask, AgentType, TaskType } from './types';
+export { TaskType };
 
-/**
- * Multi-Agent System Service
- * 
- * Provides simplified access to the autonomous multi-agent system.
- * This is the main entry point for components to interact with the agent system.
- */
+export const TaskTypes = {
+  LEARNING_PATH_GENERATION: 'LEARNING_PATH_GENERATION' as TaskType,
+  TOPIC_MASTERY_ASSESSMENT: 'TOPIC_MASTERY_ASSESSMENT' as TaskType,
+  LEARNING_PATH_UPDATE: 'LEARNING_PATH_UPDATE' as TaskType,
+};
+
+const taskHandlers: { [key in TaskType]: (userId: string, taskData: any) => Promise<any> } = {
+  [TaskTypes.LEARNING_PATH_GENERATION]: generateLearningPath,
+  [TaskTypes.TOPIC_MASTERY_ASSESSMENT]: assessTopicMastery,
+  [TaskTypes.LEARNING_PATH_UPDATE]: generateLearningPath, // Assuming learning path generation also handles updates
+};
+
 export const MultiAgentSystem = {
-  /**
-   * Initialize the multi-agent system for a user
-   */
-  initialize: async (userId: string): Promise<void> => {
-    return mcp.initializeForUser(userId);
+  initialize: async (userId: string) => {
+    console.log(`Multi-Agent System initializing for user: ${userId}`);
+    // Add any initialization logic here, e.g., loading user profile, etc.
+    return Promise.resolve();
   },
-  
-  /**
-   * Submit a task to the multi-agent system
-   */
+
   submitTask: async (
     userId: string,
     taskType: TaskType,
     description: string,
-    data: Record<string, any> = {},
-    priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' = 'MEDIUM',
-    targetAgents?: AgentType[]
+    taskData: any,
+    priority: 'HIGH' | 'MEDIUM' | 'LOW'
   ): Promise<void> => {
-    const task: AgentTask = {
-      id: `task-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-      userId,
-      taskType,
-      description,
-      priority,
-      targetAgentTypes: targetAgents,
-      context: [taskType.toLowerCase()],
-      data,
-      createdAt: new Date().toISOString()
-    };
-    
-    return mcp.submitTask(task);
+    console.log(`Task submitted by user ${userId}: ${taskType} - ${description}`);
+    await submitTaskToQueue(userId, taskType, description, taskData, priority);
   },
-  
-  /**
-   * Get the current system state
-   */
-  getSystemState: () => {
-    return mcp.getSystemState();
+
+  processTask: async (userId: string, taskType: TaskType, taskData: any): Promise<any> => {
+    console.log(`Processing task for user ${userId}: ${taskType}`);
+    const handler = taskHandlers[taskType];
+
+    if (!handler) {
+      throw new Error(`No task handler registered for task type: ${taskType}`);
+    }
+
+    try {
+      return await handler(userId, taskData);
+    } catch (error: any) {
+      console.error(`Task processing failed for user ${userId} on task ${taskType}:`, error);
+      throw error;
+    }
   },
-  
-  /**
-   * Task type constants for easier use
-   */
-  TaskTypes: {
-    COGNITIVE_PROFILING: 'COGNITIVE_PROFILING' as TaskType,
-    LEARNING_PATH_GENERATION: 'LEARNING_PATH_GENERATION' as TaskType,
-    CONTENT_ADAPTATION: 'CONTENT_ADAPTATION' as TaskType,
-    ASSESSMENT_GENERATION: 'ASSESSMENT_GENERATION' as TaskType,
-    ENGAGEMENT_OPTIMIZATION: 'ENGAGEMENT_OPTIMIZATION' as TaskType,
-    FEEDBACK_GENERATION: 'FEEDBACK_GENERATION' as TaskType,
-    UI_OPTIMIZATION: 'UI_OPTIMIZATION' as TaskType,
-    SCHEDULE_OPTIMIZATION: 'SCHEDULE_OPTIMIZATION' as TaskType,
-    MULTI_AGENT_COORDINATION: 'MULTI_AGENT_COORDINATION' as TaskType
-  }
 };
-
-// Export the MCP for direct access if needed
-export { mcp };
-
-// Export types for use in components
-export * from './types';
