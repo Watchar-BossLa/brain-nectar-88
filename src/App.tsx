@@ -13,6 +13,7 @@ import Courses from "./pages/Courses";
 import Assessments from "./pages/Assessments";
 import Qualifications from "./pages/Qualifications";
 import Flashcards from "./pages/Flashcards";
+import Profile from "./pages/Profile";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import NotFound from "./pages/NotFound";
@@ -72,6 +73,14 @@ const App = () => (
                   element={
                     <ProtectedRoute>
                       <Flashcards />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/profile" 
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
                     </ProtectedRoute>
                   } 
                 />
