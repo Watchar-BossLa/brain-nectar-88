@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,7 +15,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface FlashcardFormProps {
   onSuccess?: (flashcard: Flashcard) => void;
-  onFlashcardCreated?: () => void;
   onCancel?: () => void;
   flashcard?: Flashcard;
   topics?: Array<{ id: string; title: string }>;
@@ -24,7 +22,6 @@ interface FlashcardFormProps {
 
 const FlashcardForm: React.FC<FlashcardFormProps> = ({ 
   onSuccess, 
-  onFlashcardCreated,
   onCancel,
   flashcard,
   topics = []
@@ -36,7 +33,6 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({
   const [useLatex, setUseLatex] = useState(
     flashcard?.front_content?.includes('$$') || flashcard?.back_content?.includes('$$') || false
   );
-  const [previewTab, setPreviewTab] = useState<'front' | 'back'>('front');
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -105,13 +101,9 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({
       setBackContent('');
       setTopicId('');
 
-      // Call success callbacks
+      // Call success callback
       if (onSuccess && data[0]) {
         onSuccess(data[0]);
-      }
-      
-      if (onFlashcardCreated) {
-        onFlashcardCreated();
       }
     } catch (error) {
       console.error("Error creating flashcard:", error);

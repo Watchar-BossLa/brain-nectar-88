@@ -103,8 +103,8 @@ export class SpacedRepetitionService {
         return false;
       }
       
-      // Record the review in the user's history (skipping this for now as flashcard_reviews table doesn't exist)
-      // We'll add this functionality later when we create the table
+      // Note: We'll add review history functionality when we create the flashcard_reviews table
+      // For now, we just update the flashcard record
 
       return true;
     } catch (error) {
