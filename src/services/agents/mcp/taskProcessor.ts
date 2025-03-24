@@ -17,11 +17,39 @@ export class TaskProcessor {
    */
   public async submitTask(task: AgentTask): Promise<void> {
     console.log('Task submitted to MCP:', task);
-    this.taskQueue.push(task);
+    
+    // Sort task in the queue based on priority
+    this.addTaskToQueue(task);
     
     // Start processing the queue if not already processing
     if (!this.isProcessing) {
       this.processTaskQueue();
+    }
+  }
+
+  /**
+   * Add task to queue with appropriate priority ordering
+   */
+  private addTaskToQueue(task: AgentTask): void {
+    // If task has no priority specified, default to MEDIUM
+    if (!task.priority) {
+      task.priority = 'MEDIUM';
+    }
+    
+    // Priority order: CRITICAL > HIGH > MEDIUM > LOW
+    const priorityValues = { 'CRITICAL': 0, 'HIGH': 1, 'MEDIUM': 2, 'LOW': 3 };
+    
+    // Find the right position based on priority
+    const insertIndex = this.taskQueue.findIndex(
+      queuedTask => priorityValues[queuedTask.priority || 'MEDIUM'] > priorityValues[task.priority || 'MEDIUM']
+    );
+    
+    if (insertIndex === -1) {
+      // Add to the end if no higher priority task is found
+      this.taskQueue.push(task);
+    } else {
+      // Insert at the right position
+      this.taskQueue.splice(insertIndex, 0, task);
     }
   }
 
@@ -96,6 +124,9 @@ export class TaskProcessor {
         return ['UI_UX'];
       case 'SCHEDULE_OPTIMIZATION':
         return ['SCHEDULING'];
+      case 'FLASHCARD_OPTIMIZATION':
+        // For flashcard tasks, involve the cognitive profile and engagement agents
+        return ['COGNITIVE_PROFILE', 'SCHEDULING'];
       case 'MULTI_AGENT_COORDINATION':
         // For complex tasks requiring multiple agents
         return this.determineMultiAgentTeam(task);
@@ -113,36 +144,37 @@ export class TaskProcessor {
     const { context } = task;
     const team: AgentType[] = [];
     
-    // Basic team composition based on task context
-    if (context.includes('learning_path')) {
+    // Enhanced team composition based on task context with more granular analysis
+    if (context.includes('learning_path') || context.includes('study_plan')) {
       team.push('LEARNING_PATH');
     }
     
-    if (context.includes('assessment')) {
+    if (context.includes('assessment') || context.includes('test') || context.includes('quiz')) {
       team.push('ASSESSMENT');
     }
     
-    if (context.includes('content')) {
+    if (context.includes('content') || context.includes('material') || context.includes('resources')) {
       team.push('CONTENT_ADAPTATION');
     }
     
-    if (context.includes('user_profile') || context.includes('cognitive')) {
+    if (context.includes('user_profile') || context.includes('cognitive') || context.includes('learning_style')) {
       team.push('COGNITIVE_PROFILE');
     }
     
-    if (context.includes('feedback')) {
+    if (context.includes('feedback') || context.includes('review') || context.includes('evaluation')) {
       team.push('FEEDBACK');
     }
     
-    if (context.includes('engagement') || context.includes('motivation')) {
+    if (context.includes('engagement') || context.includes('motivation') || context.includes('gamification')) {
       team.push('ENGAGEMENT');
     }
     
-    if (context.includes('ui') || context.includes('interface')) {
+    if (context.includes('ui') || context.includes('interface') || context.includes('display')) {
       team.push('UI_UX');
     }
     
-    if (context.includes('schedule') || context.includes('timing')) {
+    if (context.includes('schedule') || context.includes('timing') || context.includes('planning') || 
+        context.includes('spaced_repetition') || context.includes('flashcard')) {
       team.push('SCHEDULING');
     }
     

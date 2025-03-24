@@ -1,4 +1,3 @@
-
 /**
  * Types for the multi-agent system
  */
@@ -24,6 +23,7 @@ export type TaskType =
   | 'FEEDBACK_GENERATION'
   | 'UI_OPTIMIZATION'
   | 'SCHEDULE_OPTIMIZATION'
+  | 'FLASHCARD_OPTIMIZATION'
   | 'MULTI_AGENT_COORDINATION';
 
 // Priority levels for tasks
