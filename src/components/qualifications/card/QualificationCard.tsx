@@ -6,31 +6,23 @@ import QualificationHeader from './QualificationHeader';
 import QualificationProgress from './QualificationProgress';
 import QualificationMetadata from './QualificationMetadata';
 import QualificationStructureAccordion from './QualificationStructureAccordion';
+import { accaModules } from '../accaDetails';
+import { cpaModules } from '../cpaDetails';
+import { cfaModules } from '../cfaDetails';
+import { frmModules } from '../frmDetails';
+import { cimaModules } from '../cimaDetails';
+import { cmaModules } from '../cmaDetails';
+import { cfpModules } from '../cfpDetails';
+import { caiaModules } from '../caiaDetails';
 
 interface QualificationCardProps {
   qualification: QualificationType;
   getStatusBadge: (status: string) => React.ReactNode;
-  accaModules: any[];
-  cpaModules: any[];
-  cfaModules: any[];
-  frmModules: any[];
-  cimaModules?: any[];
-  cmaModules?: any[];
-  cfpModules?: any[];
-  caiaModules?: any[];
 }
 
 const QualificationCard: React.FC<QualificationCardProps> = ({ 
   qualification, 
-  getStatusBadge,
-  accaModules,
-  cpaModules,
-  cfaModules,
-  frmModules,
-  cimaModules,
-  cmaModules,
-  cfpModules,
-  caiaModules
+  getStatusBadge
 }) => {
   const item = {
     hidden: { opacity: 0, y: 20 },

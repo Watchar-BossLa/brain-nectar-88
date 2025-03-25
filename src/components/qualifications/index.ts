@@ -1,7 +1,10 @@
 
 export * from './types';
 export * from './mockData';
+export * from './accaDetails';
+export * from './cpaDetails';
 export * from './cfaDetails';
+export * from './frmDetails';
 export * from './cimaDetails';
 export * from './cmaDetails';
 export * from './cfpDetails';

@@ -7,15 +7,7 @@ import {
   QualificationCard,
   PersonalizedRecommendation,
   getStatusBadge,
-  qualifications,
-  accaModules,
-  cpaModules,
-  cfaModules,
-  frmModules,
-  cimaModules,
-  cmaModules,
-  cfpModules,
-  caiaModules
+  qualifications
 } from '@/components/qualifications';
 
 const Qualifications = () => {
@@ -45,14 +37,6 @@ const Qualifications = () => {
               key={qualification.id} 
               qualification={qualification}
               getStatusBadge={getStatusBadge}
-              accaModules={accaModules}
-              cpaModules={cpaModules}
-              cfaModules={cfaModules}
-              frmModules={frmModules}
-              cimaModules={cimaModules}
-              cmaModules={cmaModules}
-              cfpModules={cfpModules}
-              caiaModules={caiaModules}
             />
           ))}
         </motion.div>
