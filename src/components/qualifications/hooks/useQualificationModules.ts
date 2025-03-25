@@ -1,4 +1,3 @@
-
 import { accaModules } from '../accaDetails';
 import { cpaModules } from '../cpaDetails';
 import { cfaModules } from '../cfaDetails';
@@ -7,6 +6,10 @@ import { cimaModules } from '../cimaDetails';
 import { cmaModules } from '../cmaDetails';
 import { cfpModules } from '../cfpDetails';
 import { caiaModules } from '../caiaDetails';
+import { bsmathModules } from '../bsmathDetails';
+import { mathstatModules } from '../mathstatDetails';
+import { actuaryModules } from '../actuaryDetails';
+import { datascienceModules } from '../datascienceDetails';
 import { QualificationLevel } from '../types';
 
 interface QualificationModulesData {
@@ -67,6 +70,30 @@ export const useQualificationModules = (qualificationId: string): QualificationM
         modules: caiaModules,
         accordionName: 'CAIA Certification Structure',
         websiteName: 'CAIA Association Website'
+      };
+    case 'bsmath':
+      return {
+        modules: bsmathModules,
+        accordionName: 'BS Mathematics Structure',
+        websiteName: 'Mathematics Department Website'
+      };
+    case 'mathstat':
+      return {
+        modules: mathstatModules,
+        accordionName: 'Mathematical Statistics Certification Structure',
+        websiteName: 'Statistical Society Website'
+      };
+    case 'actuary':
+      return {
+        modules: actuaryModules,
+        accordionName: 'Actuarial Science Structure',
+        websiteName: 'Society of Actuaries Website'
+      };
+    case 'datascience':
+      return {
+        modules: datascienceModules,
+        accordionName: 'Data Science Certification Structure',
+        websiteName: 'Data Science Association Website'
       };
     default:
       return null;

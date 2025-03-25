@@ -1,4 +1,3 @@
-
 import { QualificationType } from './types';
 import { accaModules } from './accaDetails';
 import { cpaModules } from './cpaDetails';
@@ -8,6 +7,10 @@ import { cimaModules } from './cimaDetails';
 import { cmaModules } from './cmaDetails';
 import { cfpModules } from './cfpDetails';
 import { caiaModules } from './caiaDetails';
+import { bsmathModules } from './bsmathDetails';
+import { mathstatModules } from './mathstatDetails';
+import { actuaryModules } from './actuaryDetails';
+import { datascienceModules } from './datascienceDetails';
 
 export const qualifications: QualificationType[] = [
   {
@@ -110,6 +113,54 @@ export const qualifications: QualificationType[] = [
     activeStudents: 980,
     color: 'bg-teal-500'
   },
+  {
+    id: 'bsmath',
+    name: 'BS Math',
+    fullName: 'Bachelor of Science in Mathematics',
+    description: 'A comprehensive undergraduate degree in mathematics covering foundational and advanced topics in pure and applied mathematics.',
+    levels: ['Core Courses', 'Advanced Courses'],
+    totalExams: 8,
+    examsPassed: 0,
+    status: 'not-started',
+    activeStudents: 1240,
+    color: 'bg-violet-500'
+  },
+  {
+    id: 'mathstat',
+    name: 'Math Stats',
+    fullName: 'Mathematical Statistics Certification',
+    description: 'Advanced certification in statistical theory and methods, emphasizing theoretical foundations and practical applications of statistics.',
+    levels: ['Foundation', 'Advanced'],
+    totalExams: 4,
+    examsPassed: 0,
+    status: 'not-started',
+    activeStudents: 950,
+    color: 'bg-pink-500'
+  },
+  {
+    id: 'actuary',
+    name: 'Actuarial',
+    fullName: 'Actuarial Science Qualification',
+    description: 'Professional qualification for actuaries, covering probability, statistics, finance, and insurance mathematics.',
+    levels: ['Preliminary Exams', 'Advanced Exams'],
+    totalExams: 4,
+    examsPassed: 0,
+    status: 'not-started',
+    activeStudents: 1120,
+    color: 'bg-orange-500'
+  },
+  {
+    id: 'datascience',
+    name: 'Data Science',
+    fullName: 'Data Science Certification',
+    description: 'Comprehensive certification in data science methodologies, machine learning, statistical analysis, and big data technologies.',
+    levels: ['Core', 'Specialized'],
+    totalExams: 4,
+    examsPassed: 0,
+    status: 'not-started',
+    activeStudents: 2100,
+    color: 'bg-cyan-500'
+  }
 ];
 
 // Export all modules for backwards compatibility
@@ -121,5 +172,9 @@ export {
   cimaModules,
   cmaModules,
   cfpModules,
-  caiaModules
+  caiaModules,
+  bsmathModules,
+  mathstatModules,
+  actuaryModules,
+  datascienceModules
 };
