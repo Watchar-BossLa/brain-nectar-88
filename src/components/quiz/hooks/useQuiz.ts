@@ -20,7 +20,11 @@ export function useQuiz() {
     quizLength,
     setQuizLength,
     allTopics,
-    toggleTopic
+    allSubjects,
+    selectedSubject,
+    setSelectedSubject,
+    toggleTopic,
+    getFilteredQuestions
   } = useQuizSetup();
   
   const {
@@ -48,7 +52,7 @@ export function useQuiz() {
   // Start a new quiz
   const startQuiz = () => {
     const selected = prepareQuizQuestions(
-      quizQuestions,
+      getFilteredQuestions(),
       selectedTopics,
       currentDifficulty,
       quizLength
@@ -118,6 +122,9 @@ export function useQuiz() {
     availableQuestions,
     answeredQuestions,
     allTopics,
+    allSubjects,
+    selectedSubject,
+    setSelectedSubject,
     startQuiz,
     submitAnswer,
     nextQuestion,

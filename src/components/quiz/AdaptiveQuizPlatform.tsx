@@ -23,6 +23,9 @@ const AdaptiveQuizPlatform = () => {
     availableQuestions,
     answeredQuestions,
     allTopics,
+    allSubjects,
+    selectedSubject,
+    setSelectedSubject,
     startQuiz,
     submitAnswer,
     nextQuestion,
@@ -47,6 +50,9 @@ const AdaptiveQuizPlatform = () => {
           allTopics={allTopics}
           selectedTopics={selectedTopics}
           toggleTopic={toggleTopic}
+          allSubjects={allSubjects}
+          selectedSubject={selectedSubject}
+          setSelectedSubject={setSelectedSubject}
           quizLength={quizLength}
           setQuizLength={setQuizLength}
           currentDifficulty={currentDifficulty}
