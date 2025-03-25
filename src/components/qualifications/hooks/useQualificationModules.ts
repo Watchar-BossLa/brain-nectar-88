@@ -5,7 +5,7 @@ import { cfaModules } from '../cfa';
 import { frmModules } from '../frm';
 import { cimaModules } from '../cimaDetails';
 import { cmaModules } from '../cmaDetails';
-import { cfpModules } from '../cfpDetails';
+import { cfpModules } from '../cfp';
 import { caiaModules } from '../caiaDetails';
 import { QualificationLevel } from '../types';
 
