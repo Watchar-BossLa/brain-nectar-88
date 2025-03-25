@@ -3,10 +3,10 @@ import { accaModules } from '../accaDetails';
 import { cpaModules } from '../cpaDetails';
 import { cfaModules } from '../cfa';
 import { frmModules } from '../frm';
-import { cimaModules } from '../cimaDetails';
+import { cimaModules } from '../cima';
 import { cmaModules } from '../cmaDetails';
 import { cfpModules } from '../cfp';
-import { caiaModules } from '../caiaDetails';
+import { caiaModules } from '../caia';
 import { QualificationLevel } from '../types';
 
 interface QualificationModulesData {
