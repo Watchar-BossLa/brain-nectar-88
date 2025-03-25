@@ -6,6 +6,7 @@ import { SolanaContext } from './SolanaContext';
 import { AchievementData } from './types';
 import { toast } from '@/components/ui/use-toast';
 import { Metaplex, walletAdapterIdentity } from '@metaplex-foundation/js';
+import { WalletName } from '@solana/wallet-adapter-base';
 
 export const SolanaContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { connection } = useConnection();
@@ -25,7 +26,8 @@ export const SolanaContextProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const connectWallet = useCallback(() => {
     if (!connected && !connecting) {
-      select('Phantom'); // Provide a default wallet name
+      // Use the correct WalletName type by casting
+      select('Phantom' as WalletName);
     }
   }, [connected, connecting, select]);
 
