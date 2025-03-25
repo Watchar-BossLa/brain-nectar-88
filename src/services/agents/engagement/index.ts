@@ -40,8 +40,8 @@ export class EngagementAgent extends BaseAgent {
         breakFrequency: 5, // minutes
         gamificationElements: ['streaks', 'badges'],
         motivationalMessages: [
-          'You're making great progress!',
-          'Keep up the excellent work!'
+          "You're making great progress!",
+          "Keep up the excellent work!"
         ]
       }
     };
