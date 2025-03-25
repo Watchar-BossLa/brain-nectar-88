@@ -1,8 +1,6 @@
 
 // Define question types
-export type QuestionType = 'multiple-choice' | 'calculation' | 'essay' | 'true-false';
-
-export interface QuizQuestion {
+export type QuizQuestion = {
   id: string;
   text: string;
   type: QuestionType;
@@ -12,8 +10,11 @@ export interface QuizQuestion {
   explanation: string;
   stepByStepExplanation?: string[];  // Array of steps for calculation problems
   topic: string;
+  subject?: 'accounting' | 'finance' | 'mathematics'; // New field
   useLatex?: boolean;
-}
+};
+
+export type QuestionType = 'multiple-choice' | 'calculation' | 'essay' | 'true-false';
 
 export interface AnsweredQuestion {
   id: string;

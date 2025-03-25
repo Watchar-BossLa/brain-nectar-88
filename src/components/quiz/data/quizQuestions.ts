@@ -1,7 +1,9 @@
-
 import { QuizQuestion } from '../types';
+import { financeQuestions } from './financeQuestions';
+import { mathQuestions } from './mathQuestions';
 
-export const quizQuestions: QuizQuestion[] = [
+// Define accounting questions
+const accountingQuestions: QuizQuestion[] = [
   {
     id: 'q1',
     text: 'What is the accounting equation?',
@@ -15,7 +17,8 @@ export const quizQuestions: QuizQuestion[] = [
     ],
     correctAnswer: 'Assets = Liabilities + Equity',
     explanation: 'The accounting equation forms the foundation of double-entry accounting. It states that a company\'s assets must equal the sum of its liabilities and equity, ensuring that the balance sheet always balances.',
-    topic: 'Accounting Fundamentals'
+    topic: 'Accounting Fundamentals',
+    subject: 'accounting'
   },
   {
     id: 'q2',
@@ -190,4 +193,11 @@ export const quizQuestions: QuizQuestion[] = [
     ],
     topic: 'Financial Ratios'
   }
+];
+
+// Combine all question sets
+export const quizQuestions: QuizQuestion[] = [
+  ...accountingQuestions,
+  ...financeQuestions,
+  ...mathQuestions
 ];

@@ -9,6 +9,9 @@ interface QuizSetupCardProps {
   allTopics: string[];
   selectedTopics: string[];
   toggleTopic: (topic: string) => void;
+  allSubjects: string[];
+  selectedSubject: string;
+  setSelectedSubject: (subject: string) => void;
   quizLength: number;
   setQuizLength: (length: number) => void;
   currentDifficulty: 1 | 2 | 3;
@@ -19,13 +22,19 @@ interface QuizSetupCardProps {
 const QuizSetupCard: React.FC<QuizSetupCardProps> = ({ 
   allTopics, 
   selectedTopics, 
-  toggleTopic, 
+  toggleTopic,
+  allSubjects,
+  selectedSubject,
+  setSelectedSubject,
   quizLength, 
   setQuizLength, 
   currentDifficulty, 
   setCurrentDifficulty, 
   startQuiz 
 }) => {
+  // Helper to capitalize first letter of string
+  const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
+  
   return (
     <Card>
       <CardHeader>
@@ -34,10 +43,26 @@ const QuizSetupCard: React.FC<QuizSetupCardProps> = ({
           Adaptive Quiz Platform
         </CardTitle>
         <CardDescription>
-          Test your accounting knowledge with questions that adapt to your skill level
+          Test your knowledge with questions that adapt to your skill level
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div>
+          <h3 className="text-lg font-medium mb-2">Select Subject</h3>
+          <div className="flex flex-wrap gap-2">
+            {allSubjects.map(subject => (
+              <Button
+                key={subject}
+                variant={selectedSubject === subject ? "default" : "outline"}
+                onClick={() => setSelectedSubject(subject)}
+                className="mb-1"
+              >
+                {capitalize(subject)}
+              </Button>
+            ))}
+          </div>
+        </div>
+        
         <div>
           <h3 className="text-lg font-medium mb-2">Select Topics</h3>
           <div className="flex flex-wrap gap-2">
