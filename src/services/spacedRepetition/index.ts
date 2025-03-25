@@ -1,20 +1,41 @@
 
 // Re-export all spaced repetition services
-import { calculateNextReviewDate, INITIAL_EASINESS_FACTOR, MIN_EASINESS_FACTOR } from './algorithm';
+import { 
+  calculateNextReviewDate, 
+  calculateNextReviewSchedule,
+  calculateMasteryLevel,
+  calculateRetention,
+  INITIAL_EASINESS_FACTOR, 
+  MIN_EASINESS_FACTOR,
+  type RepetitionSchedule
+} from './algorithm';
+
 import { 
   getDueFlashcards, 
   createFlashcard, 
   getUserFlashcards,
   deleteFlashcard,
-  getFlashcardsByTopic
+  getFlashcardsByTopic,
+  getStrugglingFlashcards,
+  getMasteredFlashcards,
+  getFlashcardStats
 } from './flashcardService';
-import { updateFlashcardAfterReview } from './reviewService';
+
+import { 
+  updateFlashcardAfterReview,
+  calculateFlashcardRetention,
+  getFlashcardLearningStats
+} from './reviewService';
 
 export {
   // Algorithm
   calculateNextReviewDate,
+  calculateNextReviewSchedule,
+  calculateMasteryLevel,
+  calculateRetention,
   INITIAL_EASINESS_FACTOR,
   MIN_EASINESS_FACTOR,
+  type RepetitionSchedule,
   
   // Flashcard management
   getDueFlashcards,
@@ -22,7 +43,12 @@ export {
   getUserFlashcards,
   deleteFlashcard,
   getFlashcardsByTopic,
+  getStrugglingFlashcards,
+  getMasteredFlashcards,
+  getFlashcardStats,
   
   // Review management
-  updateFlashcardAfterReview
+  updateFlashcardAfterReview,
+  calculateFlashcardRetention,
+  getFlashcardLearningStats
 };

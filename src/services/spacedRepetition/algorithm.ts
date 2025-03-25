@@ -1,6 +1,7 @@
 
 /**
  * Implementation of the improved SM-2 Spaced Repetition Algorithm with memory decay curve
+ * and adaptive learning capabilities for Study Bee
  */
 
 // SM-2 Spaced Repetition Algorithm parameters
@@ -11,11 +12,16 @@ export const MIN_EASINESS_FACTOR = 1.3;
 const MEMORY_DECAY_RATE = 0.1;
 const MEMORY_STRENGTH_MODIFIER = 0.2;
 
-type RepetitionSchedule = {
+// Adaptive learning parameters
+const RETENTION_TARGET = 0.85; // Target retention rate (85%)
+const DIFFICULTY_SCALING = 0.05; // How quickly difficulty adjusts
+
+export type RepetitionSchedule = {
   interval: number;     // in days
   easinessFactor: number;
   nextReviewDate: Date;
   estimatedRetention: number; // percentage (0-1)
+  masteryLevel: number; // 0-1 scale
 };
 
 /**
@@ -36,32 +42,76 @@ export const calculateRetention = (
 /**
  * Calculates the optimal interval based on desired retention level
  * t = -S * ln(R)
- * where we target a retention of 0.85 (85%)
+ * where we target the defined retention target
  */
 export const calculateOptimalInterval = (memoryStrength: number): number => {
-  const targetRetention = 0.85;
-  return -memoryStrength * 10 * Math.log(targetRetention);
+  return -memoryStrength * 10 * Math.log(RETENTION_TARGET);
+};
+
+/**
+ * Calculates mastery level based on repetition history and performance
+ * @param repetitionCount Number of successful repetitions
+ * @param averageDifficulty Average difficulty reported by user
+ * @returns Mastery level between 0-1
+ */
+export const calculateMasteryLevel = (
+  repetitionCount: number, 
+  averageDifficulty: number
+): number => {
+  // Base mastery from repetition count (saturates around 10 repetitions)
+  const repetitionMastery = Math.min(repetitionCount / 10, 0.8);
+  
+  // Adjust based on average reported difficulty (lower difficulty = higher mastery)
+  const difficultyFactor = Math.max(0, (5 - averageDifficulty) / 5);
+  
+  // Combine factors (repetition contributes 70%, difficulty 30%)
+  return (repetitionMastery * 0.7) + (difficultyFactor * 0.3);
+};
+
+/**
+ * Calculates adaptive difficulty scaling based on user performance
+ * @param targetRetention Target retention rate
+ * @param actualRetention Actual observed retention rate
+ * @returns Difficulty scaling factor (higher means increase difficulty)
+ */
+export const calculateAdaptiveDifficulty = (
+  targetRetention: number,
+  actualRetention: number
+): number => {
+  // If actual retention is too high, increase difficulty
+  // If actual retention is too low, decrease difficulty
+  return (actualRetention - targetRetention) * DIFFICULTY_SCALING;
 };
 
 /**
  * Calculates the next review schedule based on the enhanced SM-2 algorithm
+ * with adaptive learning capabilities
+ * 
  * @param repetitionCount Current repetition count
  * @param easinessFactor Current easiness factor
  * @param difficulty User-rated difficulty (1-5, 5 = most difficult)
  * @param previousInterval Previous interval in days (optional)
+ * @param actualRetention Actual retention rate observed (optional)
  * @returns Next review schedule information
  */
 export const calculateNextReviewSchedule = (
   repetitionCount: number,
   easinessFactor: number,
   difficulty: number,
-  previousInterval: number = 1
+  previousInterval: number = 1,
+  actualRetention: number = RETENTION_TARGET
 ): RepetitionSchedule => {
   // Convert difficulty from 1-5 scale to 0-5 scale for algorithm
   const quality = 6 - difficulty;
   
-  // Calculate new easiness factor
-  let newEasinessFactor = easinessFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+  // Apply adaptive difficulty adjustment based on actual retention
+  const adaptiveFactor = calculateAdaptiveDifficulty(RETENTION_TARGET, actualRetention);
+  let adaptedDifficulty = difficulty + adaptiveFactor;
+  adaptedDifficulty = Math.max(1, Math.min(5, adaptedDifficulty)); // Keep within 1-5
+  const adaptedQuality = 6 - adaptedDifficulty;
+  
+  // Calculate new easiness factor with adaptive adjustment
+  let newEasinessFactor = easinessFactor + (0.1 - (5 - adaptedQuality) * (0.08 + (5 - adaptedQuality) * 0.02));
   if (newEasinessFactor < MIN_EASINESS_FACTOR) {
     newEasinessFactor = MIN_EASINESS_FACTOR;
   }
@@ -88,12 +138,21 @@ export const calculateNextReviewSchedule = (
     } else {
       // For subsequent repetitions, use optimized interval
       const baseInterval = calculateOptimalInterval(memoryStrength);
-      interval = Math.max(Math.round(baseInterval * newEasinessFactor), previousInterval + 1);
+      
+      // Apply adaptive interval adjustment based on actual retention vs target
+      const retentionRatio = actualRetention / RETENTION_TARGET;
+      const adaptiveInterval = baseInterval * retentionRatio;
+      
+      // Ensure interval increases by at least 1 day from previous
+      interval = Math.max(Math.round(adaptiveInterval * newEasinessFactor), previousInterval + 1);
     }
   }
   
   // Calculate estimated retention at review time
   const estimatedRetention = calculateRetention(interval, memoryStrength);
+  
+  // Calculate mastery level (0-1)
+  const masteryLevel = calculateMasteryLevel(newRepetitionCount, difficulty);
   
   // Calculate the next review date
   const nextReviewDate = new Date();
@@ -103,7 +162,8 @@ export const calculateNextReviewSchedule = (
     interval,
     easinessFactor: newEasinessFactor,
     nextReviewDate,
-    estimatedRetention
+    estimatedRetention,
+    masteryLevel
   };
 };
 

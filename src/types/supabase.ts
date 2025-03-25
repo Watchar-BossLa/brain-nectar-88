@@ -1,4 +1,3 @@
-
 import { Session, User } from '@supabase/supabase-js';
 
 export type Profile = {
@@ -77,8 +76,18 @@ export type Flashcard = {
   difficulty: number;
   next_review_date: string;
   repetition_count: number;
+  mastery_level: number;
   created_at: string;
   updated_at: string;
+};
+
+export type FlashcardReview = {
+  id: string;
+  user_id: string;
+  flashcard_id: string;
+  difficulty_rating: number;
+  reviewed_at: string;
+  retention_estimate: number;
 };
 
 export type UserNote = {

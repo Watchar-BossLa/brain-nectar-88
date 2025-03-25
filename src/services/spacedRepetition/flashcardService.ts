@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { INITIAL_EASINESS_FACTOR } from './algorithm';
+import { INITIAL_EASINESS_FACTOR, calculateMasteryLevel } from './algorithm';
 import { Flashcard } from '@/types/supabase';
 
 /**
@@ -62,6 +62,7 @@ export const createFlashcard = async (
         difficulty: INITIAL_EASINESS_FACTOR,
         repetition_count: 0,
         next_review_date: nextReviewDate,
+        mastery_level: 0, // Start with zero mastery
       })
       .select();
       
@@ -143,5 +144,131 @@ export const getFlashcardsByTopic = async (userId: string, topicId: string) => {
   } catch (error) {
     console.error('Error in getFlashcardsByTopic:', error);
     return { data: null, error };
+  }
+};
+
+/**
+ * Get flashcards with low mastery levels (struggling cards)
+ */
+export const getStrugglingFlashcards = async (userId: string, limit: number = 10) => {
+  try {
+    const { data, error } = await supabase
+      .from('flashcards')
+      .select('*')
+      .eq('user_id', userId)
+      .lt('mastery_level', 0.3) // Cards with low mastery
+      .order('mastery_level', { ascending: true })
+      .limit(limit);
+      
+    if (error) {
+      console.error('Error fetching struggling flashcards:', error);
+      return { data: null, error };
+    }
+    
+    return { data, error: null };
+  } catch (error) {
+    console.error('Error in getStrugglingFlashcards:', error);
+    return { data: null, error };
+  }
+};
+
+/**
+ * Get flashcards with high mastery levels (mastered cards)
+ */
+export const getMasteredFlashcards = async (userId: string, limit: number = 10) => {
+  try {
+    const { data, error } = await supabase
+      .from('flashcards')
+      .select('*')
+      .eq('user_id', userId)
+      .gte('mastery_level', 0.8) // Cards with high mastery
+      .order('next_review_date', { ascending: true })
+      .limit(limit);
+      
+    if (error) {
+      console.error('Error fetching mastered flashcards:', error);
+      return { data: null, error };
+    }
+    
+    return { data, error: null };
+  } catch (error) {
+    console.error('Error in getMasteredFlashcards:', error);
+    return { data: null, error };
+  }
+};
+
+/**
+ * Get flashcard statistics for a user
+ */
+export const getFlashcardStats = async (userId: string) => {
+  try {
+    // Get total cards count
+    const { count: totalCount, error: countError } = await supabase
+      .from('flashcards')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
+      
+    if (countError) {
+      throw countError;
+    }
+    
+    // Get due cards
+    const { data: dueCards, error: dueError } = await getDueFlashcards(userId);
+    if (dueError) {
+      throw dueError;
+    }
+    
+    // Get mastered cards count
+    const { data: masteredData, error: masteredError } = await supabase
+      .from('flashcards')
+      .select('*')
+      .eq('user_id', userId)
+      .gte('mastery_level', 0.8);
+      
+    if (masteredError) {
+      throw masteredError;
+    }
+    
+    // Get average difficulty
+    const { data: allCards, error: allCardsError } = await supabase
+      .from('flashcards')
+      .select('difficulty')
+      .eq('user_id', userId);
+      
+    if (allCardsError) {
+      throw allCardsError;
+    }
+    
+    const averageDifficulty = allCards?.length 
+      ? allCards.reduce((sum, card) => sum + (card.difficulty || 0), 0) / allCards.length
+      : 0;
+    
+    // Get reviews today count
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const { count: reviewsToday, error: reviewsError } = await supabase
+      .from('flashcard_reviews')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .gte('reviewed_at', today.toISOString());
+      
+    // Ignore error if table doesn't exist yet
+    
+    return {
+      totalCards: totalCount || 0,
+      dueCards: dueCards?.length || 0,
+      masteredCards: masteredData?.length || 0,
+      averageDifficulty: averageDifficulty || 0,
+      reviewsToday: reviewsToday || 0
+    };
+  } catch (error) {
+    console.error('Error getting flashcard stats:', error);
+    return {
+      totalCards: 0,
+      dueCards: 0,
+      masteredCards: 0,
+      averageDifficulty: 0,
+      reviewsToday: 0
+    };
   }
 };
