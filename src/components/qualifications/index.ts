@@ -9,6 +9,7 @@ export * from './cimaDetails';
 export * from './cmaDetails';
 export * from './cfpDetails';
 export * from './caiaDetails';
+export * from './hooks/useQualificationModules';
 export { default as QualificationCard } from './card/QualificationCard';
 export { default as QualificationsHeader } from './QualificationsHeader';
 export { default as PersonalizedRecommendation } from './PersonalizedRecommendation';
