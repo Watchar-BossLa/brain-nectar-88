@@ -16,9 +16,9 @@ export class LearningPathAgent extends BaseAgent {
     console.log(`Learning Path Agent processing task: ${task.taskType}`);
     
     switch (task.taskType) {
-      case 'LEARNING_PATH_GENERATION':
+      case 'LEARNING_PATH_GENERATION' as TaskType:
         return this.generateLearningPath(task.userId, task.data);
-      case 'LEARNING_PATH_UPDATE':
+      case 'LEARNING_PATH_UPDATE' as TaskType:
         return this.updateLearningPath(task.userId, task.data);
       default:
         console.warn(`Learning Path Agent received unknown task type: ${task.taskType}`);
