@@ -22,6 +22,7 @@ import NotFound from "./pages/NotFound";
 import AgentDashboard from './pages/AgentDashboard';
 import FinancialTools from './pages/FinancialTools';
 import Quiz from './pages/Quiz';
+import StudyPlanner from './pages/StudyPlanner';
 
 const queryClient = new QueryClient();
 
@@ -112,6 +113,14 @@ const App = () => (
                       element={
                         <ProtectedRoute>
                           <Quiz />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/study-planner" 
+                      element={
+                        <ProtectedRoute>
+                          <StudyPlanner />
                         </ProtectedRoute>
                       } 
                     />

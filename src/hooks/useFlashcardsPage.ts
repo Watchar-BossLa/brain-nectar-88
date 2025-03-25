@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { getDueFlashcards, getFlashcardStats } from '@/services/spacedRepetition';
@@ -93,7 +92,7 @@ export const useFlashcardsPage = () => {
     if (!user) return;
     
     try {
-      const flashcardStats = await spacedRepetitionService.getFlashcardStats(user.id);
+      const flashcardStats = await getFlashcardStats(user.id);
       setStats(flashcardStats);
     } catch (error) {
       console.error('Error fetching flashcard stats:', error);
