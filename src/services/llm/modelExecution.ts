@@ -1,4 +1,5 @@
-import { ModelExecutionInput, ModelExecutionResult, TaskCategory } from './types';
+
+import { ModelExecutionInput, ModelExecutionResult, TaskCategory, ModelParameters } from './types';
 import { modelOrchestration } from './modelOrchestration';
 
 /**

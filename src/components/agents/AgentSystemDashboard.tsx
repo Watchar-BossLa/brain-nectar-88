@@ -1,172 +1,171 @@
 
 import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useMultiAgentSystem } from '@/hooks/useMultiAgentSystem';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { 
-  Brain, 
-  BookOpen, 
-  FileText, 
-  PenTool, 
-  Zap, 
-  MessageSquare, 
-  Layout, 
-  Calendar 
-} from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const agentIcons: Record<string, React.ElementType> = {
-  'COGNITIVE_PROFILE': Brain,
-  'LEARNING_PATH': BookOpen,
-  'CONTENT_ADAPTATION': FileText,
-  'ASSESSMENT': PenTool,
-  'ENGAGEMENT': Zap,
-  'FEEDBACK': MessageSquare,
-  'UI_UX': Layout,
-  'SCHEDULING': Calendar
-};
-
-const AgentSystemDashboard = () => {
+/**
+ * Agent System Dashboard component
+ * 
+ * Displays the status and metrics of the multi-agent system managed by the MCP.
+ */
+export default function AgentSystemDashboard() {
   const { isInitialized, systemState, submitTask, TaskTypes } = useMultiAgentSystem();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
+  const [selectedTab, setSelectedTab] = useState('status');
 
-  const handleGenerateLearningPath = async () => {
-    if (!isInitialized) {
-      toast({
-        title: 'System not ready',
-        description: 'The multi-agent system is still initializing.',
-        variant: 'destructive'
-      });
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
+  // Handle test task submission
+  const handleTestTask = async () => {
     try {
       await submitTask(
-        TaskTypes.LEARNING_PATH_GENERATION,
-        'Generate a personalized learning path',
-        { qualificationId: 'sample-qualification-id' },
-        'HIGH'
+        TaskTypes.COGNITIVE_PROFILING,
+        'Test cognitive profiling task',
+        { test: true },
+        'MEDIUM'
       );
-      
-      toast({
-        title: 'Task submitted',
-        description: 'Your personalized learning path is being generated.',
-      });
     } catch (error) {
-      console.error('Error submitting task:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to submit task. Please try again.',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsSubmitting(false);
+      console.error('Error submitting test task:', error);
     }
   };
 
-  return (
-    <div className="space-y-6">
+  if (!isInitialized) {
+    return (
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <Brain className="h-5 w-5 mr-2 text-primary" />
-            Master Control Program
-          </CardTitle>
-          <CardDescription>
-            Autonomous multi-agent system status
-          </CardDescription>
+          <CardTitle>Multi-Agent System</CardTitle>
+          <CardDescription>The system is not initialized yet.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">System Status</span>
-              <Badge variant={isInitialized ? "default" : "outline"}>
-                {isInitialized ? 'Active' : 'Initializing...'}
-              </Badge>
-            </div>
-            
-            <div>
-              <h4 className="text-sm font-medium mb-2">Active Agents</h4>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {systemState?.activeAgents && systemState.activeAgents.map((agent) => {
-                  const Icon = agentIcons[agent] || Brain;
-                  return (
-                    <div 
-                      key={agent} 
-                      className="flex items-center p-2 bg-muted/50 rounded-md text-xs"
-                    >
-                      <Icon className="h-3.5 w-3.5 mr-1.5 text-primary" />
-                      {agent.replace('_', ' ')}
-                    </div>
-                  );
-                })}
-
-                {(!systemState?.activeAgents || systemState.activeAgents.length === 0) && (
-                  <div className="col-span-4 text-center text-sm text-muted-foreground">
-                    No active agents
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            <div className="mt-4">
-              <Button 
-                onClick={handleGenerateLearningPath} 
-                disabled={!isInitialized || isSubmitting}
-              >
-                {isSubmitting ? 'Submitting...' : 'Generate Learning Path'}
-              </Button>
-            </div>
-          </div>
+          <p className="text-muted-foreground mb-4">
+            Sign in to initialize the multi-agent system.
+          </p>
         </CardContent>
       </Card>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">System Performance</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-medium">System Status</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              {systemState?.metrics && Object.entries(systemState.metrics).map(([key, value]) => (
-                <div key={key} className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">
-                    {key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').trim()}
-                  </span>
-                  <span className="font-medium">
-                    {typeof value === 'number' ? (value * 100).toFixed(0) + '%' : String(value)}
-                  </span>
-                </div>
+            <div className="flex items-center">
+              <div className="h-2 w-2 rounded-full bg-green-500 mr-2"></div>
+              <p className="text-sm font-medium">Active</p>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Master Control Program is running
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-medium">Active Agents</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-1">
+              {systemState?.activeAgents.map((agent) => (
+                <Badge key={agent} variant="secondary">
+                  {agent}
+                </Badge>
               ))}
-
-              {(!systemState?.metrics || Object.keys(systemState.metrics).length === 0) && (
-                <div className="text-center text-sm text-muted-foreground">
-                  No metrics available
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
         
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Recent Activity</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-medium">System Metrics</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <div className="text-center text-sm text-muted-foreground">
-                Activity log will appear here as you interact with the system.
-              </div>
+              {systemState?.metrics ? (
+                Object.entries(systemState.metrics).map(([key, value]) => (
+                  <div key={key} className="flex justify-between items-center">
+                    <span className="text-xs capitalize">{key.replace(/([A-Z])/g, ' $1').toLowerCase()}</span>
+                    <span className="text-sm font-medium">{typeof value === 'number' ? value.toFixed(2) : value}</span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-muted-foreground">No metrics available</p>
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Agent Operations</CardTitle>
+          <CardDescription>Manage and test the agent system</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="status">Status</TabsTrigger>
+              <TabsTrigger value="test">Test</TabsTrigger>
+              <TabsTrigger value="config">Configuration</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="status">
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="text-sm font-medium mb-2">Global Variables</h3>
+                    <div className="bg-muted rounded-md p-3 text-xs font-mono">
+                      {systemState?.globalVariables ? (
+                        <pre>{JSON.stringify(systemState.globalVariables, null, 2)}</pre>
+                      ) : (
+                        'No global variables'
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium mb-2">Priority Matrix</h3>
+                    <div className="bg-muted rounded-md p-3 text-xs font-mono">
+                      {systemState?.priorityMatrix ? (
+                        <pre>{JSON.stringify(systemState.priorityMatrix, null, 2)}</pre>
+                      ) : (
+                        'No priority matrix'
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="test">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium mb-2">Test Agent Task</h3>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Submit a test task to the agent system to verify functionality.
+                  </p>
+                  <Button onClick={handleTestTask}>
+                    Submit Test Task
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="config">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium mb-2">System Configuration</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Configuration options will be available in a future update.
+                  </p>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
-};
-
-export default AgentSystemDashboard;
+}

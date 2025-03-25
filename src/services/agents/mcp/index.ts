@@ -5,13 +5,14 @@ import { TaskProcessor } from './taskProcessor';
 import { SystemStateManager } from './systemState';
 import { CommunicationManager } from './communication';
 import { UserContextManager } from './userContext';
-import { initializeLLMSystem } from '../../llm';
+import { initializeLLMSystem, modelOrchestration, performanceMonitoring } from '../../llm';
 
 /**
  * Master Control Program (MCP)
  * 
  * Central orchestration layer that coordinates all agent activities,
  * maintains system coherence, and ensures alignment with user learning objectives.
+ * Also manages the LLM orchestration system for intelligent model selection.
  */
 export class MasterControlProgram {
   private static instance: MasterControlProgram;
@@ -20,6 +21,7 @@ export class MasterControlProgram {
   private communicationManager: CommunicationManager;
   private userContextManager: UserContextManager;
   private llmSystemInitialized = false;
+  private llmOrchestrationEnabled = true;
 
   private constructor() {
     this.taskProcessor = new TaskProcessor();
@@ -34,6 +36,9 @@ export class MasterControlProgram {
     // Initialize the LLM orchestration system
     this.initializeLLMSystem();
     
+    // Set up interval for monitoring the system
+    this.setupSystemMonitoring();
+    
     console.log('MCP initialized with agents:', registeredAgents);
   }
 
@@ -42,17 +47,63 @@ export class MasterControlProgram {
    */
   private async initializeLLMSystem(): Promise<void> {
     try {
-      await initializeLLMSystem();
+      const llmSystem = await initializeLLMSystem();
       this.llmSystemInitialized = true;
       
       // Update global state to indicate LLM system is available
       this.systemStateManager.setGlobalVariable('llmSystemAvailable', true);
+      this.systemStateManager.setGlobalVariable('llmSystemModels', modelOrchestration.getAllModels().map(m => m.id));
+      this.systemStateManager.setGlobalVariable('llmOrchestrationEnabled', this.llmOrchestrationEnabled);
       
       console.log('LLM orchestration system initialized successfully');
     } catch (error) {
       console.error('Error initializing LLM system:', error);
       this.systemStateManager.setGlobalVariable('llmSystemAvailable', false);
+      this.systemStateManager.setGlobalVariable('llmOrchestrationEnabled', false);
     }
+  }
+
+  /**
+   * Set up periodic system monitoring
+   */
+  private setupSystemMonitoring(): void {
+    // Update system stats every 30 seconds
+    setInterval(() => {
+      // Check if LLM system is healthy
+      const llmSystemHealth = this.checkLLMSystemHealth();
+      this.systemStateManager.setGlobalVariable('llmSystemHealth', llmSystemHealth);
+      
+      // Update agent statistics
+      this.updateAgentStatistics();
+      
+      // Update performance metrics
+      if (this.llmSystemInitialized) {
+        const recentExecutions = performanceMonitoring.getRecentExecutions(10);
+        this.systemStateManager.setGlobalVariable('recentLLMExecutions', recentExecutions.length);
+      }
+    }, 30000);  // 30 seconds
+  }
+
+  /**
+   * Check the health of the LLM system
+   */
+  private checkLLMSystemHealth(): 'healthy' | 'degraded' | 'offline' {
+    if (!this.llmSystemInitialized) {
+      return 'offline';
+    }
+    
+    // In a real implementation, we would perform actual health checks
+    // For now, just return healthy if initialized
+    return 'healthy';
+  }
+
+  /**
+   * Update agent statistics in the system state
+   */
+  private updateAgentStatistics(): void {
+    // In a real implementation, we would collect detailed agent statistics
+    // For now, just update some basic metrics
+    this.systemStateManager.updateMetrics(true);
   }
 
   /**
@@ -89,7 +140,8 @@ export class MasterControlProgram {
       ...state,
       globalVariables: {
         ...state.globalVariables,
-        llmSystemAvailable: this.llmSystemInitialized
+        llmSystemAvailable: this.llmSystemInitialized,
+        llmOrchestrationEnabled: this.llmOrchestrationEnabled
       }
     };
   }
@@ -109,6 +161,11 @@ export class MasterControlProgram {
       (key, value) => this.systemStateManager.setGlobalVariable(key, value)
     );
     
+    // Ensure LLM system is initialized
+    if (!this.llmSystemInitialized) {
+      await this.initializeLLMSystem();
+    }
+    
     // Create initial cognitive profile task
     this.submitTask({
       id: `initial-cognitive-profiling-${Date.now()}`,
@@ -121,21 +178,57 @@ export class MasterControlProgram {
       data: {},
       createdAt: new Date().toISOString(),
     });
+    
+    // Log the initialization
+    console.log(`MCP initialized for user ${userId} with LLM orchestration ${this.llmOrchestrationEnabled ? 'enabled' : 'disabled'}`);
   }
   
   /**
    * Enable or disable LLM orchestration
    */
   public setLLMOrchestrationEnabled(enabled: boolean): void {
-    this.taskProcessor.setLLMOrchestrationEnabled(enabled);
+    this.llmOrchestrationEnabled = enabled;
     this.systemStateManager.setGlobalVariable('llmOrchestrationEnabled', enabled);
+    this.taskProcessor.setLLMOrchestrationEnabled(enabled);
+    
+    // Broadcast a system message about the change
+    this.broadcastMessage({
+      type: 'SYSTEM',
+      content: `LLM orchestration has been ${enabled ? 'enabled' : 'disabled'}`,
+      data: { llmOrchestrationEnabled: enabled },
+      timestamp: new Date().toISOString()
+    });
+    
+    console.log(`LLM orchestration ${enabled ? 'enabled' : 'disabled'}`);
   }
   
   /**
    * Check if LLM orchestration is enabled
    */
   public isLLMOrchestrationEnabled(): boolean {
-    return this.taskProcessor.isLLMOrchestrationEnabled();
+    return this.llmOrchestrationEnabled;
+  }
+  
+  /**
+   * Get performance metrics for the LLM system
+   */
+  public getLLMPerformanceMetrics(): Record<string, any> {
+    if (!this.llmSystemInitialized) {
+      return {};
+    }
+    
+    // Get metrics for all models
+    const metrics: Record<string, any> = {};
+    const models = modelOrchestration.getAllModels();
+    
+    for (const model of models) {
+      const modelPerformance = performanceMonitoring.getModelPerformance(model.id);
+      if (modelPerformance) {
+        metrics[model.id] = modelPerformance;
+      }
+    }
+    
+    return metrics;
   }
 }
 

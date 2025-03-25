@@ -1,229 +1,285 @@
 
-import React from 'react';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import { LLMOrchestrationPanel } from './LLMOrchestrationPanel';
+import { useLLMOrchestration } from '@/hooks/useLLMOrchestration';
+import { TaskCategory } from '@/services/llm';
 
 /**
- * LLM Orchestration Dashboard
+ * LLM Orchestration Dashboard component
  * 
- * Provides an overview and management interface for the intelligent
- * model selection system.
+ * Displays the status and metrics of the LLM orchestration system and provides
+ * controls for testing and configuring the system.
  */
-export function LLMOrchestrationDashboard() {
-  return (
-    <div className="container mx-auto p-4">
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">LLM Orchestration System</h1>
-          <p className="text-muted-foreground">
-            Intelligent model selection and deployment for optimal performance
+export default function LLMOrchestrationDashboard() {
+  const { 
+    isInitialized, 
+    availableModels, 
+    modelMetrics,
+    setOrchestrationEnabled,
+    isOrchestrationEnabled,
+    generateText,
+    generateTextWithModel,
+    TaskCategory
+  } = useLLMOrchestration();
+  
+  const [selectedTab, setSelectedTab] = useState('status');
+  const [testPrompt, setTestPrompt] = useState('Explain accounting principles for beginners');
+  const [testResult, setTestResult] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedModel, setSelectedModel] = useState('');
+  const [selectedTaskCategory, setSelectedTaskCategory] = useState(TaskCategory.TEXT_GENERATION);
+
+  // Toggle LLM orchestration
+  const handleToggleOrchestration = () => {
+    setOrchestrationEnabled(!isOrchestrationEnabled());
+  };
+
+  // Test LLM with automatic model selection
+  const handleTestGeneration = async () => {
+    if (!testPrompt) return;
+    
+    setIsGenerating(true);
+    setTestResult('');
+    
+    try {
+      const result = await generateText(testPrompt, selectedTaskCategory);
+      setTestResult(`${result.text}\n\nModel used: ${result.modelId}\nExecution time: ${result.executionTime}ms`);
+    } catch (error) {
+      setTestResult(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // Test with specific model
+  const handleTestWithModel = async () => {
+    if (!testPrompt || !selectedModel) return;
+    
+    setIsGenerating(true);
+    setTestResult('');
+    
+    try {
+      const result = await generateTextWithModel(selectedModel, testPrompt, selectedTaskCategory);
+      setTestResult(`${result.text}\n\nExecution time: ${result.executionTime}ms`);
+    } catch (error) {
+      setTestResult(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  if (!isInitialized) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>LLM Orchestration System</CardTitle>
+          <CardDescription>The system is not initialized yet.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground mb-4">
+            Sign in to initialize the LLM orchestration system.
           </p>
-        </div>
-        
-        <Separator />
-        
-        <Tabs defaultValue="overview">
-          <TabsList className="grid w-full grid-cols-3 md:w-auto">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="models">Models</TabsTrigger>
-            <TabsTrigger value="configuration">Configuration</TabsTrigger>
-          </TabsList>
-          
-          <div className="mt-6 space-y-6">
-            <TabsContent value="overview" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Dynamic Model Routing</CardTitle>
-                    <CardDescription>
-                      Intelligent task categorization and model selection
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      Automatically routes tasks to the most appropriate model based on
-                      task requirements, complexity, and performance history.
-                    </p>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Multi-Parameter Evaluation</CardTitle>
-                    <CardDescription>
-                      Sophisticated evaluation across dimensions
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      Assesses model suitability based on task appropriateness,
-                      quality benchmarks, latency, and resource efficiency.
-                    </p>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Performance Monitoring</CardTitle>
-                    <CardDescription>
-                      Continuous evaluation and refinement
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      Monitors model outputs against quality metrics with
-                      automated feedback loops for system improvement.
-                    </p>
-                  </CardContent>
-                </Card>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-medium">System Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className={`h-2 w-2 rounded-full ${isOrchestrationEnabled() ? 'bg-green-500' : 'bg-amber-500'} mr-2`}></div>
+                <p className="text-sm font-medium">{isOrchestrationEnabled() ? 'Enabled' : 'Disabled'}</p>
               </div>
-              
-              <LLMOrchestrationPanel />
-            </TabsContent>
-            
-            <TabsContent value="models" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Open-Source Model Integration</CardTitle>
-                  <CardDescription>
-                    Leveraging state-of-the-art open-source models
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    The orchestration system seamlessly connects to the Hugging Face ecosystem,
-                    prioritizing the latest versions from the Llama, Mistral, and other model families.
-                  </p>
-                  
-                  <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Llama Models</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ul className="list-disc pl-5 space-y-1">
-                          <li>Llama 3 8B - General purpose</li>
-                          <li>Llama 3 70B - High performance</li>
-                          <li>Code Llama - Specialized for code</li>
-                        </ul>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Mistral Models</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ul className="list-disc pl-5 space-y-1">
-                          <li>Mistral 7B - Efficient general purpose</li>
-                          <li>Mixtral 8x7B - Mixture of experts</li>
-                          <li>Specialized instruction models</li>
-                        </ul>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Adaptive Resource Allocation</CardTitle>
-                  <CardDescription>
-                    Balancing performance requirements with infrastructure constraints
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-4">
-                    Dynamically scales compute allocation based on task complexity
-                    and optimizes resource usage.
-                  </p>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base">Simple Tasks</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">
-                          Uses smaller, efficient models for basic tasks like
-                          classification or simple text generation.
-                        </p>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base">Medium Complexity</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">
-                          Balances performance and efficiency for tasks like
-                          content generation and summarization.
-                        </p>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base">Complex Reasoning</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">
-                          Utilizes large, high-performance models for complex
-                          reasoning and specialized tasks.
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="configuration" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>API Standardization Layer</CardTitle>
-                  <CardDescription>
-                    Unified interface for consistent interaction patterns
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    The orchestration system provides a standardized API that abstracts
-                    model-specific implementations, allowing consistent interaction
-                    regardless of the underlying model selected.
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Configuration Management</CardTitle>
-                  <CardDescription>
-                    Version-controlled parameter systems
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Implements version-controlled configuration systems for model
-                    selection parameters, enabling rapid adjustment of orchestration behavior.
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <LLMOrchestrationPanel />
-            </TabsContent>
-          </div>
-        </Tabs>
+              <div className="flex items-center space-x-2">
+                <Switch 
+                  id="orchestration-toggle" 
+                  checked={isOrchestrationEnabled()}
+                  onCheckedChange={handleToggleOrchestration}
+                />
+                <Label htmlFor="orchestration-toggle">Toggle</Label>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-medium">Available Models</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-1">
+              {availableModels.map((model) => (
+                <Badge key={model} variant="outline">
+                  {model}
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-medium">MCP Integration</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center">
+              <div className="h-2 w-2 rounded-full bg-green-500 mr-2"></div>
+              <p className="text-sm font-medium">Connected</p>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              LLM System is integrated with Master Control Program
+            </p>
+          </CardContent>
+        </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>LLM Orchestration</CardTitle>
+          <CardDescription>Test and manage the LLM orchestration system</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="status">Status</TabsTrigger>
+              <TabsTrigger value="test">Test</TabsTrigger>
+              <TabsTrigger value="metrics">Metrics</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="status">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium mb-2">Model Registry</h3>
+                  <div className="bg-muted rounded-md p-3 text-xs">
+                    <p>Total models registered: {availableModels.length}</p>
+                    <ul className="mt-2 space-y-1">
+                      {availableModels.map(model => (
+                        <li key={model}>{model}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="test">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium mb-2">Test LLM Orchestration</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="task-category">Task Category</Label>
+                      <select 
+                        id="task-category"
+                        className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                        value={selectedTaskCategory}
+                        onChange={(e) => setSelectedTaskCategory(e.target.value as TaskCategory)}
+                      >
+                        {Object.values(TaskCategory).map((category) => (
+                          <option key={category} value={category}>{category}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="test-prompt">Test Prompt</Label>
+                      <textarea 
+                        id="test-prompt"
+                        className="flex min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                        placeholder="Enter a prompt to test the LLM orchestration system"
+                        value={testPrompt}
+                        onChange={(e) => setTestPrompt(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="flex space-x-2">
+                      <Button 
+                        onClick={handleTestGeneration} 
+                        disabled={isGenerating || !testPrompt}
+                      >
+                        {isGenerating ? 'Generating...' : 'Test with Optimal Model'}
+                      </Button>
+                      
+                      <div className="flex-1"></div>
+                      
+                      <select
+                        className="flex h-9 w-48 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors"
+                        value={selectedModel}
+                        onChange={(e) => setSelectedModel(e.target.value)}
+                      >
+                        <option value="">Select specific model</option>
+                        {availableModels.map((model) => (
+                          <option key={model} value={model}>{model}</option>
+                        ))}
+                      </select>
+                      
+                      <Button
+                        variant="outline"
+                        onClick={handleTestWithModel}
+                        disabled={isGenerating || !testPrompt || !selectedModel}
+                      >
+                        Test Selected Model
+                      </Button>
+                    </div>
+                    
+                    {testResult && (
+                      <div>
+                        <Label>Result</Label>
+                        <div className="bg-muted rounded-md p-3 text-xs font-mono whitespace-pre-wrap">
+                          {testResult}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="metrics">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium mb-2">Model Performance Metrics</h3>
+                  {Object.keys(modelMetrics).length > 0 ? (
+                    <div className="grid grid-cols-1 gap-4">
+                      {Object.entries(modelMetrics).map(([modelId, metrics]) => (
+                        <div key={modelId} className="bg-muted rounded-md p-3">
+                          <h4 className="text-xs font-medium mb-2">{modelId}</h4>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                            {Object.entries(metrics).map(([key, value]) => (
+                              <div key={key} className="flex flex-col">
+                                <span className="text-muted-foreground capitalize">
+                                  {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                                </span>
+                                <span className="font-medium">
+                                  {typeof value === 'number' ? value.toFixed(2) : value}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">No metrics available yet. Test the system to generate metrics.</p>
+                  )}
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AgentSystemDashboard } from '@/components/agents/AgentSystemDashboard';
-import { LLMOrchestrationDashboard } from '@/components/agents/LLMOrchestrationDashboard';
+import AgentSystemDashboard from '@/components/agents/AgentSystemDashboard';
+import LLMOrchestrationDashboard from '@/components/agents/LLMOrchestrationDashboard';
 
 /**
  * Agent Dashboard Page
