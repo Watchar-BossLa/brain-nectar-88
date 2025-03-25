@@ -1,13 +1,10 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLLMOrchestration } from '@/hooks/useLLMOrchestration';
-import { TaskCategory } from '@/services/llm';
+import { SystemStatus } from './llm-orchestration/SystemStatus';
+import { AvailableModels } from './llm-orchestration/AvailableModels';
+import { DashboardTabs } from './llm-orchestration/dashboard/DashboardTabs';
 
 /**
  * LLM Orchestration Dashboard component
@@ -92,42 +89,12 @@ export default function LLMOrchestrationDashboard() {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">System Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <div className={`h-2 w-2 rounded-full ${isOrchestrationEnabled() ? 'bg-green-500' : 'bg-amber-500'} mr-2`}></div>
-                <p className="text-sm font-medium">{isOrchestrationEnabled() ? 'Enabled' : 'Disabled'}</p>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch 
-                  id="orchestration-toggle" 
-                  checked={isOrchestrationEnabled()}
-                  onCheckedChange={handleToggleOrchestration}
-                />
-                <Label htmlFor="orchestration-toggle">Toggle</Label>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <SystemStatus 
+          isEnabled={isOrchestrationEnabled()} 
+          onToggle={handleToggleOrchestration} 
+        />
         
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">Available Models</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-1">
-              {availableModels.map((model) => (
-                <Badge key={model} variant="outline">
-                  {model}
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <AvailableModels models={availableModels} />
         
         <Card>
           <CardHeader className="pb-2">
@@ -151,133 +118,25 @@ export default function LLMOrchestrationDashboard() {
           <CardDescription>Test and manage the LLM orchestration system</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="status">Status</TabsTrigger>
-              <TabsTrigger value="test">Test</TabsTrigger>
-              <TabsTrigger value="metrics">Metrics</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="status">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Model Registry</h3>
-                  <div className="bg-muted rounded-md p-3 text-xs">
-                    <p>Total models registered: {availableModels.length}</p>
-                    <ul className="mt-2 space-y-1">
-                      {availableModels.map(model => (
-                        <li key={model}>{model}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="test">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Test LLM Orchestration</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="task-category">Task Category</Label>
-                      <select 
-                        id="task-category"
-                        className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                        value={selectedTaskCategory}
-                        onChange={(e) => setSelectedTaskCategory(e.target.value as TaskCategory)}
-                      >
-                        {Object.values(TaskCategory).map((category) => (
-                          <option key={category} value={category}>{category}</option>
-                        ))}
-                      </select>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="test-prompt">Test Prompt</Label>
-                      <textarea 
-                        id="test-prompt"
-                        className="flex min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                        placeholder="Enter a prompt to test the LLM orchestration system"
-                        value={testPrompt}
-                        onChange={(e) => setTestPrompt(e.target.value)}
-                      />
-                    </div>
-                    
-                    <div className="flex space-x-2">
-                      <Button 
-                        onClick={handleTestGeneration} 
-                        disabled={isGenerating || !testPrompt}
-                      >
-                        {isGenerating ? 'Generating...' : 'Test with Optimal Model'}
-                      </Button>
-                      
-                      <div className="flex-1"></div>
-                      
-                      <select
-                        className="flex h-9 w-48 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors"
-                        value={selectedModel}
-                        onChange={(e) => setSelectedModel(e.target.value)}
-                      >
-                        <option value="">Select specific model</option>
-                        {availableModels.map((model) => (
-                          <option key={model} value={model}>{model}</option>
-                        ))}
-                      </select>
-                      
-                      <Button
-                        variant="outline"
-                        onClick={handleTestWithModel}
-                        disabled={isGenerating || !testPrompt || !selectedModel}
-                      >
-                        Test Selected Model
-                      </Button>
-                    </div>
-                    
-                    {testResult && (
-                      <div>
-                        <Label>Result</Label>
-                        <div className="bg-muted rounded-md p-3 text-xs font-mono whitespace-pre-wrap">
-                          {testResult}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="metrics">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Model Performance Metrics</h3>
-                  {Object.keys(modelMetrics).length > 0 ? (
-                    <div className="grid grid-cols-1 gap-4">
-                      {Object.entries(modelMetrics).map(([modelId, metrics]) => (
-                        <div key={modelId} className="bg-muted rounded-md p-3">
-                          <h4 className="text-xs font-medium mb-2">{modelId}</h4>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                            {Object.entries(metrics).map(([key, value]) => (
-                              <div key={key} className="flex flex-col">
-                                <span className="text-muted-foreground capitalize">
-                                  {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
-                                </span>
-                                <span className="font-medium">
-                                  {typeof value === 'number' ? value.toFixed(2) : String(value)}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">No metrics available yet. Test the system to generate metrics.</p>
-                  )}
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
+          <DashboardTabs
+            selectedTab={selectedTab}
+            setSelectedTab={setSelectedTab}
+            availableModels={availableModels}
+            modelMetrics={modelMetrics}
+            testProps={{
+              testPrompt,
+              setTestPrompt,
+              isGenerating,
+              testResult,
+              handleTestGeneration,
+              handleTestWithModel,
+              selectedModel,
+              setSelectedModel,
+              selectedTaskCategory,
+              setSelectedTaskCategory,
+              TaskCategory
+            }}
+          />
         </CardContent>
       </Card>
     </div>
