@@ -1,4 +1,7 @@
 
+// Import the Buffer from 'buffer' package
+import { Buffer as BufferPolyfill } from 'buffer';
+
 // Polyfills for browser compatibility with Node.js libraries
 if (typeof window !== 'undefined') {
   // Define global as window for browser environments
@@ -9,5 +12,5 @@ if (typeof window !== 'undefined') {
   window.process = window.process || { env: {} };
   
   // Add Buffer if needed
-  window.Buffer = window.Buffer || require('buffer').Buffer;
+  window.Buffer = window.Buffer || BufferPolyfill;
 }
