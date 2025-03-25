@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import MainLayout from '@/components/layout/MainLayout';
@@ -76,6 +75,54 @@ const Qualifications = () => {
       activeStudents: 1560,
       color: 'bg-amber-500'
     },
+    {
+      id: 'cfa',
+      name: 'CFA',
+      fullName: 'Chartered Financial Analyst',
+      description: 'A globally recognized professional designation that measures and certifies the competence and integrity of financial analysts.',
+      levels: ['Level I', 'Level II', 'Level III'],
+      totalExams: 3,
+      examsPassed: 0,
+      status: 'not-started',
+      activeStudents: 2750,
+      color: 'bg-blue-600'
+    },
+    {
+      id: 'frm',
+      name: 'FRM',
+      fullName: 'Financial Risk Manager',
+      description: 'A professional designation for risk management professionals, with a focus on credit risk, market risk, operational risk, and investment management.',
+      levels: ['Part I', 'Part II'],
+      totalExams: 2,
+      examsPassed: 0,
+      status: 'not-started',
+      activeStudents: 1450,
+      color: 'bg-red-500'
+    },
+    {
+      id: 'cfp',
+      name: 'CFP',
+      fullName: 'Certified Financial Planner',
+      description: 'A professional certification for financial planners conferred by the Certified Financial Planner Board of Standards.',
+      levels: ['Education', 'Exam', 'Experience', 'Ethics'],
+      totalExams: 1,
+      examsPassed: 0,
+      status: 'not-started',
+      activeStudents: 1890,
+      color: 'bg-indigo-500'
+    },
+    {
+      id: 'caia',
+      name: 'CAIA',
+      fullName: 'Chartered Alternative Investment Analyst',
+      description: 'A professional designation offered by the CAIA Association to investment professionals who specialize in alternative investments.',
+      levels: ['Level I', 'Level II'],
+      totalExams: 2,
+      examsPassed: 0,
+      status: 'not-started',
+      activeStudents: 980,
+      color: 'bg-teal-500'
+    },
   ];
 
   const accaModules = [
@@ -120,7 +167,27 @@ const Qualifications = () => {
     }
   ];
 
-  // Animation variants
+  const cfaModules = [
+    {
+      level: 'Program Structure',
+      modules: [
+        { code: 'L1', name: 'Level I - Investment Tools', status: 'not-started' },
+        { code: 'L2', name: 'Level II - Asset Valuation', status: 'not-started' },
+        { code: 'L3', name: 'Level III - Portfolio Management', status: 'not-started' }
+      ]
+    }
+  ];
+
+  const frmModules = [
+    {
+      level: 'Program Structure',
+      modules: [
+        { code: 'P1', name: 'Part I - Foundations of Risk Management', status: 'not-started' },
+        { code: 'P2', name: 'Part II - Advanced Risk Management', status: 'not-started' }
+      ]
+    }
+  ];
+
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -136,7 +203,6 @@ const Qualifications = () => {
     show: { opacity: 1, y: 0 }
   };
 
-  // Helper function to get status badge
   const getStatusBadge = (status) => {
     switch (status) {
       case 'passed':
@@ -163,7 +229,7 @@ const Qualifications = () => {
         >
           <h1 className="text-3xl font-semibold">Qualification Tracks</h1>
           <p className="text-muted-foreground mt-1">
-            Professional accounting certifications to advance your career.
+            Professional accounting and finance certifications to advance your career.
           </p>
         </motion.div>
 
@@ -179,7 +245,6 @@ const Qualifications = () => {
               variants={item}
               className="border border-border rounded-lg overflow-hidden"
             >
-              {/* Qualification Header */}
               <div className={`${qualification.color} h-2`}></div>
               <div className="p-6">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
@@ -198,7 +263,6 @@ const Qualifications = () => {
                   )}
                 </div>
                 
-                {/* Qualification Stats */}
                 {qualification.status === 'in-progress' && (
                   <div className="mb-6">
                     <div className="flex justify-between mb-1">
@@ -260,7 +324,6 @@ const Qualifications = () => {
                   </div>
                 </div>
                 
-                {/* Module List */}
                 {qualification.id === 'acca' && (
                   <Accordion type="single" collapsible className="mt-6" defaultValue="acca-structure">
                     <AccordionItem value="acca-structure">
@@ -331,7 +394,77 @@ const Qualifications = () => {
                   </Accordion>
                 )}
                 
-                {(qualification.id === 'cima' || qualification.id === 'cma') && (
+                {qualification.id === 'cfa' && (
+                  <Accordion type="single" collapsible className="mt-6" defaultValue="cfa-structure">
+                    <AccordionItem value="cfa-structure">
+                      <AccordionTrigger>CFA Program Structure</AccordionTrigger>
+                      <AccordionContent>
+                        {cfaModules.map((level, index) => (
+                          <div key={index} className="mb-6 last:mb-0">
+                            <h3 className="font-medium mb-3">{level.level}</h3>
+                            <div className="space-y-2">
+                              {level.modules.map((module, moduleIndex) => (
+                                <div 
+                                  key={moduleIndex} 
+                                  className="flex items-center justify-between p-3 border border-border rounded-md"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div className="font-medium min-w-[40px]">{module.code}</div>
+                                    <div>{module.name}</div>
+                                  </div>
+                                  {getStatusBadge(module.status)}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                        <div className="flex justify-end mt-4">
+                          <Button variant="outline" size="sm" className="gap-1">
+                            <ExternalLink size={16} />
+                            CFA Institute Website
+                          </Button>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                )}
+                
+                {qualification.id === 'frm' && (
+                  <Accordion type="single" collapsible className="mt-6" defaultValue="frm-structure">
+                    <AccordionItem value="frm-structure">
+                      <AccordionTrigger>FRM Program Structure</AccordionTrigger>
+                      <AccordionContent>
+                        {frmModules.map((level, index) => (
+                          <div key={index} className="mb-6 last:mb-0">
+                            <h3 className="font-medium mb-3">{level.level}</h3>
+                            <div className="space-y-2">
+                              {level.modules.map((module, moduleIndex) => (
+                                <div 
+                                  key={moduleIndex} 
+                                  className="flex items-center justify-between p-3 border border-border rounded-md"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div className="font-medium min-w-[40px]">{module.code}</div>
+                                    <div>{module.name}</div>
+                                  </div>
+                                  {getStatusBadge(module.status)}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                        <div className="flex justify-end mt-4">
+                          <Button variant="outline" size="sm" className="gap-1">
+                            <ExternalLink size={16} />
+                            GARP Official Website
+                          </Button>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                )}
+                
+                {(qualification.id === 'cima' || qualification.id === 'cma' || qualification.id === 'cfp' || qualification.id === 'caia') && (
                   <div className="flex justify-center mt-6">
                     <Button>Explore {qualification.name} Structure</Button>
                   </div>
@@ -341,7 +474,6 @@ const Qualifications = () => {
           ))}
         </motion.div>
         
-        {/* Recommendations */}
         <motion.div 
           className="mt-10 border border-border rounded-lg p-6 bg-card/50"
           initial={{ opacity: 0, y: 20 }}
