@@ -68,12 +68,13 @@ export const SolanaProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
 const SolanaContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { connection } = useConnection();
-  const { publicKey, connected, connecting, select } = useWallet();
+  const { publicKey, connected, connecting, select, wallet } = useWallet();
   const [balance, setBalance] = React.useState<number | null>(null);
 
   const connectWallet = useCallback(() => {
     if (!connected && !connecting) {
-      select('phantom');
+      // Instead of passing a string, open the wallet modal which handles selection properly
+      select();
     }
   }, [connected, connecting, select]);
 
