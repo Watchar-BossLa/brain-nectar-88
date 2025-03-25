@@ -1,5 +1,5 @@
 
-import { AgentMessage, AgentTask, TaskType } from '../types';
+import { AgentMessage, AgentTask, TaskType, MessageType } from '../types';
 import { BaseAgent } from '../baseAgent';
 import { calculateFlashcardRetention } from '@/services/spacedRepetition/reviewService';
 import { spacedRepetitionService } from '@/services/flashcards/spacedRepetitionService';
@@ -33,9 +33,12 @@ export class LearningPathAgent extends BaseAgent {
   receiveMessage(message: AgentMessage): void {
     console.log(`Learning Path Agent received message: ${message.type}`);
     // Handle messages from other agents
-    if (message.type === 'FLASHCARD_REVIEW_COMPLETED') {
-      // Trigger flashcard sequence optimization
-      this.optimizeFlashcardSequence(message.userId, message.data);
+    if (message.type === 'NOTIFICATION') {
+      // Check if this is a flashcard review notification
+      if (message.content === 'FLASHCARD_REVIEW_COMPLETED' && message.data && message.data.userId) {
+        // Trigger flashcard sequence optimization
+        this.optimizeFlashcardSequence(message.data.userId, message.data);
+      }
     }
   }
   

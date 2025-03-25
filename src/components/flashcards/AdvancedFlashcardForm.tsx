@@ -21,13 +21,15 @@ interface AdvancedFlashcardFormProps {
   onCancel: () => void;
 }
 
+type FinancialStatementType = 'balance-sheet' | 'income-statement' | 'cash-flow' | 'ratio';
+
 const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({ onSuccess, onCancel }) => {
   const [frontContent, setFrontContent] = useState('');
   const [backContent, setBackContent] = useState('');
   const [useLatex, setUseLatex] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [contentType, setContentType] = useState<'text' | 'formula' | 'financial'>('text');
-  const [financialType, setFinancialType] = useState<'balance-sheet' | 'income-statement' | 'cash-flow' | 'ratio'>('balance-sheet');
+  const [financialType, setFinancialType] = useState<FinancialStatementType>('balance-sheet');
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {

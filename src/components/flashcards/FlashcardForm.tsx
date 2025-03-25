@@ -59,7 +59,6 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({
 
     try {
       const { data, error } = await createFlashcard(
-        user.id,
         frontContent, 
         backContent, 
         topicId || undefined

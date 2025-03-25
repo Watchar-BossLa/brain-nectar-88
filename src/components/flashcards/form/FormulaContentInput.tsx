@@ -28,7 +28,7 @@ const FormulaContentInput: React.FC<FormulaContentInputProps> = ({
           className="min-h-[100px] font-mono"
         />
         <p className="text-xs text-muted-foreground mt-1">
-          Use LaTeX syntax for formulas: e.g., $$A = P(1 + r/n)^{nt}$$
+          Use LaTeX syntax for formulas: e.g., {`$$A = P(1 + r/n)^{nt}$$`}
         </p>
       </div>
       <div className="grid w-full gap-1.5 mt-4">
@@ -41,7 +41,7 @@ const FormulaContentInput: React.FC<FormulaContentInputProps> = ({
           className="min-h-[100px] font-mono"
         />
         <p className="text-xs text-muted-foreground mt-1">
-          For block display use double dollar signs: e.g., $$\sum_{i=1}^{n} i = \frac{n(n+1)}{2}$$
+          For block display use double dollar signs: e.g., {`$$\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}$$`}
         </p>
       </div>
     </>
