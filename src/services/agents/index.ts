@@ -1,6 +1,7 @@
 
 import { AgentTask, TaskType } from './types';
 import { mcp } from './mcp';
+import { initializeLLMSystem } from '../llm';
 
 // Re-export the TaskType
 export type { TaskType };
@@ -56,12 +57,31 @@ const taskHandlers: { [key in TaskType]?: (userId: string, taskData: any) => Pro
   [TaskTypes.LEARNING_PATH_UPDATE]: generateLearningPath,
 };
 
+// Initialize the LLM orchestration system
+let llmInitialized = false;
+
+const initializeLLM = async () => {
+  if (!llmInitialized) {
+    try {
+      await initializeLLMSystem();
+      llmInitialized = true;
+      console.log('LLM orchestration system initialized from MultiAgentSystem');
+    } catch (error) {
+      console.error('Failed to initialize LLM system:', error);
+    }
+  }
+};
+
 // Export the MultiAgentSystem interface
 export const MultiAgentSystem = {
   initialize: async (userId: string) => {
     console.log(`Multi-Agent System initializing for user: ${userId}`);
     // Initialize MCP for this user
     await mcp.initializeForUser(userId);
+    
+    // Initialize LLM orchestration system
+    await initializeLLM();
+    
     return Promise.resolve();
   },
 
@@ -91,4 +111,13 @@ export const MultiAgentSystem = {
       throw error;
     }
   },
+  
+  enableLLMOrchestration: (enabled: boolean): void => {
+    mcp.setLLMOrchestrationEnabled(enabled);
+    console.log(`LLM orchestration ${enabled ? 'enabled' : 'disabled'}`);
+  },
+  
+  isLLMOrchestrationEnabled: (): boolean => {
+    return mcp.isLLMOrchestrationEnabled();
+  }
 };

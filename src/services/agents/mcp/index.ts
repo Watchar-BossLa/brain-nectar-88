@@ -5,6 +5,7 @@ import { TaskProcessor } from './taskProcessor';
 import { SystemStateManager } from './systemState';
 import { CommunicationManager } from './communication';
 import { UserContextManager } from './userContext';
+import { initializeLLMSystem } from '../../llm';
 
 /**
  * Master Control Program (MCP)
@@ -18,6 +19,7 @@ export class MasterControlProgram {
   private systemStateManager: SystemStateManager;
   private communicationManager: CommunicationManager;
   private userContextManager: UserContextManager;
+  private llmSystemInitialized = false;
 
   private constructor() {
     this.taskProcessor = new TaskProcessor();
@@ -29,7 +31,28 @@ export class MasterControlProgram {
     this.communicationManager = new CommunicationManager();
     this.userContextManager = new UserContextManager(this.communicationManager);
     
+    // Initialize the LLM orchestration system
+    this.initializeLLMSystem();
+    
     console.log('MCP initialized with agents:', registeredAgents);
+  }
+
+  /**
+   * Initialize the LLM orchestration system
+   */
+  private async initializeLLMSystem(): Promise<void> {
+    try {
+      await initializeLLMSystem();
+      this.llmSystemInitialized = true;
+      
+      // Update global state to indicate LLM system is available
+      this.systemStateManager.setGlobalVariable('llmSystemAvailable', true);
+      
+      console.log('LLM orchestration system initialized successfully');
+    } catch (error) {
+      console.error('Error initializing LLM system:', error);
+      this.systemStateManager.setGlobalVariable('llmSystemAvailable', false);
+    }
   }
 
   /**
@@ -59,7 +82,16 @@ export class MasterControlProgram {
    * Get the current system state
    */
   public getSystemState(): SystemState {
-    return this.systemStateManager.getSystemState();
+    const state = this.systemStateManager.getSystemState();
+    
+    // Add LLM system status to the state
+    return {
+      ...state,
+      globalVariables: {
+        ...state.globalVariables,
+        llmSystemAvailable: this.llmSystemInitialized
+      }
+    };
   }
 
   /**
@@ -89,6 +121,21 @@ export class MasterControlProgram {
       data: {},
       createdAt: new Date().toISOString(),
     });
+  }
+  
+  /**
+   * Enable or disable LLM orchestration
+   */
+  public setLLMOrchestrationEnabled(enabled: boolean): void {
+    this.taskProcessor.setLLMOrchestrationEnabled(enabled);
+    this.systemStateManager.setGlobalVariable('llmOrchestrationEnabled', enabled);
+  }
+  
+  /**
+   * Check if LLM orchestration is enabled
+   */
+  public isLLMOrchestrationEnabled(): boolean {
+    return this.taskProcessor.isLLMOrchestrationEnabled();
   }
 }
 

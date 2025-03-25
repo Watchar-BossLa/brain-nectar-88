@@ -1,6 +1,7 @@
 
 import { AgentTask, AgentType, TaskStatus } from '../types';
 import { createAgentRegistry } from './agentRegistry';
+import { agentIntegration } from '../../llm/agentIntegration';
 
 /**
  * TaskProcessor
@@ -11,6 +12,7 @@ export class TaskProcessor {
   private taskQueue: AgentTask[] = [];
   private isProcessing = false;
   private agentRegistry = createAgentRegistry();
+  private useLLMOrchestration = true; // Flag to enable LLM orchestration
 
   /**
    * Submit a task to be handled by the appropriate agent(s)
@@ -71,9 +73,22 @@ export class TaskProcessor {
       
       if (targetAgents.length === 0) {
         console.warn('No suitable agent found for task:', task);
-        // Instead of returning an object, just log the error
         console.error('No suitable agent found');
       } else {
+        // If LLM orchestration is enabled, use it to enhance agent processing
+        if (this.useLLMOrchestration) {
+          // Process the task with LLM orchestration first
+          const llmResult = await agentIntegration.processAgentTask(task);
+          
+          // Attach LLM result to task data for agent use
+          task.data = {
+            ...task.data,
+            llmResult: llmResult
+          };
+          
+          console.log(`Enhanced task with LLM orchestration: ${task.id}`);
+        }
+        
         // Distribute the task to the appropriate agent(s)
         for (const agentType of targetAgents) {
           const agent = this.agentRegistry.getAgent(agentType);
@@ -82,12 +97,10 @@ export class TaskProcessor {
           }
         }
         
-        // Instead of returning a success object, just log success
         console.log('Task processed successfully');
       }
     } catch (error) {
       console.error('Error processing task:', error);
-      // Instead of returning an error object, just log the error
       console.error('Task processing failed:', error instanceof Error ? error.message : 'Unknown error');
     } finally {
       // Continue processing the queue
@@ -191,5 +204,20 @@ export class TaskProcessor {
    */
   public getAgentRegistry() {
     return this.agentRegistry;
+  }
+  
+  /**
+   * Enable or disable LLM orchestration
+   */
+  public setLLMOrchestrationEnabled(enabled: boolean): void {
+    this.useLLMOrchestration = enabled;
+    console.log(`LLM orchestration ${enabled ? 'enabled' : 'disabled'}`);
+  }
+  
+  /**
+   * Check if LLM orchestration is enabled
+   */
+  public isLLMOrchestrationEnabled(): boolean {
+    return this.useLLMOrchestration;
   }
 }
