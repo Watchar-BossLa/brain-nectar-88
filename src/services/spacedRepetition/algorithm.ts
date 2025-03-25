@@ -1,180 +1,154 @@
 
 /**
- * Implementation of the improved SM-2 Spaced Repetition Algorithm with memory decay curve
- * and adaptive learning capabilities for Study Bee
+ * Initial easiness factor for new flashcards
  */
-
-// SM-2 Spaced Repetition Algorithm parameters
 export const INITIAL_EASINESS_FACTOR = 2.5;
+
+/**
+ * Minimum easiness factor to prevent cards from becoming too difficult
+ */
 export const MIN_EASINESS_FACTOR = 1.3;
 
-// Memory decay constants
-const MEMORY_DECAY_RATE = 0.1;
-const MEMORY_STRENGTH_MODIFIER = 0.2;
-
-// Adaptive learning parameters
-const RETENTION_TARGET = 0.85; // Target retention rate (85%)
-const DIFFICULTY_SCALING = 0.05; // How quickly difficulty adjusts
-
-export type RepetitionSchedule = {
-  interval: number;     // in days
+/**
+ * Type for repetition schedule calculation result
+ */
+export interface RepetitionSchedule {
+  interval: number;
   easinessFactor: number;
   nextReviewDate: Date;
-  estimatedRetention: number; // percentage (0-1)
-  masteryLevel: number; // 0-1 scale
-};
+  masteryLevel: number;
+  estimatedRetention: number;
+}
 
 /**
- * Calculates the memory retention based on time since last review
- * Implements the forgetting curve: R = e^(-t/S)
- * Where:
- * - R is retention (0-1)
- * - t is time elapsed since last review (in days)
- * - S is memory strength (higher = slower decay)
+ * Calculate next review date
+ * 
+ * @param interval Number of days until next review
+ * @returns Date object for next review
  */
-export const calculateRetention = (
-  daysSinceLastReview: number,
-  memoryStrength: number
-): number => {
-  return Math.exp(-daysSinceLastReview / (memoryStrength * 10));
+export const calculateNextReviewDate = (interval: number): Date => {
+  const now = new Date();
+  const nextDate = new Date(now);
+  nextDate.setDate(now.getDate() + interval);
+  return nextDate;
 };
 
 /**
- * Calculates the optimal interval based on desired retention level
- * t = -S * ln(R)
- * where we target the defined retention target
- */
-export const calculateOptimalInterval = (memoryStrength: number): number => {
-  return -memoryStrength * 10 * Math.log(RETENTION_TARGET);
-};
-
-/**
- * Calculates mastery level based on repetition history and performance
- * @param repetitionCount Number of successful repetitions
- * @param averageDifficulty Average difficulty reported by user
- * @returns Mastery level between 0-1
+ * Calculate mastery level based on repetition count, difficulty, and interval
+ * 
+ * @param repetitionCount Number of times the card has been reviewed
+ * @param difficulty Difficulty rating (1-5)
+ * @param interval Days between reviews
+ * @returns Mastery level (0-1)
  */
 export const calculateMasteryLevel = (
-  repetitionCount: number, 
-  averageDifficulty: number
+  repetitionCount: number,
+  difficulty: number,
+  interval: number
 ): number => {
-  // Base mastery from repetition count (saturates around 10 repetitions)
-  const repetitionMastery = Math.min(repetitionCount / 10, 0.8);
+  // Convert difficulty (1-5) to a 0-1 scale where 1 is easiest
+  const normalizedDifficulty = (6 - difficulty) / 5;
   
-  // Adjust based on average reported difficulty (lower difficulty = higher mastery)
-  const difficultyFactor = Math.max(0, (5 - averageDifficulty) / 5);
+  // Calculate mastery based on repetition count, difficulty, and interval
+  const repetitionFactor = Math.min(repetitionCount / 10, 1);
+  const intervalFactor = Math.min(interval / 30, 1);
   
-  // Combine factors (repetition contributes 70%, difficulty 30%)
-  return (repetitionMastery * 0.7) + (difficultyFactor * 0.3);
+  // Combine factors with weights
+  const mastery = 
+    repetitionFactor * 0.5 + 
+    normalizedDifficulty * 0.3 + 
+    intervalFactor * 0.2;
+  
+  // Ensure mastery is in 0-1 range
+  return Math.max(0, Math.min(1, mastery));
 };
 
 /**
- * Calculates adaptive difficulty scaling based on user performance
- * @param targetRetention Target retention rate
- * @param actualRetention Actual observed retention rate
- * @returns Difficulty scaling factor (higher means increase difficulty)
- */
-export const calculateAdaptiveDifficulty = (
-  targetRetention: number,
-  actualRetention: number
-): number => {
-  // If actual retention is too high, increase difficulty
-  // If actual retention is too low, decrease difficulty
-  return (actualRetention - targetRetention) * DIFFICULTY_SCALING;
-};
-
-/**
- * Calculates the next review schedule based on the enhanced SM-2 algorithm
- * with adaptive learning capabilities
+ * Calculate memory retention based on days since last review
  * 
- * @param repetitionCount Current repetition count
+ * @param daysSinceReview Days since last review
+ * @param memoryStrength Memory strength (higher = better retention)
+ * @returns Retention rate (0-1)
+ */
+export const calculateRetention = (
+  daysSinceReview: number,
+  memoryStrength: number
+): number => {
+  // Ebbinghaus forgetting curve: R = e^(-t/S)
+  // where R is retention, t is time, and S is memory strength
+  return Math.exp(-1 * daysSinceReview / (memoryStrength + 1));
+};
+
+/**
+ * Calculate next review schedule using enhanced SM-2 algorithm
+ * 
+ * @param repetitionCount Number of times the card has been reviewed
  * @param easinessFactor Current easiness factor
- * @param difficulty User-rated difficulty (1-5, 5 = most difficult)
- * @param previousInterval Previous interval in days (optional)
- * @param actualRetention Actual retention rate observed (optional)
- * @returns Next review schedule information
+ * @param difficultyRating User's difficulty rating (1-5)
+ * @param previousInterval Previous interval in days
+ * @param targetRetention Target retention rate (0-1)
+ * @returns Object with next interval, easiness factor, and next review date
  */
 export const calculateNextReviewSchedule = (
   repetitionCount: number,
   easinessFactor: number,
-  difficulty: number,
-  previousInterval: number = 1,
-  actualRetention: number = RETENTION_TARGET
+  difficultyRating: number,
+  previousInterval: number,
+  targetRetention: number = 0.85
 ): RepetitionSchedule => {
-  // Convert difficulty from 1-5 scale to 0-5 scale for algorithm
-  const quality = 6 - difficulty;
+  // Convert difficulty rating (1-5) to SM-2's quality (0-5)
+  // In SM-2, higher quality means easier, but our difficulty scale is opposite
+  const quality = 6 - difficultyRating;
   
-  // Apply adaptive difficulty adjustment based on actual retention
-  const adaptiveFactor = calculateAdaptiveDifficulty(RETENTION_TARGET, actualRetention);
-  let adaptedDifficulty = difficulty + adaptiveFactor;
-  adaptedDifficulty = Math.max(1, Math.min(5, adaptedDifficulty)); // Keep within 1-5
-  const adaptedQuality = 6 - adaptedDifficulty;
+  // Update easiness factor (EF)
+  let newEasinessFactor = easinessFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
   
-  // Calculate new easiness factor with adaptive adjustment
-  let newEasinessFactor = easinessFactor + (0.1 - (5 - adaptedQuality) * (0.08 + (5 - adaptedQuality) * 0.02));
-  if (newEasinessFactor < MIN_EASINESS_FACTOR) {
-    newEasinessFactor = MIN_EASINESS_FACTOR;
-  }
+  // Ensure EF doesn't go below minimum
+  newEasinessFactor = Math.max(MIN_EASINESS_FACTOR, newEasinessFactor);
   
-  // Calculate memory strength based on repetition count and ease factor
-  const memoryStrength = repetitionCount * MEMORY_STRENGTH_MODIFIER * newEasinessFactor;
-  
-  // Calculate new interval
-  let interval: number;
-  let newRepetitionCount = repetitionCount;
+  let nextInterval: number;
   
   if (quality < 3) {
-    // If the quality is poor, reset the repetition count
-    newRepetitionCount = 0;
-    interval = 1; // Review again tomorrow
+    // If response quality is poor, reset interval to 1
+    nextInterval = 1;
   } else {
-    // If repetition is successful, increase the interval
-    newRepetitionCount += 1;
-    
-    if (newRepetitionCount === 1) {
-      interval = 1; // 1 day
-    } else if (newRepetitionCount === 2) {
-      interval = 6; // 6 days
+    // Calculate next interval based on repetition count
+    if (repetitionCount === 0) {
+      nextInterval = 1;
+    } else if (repetitionCount === 1) {
+      nextInterval = 6;
     } else {
-      // For subsequent repetitions, use optimized interval
-      const baseInterval = calculateOptimalInterval(memoryStrength);
-      
-      // Apply adaptive interval adjustment based on actual retention vs target
-      const retentionRatio = actualRetention / RETENTION_TARGET;
-      const adaptiveInterval = baseInterval * retentionRatio;
-      
-      // Ensure interval increases by at least 1 day from previous
-      interval = Math.max(Math.round(adaptiveInterval * newEasinessFactor), previousInterval + 1);
+      // Apply SM-2 formula for interval increase
+      nextInterval = Math.round(previousInterval * newEasinessFactor);
+    }
+    
+    // Adaptive modification based on target retention
+    if (targetRetention > 0.9 && nextInterval > 4) {
+      // For high retention targets, slightly shorten intervals
+      nextInterval = Math.max(4, Math.round(nextInterval * 0.9));
+    } else if (targetRetention < 0.8 && quality >= 4) {
+      // For lower retention targets, extend intervals for well-known cards
+      nextInterval = Math.round(nextInterval * 1.1);
     }
   }
   
-  // Calculate estimated retention at review time
-  const estimatedRetention = calculateRetention(interval, memoryStrength);
+  // Ensure minimum interval of 1 day
+  nextInterval = Math.max(1, nextInterval);
   
-  // Calculate mastery level (0-1)
-  const masteryLevel = calculateMasteryLevel(newRepetitionCount, difficulty);
+  // Calculate next review date
+  const nextReviewDate = calculateNextReviewDate(nextInterval);
   
-  // Calculate the next review date
-  const nextReviewDate = new Date();
-  nextReviewDate.setDate(nextReviewDate.getDate() + interval);
+  // Calculate mastery level
+  const masteryLevel = calculateMasteryLevel(repetitionCount + 1, difficultyRating, nextInterval);
+  
+  // Estimate retention at the time of next review
+  const estimatedRetention = calculateRetention(nextInterval, (repetitionCount + 1) * newEasinessFactor);
   
   return {
-    interval,
+    interval: nextInterval,
     easinessFactor: newEasinessFactor,
     nextReviewDate,
-    estimatedRetention,
-    masteryLevel
+    masteryLevel,
+    estimatedRetention
   };
-};
-
-/**
- * Simplified legacy function for backward compatibility
- */
-export const calculateNextReviewDate = (
-  repetitionCount: number,
-  easinessFactor: number,
-  difficulty: number
-): Date => {
-  const schedule = calculateNextReviewSchedule(repetitionCount, easinessFactor, difficulty);
-  return schedule.nextReviewDate;
 };

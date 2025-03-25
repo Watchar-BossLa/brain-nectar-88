@@ -3,58 +3,40 @@ import { supabase } from '@/integrations/supabase/client';
 import { Flashcard } from '@/types/supabase';
 
 /**
- * Get flashcards due for review for a user
+ * Get flashcards that are due for review
  * 
- * @param userId The user ID to fetch flashcards for
- * @param topicId Optional topic ID to filter by
- * @param limit Maximum number of flashcards to return
- * @returns Object with data array or error
+ * @param userId The user ID to get flashcards for
+ * @returns Object with data or error
  */
-export const getDueFlashcards = async (
-  userId: string,
-  topicId?: string,
-  limit: number = 50
-): Promise<{ data: Flashcard[] | null; error: Error | null }> => {
+export const getDueFlashcards = async (userId: string) => {
   try {
-    // Get flashcards due for review
     const now = new Date().toISOString();
-    let query = supabase
+    
+    const { data, error } = await supabase
       .from('flashcards')
       .select('*')
       .eq('user_id', userId)
       .lte('next_review_date', now)
-      .order('next_review_date');
+      .order('next_review_date', { ascending: true });
       
-    // Filter by topic if provided
-    if (topicId) {
-      query = query.eq('topic_id', topicId);
-    }
-    
-    const { data, error } = await query.limit(limit);
-    
     if (error) {
       return { data: null, error };
     }
     
     return { data, error: null };
   } catch (error) {
-    console.error('Error getting due flashcards:', error);
-    return { 
-      data: null, 
-      error: error instanceof Error ? error : new Error('Unknown error getting due flashcards') 
-    };
+    console.error('Error fetching due flashcards:', error);
+    return { data: null, error };
   }
 };
 
 /**
  * Get all flashcards for a user
  * 
- * @param userId The user ID to fetch flashcards for
- * @returns Object with data array or error
+ * @param userId The user ID to get flashcards for
+ * @returns Object with data or error
  */
-export const getUserFlashcards = async (
-  userId: string
-): Promise<{ data: Flashcard[] | null; error: Error | null }> => {
+export const getUserFlashcards = async (userId: string) => {
   try {
     const { data, error } = await supabase
       .from('flashcards')
@@ -68,25 +50,19 @@ export const getUserFlashcards = async (
     
     return { data, error: null };
   } catch (error) {
-    console.error('Error getting user flashcards:', error);
-    return { 
-      data: null, 
-      error: error instanceof Error ? error : new Error('Unknown error getting user flashcards') 
-    };
+    console.error('Error fetching user flashcards:', error);
+    return { data: null, error };
   }
 };
 
 /**
  * Get flashcards for a specific topic
  * 
- * @param userId The user ID to fetch flashcards for
- * @param topicId The topic ID to filter by
- * @returns Object with data array or error
+ * @param userId The user ID to get flashcards for
+ * @param topicId The topic ID to get flashcards for
+ * @returns Object with data or error
  */
-export const getFlashcardsByTopic = async (
-  userId: string,
-  topicId: string
-): Promise<{ data: Flashcard[] | null; error: Error | null }> => {
+export const getFlashcardsByTopic = async (userId: string, topicId: string) => {
   try {
     const { data, error } = await supabase
       .from('flashcards')
@@ -101,38 +77,26 @@ export const getFlashcardsByTopic = async (
     
     return { data, error: null };
   } catch (error) {
-    console.error('Error getting flashcards by topic:', error);
-    return { 
-      data: null, 
-      error: error instanceof Error ? error : new Error('Unknown error getting flashcards by topic') 
-    };
+    console.error('Error fetching topic flashcards:', error);
+    return { data: null, error };
   }
 };
 
 /**
- * Get flashcards that the user is struggling with
+ * Get struggling flashcards (low mastery level, high difficulty)
  * 
- * @param userId The user ID to fetch flashcards for
- * @param limit Maximum number of flashcards to return
- * @returns Object with data array or error
+ * @param userId The user ID to get flashcards for
+ * @returns Object with data or error
  */
-export const getStrugglingFlashcards = async (
-  userId: string,
-  limit: number = 10
-): Promise<{ data: Flashcard[] | null; error: Error | null }> => {
+export const getStrugglingFlashcards = async (userId: string) => {
   try {
-    // Define struggling as:
-    // - Repetition count > 1 (reviewed multiple times)
-    // - High difficulty rating (4-5)
-    // - OR low easiness factor (less than 1.8)
     const { data, error } = await supabase
       .from('flashcards')
       .select('*')
       .eq('user_id', userId)
-      .gt('repetition_count', 1)
-      .or('difficulty.gt.3,easiness_factor.lt.1.8')
-      .order('difficulty', { ascending: false })
-      .limit(limit);
+      .lt('mastery_level', 0.4)
+      .gt('repetition_count', 2)
+      .order('mastery_level', { ascending: true });
       
     if (error) {
       return { data: null, error };
@@ -140,38 +104,26 @@ export const getStrugglingFlashcards = async (
     
     return { data, error: null };
   } catch (error) {
-    console.error('Error getting struggling flashcards:', error);
-    return { 
-      data: null, 
-      error: error instanceof Error ? error : new Error('Unknown error getting struggling flashcards') 
-    };
+    console.error('Error fetching struggling flashcards:', error);
+    return { data: null, error };
   }
 };
 
 /**
- * Get mastered flashcards
+ * Get mastered flashcards (high mastery level)
  * 
- * @param userId The user ID to fetch flashcards for
- * @param limit Maximum number of flashcards to return
- * @returns Object with data array or error
+ * @param userId The user ID to get flashcards for
+ * @returns Object with data or error
  */
-export const getMasteredFlashcards = async (
-  userId: string,
-  limit: number = 50
-): Promise<{ data: Flashcard[] | null; error: Error | null }> => {
+export const getMasteredFlashcards = async (userId: string) => {
   try {
-    // Define mastered as:
-    // - Repetition count >= 5 (reviewed multiple times successfully)
-    // - Low difficulty rating (1-2)
-    // - OR high easiness factor (greater than 2.5)
     const { data, error } = await supabase
       .from('flashcards')
       .select('*')
       .eq('user_id', userId)
-      .gte('repetition_count', 5)
-      .or('difficulty.lt.3,easiness_factor.gt.2.5')
-      .order('repetition_count', { ascending: false })
-      .limit(limit);
+      .gte('mastery_level', 0.8)
+      .gt('repetition_count', 3)
+      .order('mastery_level', { ascending: false });
       
     if (error) {
       return { data: null, error };
@@ -179,10 +131,7 @@ export const getMasteredFlashcards = async (
     
     return { data, error: null };
   } catch (error) {
-    console.error('Error getting mastered flashcards:', error);
-    return { 
-      data: null, 
-      error: error instanceof Error ? error : new Error('Unknown error getting mastered flashcards') 
-    };
+    console.error('Error fetching mastered flashcards:', error);
+    return { data: null, error };
   }
 };

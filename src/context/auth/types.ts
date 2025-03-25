@@ -1,16 +1,12 @@
 
 import { Session, User } from '@supabase/supabase-js';
 
-// Platform owner information type
-export type PlatformOwnerType = {
-  name: string;
+export interface PlatformOwnerType {
   email: string;
-  phone: string;
-  role: string;
-};
+  name: string;
+}
 
-// Auth context type
-export type AuthContextType = {
+export interface AuthContextType {
   session: Session | null;
   user: User | null;
   loading: boolean;
@@ -20,4 +16,4 @@ export type AuthContextType = {
   signOut: () => Promise<void>;
   platformOwner: PlatformOwnerType;
   isAdmin: boolean;
-};
+}

@@ -1,8 +1,6 @@
 
-// Platform owner information
+// Platform administrator details
 export const PLATFORM_OWNER = {
-  name: "Kelvin Antoine",
-  email: "kelvin.w.antoine@gmail.com",
-  phone: "+1758 7197506",
-  role: "Administrator"
+  email: 'admin@studybee.info',
+  name: 'Study Bee Administrator'
 };

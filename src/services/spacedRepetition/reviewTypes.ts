@@ -1,20 +1,26 @@
 
-export type FlashcardRetentionResult = {
-  overallRetention: number; // 0-1 value representing average retention across all cards
+/**
+ * Type for flashcard retention calculation result
+ */
+export interface FlashcardRetentionResult {
+  overallRetention: number;
   cardRetention: {
     id: string;
     retention: number;
     masteryLevel: number;
     daysUntilReview: number;
   }[];
-};
+}
 
-export type FlashcardLearningStats = {
+/**
+ * Type for flashcard learning statistics
+ */
+export interface FlashcardLearningStats {
   totalReviews: number;
   averageEaseFactor: number;
   retentionRate: number;
   masteredCardCount: number;
   strugglingCardCount: number;
-  learningEfficiency: number; // 0-1 value indicating learning efficiency
+  learningEfficiency: number;
   recommendedDailyReviews: number;
-};
+}

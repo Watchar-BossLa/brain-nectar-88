@@ -2,89 +2,71 @@
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Get flashcard statistics for a user
+ * Get statistics for a user's flashcards
  * 
  * @param userId The user ID to get statistics for
- * @returns Object with flashcard statistics
+ * @returns Object with statistics
  */
-export const getFlashcardStats = async (userId: string): Promise<{
-  totalCards: number;
-  masteredCards: number;
-  dueCards: number;
-  averageDifficulty: number;
-  reviewsToday: number;
-}> => {
+export const getFlashcardStats = async (userId: string) => {
   try {
-    // Get total cards count
-    const { count: totalCards, error: countError } = await supabase
+    // Get all flashcards for the user
+    const { data: flashcards, error } = await supabase
       .from('flashcards')
-      .select('*', { count: 'exact', head: true })
+      .select('*')
       .eq('user_id', userId);
       
-    if (countError) {
-      throw countError;
+    if (error) {
+      throw error;
     }
     
-    // Get due cards count
-    const now = new Date().toISOString();
-    const { count: dueCards, error: dueError } = await supabase
+    // Get flashcards due today
+    const now = new Date();
+    const endOfDay = new Date(now);
+    endOfDay.setHours(23, 59, 59, 999);
+    
+    const { data: dueCards, error: dueError } = await supabase
       .from('flashcards')
-      .select('*', { count: 'exact', head: true })
+      .select('id')
       .eq('user_id', userId)
-      .lte('next_review_date', now);
+      .lte('next_review_date', endOfDay.toISOString());
       
     if (dueError) {
       throw dueError;
     }
     
-    // Get mastered cards count (repetition count >= 5 and mastery level >= 0.7)
-    const { count: masteredCards, error: masteredError } = await supabase
-      .from('flashcards')
-      .select('*', { count: 'exact', head: true })
+    // Get reviews done today
+    const startOfDay = new Date(now);
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const { data: reviewsToday, error: reviewError } = await supabase
+      .from('flashcard_reviews')
+      .select('id')
       .eq('user_id', userId)
-      .gte('repetition_count', 5)
-      .gte('mastery_level', 0.7);
+      .gte('reviewed_at', startOfDay.toISOString());
       
-    if (masteredError) {
-      throw masteredError;
+    if (reviewError) {
+      throw reviewError;
     }
     
-    // Get average difficulty for cards that have been reviewed
-    const { data: difficultyData, error: difficultyError } = await supabase
-      .from('flashcards')
-      .select('difficulty')
-      .eq('user_id', userId)
-      .gt('repetition_count', 0); // Only include cards that have been reviewed
-      
-    if (difficultyError) {
-      throw difficultyError;
-    }
+    // Calculate statistics
+    const totalCards = flashcards?.length || 0;
+    const masteredCards = flashcards?.filter(card => (card.mastery_level || 0) >= 0.8).length || 0;
+    const dueCount = dueCards?.length || 0;
+    const reviewCount = reviewsToday?.length || 0;
     
     // Calculate average difficulty
-    const averageDifficulty = difficultyData && difficultyData.length > 0
-      ? difficultyData.reduce((sum, card) => sum + (card.difficulty || 0), 0) / difficultyData.length
-      : 0;
-    
-    // Get reviews today count
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const { count: reviewsToday, error: reviewsError } = await supabase
-      .from('flashcards')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .gte('last_reviewed_at', today.toISOString());
-      
-    if (reviewsError) {
-      throw reviewsError;
-    }
+    let totalDifficulty = 0;
+    flashcards?.forEach(card => {
+      totalDifficulty += card.difficulty || 2.5;
+    });
+    const averageDifficulty = totalCards > 0 ? totalDifficulty / totalCards : 0;
     
     return {
-      totalCards: totalCards || 0,
-      masteredCards: masteredCards || 0,
-      dueCards: dueCards || 0,
+      totalCards,
+      masteredCards,
+      dueCards: dueCount,
       averageDifficulty,
-      reviewsToday: reviewsToday || 0
+      reviewsToday: reviewCount
     };
   } catch (error) {
     console.error('Error getting flashcard stats:', error);
