@@ -18,9 +18,11 @@ export default function AgentSystemDashboard() {
   // Handle test task submission
   const handleTestTask = async () => {
     try {
+      // Use a TaskType that actually exists in the TaskTypes object
+      const firstAvailableTaskType = Object.values(TaskTypes)[0];
       await submitTask(
-        TaskTypes.COGNITIVE_PROFILING,
-        'Test cognitive profiling task',
+        firstAvailableTaskType,
+        'Test task',
         { test: true },
         'MEDIUM'
       );

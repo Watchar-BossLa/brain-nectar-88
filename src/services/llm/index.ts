@@ -2,6 +2,9 @@
 // Re-export all LLM orchestration components
 export * from './types';
 export { modelOrchestration } from './modelOrchestration';
+export { modelRegistry } from './modelRegistry/modelRegistryService';
+export { modelSelection } from './modelSelection/modelSelectionService';
+export { modelParameters } from './modelParameters/modelParametersService';
 export { modelExecution } from './modelExecution';
 export { providerIntegration } from './providerIntegration';
 export { performanceMonitoring } from './performanceMonitoring';
