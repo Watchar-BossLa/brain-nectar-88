@@ -1,4 +1,3 @@
-
 import React, { useCallback, useEffect, useState } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
@@ -16,17 +15,20 @@ export const SolanaContextProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     if (connection && publicKey && wallet?.adapter) {
-      // Create Metaplex instance with the current connection and wallet
-      const metaplexInstance = Metaplex.make(connection)
-        .use(walletAdapterIdentity(wallet.adapter));
-      
-      setMetaplex(metaplexInstance);
+      try {
+        const metaplexInstance = Metaplex.make(connection)
+          .use(walletAdapterIdentity(wallet.adapter));
+        
+        setMetaplex(metaplexInstance);
+        console.log("Metaplex instance created successfully");
+      } catch (error) {
+        console.error("Error creating Metaplex instance:", error);
+      }
     }
   }, [connection, publicKey, wallet]);
 
   const connectWallet = useCallback(() => {
     if (!connected && !connecting) {
-      // Use the correct WalletName type by casting
       select('Phantom' as WalletName);
     }
   }, [connected, connecting, select]);
@@ -63,7 +65,6 @@ export const SolanaContextProvider: React.FC<{ children: React.ReactNode }> = ({
 
       console.log(`Creating NFT for ${achievementData.title}`);
       
-      // Upload metadata
       const { uri } = await metaplex.nfts().uploadMetadata({
         name: achievementData.title,
         description: achievementData.description,
@@ -74,14 +75,12 @@ export const SolanaContextProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       });
       
-      // Create NFT
       const { nft } = await metaplex.nfts().create({
         uri: uri,
         name: achievementData.title,
         sellerFeeBasisPoints: 0,
       });
       
-      // Use address instead of mintAddress (API change)
       const txId = nft.address.toString();
       
       toast({
