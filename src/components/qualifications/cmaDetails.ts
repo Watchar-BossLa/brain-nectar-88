@@ -1,28 +1,6 @@
 
-import { QualificationTopic } from './types';
+import { cmaModules } from './cma';
 
-export const cmaPartOneTopics: Record<string, QualificationTopic[]> = {
-  'EA': [
-    { id: 'ea-1', name: 'External Financial Reporting Decisions', weight: 15 },
-    { id: 'ea-2', name: 'Planning, Budgeting, and Forecasting', weight: 20 },
-    { id: 'ea-3', name: 'Performance Management', weight: 20 },
-    { id: 'ea-4', name: 'Cost Management', weight: 15 }
-  ],
-  'ICR': [
-    { id: 'icr-1', name: 'Internal Controls', weight: 15 },
-    { id: 'icr-2', name: 'Technology and Analytics', weight: 15 }
-  ]
-};
-
-export const cmaPartTwoTopics: Record<string, QualificationTopic[]> = {
-  'FDM': [
-    { id: 'fdm-1', name: 'Financial Statement Analysis', weight: 20 },
-    { id: 'fdm-2', name: 'Corporate Finance', weight: 20 },
-    { id: 'fdm-3', name: 'Decision Analysis', weight: 20 },
-    { id: 'fdm-4', name: 'Risk Management', weight: 10 }
-  ],
-  'IP': [
-    { id: 'ip-1', name: 'Investment Decisions', weight: 10 },
-    { id: 'ip-2', name: 'Professional Ethics', weight: 20 }
-  ]
-};
+// Export cmaModules properly
+export { cmaModules };
+export * from './cma';
