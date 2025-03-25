@@ -125,7 +125,7 @@ const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({ onSuccess
                 className="min-h-[100px] font-mono"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Use LaTeX syntax for formulas: $$A = P(1 + r/n)^{nt}$$
+                Use LaTeX syntax for formulas: $${'{'}A = P(1 + r/n)^{'{'}nt{'}'}{'}'}{'}'}
               </p>
             </div>
             <div className="grid w-full gap-1.5 mt-4">
@@ -138,7 +138,7 @@ const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({ onSuccess
                 className="min-h-[100px] font-mono"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                For block display use three dollar signs: $$$\sum_{i=1}^{n} i = \frac{n(n+1)}{2}$$$
+                For block display use dollar signs: $${'{'}\\sum_{{'}'{i=1}{'}'}^{{'}'{n}{'}'} i = \\frac{{'}'{n(n+1)}{'}'}{{'}'{2}{'}'}{'}'}{'}'}{'}'}
               </p>
             </div>
           </>
@@ -287,10 +287,10 @@ const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({ onSuccess
                 
                 <h3 className="text-lg font-medium mt-4">Common Accounting Formulas</h3>
                 <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
-                  <li><code>Current Ratio = $$\frac{\text{Current Assets}}{\text{Current Liabilities}}$$</code></li>
-                  <li><code>Debt-to-Equity Ratio = $$\frac{\text{Total Debt}}{\text{Total Equity}}$$</code></li>
-                  <li><code>Return on Assets = $$\frac{\text{Net Income}}{\text{Total Assets}}$$</code></li>
-                  <li><code>Gross Profit Margin = $$\frac{\text{Gross Profit}}{\text{Revenue}} \times 100\%$$</code></li>
+                  <li><code>Current Ratio = $$\frac{{'{'}\text{{'{'}}Current Assets{'}'}{'}'}}{{'{'}'\text{{'{'}}Current Liabilities{'}'}{'}'}}$$</code></li>
+                  <li><code>Debt-to-Equity Ratio = $$\frac{{'{'}\text{{'{'}}Total Debt{'}'}{'}'}}{{'{'}'\text{{'{'}}Total Equity{'}'}{'}'}}$$</code></li>
+                  <li><code>Return on Assets = $$\frac{{'{'}\text{{'{'}}Net Income{'}'}{'}'}}{{'{'}'\text{{'{'}}Total Assets{'}'}{'}'}}$$</code></li>
+                  <li><code>Gross Profit Margin = $$\frac{{'{'}\text{{'{'}}Gross Profit{'}'}{'}'}}{{'{'}'\text{{'{'}}Revenue{'}'}{'}'}{'}'} \times 100\%$$</code></li>
                 </ul>
                 
                 <h3 className="text-lg font-medium mt-4">Financial Statement Types</h3>
