@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
@@ -61,5 +62,44 @@ const Navbar: React.FC = () => {
             <Link 
               key={item.name}
               to={item.href}
-              className={`
+              className={`flex items-center px-3 py-2 text-sm rounded-md transition-colors ${
+                location.pathname === item.href
+                  ? 'bg-accent text-accent-foreground font-medium'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+              }`}
+            >
+              {item.icon}
+              <span className="ml-2">{item.name}</span>
+            </Link>
+          ))}
+        </div>
+      </div>
 
+      {/* Right side: User Profile and Theme Switcher */}
+      <div className="flex items-center space-x-4">
+        <ThemeSwitcher className="hidden sm:flex" />
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center space-x-2">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src="" />
+                <AvatarFallback>{userInitials}</AvatarFallback>
+              </Avatar>
+              <span className="hidden sm:inline-block text-sm font-medium">
+                {user?.email?.split('@')[0]}
+              </span>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => signOut()}>
+              Sign out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </nav>
+  );
+};
+
+export default Navbar;
