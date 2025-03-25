@@ -23,6 +23,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
+import { ThemeSwitcher } from '@/components/ui/theme-switcher';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -106,6 +107,10 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             ))}
           </ul>
         </nav>
+
+        <div className="absolute bottom-16 left-0 right-0 p-4 flex justify-center">
+          <ThemeSwitcher />
+        </div>
 
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border">
           <DropdownMenu>

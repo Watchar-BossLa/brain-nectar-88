@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -64,6 +65,36 @@
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
   }
+  
+  /* High contrast mode overrides for light theme */
+  .light.high-contrast {
+    --foreground: 240 100% 0%;
+    --background: 0 0% 100%;
+    --primary: 45 100% 45%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 240 5% 85%;
+    --secondary-foreground: 240 100% 0%;
+    --muted-foreground: 240 100% 20%;
+    --accent: 240 60% 80%;
+    --accent-foreground: 240 100% 0%;
+    --border: 240 100% 50%;
+    --ring: 240 100% 0%;
+  }
+  
+  /* High contrast mode overrides for dark theme */
+  .dark.high-contrast {
+    --foreground: 0 0% 100%;
+    --background: 240 100% 0%;
+    --primary: 45 100% 60%;
+    --primary-foreground: 240 100% 0%;
+    --secondary: 240 60% 30%;
+    --secondary-foreground: 0 0% 100%;
+    --muted-foreground: 240 5% 84.9%;
+    --accent: 240 60% 40%;
+    --accent-foreground: 0 0% 100%;
+    --border: 240 60% 70%;
+    --ring: 0 0% 100%;
+  }
 }
 
 @layer base {
@@ -120,6 +151,15 @@
 
   .gold-gradient-text {
     @apply bg-gradient-to-b from-[#f5d742] to-[#333] inline-block text-transparent bg-clip-text font-bold;
+  }
+  
+  /* High contrast specific components */
+  .high-contrast .glass-card {
+    @apply bg-background border-2 border-border;
+  }
+  
+  .high-contrast .gold-gradient-text {
+    @apply bg-primary text-primary-foreground bg-none;
   }
   
   /* Removing the .logo-image class since we're using object-contain directly */

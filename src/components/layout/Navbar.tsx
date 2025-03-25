@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Home, BookOpen, GraduationCap, GanttChart, FlaskConical, CreditCard, Brain } from 'lucide-react';
+import { ThemeSwitcher } from '@/components/ui/theme-switcher';
 
 const Navbar: React.FC = () => {
   const { user, signOut } = useAuth();
@@ -85,8 +87,10 @@ const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Right side: User Profile and Authentication */}
+      {/* Right side: Theme Switcher, User Profile and Authentication */}
       <div className="flex items-center space-x-4">
+        <ThemeSwitcher />
+        
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger>
