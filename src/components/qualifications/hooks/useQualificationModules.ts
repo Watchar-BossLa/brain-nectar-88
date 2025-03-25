@@ -1,8 +1,8 @@
 
 import { accaModules } from '../accaDetails';
 import { cpaModules } from '../cpaDetails';
-import { cfaModules } from '../cfaDetails';
-import { frmModules } from '../frmDetails';
+import { cfaModules } from '../cfa';
+import { frmModules } from '../frm';
 import { cimaModules } from '../cimaDetails';
 import { cmaModules } from '../cmaDetails';
 import { cfpModules } from '../cfpDetails';
