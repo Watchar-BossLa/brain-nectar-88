@@ -1,12 +1,13 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { QuizQuestion } from '../types';
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, X } from 'lucide-react';
+import { Check, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
 interface QuestionDisplayProps {
   question: QuizQuestion;
@@ -23,6 +24,8 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   isAnswerSubmitted,
   isCorrect
 }) => {
+  const [showSteps, setShowSteps] = useState(false);
+  
   // Different input based on question type
   const renderQuestionInput = () => {
     switch (question.type) {
@@ -107,6 +110,44 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
     }
   };
 
+  const renderStepByStepExplanation = () => {
+    if (!question.stepByStepExplanation || question.stepByStepExplanation.length === 0) return null;
+    
+    return (
+      <div className="mt-3">
+        <Button 
+          variant="outline" 
+          onClick={() => setShowSteps(!showSteps)}
+          size="sm"
+          className="flex items-center gap-1 text-sm"
+        >
+          {showSteps ? (
+            <>
+              <ChevronUp className="h-4 w-4" />
+              Hide Step-by-Step Solution
+            </>
+          ) : (
+            <>
+              <ChevronDown className="h-4 w-4" />
+              Show Step-by-Step Solution
+            </>
+          )}
+        </Button>
+        
+        {showSteps && (
+          <div className="mt-3 space-y-2 pl-4 border-l-2 border-primary/20">
+            {question.stepByStepExplanation.map((step, index) => (
+              <div key={index} className="flex">
+                <span className="font-medium mr-2">Step {index + 1}:</span>
+                <span>{step}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-4">
       <h3 className="text-xl font-medium">{question.text}</h3>
@@ -118,6 +159,8 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
           <CardContent className="pt-4">
             <h4 className="font-medium mb-2">Explanation</h4>
             <p>{question.explanation}</p>
+            
+            {question.type === 'calculation' && renderStepByStepExplanation()}
           </CardContent>
         </Card>
       )}

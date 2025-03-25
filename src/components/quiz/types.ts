@@ -10,6 +10,7 @@ export interface QuizQuestion {
   options?: string[];
   correctAnswer?: string | string[];
   explanation: string;
+  stepByStepExplanation?: string[];  // Array of steps for calculation problems
   topic: string;
   useLatex?: boolean;
 }
