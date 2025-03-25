@@ -1,119 +1,138 @@
 
 import { QuizQuestion } from '../types';
 
-// Sample quiz questions at different difficulty levels
 export const quizQuestions: QuizQuestion[] = [
-  // Easy questions (difficulty 1)
   {
-    id: 'e1',
-    text: 'Which of the following is a component of the accounting equation?',
+    id: 'q1',
+    text: 'What is the accounting equation?',
     type: 'multiple-choice',
-    difficulty: 1,
-    options: ['Revenues', 'Assets', 'Dividends', 'Expenses'],
-    correctAnswer: 'Assets',
-    explanation: 'The accounting equation is Assets = Liabilities + Equity. Revenues and expenses affect equity through retained earnings, and dividends reduce equity, but they are not primary components of the accounting equation.',
+    difficulty: 2,
+    options: [
+      'Assets = Liabilities + Equity',
+      'Assets = Liabilities - Equity',
+      'Assets + Liabilities = Equity',
+      'Assets - Liabilities = Equity'
+    ],
+    correctAnswer: 'Assets = Liabilities + Equity',
+    explanation: 'The accounting equation forms the foundation of double-entry accounting. It states that a company\'s assets must equal the sum of its liabilities and equity, ensuring that the balance sheet always balances.',
     topic: 'Accounting Fundamentals'
   },
   {
-    id: 'e2',
-    text: 'In accounting, debits increase asset accounts.',
+    id: 'q2',
+    text: 'Which of the following is a liability?',
+    type: 'multiple-choice',
+    difficulty: 1,
+    options: [
+      'Accounts Receivable',
+      'Cash',
+      'Accounts Payable',
+      'Equipment'
+    ],
+    correctAnswer: 'Accounts Payable',
+    explanation: 'Accounts Payable represents money a company owes to its creditors or suppliers for goods or services purchased on credit. It is considered a liability because it is an obligation that must be paid in the future.',
+    topic: 'Accounting Fundamentals'
+  },
+  {
+    id: 'q3',
+    text: 'Calculate the gross profit if sales are $120,000 and cost of goods sold is $85,000.',
+    type: 'calculation',
+    difficulty: 2,
+    correctAnswer: '35000',
+    explanation: 'Gross profit is calculated by subtracting the cost of goods sold from sales revenue. In this case, $120,000 - $85,000 = $35,000. This represents the profit before operating expenses are deducted.',
+    topic: 'Financial Statements'
+  },
+  {
+    id: 'q4',
+    text: 'IFRS and GAAP are completely identical accounting standards.',
     type: 'true-false',
     difficulty: 1,
     options: ['True', 'False'],
-    correctAnswer: 'True',
-    explanation: 'In the double-entry bookkeeping system, debits increase asset accounts and expense accounts, while credits increase liability accounts, equity accounts, and revenue accounts.',
-    topic: 'Debits and Credits'
+    correctAnswer: 'False',
+    explanation: 'IFRS (International Financial Reporting Standards) and GAAP (Generally Accepted Accounting Principles) are different accounting frameworks. While they share many similarities, they differ in specific areas such as inventory valuation, revenue recognition, and treatment of leases.',
+    topic: 'Accounting Standards'
   },
   {
-    id: 'e3',
-    text: 'Calculate the ending inventory using FIFO method:\n\nBeginning inventory: 10 units at $8 each\nPurchase 1: 15 units at $10 each\nPurchase 2: 20 units at $12 each\nSold: 30 units',
-    type: 'calculation',
-    difficulty: 1,
-    correctAnswer: '180',
-    explanation: 'Using FIFO (First-In, First-Out), the first units purchased are the first sold. We sold 30 units total.\n10 units from beginning inventory + 15 units from first purchase + 5 units from second purchase = 30 units sold\nEnding inventory = 15 units from second purchase at $12 each = $180',
-    topic: 'Inventory Valuation',
-    useLatex: true
-  },
-  
-  // Medium questions (difficulty 2)
-  {
-    id: 'm1',
-    text: 'Which of the following statements about cash flow is NOT correct?',
-    type: 'multiple-choice',
-    difficulty: 2,
-    options: [
-      'A company can have positive net income but negative cash flow',
-      'Purchase of equipment is an operating cash flow',
-      'Payment of dividends is a financing cash flow',
-      'Collection of accounts receivable is an operating cash flow'
-    ],
-    correctAnswer: 'Purchase of equipment is an operating cash flow',
-    explanation: 'Purchase of equipment is an investing cash flow, not an operating cash flow. Operating cash flows relate to day-to-day operations, investing cash flows relate to long-term assets, and financing cash flows relate to debt and equity financing.',
-    topic: 'Cash Flow'
-  },
-  {
-    id: 'm2',
-    text: 'Calculate the break-even point in units when:\n\nFixed costs = $120,000\nSelling price per unit = $50\nVariable cost per unit = $30',
-    type: 'calculation',
-    difficulty: 2,
-    correctAnswer: '6000',
-    explanation: 'Break-even point in units = Fixed costs ÷ Contribution margin per unit\nContribution margin per unit = Selling price per unit - Variable cost per unit\nContribution margin per unit = $50 - $30 = $20\nBreak-even point = $120,000 ÷ $20 = 6,000 units',
-    topic: 'Cost-Volume-Profit Analysis',
-    useLatex: true
-  },
-  {
-    id: 'm3',
-    text: 'Under IFRS, development costs must be capitalized when certain criteria are met.',
-    type: 'true-false',
-    difficulty: 2,
-    options: ['True', 'False'],
-    correctAnswer: 'True',
-    explanation: 'Under IFRS (IAS 38), development costs must be capitalized when technical feasibility, intention to complete, ability to use or sell, generation of future economic benefits, resources to complete, and ability to measure costs reliably are all demonstrated. This differs from US GAAP, which generally expenses R&D costs as incurred.',
-    topic: 'IFRS Standards'
-  },
-  
-  // Hard questions (difficulty 3)
-  {
-    id: 'h1',
-    text: 'Calculate the present value of a 5-year ordinary annuity with annual payments of $10,000 and a discount rate of 8%.',
-    type: 'calculation',
-    difficulty: 3,
-    correctAnswer: '39927',
-    explanation: 'The present value of an ordinary annuity can be calculated using the formula:\nPV = PMT × [(1 - (1 + r)^-n) ÷ r]\nWhere PMT = payment, r = rate, n = number of periods\nPV = $10,000 × [(1 - (1 + 0.08)^-5) ÷ 0.08]\nPV = $10,000 × [(1 - 0.6806) ÷ 0.08]\nPV = $10,000 × [0.3194 ÷ 0.08]\nPV = $10,000 × 3.9927\nPV = $39,927',
-    topic: 'Time Value of Money',
-    useLatex: true
-  },
-  {
-    id: 'h2',
-    text: 'Which of the following is NOT a required disclosure under ASC 842 (Leases)?',
-    type: 'multiple-choice',
-    difficulty: 3,
-    options: [
-      'Information about variable lease payments',
-      'Maturity analysis of lease liabilities',
-      'Weighted-average discount rate for leases',
-      'Detailed information about lessor\'s residual value guarantees'
-    ],
-    correctAnswer: 'Detailed information about lessor\'s residual value guarantees',
-    explanation: 'ASC 842 requires lessees to disclose information about variable lease payments, maturity analysis of lease liabilities, and weighted-average discount rates. While some information about residual value guarantees is required, detailed information about lessor\'s residual value guarantees is not a specific disclosure requirement for lessees under ASC 842.',
-    topic: 'Lease Accounting'
-  },
-  {
-    id: 'h3',
-    text: 'Explain the concept of "substance over form" in accounting and provide an example of how it affects financial reporting.',
+    id: 'q5',
+    text: 'Explain the concept of materiality in accounting and provide an example.',
     type: 'essay',
     difficulty: 3,
-    explanation: 'Substance over form is an accounting principle that states transactions should be recorded and presented in financial statements according to their economic substance rather than their legal form. For example, in a sale and leaseback transaction that is essentially a financing arrangement, the asset might remain on the seller\'s balance sheet despite legal transfer of ownership if the seller retains the risks and rewards of ownership. Another example is when a special purpose entity (SPE) might be consolidated in a company\'s financial statements despite being legally separate if the company effectively controls it and bears its risks and rewards.',
-    topic: 'Accounting Principles'
+    explanation: 'Materiality is a concept that refers to the significance of an item or transaction in influencing the decisions of financial statement users. Information is considered material if its omission or misstatement could influence economic decisions. For example, a $10,000 error might be immaterial for a large corporation with billions in revenue but would be highly material for a small business with $100,000 in revenue.',
+    topic: 'Accounting Concepts'
   },
   {
-    id: 'h4',
-    text: 'Calculate the effective annual interest rate when the nominal rate is 12% compounded monthly.',
+    id: 'q6',
+    text: 'Which method of inventory valuation often results in higher net income during periods of rising prices?',
+    type: 'multiple-choice',
+    difficulty: 2,
+    options: [
+      'FIFO (First-In, First-Out)',
+      'LIFO (Last-In, First-Out)',
+      'Weighted Average',
+      'Specific Identification'
+    ],
+    correctAnswer: 'FIFO (First-In, First-Out)',
+    explanation: 'During periods of rising prices, FIFO (First-In, First-Out) typically results in higher net income because older inventory with lower costs is recognized as cost of goods sold, leading to higher gross profit. This contrasts with LIFO, which uses newer, more expensive inventory first, resulting in higher cost of goods sold and lower profits.',
+    topic: 'Inventory Management'
+  },
+  {
+    id: 'q7',
+    text: 'Calculate the current ratio if current assets are $250,000 and current liabilities are $100,000.',
+    type: 'calculation',
+    difficulty: 1,
+    correctAnswer: '2.5',
+    explanation: 'The current ratio is calculated by dividing current assets by current liabilities. In this case, $250,000 ÷ $100,000 = 2.5. This indicates that the company has $2.50 in current assets for every $1 of current liabilities, suggesting good short-term liquidity.',
+    topic: 'Financial Ratios'
+  },
+  {
+    id: 'q8',
+    text: 'Depreciation is a cash expense.',
+    type: 'true-false',
+    difficulty: 1,
+    options: ['True', 'False'],
+    correctAnswer: 'False',
+    explanation: 'Depreciation is a non-cash expense. It allocates the cost of a tangible asset over its useful life, reflecting the asset\'s decrease in value due to use, age, or obsolescence. While it reduces reported income on the income statement, it does not involve an actual cash outflow in the period it is recognized.',
+    topic: 'Depreciation'
+  },
+  {
+    id: 'q9',
+    text: 'Calculate net present value (NPV) of a project with an initial investment of $100,000 and annual cash flows of $25,000 for 5 years, using a discount rate of 8%.',
     type: 'calculation',
     difficulty: 3,
-    correctAnswer: '12.68',
-    explanation: 'The formula for effective annual rate (EAR) is:\nEAR = (1 + r/m)^m - 1\nWhere r = nominal rate and m = number of compounding periods per year\nEAR = (1 + 0.12/12)^12 - 1\nEAR = (1 + 0.01)^12 - 1\nEAR = 1.1268 - 1\nEAR = 0.1268 or 12.68%',
-    topic: 'Interest Rates',
-    useLatex: true
+    correctAnswer: '6210',
+    explanation: 'NPV = -Initial Investment + Sum of Discounted Cash Flows. At 8% discount rate, the present value of $25,000 for 5 years is approximately $106,210. Subtracting the initial investment of $100,000 gives an NPV of $6,210, indicating the project adds value to the company.',
+    topic: 'Investment Analysis'
   },
+  {
+    id: 'q10',
+    text: 'Accrual accounting records revenue when cash is received and expenses when cash is paid.',
+    type: 'true-false',
+    difficulty: 1,
+    options: ['True', 'False'],
+    correctAnswer: 'False',
+    explanation: 'This statement describes cash basis accounting, not accrual accounting. Accrual accounting records revenue when it is earned (regardless of when cash is received) and expenses when they are incurred (regardless of when cash is paid). This provides a more accurate picture of a company\'s financial position and performance over time.',
+    topic: 'Accounting Methods'
+  },
+  {
+    id: 'q11',
+    text: 'What is the difference between a debit and a credit in accounting?',
+    type: 'essay',
+    difficulty: 2,
+    explanation: 'In double-entry accounting, debits and credits are used to record transactions. Debits increase asset and expense accounts but decrease liability, equity, and revenue accounts. Conversely, credits increase liability, equity, and revenue accounts but decrease asset and expense accounts. The total debits must equal the total credits in every transaction, maintaining the accounting equation\'s balance.',
+    topic: 'Accounting Fundamentals'
+  },
+  {
+    id: 'q12',
+    text: 'Which financial statement would you examine to determine a company\'s profitability?',
+    type: 'multiple-choice',
+    difficulty: 1,
+    options: [
+      'Balance Sheet',
+      'Income Statement',
+      'Cash Flow Statement',
+      'Statement of Changes in Equity'
+    ],
+    correctAnswer: 'Income Statement',
+    explanation: 'The Income Statement (also called Profit and Loss Statement) shows a company\'s revenues, expenses, and profits over a specific period. It is the primary financial statement used to assess a company\'s profitability, as it details how revenue is transformed into net income through various expenses and costs.',
+    topic: 'Financial Statements'
+  }
 ];

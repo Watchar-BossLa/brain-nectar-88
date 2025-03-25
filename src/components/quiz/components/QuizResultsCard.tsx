@@ -151,9 +151,9 @@ const ReviewAnswers: React.FC<ReviewAnswersProps> = ({ answeredQuestions }) => {
         
         return (
           <div key={index} className={`p-3 border rounded-md ${
-            answered.isCorrect ? 'border-green-200 bg-green-50' : 
-            answered.userAnswer === 'SKIPPED' ? 'border-amber-200 bg-amber-50' : 
-            'border-red-200 bg-red-50'
+            answered.isCorrect ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30' : 
+            answered.userAnswer === 'SKIPPED' ? 'border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30' : 
+            'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30'
           }`}>
             <div className="flex items-start justify-between">
               <div className="flex-1">

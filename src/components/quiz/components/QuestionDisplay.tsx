@@ -1,11 +1,12 @@
 
 import React from 'react';
 import { QuizQuestion } from '../types';
+import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { renderLatexContent } from '@/components/flashcards/utils/latex-renderer';
+import { Card, CardContent } from "@/components/ui/card";
+import { Check, X } from 'lucide-react';
 
 interface QuestionDisplayProps {
   question: QuizQuestion;
@@ -22,127 +23,106 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   isAnswerSubmitted,
   isCorrect
 }) => {
-  if (!question) return null;
-
-  return (
-    <div className="space-y-4">
-      <div className="mb-6">
-        {question.useLatex 
-          ? renderLatexContent(question.text, true)
-          : <p className="text-lg whitespace-pre-line">{question.text}</p>
-        }
-      </div>
-      
-      {/* Question input based on type */}
-      {!isAnswerSubmitted ? (
-        <>
-          {(question.type === 'multiple-choice' || question.type === 'true-false') && (
-            <RadioGroup 
-              value={selectedAnswer} 
-              onValueChange={setSelectedAnswer}
-              className="space-y-2"
-            >
-              {question.options?.map((option, index) => (
-                <div key={index} className="flex items-center space-x-2 border p-3 rounded-md hover:bg-muted/50">
-                  <RadioGroupItem value={option} id={`option-${index}`} />
-                  <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer">
-                    {option}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-          )}
-          
-          {question.type === 'calculation' && (
-            <div className="space-y-2">
-              <Label htmlFor="calculation-answer">Your Answer</Label>
-              <div className="flex items-center gap-2">
-                <span className="text-lg">$</span>
-                <Input 
-                  id="calculation-answer"
-                  type="number"
-                  step="0.01"
-                  placeholder="Enter your answer"
-                  value={selectedAnswer}
-                  onChange={(e) => setSelectedAnswer(e.target.value)}
-                />
+  // Different input based on question type
+  const renderQuestionInput = () => {
+    switch (question.type) {
+      case 'multiple-choice':
+      case 'true-false':
+        return (
+          <RadioGroup
+            value={selectedAnswer}
+            onValueChange={setSelectedAnswer}
+            disabled={isAnswerSubmitted}
+            className="space-y-2 mt-4"
+          >
+            {question.options?.map((option, index) => (
+              <div key={index} className="flex items-center space-x-2">
+                <RadioGroupItem value={option} id={`option-${index}`} />
+                <Label 
+                  htmlFor={`option-${index}`}
+                  className={isAnswerSubmitted ? 
+                    option === question.correctAnswer 
+                      ? "font-medium text-green-600 dark:text-green-400" 
+                      : option === selectedAnswer && option !== question.correctAnswer
+                        ? "font-medium text-red-600 dark:text-red-400"
+                        : ""
+                    : ""}
+                >
+                  {option}
+                  {isAnswerSubmitted && option === question.correctAnswer && (
+                    <Check className="inline-block ml-2 h-4 w-4 text-green-600 dark:text-green-400" />
+                  )}
+                  {isAnswerSubmitted && option === selectedAnswer && option !== question.correctAnswer && (
+                    <X className="inline-block ml-2 h-4 w-4 text-red-600 dark:text-red-400" />
+                  )}
+                </Label>
               </div>
-            </div>
-          )}
-          
-          {question.type === 'essay' && (
-            <div className="space-y-2">
-              <Label htmlFor="essay-answer">Your Answer</Label>
-              <Textarea 
-                id="essay-answer"
-                placeholder="Type your response here..."
-                value={selectedAnswer}
-                onChange={(e) => setSelectedAnswer(e.target.value)}
-                rows={6}
-              />
-            </div>
-          )}
-        </>
-      ) : (
-        <QuestionFeedback 
-          question={question} 
-          isCorrect={isCorrect} 
-          selectedAnswer={selectedAnswer} 
-        />
-      )}
-    </div>
-  );
-};
+            ))}
+          </RadioGroup>
+        );
+      
+      case 'calculation':
+        return (
+          <div className="mt-4">
+            <Label htmlFor="calculation-answer">Your Answer</Label>
+            <Input
+              id="calculation-answer"
+              type="number"
+              step="0.01"
+              placeholder="Enter your answer"
+              value={selectedAnswer}
+              onChange={(e) => setSelectedAnswer(e.target.value)}
+              disabled={isAnswerSubmitted}
+              className={isAnswerSubmitted ? 
+                isCorrect 
+                  ? "border-green-500 focus-visible:ring-green-500" 
+                  : "border-red-500 focus-visible:ring-red-500"
+                : ""}
+            />
+            {isAnswerSubmitted && (
+              <p className="text-sm mt-1">
+                Correct answer: {question.correctAnswer}
+              </p>
+            )}
+          </div>
+        );
+      
+      case 'essay':
+        return (
+          <div className="mt-4">
+            <Label htmlFor="essay-answer">Your Answer</Label>
+            <Textarea
+              id="essay-answer"
+              placeholder="Write your answer here..."
+              value={selectedAnswer}
+              onChange={(e) => setSelectedAnswer(e.target.value)}
+              disabled={isAnswerSubmitted}
+              className="min-h-[150px]"
+            />
+          </div>
+        );
+      
+      default:
+        return null;
+    }
+  };
 
-interface QuestionFeedbackProps {
-  question: QuizQuestion;
-  isCorrect: boolean | null;
-  selectedAnswer: string;
-}
-
-const QuestionFeedback: React.FC<QuestionFeedbackProps> = ({ 
-  question, 
-  isCorrect, 
-  selectedAnswer 
-}) => {
   return (
     <div className="space-y-4">
-      <div className={`p-4 rounded-md ${isCorrect ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-        <h3 className={`font-medium ${isCorrect ? 'text-green-700' : 'text-red-700'}`}>
-          {isCorrect ? 'Correct!' : 'Incorrect'}
-        </h3>
-        
-        {!isCorrect && question.type !== 'essay' && (
-          <div className="mt-1 text-sm">
-            <span className="font-medium">Correct answer: </span>
-            {typeof question.correctAnswer === 'string' 
-              ? question.correctAnswer 
-              : question.correctAnswer?.join(', ')}
-          </div>
-        )}
-        
-        <div className="mt-2">
-          <h4 className="font-medium mb-1">Explanation:</h4>
-          <p className="text-sm whitespace-pre-line">{question.explanation}</p>
-        </div>
-      </div>
+      <h3 className="text-xl font-medium">{question.text}</h3>
       
-      {question.type === 'essay' && (
-        <div className="p-4 border rounded-md bg-amber-50">
-          <h3 className="font-medium text-amber-700 flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4" />
-            Essay Response
-          </h3>
-          <p className="text-sm mt-1">
-            Essay responses require manual review. Your answer has been recorded.
-          </p>
-        </div>
+      {renderQuestionInput()}
+      
+      {isAnswerSubmitted && (
+        <Card className="mt-4 bg-muted/30">
+          <CardContent className="pt-4">
+            <h4 className="font-medium mb-2">Explanation</h4>
+            <p>{question.explanation}</p>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
 };
-
-// Importing here since it's only used in this component
-import { AlertTriangle } from 'lucide-react';
 
 export default QuestionDisplay;
