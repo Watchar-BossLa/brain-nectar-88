@@ -18,9 +18,14 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      stream: 'stream-browserify',
+      http: 'http-browserify',
+      https: 'https-browserify',
+      url: 'url'
     },
   },
   define: {
     global: "globalThis", // This adds the global polyfill
+    'process.env': process.env, // This ensures process.env is available
   },
 }));

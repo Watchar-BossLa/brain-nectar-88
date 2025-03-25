@@ -13,4 +13,15 @@ if (typeof window !== 'undefined') {
   
   // Add Buffer if needed
   window.Buffer = window.Buffer || BufferPolyfill;
+  
+  // Add stream polyfill
+  // @ts-ignore
+  window.stream = window.stream || {
+    Readable: class Readable {},
+    PassThrough: class PassThrough {}
+  };
+  
+  // Add URL polyfill
+  window.URL = window.URL || self.URL;
 }
+
