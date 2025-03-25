@@ -1,6 +1,8 @@
 
 import { AgentMessage, AgentTask, TaskType } from '../types';
 import { BaseAgent } from '../baseAgent';
+import { calculateFlashcardRetention } from '@/services/spacedRepetition/reviewService';
+import { spacedRepetitionService } from '@/services/flashcards/spacedRepetitionService';
 
 /**
  * Learning Path Agent
@@ -20,6 +22,8 @@ export class LearningPathAgent extends BaseAgent {
         return this.generateLearningPath(task.userId, task.data);
       case 'LEARNING_PATH_UPDATE' as TaskType:
         return this.updateLearningPath(task.userId, task.data);
+      case 'FLASHCARD_SEQUENCE_OPTIMIZATION' as TaskType:
+        return this.optimizeFlashcardSequence(task.userId, task.data);
       default:
         console.warn(`Learning Path Agent received unknown task type: ${task.taskType}`);
         return { status: 'error', message: 'Unknown task type' };
@@ -29,10 +33,17 @@ export class LearningPathAgent extends BaseAgent {
   receiveMessage(message: AgentMessage): void {
     console.log(`Learning Path Agent received message: ${message.type}`);
     // Handle messages from other agents
+    if (message.type === 'FLASHCARD_REVIEW_COMPLETED') {
+      // Trigger flashcard sequence optimization
+      this.optimizeFlashcardSequence(message.userId, message.data);
+    }
   }
   
   private async generateLearningPath(userId: string, data: any): Promise<any> {
     console.log(`Generating learning path for user ${userId} with data:`, data);
+    
+    // Incorporate flashcard data in learning path generation
+    const flashcardStats = await spacedRepetitionService.getFlashcardStats(userId);
     
     // Mock implementation - would connect to backend service in real implementation
     return {
@@ -48,7 +59,12 @@ export class LearningPathAgent extends BaseAgent {
               { id: 'topic-2', title: 'Double-Entry Bookkeeping', mastery: 0 }
             ]
           }
-        ]
+        ],
+        flashcardRecommendations: {
+          dueCount: flashcardStats.dueCards,
+          recommendedReviewTime: this.getOptimalReviewTime(),
+          masteryProgress: (flashcardStats.masteredCards / Math.max(flashcardStats.totalCards, 1)) * 100
+        }
       }
     };
   }
@@ -61,5 +77,46 @@ export class LearningPathAgent extends BaseAgent {
       status: 'success',
       message: 'Learning path updated successfully'
     };
+  }
+  
+  private async optimizeFlashcardSequence(userId: string, data: any): Promise<any> {
+    console.log(`Optimizing flashcard sequence for user ${userId}`);
+    
+    // Get retention data for all flashcards
+    const { overallRetention, cardRetention } = await calculateFlashcardRetention(userId);
+    
+    // Calculate optimal review schedule based on retention data
+    const recommendations = {
+      overallRetention: Math.round(overallRetention * 100), // as percentage
+      priorityCards: cardRetention.slice(0, 5).map(card => card.id), // lowest retention cards
+      optimalReviewTime: this.getOptimalReviewTime(),
+      suggestedBatchSize: this.calculateOptimalBatchSize(cardRetention.length)
+    };
+    
+    return {
+      status: 'success',
+      recommendations
+    };
+  }
+  
+  private getOptimalReviewTime(): string {
+    // Simple heuristic based on time of day
+    const hour = new Date().getHours();
+    
+    if (hour >= 5 && hour < 9) return 'morning';
+    if (hour >= 9 && hour < 12) return 'mid-morning';
+    if (hour >= 12 && hour < 15) return 'early afternoon';
+    if (hour >= 15 && hour < 18) return 'late afternoon';
+    if (hour >= 18 && hour < 21) return 'evening';
+    return 'night';
+  }
+  
+  private calculateOptimalBatchSize(dueCardCount: number): number {
+    // Heuristic: 10-20 cards per session is ideal for most learners
+    // But adapt based on how many are due
+    if (dueCardCount <= 5) return dueCardCount;
+    if (dueCardCount <= 10) return 10;
+    if (dueCardCount <= 30) return 15;
+    return 20;
   }
 }
