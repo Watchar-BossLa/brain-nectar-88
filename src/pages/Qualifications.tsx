@@ -12,8 +12,9 @@ import {
 import { SimpleWalletButton } from '@/components/blockchain/WalletConnect';
 import { useSolana } from '@/context/SolanaContext';
 import { Button } from '@/components/ui/button';
-import { Award } from 'lucide-react';
+import { Award, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { useState } from 'react';
 
 const Qualifications = () => {
   const container = {
@@ -28,6 +29,7 @@ const Qualifications = () => {
 
   const { connected, mintAchievementNFT } = useSolana();
   const { toast } = useToast();
+  const [mintingId, setMintingId] = useState<string | null>(null);
 
   const handleMintAchievement = async (qualification: any) => {
     if (!connected) {
@@ -48,19 +50,25 @@ const Qualifications = () => {
       return;
     }
 
-    const result = await mintAchievementNFT({
-      title: qualification.name,
-      description: `Successfully completed ${qualification.name} certification`,
-      imageUrl: '/placeholder.svg',
-      qualification: qualification.fullName,
-      completedDate: new Date().toLocaleDateString()
-    });
+    setMintingId(qualification.id);
 
-    if (result) {
-      toast({
-        title: "Achievement NFT Minted!",
-        description: `Your ${qualification.name} achievement has been minted as an NFT on Solana.`
+    try {
+      const result = await mintAchievementNFT({
+        title: qualification.name,
+        description: `Successfully completed ${qualification.name} certification`,
+        imageUrl: '/placeholder.svg',
+        qualification: qualification.fullName,
+        completedDate: new Date().toLocaleDateString()
       });
+
+      if (result) {
+        toast({
+          title: "Achievement NFT Minted!",
+          description: `Your ${qualification.name} achievement has been minted as an NFT on Solana.`
+        });
+      }
+    } finally {
+      setMintingId(null);
     }
   };
 
@@ -90,10 +98,19 @@ const Qualifications = () => {
                     onClick={() => handleMintAchievement(qualification)}
                     variant="outline"
                     className="flex items-center gap-2"
-                    disabled={!connected}
+                    disabled={!connected || mintingId === qualification.id}
                   >
-                    <Award className="h-4 w-4" />
-                    Mint as NFT Achievement
+                    {mintingId === qualification.id ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Minting...
+                      </>
+                    ) : (
+                      <>
+                        <Award className="h-4 w-4" />
+                        Mint as NFT Achievement
+                      </>
+                    )}
                   </Button>
                 </div>
               )}

@@ -4,10 +4,10 @@ import { useSolana } from '@/context/SolanaContext';
 import { Button } from '@/components/ui/button';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { Wallet } from 'lucide-react';
+import { Wallet, Loader2 } from 'lucide-react';
 
 export const WalletConnect: React.FC = () => {
-  const { connected, balance, connectWallet } = useSolana();
+  const { connected, balance, connectWallet, isConnecting } = useSolana();
   
   return (
     <div className="flex items-center gap-2">
@@ -23,16 +23,26 @@ export const WalletConnect: React.FC = () => {
 };
 
 export const SimpleWalletButton: React.FC = () => {
-  const { connected, connectWallet } = useSolana();
+  const { connected, connectWallet, isConnecting } = useSolana();
   
   return (
     <Button 
       onClick={connectWallet} 
       variant="outline" 
       className="flex items-center gap-2"
+      disabled={isConnecting}
     >
-      <Wallet className="h-4 w-4" />
-      {connected ? 'Wallet Connected' : 'Connect Wallet'}
+      {isConnecting ? (
+        <>
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Connecting...
+        </>
+      ) : (
+        <>
+          <Wallet className="h-4 w-4" />
+          {connected ? 'Wallet Connected' : 'Connect Wallet'}
+        </>
+      )}
     </Button>
   );
 };

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useSolana } from '@/context/SolanaContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Award, ExternalLink } from 'lucide-react';
+import { Award, ExternalLink, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface AchievementNFTProps {
@@ -78,7 +78,7 @@ export const AchievementNFT: React.FC<AchievementNFTProps> = ({
             <div className="mt-4 p-3 bg-muted rounded-md">
               <p className="text-xs font-medium mb-1">NFT Transaction</p>
               <a 
-                href={`https://explorer.solana.com/tx/${txId}?cluster=devnet`} 
+                href={`https://explorer.solana.com/address/${txId}?cluster=devnet`} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-xs text-primary flex items-center gap-1 hover:underline"
@@ -96,7 +96,14 @@ export const AchievementNFT: React.FC<AchievementNFTProps> = ({
             disabled={!connected || isMinting} 
             className="w-full"
           >
-            {isMinting ? 'Minting...' : 'Mint as NFT'}
+            {isMinting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Minting...
+              </>
+            ) : (
+              'Mint as NFT'
+            )}
           </Button>
         ) : (
           <Button variant="outline" className="w-full" disabled>

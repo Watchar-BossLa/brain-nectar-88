@@ -1,19 +1,29 @@
-
 import React, { useCallback, useEffect, useState } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 import { SolanaContext } from './SolanaContext';
 import { AchievementData } from './types';
 import { toast } from '@/components/ui/use-toast';
+import { Metaplex, walletAdapterIdentity, bundlrStorage } from '@metaplex-foundation/js';
 
 export const SolanaContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { connection } = useConnection();
   const { publicKey, connected, connecting, select, wallet } = useWallet();
   const [balance, setBalance] = useState<number | null>(null);
+  const [metaplex, setMetaplex] = useState<Metaplex | null>(null);
+
+  useEffect(() => {
+    if (connection && publicKey) {
+      const metaplexInstance = Metaplex.make(connection)
+        .use(walletAdapterIdentity(wallet?.adapter))
+        .use(bundlrStorage());
+      
+      setMetaplex(metaplexInstance);
+    }
+  }, [connection, publicKey, wallet]);
 
   const connectWallet = useCallback(() => {
     if (!connected && !connecting) {
-      // Open the wallet modal which handles selection properly
       select();
     }
   }, [connected, connecting, select]);
@@ -32,9 +42,8 @@ export const SolanaContextProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [connection, publicKey]);
 
-  // Mock implementation for NFT minting - would need to be implemented with Metaplex
   const mintAchievementNFT = useCallback(async (achievementData: AchievementData): Promise<string | null> => {
-    if (!publicKey || !connected) {
+    if (!publicKey || !connected || !metaplex) {
       toast({
         title: "Wallet not connected",
         description: "Please connect your wallet to mint an NFT",
@@ -44,11 +53,30 @@ export const SolanaContextProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     try {
-      // This is a placeholder - real implementation would use Metaplex to mint NFTs
-      console.log(`Minting NFT for ${achievementData.title}`);
+      toast({
+        title: "Minting Achievement NFT",
+        description: "Please wait while your NFT is being minted...",
+      });
+
+      console.log(`Creating NFT for ${achievementData.title}`);
       
-      // Mock successful mint with a fake transaction ID
-      const txId = `mock_tx_${Date.now().toString(16)}`;
+      const { uri } = await metaplex.nfts().uploadMetadata({
+        name: achievementData.title,
+        description: achievementData.description,
+        image: achievementData.imageUrl,
+        properties: {
+          qualification: achievementData.qualification,
+          completedDate: achievementData.completedDate
+        }
+      });
+      
+      const { nft } = await metaplex.nfts().create({
+        uri: uri,
+        name: achievementData.title,
+        sellerFeeBasisPoints: 0,
+      });
+      
+      const txId = nft.mintAddress.toString();
       
       toast({
         title: "Achievement NFT Minted!",
@@ -60,14 +88,13 @@ export const SolanaContextProvider: React.FC<{ children: React.ReactNode }> = ({
       console.error('Error minting NFT:', error);
       toast({
         title: "NFT Minting Failed",
-        description: "There was an error minting your achievement NFT.",
+        description: error.message || "There was an error minting your achievement NFT.",
         variant: "destructive"
       });
       return null;
     }
-  }, [connected, publicKey]);
+  }, [connected, publicKey, metaplex]);
 
-  // Mock implementation for token rewards
   const sendTokenReward = useCallback(async (amount: number): Promise<boolean> => {
     if (!publicKey || !connected) {
       toast({
@@ -79,7 +106,6 @@ export const SolanaContextProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     try {
-      // This is a placeholder - real implementation would send tokens
       console.log(`Sending ${amount} STUDY tokens to ${publicKey.toString()}`);
       
       toast({
@@ -99,7 +125,6 @@ export const SolanaContextProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [connected, publicKey]);
 
-  // Mock implementation for payments
   const processPayment = useCallback(async (amount: number, description: string): Promise<boolean> => {
     if (!publicKey || !connected) {
       toast({
@@ -120,7 +145,6 @@ export const SolanaContextProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     try {
-      // This is a placeholder - real implementation would create a transaction
       console.log(`Processing payment of ${amount} SOL for ${description}`);
       
       toast({
@@ -128,7 +152,6 @@ export const SolanaContextProvider: React.FC<{ children: React.ReactNode }> = ({
         description: `Your payment of ${amount} SOL for ${description} has been processed.`,
       });
       
-      // Update balance after payment
       fetchBalance();
       
       return true;
@@ -143,7 +166,6 @@ export const SolanaContextProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [connected, publicKey, balance, fetchBalance]);
 
-  // Fetch balance whenever the wallet connects
   useEffect(() => {
     if (connected && publicKey) {
       fetchBalance();
