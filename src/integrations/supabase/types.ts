@@ -140,8 +140,11 @@ export type Database = {
           back_content: string
           created_at: string
           difficulty: number | null
+          easiness_factor: number | null
           front_content: string
           id: string
+          last_retention: number | null
+          last_reviewed_at: string | null
           mastery_level: number | null
           next_review_date: string | null
           repetition_count: number
@@ -153,8 +156,11 @@ export type Database = {
           back_content: string
           created_at?: string
           difficulty?: number | null
+          easiness_factor?: number | null
           front_content: string
           id?: string
+          last_retention?: number | null
+          last_reviewed_at?: string | null
           mastery_level?: number | null
           next_review_date?: string | null
           repetition_count?: number
@@ -166,8 +172,11 @@ export type Database = {
           back_content?: string
           created_at?: string
           difficulty?: number | null
+          easiness_factor?: number | null
           front_content?: string
           id?: string
+          last_retention?: number | null
+          last_reviewed_at?: string | null
           mastery_level?: number | null
           next_review_date?: string | null
           repetition_count?: number

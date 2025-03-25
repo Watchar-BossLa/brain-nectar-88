@@ -62,7 +62,8 @@ export const updateFlashcardAfterReview = async (
         flashcard_id: flashcardId,
         difficulty_rating: difficulty,
         reviewed_at: new Date().toISOString(),
-        retention_estimate: schedule.estimatedRetention
+        retention_estimate: schedule.estimatedRetention,
+        user_id: flashcard.user_id // Make sure to include the user_id
       })
       .single();
       
