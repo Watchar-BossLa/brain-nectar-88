@@ -1,5 +1,5 @@
 
-import { AgentMessage, AgentTask } from '../types';
+import { AgentMessage, AgentTask, TaskType } from '../types';
 import { BaseAgent } from '../baseAgent';
 
 /**

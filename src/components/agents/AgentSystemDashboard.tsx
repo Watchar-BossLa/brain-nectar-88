@@ -138,7 +138,7 @@ const AgentSystemDashboard = () => {
                     {key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').trim()}
                   </span>
                   <span className="font-medium">
-                    {typeof value === 'number' ? (value * 100).toFixed(0) + '%' : value.toString()}
+                    {typeof value === 'number' ? (value * 100).toFixed(0) + '%' : String(value)}
                   </span>
                 </div>
               ))}
