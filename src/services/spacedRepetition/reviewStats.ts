@@ -1,123 +1,168 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { FlashcardRetentionResult, FlashcardLearningStats } from './reviewTypes';
+import { calculateRetention, calculateMasteryLevel } from './algorithm';
+
+export type FlashcardRetentionResult = {
+  overallRetention: number; // 0-1 value representing average retention across all cards
+  cardRetention: {
+    id: string;
+    retention: number;
+    masteryLevel: number;
+    daysUntilReview: number;
+  }[];
+};
 
 /**
- * Calculate the estimated retention rate for a collection of flashcards
- * based on their review history and spaced repetition parameters
+ * Calculate the estimated retention for all flashcards for a user
+ * 
+ * @param userId The user ID to calculate retention for
+ * @returns Object containing overall retention and individual card retention data
  */
 export const calculateFlashcardRetention = async (userId: string): Promise<FlashcardRetentionResult> => {
   try {
-    // Get all user's flashcards with repetition data
+    // Get all flashcards for the user that have been reviewed at least once
     const { data: flashcards, error } = await supabase
       .from('flashcards')
       .select('*')
       .eq('user_id', userId)
-      .gt('repetition_count', 0);
+      .gt('repetition_count', 0)
+      .order('next_review_date');
       
     if (error) {
-      console.error('Error fetching flashcards for retention calculation:', error);
-      return { overallRetention: 0, cardRetention: [] };
+      throw error;
     }
     
     const now = new Date();
+    const cardRetention: {
+      id: string;
+      retention: number;
+      masteryLevel: number;
+      daysUntilReview: number;
+    }[] = [];
+    
     let totalRetention = 0;
-    const cardRetention: Array<{id: string, retention: number, mastery: number}> = [];
     
     // Calculate retention for each card
-    flashcards?.forEach(flashcard => {
-      if (!flashcard.next_review_date) return;
+    for (const card of flashcards || []) {
+      const reviewDate = new Date(card.next_review_date);
+      const daysSinceReview = Math.max(0, (now.getTime() - reviewDate.getTime()) / (1000 * 60 * 60 * 24));
       
-      // Use last review date (updated_at) and next review date to determine memory strength
-      const lastReviewDate = new Date(flashcard.updated_at);
-      const nextReviewDate = new Date(flashcard.next_review_date);
-      const reviewInterval = Math.round((nextReviewDate.getTime() - lastReviewDate.getTime()) / (1000 * 60 * 60 * 24));
+      // Calculate memory strength based on repetition count and difficulty
+      const memoryStrength = card.repetition_count * 0.2 * (card.difficulty || 2.5);
       
-      // Elapsed time since last review in days
-      const daysSinceReview = Math.max(0, (now.getTime() - lastReviewDate.getTime()) / (1000 * 60 * 60 * 24));
+      // Calculate current retention based on forgetting curve
+      const retention = calculateRetention(daysSinceReview, memoryStrength);
       
-      // Calculate estimated memory strength
-      const memoryStrength = Math.max(1, (flashcard.repetition_count * 0.2 * (flashcard.difficulty || 2.5)));
+      // Calculate mastery level
+      const masteryLevel = calculateMasteryLevel(card.repetition_count, card.difficulty || 2.5);
       
-      // Calculate retention using forgetting curve: R = e^(-t/S)
-      const retention = Math.exp(-daysSinceReview / (memoryStrength * 10));
+      // Calculate days until review (negative if overdue)
+      const daysUntilReview = (reviewDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+      
+      cardRetention.push({
+        id: card.id,
+        retention,
+        masteryLevel,
+        daysUntilReview
+      });
       
       totalRetention += retention;
-      cardRetention.push({
-        id: flashcard.id,
-        retention,
-        mastery: flashcard.mastery_level || 0
-      });
-    });
+    }
     
-    const overallRetention = flashcards && flashcards.length > 0 
-      ? totalRetention / flashcards.length 
-      : 0;
+    // Calculate overall retention
+    const overallRetention = cardRetention.length > 0 ? totalRetention / cardRetention.length : 1;
     
-    return { 
-      overallRetention, 
-      cardRetention: cardRetention.sort((a, b) => a.retention - b.retention) 
+    return {
+      overallRetention,
+      cardRetention: cardRetention.sort((a, b) => a.retention - b.retention) // Sort by retention (lowest first)
     };
   } catch (error) {
     console.error('Error calculating flashcard retention:', error);
-    return { overallRetention: 0, cardRetention: [] };
+    return {
+      overallRetention: 1,
+      cardRetention: []
+    };
   }
 };
 
 /**
- * Get flashcard learning statistics for a user
+ * Get detailed learning statistics for a user's flashcards
  */
+export type FlashcardLearningStats = {
+  totalReviews: number;
+  averageEaseFactor: number;
+  retentionRate: number;
+  masteredCardCount: number;
+  strugglingCardCount: number;
+  learningEfficiency: number; // 0-1 value indicating learning efficiency
+  recommendedDailyReviews: number;
+};
+
 export const getFlashcardLearningStats = async (userId: string): Promise<FlashcardLearningStats> => {
   try {
-    // Get retention data
-    const { overallRetention, cardRetention } = await calculateFlashcardRetention(userId);
-    
-    // Get cards by mastery level
-    const { data: allCards, error: cardsError } = await supabase
+    // Get flashcard stats
+    const { data: flashcards, error } = await supabase
       .from('flashcards')
-      .select('mastery_level, repetition_count')
+      .select('*')
       .eq('user_id', userId);
       
-    if (cardsError) {
-      throw cardsError;
+    if (error) {
+      throw error;
     }
     
-    // Calculate mastery distribution
-    const masteryLevels = {
-      beginner: 0,    // 0-0.3
-      developing: 0,  // 0.3-0.6
-      proficient: 0,  // 0.6-0.8
-      mastered: 0     // 0.8-1.0
-    };
+    let totalReviews = 0;
+    let totalEaseFactor = 0;
+    let masteredCardCount = 0;
+    let strugglingCardCount = 0;
     
-    allCards?.forEach(card => {
-      const mastery = card.mastery_level || 0;
-      if (mastery < 0.3) masteryLevels.beginner++;
-      else if (mastery < 0.6) masteryLevels.developing++;
-      else if (mastery < 0.8) masteryLevels.proficient++;
-      else masteryLevels.mastered++;
-    });
+    // Calculate statistics
+    for (const card of flashcards || []) {
+      totalReviews += card.repetition_count || 0;
+      totalEaseFactor += card.easiness_factor || 2.5;
+      
+      // Cards with high repetition count and ease factor are considered mastered
+      if ((card.repetition_count || 0) >= 5 && (card.easiness_factor || 2.5) >= 2.3) {
+        masteredCardCount++;
+      }
+      
+      // Cards with low ease factor or failed reviews are considered struggling
+      if ((card.easiness_factor || 2.5) <= 1.5 || ((card.repetition_count || 0) > 2 && (card.difficulty || 3) >= 4)) {
+        strugglingCardCount++;
+      }
+    }
     
-    // Calculate review efficiency (how many cards reach mastery per review)
-    const totalCards = allCards?.length || 0;
-    const totalReviews = allCards?.reduce((sum, card) => sum + (card.repetition_count || 0), 0) || 0;
-    const reviewEfficiency = totalReviews > 0 
-      ? masteryLevels.mastered / totalReviews
-      : 0;
+    const cardCount = flashcards?.length || 1;
+    const averageEaseFactor = totalEaseFactor / cardCount;
+    
+    // Get retention data
+    const { overallRetention } = await calculateFlashcardRetention(userId);
+    
+    // Calculate learning efficiency based on reviews vs. mastery
+    const learningEfficiency = masteredCardCount > 0 ? masteredCardCount / Math.max(1, totalReviews / 3) : 0;
+    
+    // Calculate recommended daily reviews based on current stats
+    const dueCardsPerDay = Math.ceil(cardCount / 7); // Simple heuristic
+    const recommendedDailyReviews = Math.min(30, Math.max(5, dueCardsPerDay + strugglingCardCount / 2));
     
     return {
-      overallRetention,
-      masteryDistribution: masteryLevels,
-      reviewEfficiency,
-      lowestRetentionCards: cardRetention.slice(0, 5) // 5 cards with lowest retention
+      totalReviews,
+      averageEaseFactor,
+      retentionRate: overallRetention,
+      masteredCardCount,
+      strugglingCardCount,
+      learningEfficiency,
+      recommendedDailyReviews
     };
   } catch (error) {
-    console.error('Error calculating learning stats:', error);
+    console.error('Error getting flashcard learning stats:', error);
     return {
-      overallRetention: 0,
-      masteryDistribution: { beginner: 0, developing: 0, proficient: 0, mastered: 0 },
-      reviewEfficiency: 0,
-      lowestRetentionCards: []
+      totalReviews: 0,
+      averageEaseFactor: 2.5,
+      retentionRate: 0.8,
+      masteredCardCount: 0,
+      strugglingCardCount: 0,
+      learningEfficiency: 0,
+      recommendedDailyReviews: 10
     };
   }
 };

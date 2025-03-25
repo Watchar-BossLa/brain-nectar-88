@@ -3,11 +3,20 @@ import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Get flashcard statistics for a user
+ * 
+ * @param userId The user ID to get statistics for
+ * @returns Object with flashcard statistics
  */
-export const getFlashcardStats = async (userId: string) => {
+export const getFlashcardStats = async (userId: string): Promise<{
+  totalCards: number;
+  masteredCards: number;
+  dueCards: number;
+  averageDifficulty: number;
+  reviewsToday: number;
+}> => {
   try {
     // Get total cards count
-    const { count: totalCount, error: countError } = await supabase
+    const { count: totalCards, error: countError } = await supabase
       .from('flashcards')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId);
@@ -16,11 +25,11 @@ export const getFlashcardStats = async (userId: string) => {
       throw countError;
     }
     
-    // Get due cards
+    // Get due cards count
     const now = new Date().toISOString();
-    const { data: dueCards, error: dueError } = await supabase
+    const { count: dueCards, error: dueError } = await supabase
       .from('flashcards')
-      .select('*')
+      .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
       .lte('next_review_date', now);
       
@@ -28,65 +37,61 @@ export const getFlashcardStats = async (userId: string) => {
       throw dueError;
     }
     
-    // Get mastered cards count
-    const { data: masteredData, error: masteredError } = await supabase
+    // Get mastered cards count (repetition count >= 5 and mastery level >= 0.7)
+    const { count: masteredCards, error: masteredError } = await supabase
       .from('flashcards')
-      .select('*')
+      .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
-      .gte('mastery_level', 0.8);
+      .gte('repetition_count', 5)
+      .gte('mastery_level', 0.7);
       
     if (masteredError) {
       throw masteredError;
     }
     
-    // Get average difficulty
-    const { data: allCards, error: allCardsError } = await supabase
+    // Get average difficulty for cards that have been reviewed
+    const { data: difficultyData, error: difficultyError } = await supabase
       .from('flashcards')
       .select('difficulty')
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .gt('repetition_count', 0); // Only include cards that have been reviewed
       
-    if (allCardsError) {
-      throw allCardsError;
+    if (difficultyError) {
+      throw difficultyError;
     }
     
-    const averageDifficulty = allCards?.length 
-      ? allCards.reduce((sum, card) => sum + (card.difficulty || 0), 0) / allCards.length
+    // Calculate average difficulty
+    const averageDifficulty = difficultyData && difficultyData.length > 0
+      ? difficultyData.reduce((sum, card) => sum + (card.difficulty || 0), 0) / difficultyData.length
       : 0;
     
     // Get reviews today count
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    // Check if the flashcard_reviews table exists before querying it
-    let reviewsToday = 0;
-    try {
-      const { count: reviewsCount, error: reviewsError } = await supabase
-        .from('flashcard_reviews')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .gte('reviewed_at', today.toISOString());
-        
-      if (!reviewsError) {
-        reviewsToday = reviewsCount || 0;
-      }
-    } catch (error) {
-      console.warn('Could not get reviews count, table might not exist yet:', error);
-      // If the table doesn't exist, we'll just continue with reviewsToday = 0
+    const { count: reviewsToday, error: reviewsError } = await supabase
+      .from('flashcards')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .gte('last_reviewed_at', today.toISOString());
+      
+    if (reviewsError) {
+      throw reviewsError;
     }
     
     return {
-      totalCards: totalCount || 0,
-      dueCards: dueCards?.length || 0,
-      masteredCards: masteredData?.length || 0,
-      averageDifficulty: averageDifficulty || 0,
-      reviewsToday: reviewsToday
+      totalCards: totalCards || 0,
+      masteredCards: masteredCards || 0,
+      dueCards: dueCards || 0,
+      averageDifficulty,
+      reviewsToday: reviewsToday || 0
     };
   } catch (error) {
     console.error('Error getting flashcard stats:', error);
     return {
       totalCards: 0,
-      dueCards: 0,
       masteredCards: 0,
+      dueCards: 0,
       averageDifficulty: 0,
       reviewsToday: 0
     };
