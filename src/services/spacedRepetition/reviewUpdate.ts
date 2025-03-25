@@ -61,7 +61,7 @@ export const updateFlashcardAfterReview = async (
       .insert({
         flashcard_id: flashcardId,
         difficulty_rating: difficulty,
-        review_date: new Date().toISOString(),
+        reviewed_at: new Date().toISOString(),
         retention_estimate: schedule.estimatedRetention
       })
       .single();

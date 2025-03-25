@@ -1,3 +1,4 @@
+
 import { Session, User } from '@supabase/supabase-js';
 
 export type Profile = {
@@ -79,6 +80,10 @@ export type Flashcard = {
   mastery_level: number;
   created_at: string;
   updated_at: string;
+  // Add the missing properties that we're using in our code
+  easiness_factor?: number;
+  last_retention?: number;
+  last_reviewed_at?: string;
 };
 
 export type FlashcardReview = {
