@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { PLATFORM_OWNER } from './constants';
 import { AuthContext } from './AuthContext';
 import { useAuthService } from './authService';
+import { useNavigate } from 'react-router-dom';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -18,7 +19,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -36,10 +38,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // THEN check for existing session
     const initialSession = async () => {
       try {
-        const { data } = await supabase.auth.getSession();
-        setSession(data.session);
+        setLoading(true);
+        const { data, error } = await supabase.auth.getSession();
         
-        if (data.session?.user) {
+        if (error) {
+          console.error('Error fetching session:', error);
+          toast({
+            title: 'Authentication Error',
+            description: 'Failed to restore your session.',
+            variant: 'destructive',
+          });
+          return;
+        }
+        
+        if (data.session) {
+          console.log('Initial session restored for:', data.session.user?.email);
+          setSession(data.session);
           setUser(data.session.user);
           
           // Check if the current user is the platform administrator

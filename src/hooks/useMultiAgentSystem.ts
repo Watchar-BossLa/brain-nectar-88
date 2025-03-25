@@ -1,86 +1,63 @@
-
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/auth';
-import { MultiAgentSystem, TaskType } from '@/services/agents';
-import { mcp } from '@/services/agents/mcp';
+import { MultiAgentSystem } from '@/services/agents';
+import { useToast } from '@/hooks/use-toast';
 
-// Define the SystemState interface here since it's missing from the export
-interface SystemState {
-  activeAgents: string[];
-  metrics: {
-    taskCompletionRate: number;
-    averageResponseTime: number;
-    userSatisfactionScore: number;
-    [key: string]: number;
-  };
-  priorityMatrix?: Record<string, number>;
-  globalVariables?: Record<string, any>;
-}
-
-/**
- * Hook to access the multi-agent system
- */
-export const useMultiAgentSystem = () => {
+export function useMultiAgentSystem() {
   const { user } = useAuth();
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [systemState, setSystemState] = useState<SystemState | null>(null);
-
-  // Initialize the multi-agent system when a user signs in
+  const { toast } = useToast();
+  const [initialized, setInitialized] = useState(false);
+  const [initializing, setInitializing] = useState(false);
+  const [agentStatuses, setAgentStatuses] = useState<Map<string, boolean>>(new Map());
+  
   useEffect(() => {
-    if (user && !isInitialized) {
-      console.log('Initializing multi-agent system for user:', user.id);
+    if (!user) return;
+    
+    const system = MultiAgentSystem.getInstance();
+    
+    // If system is already initialized for this user, update our state
+    if (system.isInitialized() && system.getCurrentUserId() === user.id) {
+      setInitialized(true);
+      setAgentStatuses(system.getAgentStatuses());
+      return;
+    }
+    
+    // Otherwise initialize the system
+    const initializeSystem = async () => {
+      if (initializing) return;
       
-      MultiAgentSystem.initialize(user.id)
-        .then(() => {
-          setIsInitialized(true);
-          // Get system state from MCP instead
-          setSystemState(mcp.getSystemState());
-        })
-        .catch(error => {
-          console.error('Error initializing multi-agent system:', error);
+      try {
+        setInitializing(true);
+        await MultiAgentSystem.initialize(user.id);
+        setInitialized(true);
+        setAgentStatuses(system.getAgentStatuses());
+      } catch (error) {
+        console.error('Error initializing multi-agent system:', error);
+        toast({
+          title: 'Agent System Error',
+          description: 'Failed to initialize the learning system.',
+          variant: 'destructive',
         });
-    } else if (!user) {
-      setIsInitialized(false);
-      setSystemState(null);
-    }
-  }, [user, isInitialized]);
-
-  /**
-   * Submit a task to the multi-agent system
-   */
-  const submitTask = async (
-    taskType: string,
-    description: string,
-    data: Record<string, any> = {},
-    priority: 'LOW' | 'MEDIUM' | 'HIGH' = 'MEDIUM'
-  ) => {
-    if (!user) {
-      throw new Error('User must be authenticated to submit tasks');
-    }
+      } finally {
+        setInitializing(false);
+      }
+    };
     
-    await MultiAgentSystem.submitTask(
-      user.id,
-      taskType as TaskType,
-      description,
-      data,
-      priority
-    );
-    
-    // Update the system state from MCP
-    setSystemState(mcp.getSystemState());
+    initializeSystem();
+  }, [user, toast, initializing]);
+  
+  // Get the latest agent statuses
+  const refreshAgentStatuses = () => {
+    const system = MultiAgentSystem.getInstance();
+    if (system.isInitialized()) {
+      setAgentStatuses(system.getAgentStatuses());
+    }
   };
-
-  // Define task types directly in the hook
-  const TaskTypes = {
-    LEARNING_PATH_GENERATION: 'LEARNING_PATH_GENERATION' as TaskType,
-    TOPIC_MASTERY_ASSESSMENT: 'TOPIC_MASTERY_ASSESSMENT' as TaskType,
-    LEARNING_PATH_UPDATE: 'LEARNING_PATH_UPDATE' as TaskType,
-  };
-
+  
   return {
-    isInitialized,
-    systemState,
-    submitTask,
-    TaskTypes
+    initialized,
+    initializing,
+    agentStatuses,
+    refreshAgentStatuses
   };
-};
+}

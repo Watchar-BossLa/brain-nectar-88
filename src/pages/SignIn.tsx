@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { EyeIcon, EyeOffIcon, LogInIcon } from 'lucide-react';
+import { EyeIcon, EyeOffIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const SignIn = () => {
@@ -14,18 +15,27 @@ const SignIn = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { signIn, signInWithGoogle } = useAuth();
+  const { signIn, signInWithGoogle, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Get the return path from location state or default to '/'
+  const from = location.state?.from || '/';
+  
+  // If user is already authenticated, redirect to the return path
+  useEffect(() => {
+    if (user) {
+      navigate(from);
+    }
+  }, [user, navigate, from]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      const { error } = await signIn(email, password);
-      if (!error) {
-        navigate('/');
-      }
+      await signIn(email, password);
+      // Navigation is handled in the auth service
     } finally {
       setIsLoading(false);
     }
@@ -80,6 +90,7 @@ const SignIn = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="space-y-2">
@@ -92,11 +103,13 @@ const SignIn = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    disabled={isLoading}
                   />
                   <button
                     type="button"
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
                     onClick={() => setShowPassword(!showPassword)}
+                    disabled={isLoading}
                   >
                     {showPassword ? (
                       <EyeOffIcon className="h-5 w-5" />
@@ -137,7 +150,7 @@ const SignIn = () => {
                 variant="outline" 
                 className="w-full"
                 onClick={handleGoogleSignIn}
-                disabled={isGoogleLoading}
+                disabled={isGoogleLoading || isLoading}
               >
                 {isGoogleLoading ? (
                   <div className="flex items-center justify-center">
