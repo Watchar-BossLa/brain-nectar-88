@@ -1,6 +1,6 @@
 
+import { AgentMessage, AgentTask } from '../types';
 import { BaseAgent } from '../baseAgent';
-import { AgentMessage, AgentTask, AgentType } from '../types';
 
 /**
  * Scheduling Agent
@@ -8,137 +8,62 @@ import { AgentMessage, AgentTask, AgentType } from '../types';
  * Optimizes study timing and session structure.
  */
 export class SchedulingAgent extends BaseAgent {
-  protected type: AgentType = 'SCHEDULING';
+  constructor() {
+    super('SCHEDULING');
+  }
   
-  /**
-   * Execute a task assigned to this agent
-   */
-  protected async executeTask(task: AgentTask): Promise<any> {
-    const { taskType, userId, data } = task;
+  async processTask(task: AgentTask): Promise<any> {
+    console.log(`Scheduling Agent processing task: ${task.taskType}`);
     
-    switch (taskType) {
+    switch (task.taskType) {
       case 'SCHEDULE_OPTIMIZATION':
-        return this.generateStudySchedule(userId, data.timeframeInDays);
+        return this.optimizeSchedule(task.userId, task.data);
+      case 'FLASHCARD_OPTIMIZATION':
+        return this.optimizeFlashcards(task.userId, task.data);
       default:
-        throw new Error(`Unsupported task type for Scheduling Agent: ${taskType}`);
+        console.warn(`Scheduling Agent received unknown task type: ${task.taskType}`);
+        return { status: 'error', message: 'Unknown task type' };
     }
   }
   
-  /**
-   * Generate an optimized study schedule for a user
-   */
-  private async generateStudySchedule(userId: string, timeframeInDays: number = 7): Promise<any> {
-    this.log(`Generating study schedule for user ${userId} over ${timeframeInDays} days`);
+  receiveMessage(message: AgentMessage): void {
+    console.log(`Scheduling Agent received message: ${message.type}`);
+    // Handle messages from other agents
+  }
+  
+  private async optimizeSchedule(userId: string, data: any): Promise<any> {
+    console.log(`Optimizing schedule for user ${userId}`);
     
-    // This is a placeholder implementation
-    // In a real system, this would analyze user behavior and learning patterns
-    
-    // Request cognitive profile and learning path data to inform scheduling
-    this.sendMessage('COGNITIVE_PROFILE', 'REQUEST_COGNITIVE_PROFILE', { userId });
-    
-    // Generate a basic schedule
-    const schedule = this.createBasicSchedule(timeframeInDays);
-    
+    // Mock implementation
     return {
-      userId,
-      timeframeInDays,
-      schedule,
-      generatedAt: new Date().toISOString()
+      status: 'success',
+      schedule: {
+        recommendedTimes: [
+          { day: 'Monday', time: '09:00', duration: 30 },
+          { day: 'Wednesday', time: '15:00', duration: 45 },
+          { day: 'Friday', time: '18:00', duration: 30 }
+        ],
+        topicDistribution: [
+          { topicId: 'topic-1', percentage: 40 },
+          { topicId: 'topic-2', percentage: 60 }
+        ]
+      }
     };
   }
   
-  /**
-   * Create a basic study schedule
-   */
-  private createBasicSchedule(timeframeInDays: number): any[] {
-    const schedule = [];
-    const today = new Date();
+  private async optimizeFlashcards(userId: string, data: any): Promise<any> {
+    console.log(`Optimizing flashcards for user ${userId}`);
     
-    for (let i = 0; i < timeframeInDays; i++) {
-      const date = new Date(today);
-      date.setDate(date.getDate() + i);
-      
-      // Create study blocks for each day
-      const daySchedule = {
-        date: date.toISOString().split('T')[0],
-        studyBlocks: []
-      };
-      
-      // Create 2-3 study blocks per day
-      const numBlocks = 2 + Math.floor(Math.random() * 2);
-      
-      for (let j = 0; j < numBlocks; j++) {
-        daySchedule.studyBlocks.push({
-          id: `block-${i}-${j}`,
-          startTime: this.getRandomTimeForBlock(j, numBlocks),
-          durationMinutes: 25 + Math.floor(Math.random() * 4) * 5, // 25-45 minutes
-          activityType: this.getRandomActivityType(),
-          priority: j === 0 ? 'high' : 'medium' // First block of the day is high priority
-        });
+    // Mock implementation
+    return {
+      status: 'success',
+      flashcardSchedule: {
+        reviewIntervals: [
+          { cardId: 'card-1', nextReview: '2023-09-10T15:00:00Z' },
+          { cardId: 'card-2', nextReview: '2023-09-12T10:00:00Z' }
+        ],
+        recommendedBatchSize: 15
       }
-      
-      schedule.push(daySchedule);
-    }
-    
-    return schedule;
-  }
-  
-  /**
-   * Get a random time for a study block
-   */
-  private getRandomTimeForBlock(blockIndex: number, totalBlocks: number): string {
-    // Distribute blocks throughout the day
-    const hour = 8 + Math.floor((blockIndex / totalBlocks) * 12);
-    const minute = Math.floor(Math.random() * 4) * 15;
-    
-    return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-  }
-  
-  /**
-   * Get a random activity type
-   */
-  private getRandomActivityType(): string {
-    const activityTypes = [
-      'new_content',
-      'review',
-      'flashcards',
-      'practice_problems',
-      'assessment'
-    ];
-    
-    return activityTypes[Math.floor(Math.random() * activityTypes.length)];
-  }
-  
-  /**
-   * Handle messages from other agents or the MCP
-   */
-  protected handleMessage(message: AgentMessage): void {
-    const { type, content, data } = message;
-    
-    switch (content) {
-      case 'COGNITIVE_PROFILE_DATA':
-        // Handle receiving cognitive profile data
-        if (data.profile) {
-          this.log('Received cognitive profile data', { userId: data.profile.userId });
-          // In a real implementation, we would use this to personalize scheduling
-        }
-        break;
-        
-      case 'REQUEST_STUDY_SCHEDULE':
-        // Handle requests to generate a study schedule
-        if (data.userId) {
-          this.generateStudySchedule(data.userId, data.timeframeInDays)
-            .then(schedule => {
-              if (message.senderId) {
-                this.sendMessage(message.senderId, 'STUDY_SCHEDULE_RESULT', { schedule });
-              }
-            })
-            .catch(error => console.error('Error generating study schedule:', error));
-        }
-        break;
-        
-      default:
-        this.log(`Unhandled message: ${content}`);
-    }
+    };
   }
 }

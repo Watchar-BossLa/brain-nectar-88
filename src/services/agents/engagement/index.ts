@@ -1,6 +1,6 @@
 
+import { AgentMessage, AgentTask } from '../types';
 import { BaseAgent } from '../baseAgent';
-import { AgentMessage, AgentTask, AgentType } from '../types';
 
 /**
  * Engagement Agent
@@ -8,76 +8,42 @@ import { AgentMessage, AgentTask, AgentType } from '../types';
  * Optimizes learning motivation and maintains consistent engagement.
  */
 export class EngagementAgent extends BaseAgent {
-  protected type: AgentType = 'ENGAGEMENT';
+  constructor() {
+    super('ENGAGEMENT');
+  }
   
-  /**
-   * Execute a task assigned to this agent
-   */
-  protected async executeTask(task: AgentTask): Promise<any> {
-    const { taskType, userId, data } = task;
+  async processTask(task: AgentTask): Promise<any> {
+    console.log(`Engagement Agent processing task: ${task.taskType}`);
     
-    switch (taskType) {
+    switch (task.taskType) {
       case 'ENGAGEMENT_OPTIMIZATION':
-        return this.optimizeEngagement(userId, data);
+        return this.optimizeEngagement(task.userId, task.data);
       default:
-        throw new Error(`Unsupported task type for Engagement Agent: ${taskType}`);
+        console.warn(`Engagement Agent received unknown task type: ${task.taskType}`);
+        return { status: 'error', message: 'Unknown task type' };
     }
   }
   
-  /**
-   * Optimize user engagement
-   */
+  receiveMessage(message: AgentMessage): void {
+    console.log(`Engagement Agent received message: ${message.type}`);
+    // Handle messages from other agents
+  }
+  
   private async optimizeEngagement(userId: string, data: any): Promise<any> {
-    this.log(`Optimizing engagement for user ${userId}`);
+    console.log(`Optimizing engagement for user ${userId}`);
     
-    // In a real implementation, this would:
-    // 1. Analyze user engagement patterns
-    // 2. Identify optimal study times
-    // 3. Create personalized motivation strategies
-    
-    // For now, return some sample engagement strategies
+    // Mock implementation
     return {
-      optimalStudyTimes: ["morning", "early_evening"],
-      recommendedSessionLength: 25,
-      motivationalTriggers: ["progress_visualization", "achievement_badges"],
-      disengagementRisk: "low",
-      recommendedInterventions: []
+      status: 'success',
+      recommendations: {
+        studySessionLength: 25, // minutes
+        breakFrequency: 5, // minutes
+        gamificationElements: ['streaks', 'badges'],
+        motivationalMessages: [
+          'You're making great progress!',
+          'Keep up the excellent work!'
+        ]
+      }
     };
-  }
-  
-  /**
-   * Handle messages from other agents or the MCP
-   */
-  protected handleMessage(message: AgentMessage): void {
-    const { type, content, data } = message;
-    
-    switch (content) {
-      case 'USER_ACTIVITY_UPDATE':
-        // Process user activity data
-        this.log('Received user activity update');
-        break;
-        
-      case 'REQUEST_ENGAGEMENT_METRICS':
-        // Generate and send engagement metrics to requesting agent
-        if (data.userId) {
-          this.sendMessage(
-            message.senderId as AgentType, 
-            'ENGAGEMENT_METRICS_RESPONSE', 
-            {
-              userId: data.userId,
-              metrics: {
-                currentStreak: 5,
-                averageSessionTime: 27,
-                completionRate: 0.72,
-                dropoffPoints: []
-              }
-            }
-          );
-        }
-        break;
-        
-      default:
-        this.log(`Unhandled message: ${content}`);
-    }
   }
 }

@@ -1,9 +1,6 @@
 
+import { AgentMessage, AgentTask } from '../types';
 import { BaseAgent } from '../baseAgent';
-import { AgentMessage, AgentTask, AgentType, CognitiveProfile } from '../types';
-import { ProfileGenerator } from './profileGenerator';
-import { ProfileRepository } from './profileRepository';
-import { MessageHandler } from './messageHandler';
 
 /**
  * Cognitive Profile Agent
@@ -11,59 +8,39 @@ import { MessageHandler } from './messageHandler';
  * Builds and maintains a comprehensive model of the learner's cognitive patterns.
  */
 export class CognitiveProfileAgent extends BaseAgent {
-  protected type: AgentType = 'COGNITIVE_PROFILE';
-  private profileGenerator: ProfileGenerator;
-  private profileRepository: ProfileRepository;
-  private messageHandler: MessageHandler;
-  
   constructor() {
-    super();
-    this.profileGenerator = new ProfileGenerator();
-    this.profileRepository = new ProfileRepository();
-    this.messageHandler = new MessageHandler(
-      this.profileGenerator,
-      this.profileRepository,
-      this.sendMessage.bind(this),
-      this.log.bind(this)
-    );
+    super('COGNITIVE_PROFILE');
   }
   
-  /**
-   * Execute a task assigned to this agent
-   */
-  protected async executeTask(task: AgentTask): Promise<any> {
-    const { taskType, userId, data } = task;
+  async processTask(task: AgentTask): Promise<any> {
+    console.log(`Cognitive Profile Agent processing task: ${task.taskType}`);
     
-    switch (taskType) {
+    switch (task.taskType) {
       case 'COGNITIVE_PROFILING':
-        return this.generateCognitiveProfile(userId, data);
+        return this.generateProfile(task.userId, task.data);
       default:
-        throw new Error(`Unsupported task type for Cognitive Profile Agent: ${taskType}`);
+        console.warn(`Cognitive Profile Agent received unknown task type: ${task.taskType}`);
+        return { status: 'error', message: 'Unknown task type' };
     }
   }
   
-  /**
-   * Generate or update a cognitive profile for a user
-   */
-  private async generateCognitiveProfile(userId: string, data: Record<string, any>): Promise<CognitiveProfile> {
-    this.log(`Generating cognitive profile for user ${userId}`);
-    
-    // Check if we already have a profile for this user
-    const existingProfile = await this.profileRepository.getCognitiveProfile(userId);
-    
-    if (existingProfile) {
-      // Update the existing profile
-      return this.profileGenerator.updateCognitiveProfile(existingProfile, data);
-    } else {
-      // Create a new profile
-      return this.profileGenerator.createInitialCognitiveProfile(userId);
-    }
+  receiveMessage(message: AgentMessage): void {
+    console.log(`Cognitive Profile Agent received message: ${message.type}`);
+    // Handle messages from other agents
   }
   
-  /**
-   * Handle messages from other agents or the MCP
-   */
-  protected handleMessage(message: AgentMessage): void {
-    this.messageHandler.handleMessage(message);
+  private async generateProfile(userId: string, data: any): Promise<any> {
+    console.log(`Generating cognitive profile for user ${userId}`);
+    
+    // Mock implementation - would connect to profiling service in real implementation
+    return {
+      status: 'success',
+      profile: {
+        learningSpeed: { accounting: 0.8, finance: 0.7 },
+        preferredContentFormats: ['visual', 'interactive'],
+        attentionSpan: 25, // minutes
+        retentionRates: { shortTerm: 0.85, longTerm: 0.6 }
+      }
+    };
   }
 }

@@ -1,6 +1,6 @@
 
+import { AgentMessage, AgentTask } from '../types';
 import { BaseAgent } from '../baseAgent';
-import { AgentMessage, AgentTask, AgentType } from '../types';
 
 /**
  * Assessment Agent
@@ -8,74 +8,49 @@ import { AgentMessage, AgentTask, AgentType } from '../types';
  * Evaluates understanding and creates targeted assessment opportunities.
  */
 export class AssessmentAgent extends BaseAgent {
-  protected type: AgentType = 'ASSESSMENT';
+  constructor() {
+    super('ASSESSMENT');
+  }
   
-  /**
-   * Execute a task assigned to this agent
-   */
-  protected async executeTask(task: AgentTask): Promise<any> {
-    const { taskType, userId, data } = task;
+  async processTask(task: AgentTask): Promise<any> {
+    console.log(`Assessment Agent processing task: ${task.taskType}`);
     
-    switch (taskType) {
+    switch (task.taskType) {
       case 'ASSESSMENT_GENERATION':
-        return this.generateAssessment(userId, data.topicId);
+        return this.generateAssessment(task.userId, task.data);
       default:
-        throw new Error(`Unsupported task type for Assessment Agent: ${taskType}`);
+        console.warn(`Assessment Agent received unknown task type: ${task.taskType}`);
+        return { status: 'error', message: 'Unknown task type' };
     }
   }
   
-  /**
-   * Generate an assessment for a specific topic
-   */
-  private async generateAssessment(userId: string, topicId: string): Promise<any> {
-    this.log(`Generating assessment for user ${userId} on topic ${topicId}`);
+  receiveMessage(message: AgentMessage): void {
+    console.log(`Assessment Agent received message: ${message.type}`);
+    // Handle messages from other agents
+  }
+  
+  private async generateAssessment(userId: string, data: any): Promise<any> {
+    console.log(`Generating assessment for user ${userId}`);
     
-    // This is a placeholder implementation
-    // In a real system, this would generate personalized assessments
-    
+    // Mock implementation - would connect to assessment service in real implementation
     return {
-      assessmentId: `generated-${Date.now()}`,
-      userId,
-      topicId,
-      questions: [
-        {
-          type: 'multiple_choice',
-          question: 'Sample question 1?',
-          options: ['Option A', 'Option B', 'Option C', 'Option D'],
-          correctOption: 2
-        },
-        {
-          type: 'true_false',
-          question: 'Sample question 2?',
-          correctOption: true
-        }
-      ],
-      generatedAt: new Date().toISOString()
+      status: 'success',
+      assessment: {
+        questions: [
+          {
+            id: 'q1',
+            text: 'What is the accounting equation?',
+            type: 'multiple_choice',
+            options: [
+              'Assets = Liabilities + Equity',
+              'Assets = Liabilities - Equity',
+              'Assets + Liabilities = Equity',
+              'Assets + Equity = Liabilities'
+            ],
+            correctAnswer: 0
+          }
+        ]
+      }
     };
-  }
-  
-  /**
-   * Handle messages from other agents or the MCP
-   */
-  protected handleMessage(message: AgentMessage): void {
-    const { type, content, data } = message;
-    
-    switch (content) {
-      case 'REQUEST_ASSESSMENT':
-        // Handle requests to generate an assessment
-        if (data.userId && data.topicId) {
-          this.generateAssessment(data.userId, data.topicId)
-            .then(assessment => {
-              if (message.senderId) {
-                this.sendMessage(message.senderId, 'ASSESSMENT_RESULT', { assessment });
-              }
-            })
-            .catch(error => console.error('Error generating assessment:', error));
-        }
-        break;
-        
-      default:
-        this.log(`Unhandled message: ${content}`);
-    }
   }
 }

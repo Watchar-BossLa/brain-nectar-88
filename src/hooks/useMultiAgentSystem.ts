@@ -1,7 +1,21 @@
 
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { MultiAgentSystem, SystemState } from '@/services/agents';
+import { useAuth } from '@/context/auth';
+import { MultiAgentSystem, TaskType } from '@/services/agents';
+import { mcp } from '@/services/agents/mcp';
+
+// Define the SystemState interface here since it's missing from the export
+interface SystemState {
+  activeAgents: string[];
+  metrics: {
+    taskCompletionRate: number;
+    averageResponseTime: number;
+    userSatisfactionScore: number;
+    [key: string]: number;
+  };
+  priorityMatrix?: Record<string, number>;
+  globalVariables?: Record<string, any>;
+}
 
 /**
  * Hook to access the multi-agent system
@@ -19,7 +33,8 @@ export const useMultiAgentSystem = () => {
       MultiAgentSystem.initialize(user.id)
         .then(() => {
           setIsInitialized(true);
-          setSystemState(MultiAgentSystem.getSystemState());
+          // Get system state from MCP instead
+          setSystemState(mcp.getSystemState());
         })
         .catch(error => {
           console.error('Error initializing multi-agent system:', error);
@@ -37,7 +52,7 @@ export const useMultiAgentSystem = () => {
     taskType: string,
     description: string,
     data: Record<string, any> = {},
-    priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' = 'MEDIUM'
+    priority: 'LOW' | 'MEDIUM' | 'HIGH' = 'MEDIUM'
   ) => {
     if (!user) {
       throw new Error('User must be authenticated to submit tasks');
@@ -45,20 +60,27 @@ export const useMultiAgentSystem = () => {
     
     await MultiAgentSystem.submitTask(
       user.id,
-      taskType as any,
+      taskType as TaskType,
       description,
       data,
       priority
     );
     
-    // Update the system state
-    setSystemState(MultiAgentSystem.getSystemState());
+    // Update the system state from MCP
+    setSystemState(mcp.getSystemState());
+  };
+
+  // Define task types directly in the hook
+  const TaskTypes = {
+    LEARNING_PATH_GENERATION: 'LEARNING_PATH_GENERATION' as TaskType,
+    TOPIC_MASTERY_ASSESSMENT: 'TOPIC_MASTERY_ASSESSMENT' as TaskType,
+    LEARNING_PATH_UPDATE: 'LEARNING_PATH_UPDATE' as TaskType,
   };
 
   return {
     isInitialized,
     systemState,
     submitTask,
-    TaskTypes: MultiAgentSystem.TaskTypes
+    TaskTypes
   };
 };

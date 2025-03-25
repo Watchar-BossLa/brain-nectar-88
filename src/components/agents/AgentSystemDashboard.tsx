@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useMultiAgentSystem } from '@/hooks/useMultiAgentSystem';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,7 @@ import {
   Calendar 
 } from 'lucide-react';
 
-const agentIcons = {
+const agentIcons: Record<string, React.ElementType> = {
   'COGNITIVE_PROFILE': Brain,
   'LEARNING_PATH': BookOpen,
   'CONTENT_ADAPTATION': FileText,
@@ -92,8 +92,8 @@ const AgentSystemDashboard = () => {
             <div>
               <h4 className="text-sm font-medium mb-2">Active Agents</h4>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {systemState?.activeAgents.map(agent => {
-                  const Icon = agentIcons[agent as keyof typeof agentIcons] || Brain;
+                {systemState?.activeAgents && systemState.activeAgents.map((agent) => {
+                  const Icon = agentIcons[agent] || Brain;
                   return (
                     <div 
                       key={agent} 
@@ -104,6 +104,12 @@ const AgentSystemDashboard = () => {
                     </div>
                   );
                 })}
+
+                {(!systemState?.activeAgents || systemState.activeAgents.length === 0) && (
+                  <div className="col-span-4 text-center text-sm text-muted-foreground">
+                    No active agents
+                  </div>
+                )}
               </div>
             </div>
             
@@ -132,10 +138,16 @@ const AgentSystemDashboard = () => {
                     {key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').trim()}
                   </span>
                   <span className="font-medium">
-                    {typeof value === 'number' ? (value * 100).toFixed(0) + '%' : value}
+                    {typeof value === 'number' ? (value * 100).toFixed(0) + '%' : value.toString()}
                   </span>
                 </div>
               ))}
+
+              {(!systemState?.metrics || Object.keys(systemState.metrics).length === 0) && (
+                <div className="text-center text-sm text-muted-foreground">
+                  No metrics available
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

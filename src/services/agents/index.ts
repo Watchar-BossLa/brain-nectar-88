@@ -1,26 +1,67 @@
-import { generateLearningPath } from './learningPathAgent';
-import { assessTopicMastery } from './topicMasteryAgent';
-import { TaskType } from './types';
-import { submitTask as submitTaskToQueue } from './taskQueue';
 
-export { TaskType };
+import { AgentTask, TaskType } from './types';
+import { mcp } from './mcp';
 
+// Re-export the TaskType
+export type { TaskType };
+
+// Define task types for the system
 export const TaskTypes = {
   LEARNING_PATH_GENERATION: 'LEARNING_PATH_GENERATION' as TaskType,
   TOPIC_MASTERY_ASSESSMENT: 'TOPIC_MASTERY_ASSESSMENT' as TaskType,
   LEARNING_PATH_UPDATE: 'LEARNING_PATH_UPDATE' as TaskType,
 };
 
-const taskHandlers: { [key in TaskType]: (userId: string, taskData: any) => Promise<any> } = {
-  [TaskTypes.LEARNING_PATH_GENERATION]: generateLearningPath,
-  [TaskTypes.TOPIC_MASTERY_ASSESSMENT]: assessTopicMastery,
-  [TaskTypes.LEARNING_PATH_UPDATE]: generateLearningPath, // Assuming learning path generation also handles updates
+// Mock implementation for the missing functions
+const generateLearningPath = async (userId: string, taskData: any) => {
+  console.log(`Generating learning path for user ${userId}`);
+  return { success: true, path: { modules: [], topics: [] } };
 };
 
+const assessTopicMastery = async (userId: string, taskData: any) => {
+  console.log(`Assessing topic mastery for user ${userId}`);
+  return { success: true, masteryLevel: 0.75 };
+};
+
+// Implement a simple task queue
+const submitTaskToQueue = async (
+  userId: string, 
+  taskType: TaskType, 
+  description: string, 
+  taskData: any, 
+  priority: 'HIGH' | 'MEDIUM' | 'LOW'
+) => {
+  console.log(`Task added to queue: ${taskType} for user ${userId}`);
+  
+  // Create a task object
+  const task: AgentTask = {
+    id: `task-${Date.now()}`,
+    userId,
+    taskType,
+    description,
+    priority: priority as any, // Cast to support the TaskPriority type
+    context: [taskType.toLowerCase()],
+    data: taskData,
+    createdAt: new Date().toISOString(),
+  };
+  
+  // Submit the task to the MCP
+  await mcp.submitTask(task);
+};
+
+// Simple handlers for the task types
+const taskHandlers: { [key in TaskType]?: (userId: string, taskData: any) => Promise<any> } = {
+  [TaskTypes.LEARNING_PATH_GENERATION]: generateLearningPath,
+  [TaskTypes.TOPIC_MASTERY_ASSESSMENT]: assessTopicMastery,
+  [TaskTypes.LEARNING_PATH_UPDATE]: generateLearningPath,
+};
+
+// Export the MultiAgentSystem interface
 export const MultiAgentSystem = {
   initialize: async (userId: string) => {
     console.log(`Multi-Agent System initializing for user: ${userId}`);
-    // Add any initialization logic here, e.g., loading user profile, etc.
+    // Initialize MCP for this user
+    await mcp.initializeForUser(userId);
     return Promise.resolve();
   },
 

@@ -1,6 +1,6 @@
 
+import { AgentMessage, AgentTask } from '../types';
 import { BaseAgent } from '../baseAgent';
-import { AgentMessage, AgentTask, AgentType } from '../types';
 
 /**
  * Feedback Agent
@@ -8,140 +8,38 @@ import { AgentMessage, AgentTask, AgentType } from '../types';
  * Delivers personalized, constructive feedback on learning activities.
  */
 export class FeedbackAgent extends BaseAgent {
-  protected type: AgentType = 'FEEDBACK';
+  constructor() {
+    super('FEEDBACK');
+  }
   
-  /**
-   * Execute a task assigned to this agent
-   */
-  protected async executeTask(task: AgentTask): Promise<any> {
-    const { taskType, userId, data } = task;
+  async processTask(task: AgentTask): Promise<any> {
+    console.log(`Feedback Agent processing task: ${task.taskType}`);
     
-    switch (taskType) {
+    switch (task.taskType) {
       case 'FEEDBACK_GENERATION':
-        return this.generateFeedback(userId, data);
+        return this.generateFeedback(task.userId, task.data);
       default:
-        throw new Error(`Unsupported task type for Feedback Agent: ${taskType}`);
+        console.warn(`Feedback Agent received unknown task type: ${task.taskType}`);
+        return { status: 'error', message: 'Unknown task type' };
     }
   }
   
-  /**
-   * Generate personalized feedback
-   */
+  receiveMessage(message: AgentMessage): void {
+    console.log(`Feedback Agent received message: ${message.type}`);
+    // Handle messages from other agents
+  }
+  
   private async generateFeedback(userId: string, data: any): Promise<any> {
-    this.log(`Generating feedback for user ${userId}`);
+    console.log(`Generating feedback for user ${userId}`);
     
-    // Extract relevant data
-    const { contentType, assessmentResults, userResponses } = data;
-    
-    // In a real implementation, this would:
-    // 1. Analyze assessment results
-    // 2. Identify knowledge gaps
-    // 3. Generate targeted feedback
-    // 4. Tailor messaging based on user confidence
-    
-    // For demonstration purposes, generate different feedback based on content type
-    if (contentType === 'assessment') {
-      return this.generateAssessmentFeedback(assessmentResults);
-    } else if (contentType === 'learning_session') {
-      return this.generateLearningFeedback(userResponses);
-    } else {
-      return {
-        feedbackType: 'general',
-        generalFeedback: 'Continue to engage with the learning material regularly.',
-        specificPoints: [],
-        recommendedActions: ['Review challenging concepts', 'Practice with more exercises']
-      };
-    }
-  }
-  
-  /**
-   * Generate feedback for assessments
-   */
-  private generateAssessmentFeedback(results: any): any {
-    // Sample feedback for assessment results
+    // Mock implementation
     return {
-      feedbackType: 'assessment',
-      overallPerformance: {
-        score: results?.score || 75,
-        strengths: ['Conceptual understanding', 'Application of principles'],
-        areasForImprovement: ['Calculation accuracy', 'Terminology precision']
-      },
-      specificFeedback: [
-        {
-          questionId: '1',
-          correctness: true,
-          feedback: 'Excellent understanding of the core concept.'
-        },
-        {
-          questionId: '2',
-          correctness: false,
-          feedback: 'Consider reviewing the formula for present value calculations.'
-        }
-      ],
-      nextSteps: [
-        'Review calculation methods for time value of money',
-        'Practice with more complex scenarios'
-      ]
+      status: 'success',
+      feedback: {
+        strengths: ['Strong understanding of basic concepts'],
+        areasForImprovement: ['Could improve on application of concepts to real-world scenarios'],
+        nextSteps: ['Review chapter 3', 'Complete practice problems 5-8']
+      }
     };
-  }
-  
-  /**
-   * Generate feedback for learning sessions
-   */
-  private generateLearningFeedback(responses: any): any {
-    // Sample feedback for learning activities
-    return {
-      feedbackType: 'learning',
-      engagementLevel: 'high',
-      paceAssessment: 'appropriate',
-      comprehensionIndicators: {
-        conceptualQuestions: 'strong',
-        practicalApplications: 'moderate'
-      },
-      recommendedNextTopics: [
-        'Advanced applications',
-        'Integration with related concepts'
-      ]
-    };
-  }
-  
-  /**
-   * Handle messages from other agents or the MCP
-   */
-  protected handleMessage(message: AgentMessage): void {
-    const { type, content, data } = message;
-    
-    switch (content) {
-      case 'ASSESSMENT_COMPLETED':
-        // Generate and send feedback for completed assessment
-        if (data.userId && data.assessmentId && data.results) {
-          this.log(`Assessment completed: ${data.assessmentId}`);
-          
-          // In a real implementation, this would trigger a feedback generation task
-          // For now, log the event
-        }
-        break;
-        
-      case 'REQUEST_FEEDBACK':
-        // Generate and send feedback upon request
-        if (data.userId && data.contentType) {
-          this.sendMessage(
-            message.senderId as AgentType,
-            'FEEDBACK_RESPONSE',
-            {
-              userId: data.userId,
-              feedback: {
-                type: data.contentType,
-                suggestions: ['Focus on concept X', 'Practice more Y'],
-                encouragement: 'You\'re making good progress!'
-              }
-            }
-          );
-        }
-        break;
-        
-      default:
-        this.log(`Unhandled message: ${content}`);
-    }
   }
 }
