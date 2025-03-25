@@ -1,10 +1,11 @@
+
 import React, { useCallback, useEffect, useState } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 import { SolanaContext } from './SolanaContext';
 import { AchievementData } from './types';
 import { toast } from '@/components/ui/use-toast';
-import { Metaplex, walletAdapterIdentity, bundlrStorage } from '@metaplex-foundation/js';
+import { Metaplex, walletAdapterIdentity } from '@metaplex-foundation/js';
 
 export const SolanaContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { connection } = useConnection();
@@ -13,10 +14,10 @@ export const SolanaContextProvider: React.FC<{ children: React.ReactNode }> = ({
   const [metaplex, setMetaplex] = useState<Metaplex | null>(null);
 
   useEffect(() => {
-    if (connection && publicKey) {
+    if (connection && publicKey && wallet?.adapter) {
+      // Create Metaplex instance with the current connection and wallet
       const metaplexInstance = Metaplex.make(connection)
-        .use(walletAdapterIdentity(wallet?.adapter))
-        .use(bundlrStorage());
+        .use(walletAdapterIdentity(wallet.adapter));
       
       setMetaplex(metaplexInstance);
     }
@@ -24,7 +25,7 @@ export const SolanaContextProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const connectWallet = useCallback(() => {
     if (!connected && !connecting) {
-      select();
+      select('Phantom'); // Provide a default wallet name
     }
   }, [connected, connecting, select]);
 
@@ -60,6 +61,7 @@ export const SolanaContextProvider: React.FC<{ children: React.ReactNode }> = ({
 
       console.log(`Creating NFT for ${achievementData.title}`);
       
+      // Upload metadata
       const { uri } = await metaplex.nfts().uploadMetadata({
         name: achievementData.title,
         description: achievementData.description,
@@ -70,13 +72,15 @@ export const SolanaContextProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       });
       
+      // Create NFT
       const { nft } = await metaplex.nfts().create({
         uri: uri,
         name: achievementData.title,
         sellerFeeBasisPoints: 0,
       });
       
-      const txId = nft.mintAddress.toString();
+      // Use address instead of mintAddress (API change)
+      const txId = nft.address.toString();
       
       toast({
         title: "Achievement NFT Minted!",
