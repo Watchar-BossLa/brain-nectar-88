@@ -1,12 +1,12 @@
 
 import { accaModules } from '../accaDetails';
 import { cpaModules } from '../cpaDetails';
-import { cfaModules } from '../cfa';
-import { frmModules } from '../frm';
-import { cimaModules } from '../cima';
+import { cfaModules } from '../cfaDetails';
+import { frmModules } from '../frmDetails';
+import { cimaModules } from '../cimaDetails';
 import { cmaModules } from '../cmaDetails';
-import { cfpModules } from '../cfp';
-import { caiaModules } from '../caia';
+import { cfpModules } from '../cfpDetails';
+import { caiaModules } from '../caiaDetails';
 import { QualificationLevel } from '../types';
 
 interface QualificationModulesData {

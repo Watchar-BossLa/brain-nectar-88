@@ -3,6 +3,7 @@ import { QualificationLevel } from '../types';
 import { caiaLevelOneTopics } from './caiaLevelOne';
 import { caiaLevelTwoTopics } from './caiaLevelTwo';
 
+// Export the CAIA modules with proper structure
 export const caiaModules: QualificationLevel[] = [
   {
     level: 'Level I',
@@ -23,4 +24,5 @@ export const caiaModules: QualificationLevel[] = [
   }
 ];
 
+// Export the topic data
 export { caiaLevelOneTopics, caiaLevelTwoTopics };
