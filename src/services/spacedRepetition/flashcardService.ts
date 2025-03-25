@@ -38,19 +38,24 @@ export const getDueFlashcards = async (userId: string, topicId?: string) => {
  * Creates a new flashcard with initial spaced repetition parameters
  */
 export const createFlashcard = async (
-  userId: string,
   frontContent: string,
   backContent: string,
   topicId?: string
 ) => {
   try {
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { data: null, error: { message: 'User not authenticated' } };
+    }
+
     // Default next review date is today (cards are due immediately after creation)
     const nextReviewDate = new Date().toISOString();
     
     const { data, error } = await supabase
       .from('flashcards')
       .insert({
-        user_id: userId,
+        user_id: user.id,
         front_content: frontContent,
         back_content: backContent,
         topic_id: topicId || null,
