@@ -65,9 +65,9 @@ const AdaptiveQuizPlatform = () => {
           isAnswerSubmitted={isAnswerSubmitted}
           isCorrect={isCorrect}
           submitAnswer={submitAnswer}
-          nextQuestion={nextQuestion}
-          previousQuestion={previousQuestion}
-          skipQuestion={skipQuestion}
+          nextQuestion={() => nextQuestion()}
+          previousQuestion={() => previousQuestion(availableQuestions)}
+          skipQuestion={() => skipQuestion()}
         />
       )}
       
