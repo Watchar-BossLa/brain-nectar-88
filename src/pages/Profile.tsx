@@ -7,15 +7,33 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import MainLayout from '@/components/layout/MainLayout';
 import AdaptiveLearningPath from '@/components/learning/AdaptiveLearningPath';
-import { BookOpen, Clock, CalendarDays, User, Settings, Award } from 'lucide-react';
+import { BookOpen, Clock, CalendarDays, User, Settings, Award, Coins } from 'lucide-react';
+import { TokenRewards } from '@/components/blockchain/TokenRewards';
+import { SimpleWalletButton } from '@/components/blockchain/WalletConnect';
+import { useSolana } from '@/context/SolanaContext';
 
 const Profile = () => {
   const { user } = useAuth();
+  const { connected } = useSolana();
   
   // Get user initials for avatar
   const userInitials = user?.email 
     ? user.email.split('@')[0].substring(0, 2).toUpperCase() 
     : 'U';
+  
+  const [rewards, setRewards] = React.useState({
+    available: 75,
+    total: 425,
+    streak: 5
+  });
+
+  const handleClaimRewards = (amount: number) => {
+    setRewards(prev => ({
+      ...prev,
+      available: 0,
+      total: prev.total
+    }));
+  };
   
   return (
     <MainLayout>
@@ -66,6 +84,16 @@ const Profile = () => {
                       </p>
                     </div>
                   </div>
+                  <div className="flex items-center gap-3">
+                    <Coins className="h-5 w-5 text-yellow-500" />
+                    <div>
+                      <p className="text-sm font-medium">STUDY tokens</p>
+                      <p className="text-sm text-muted-foreground">{rewards.total} earned ({rewards.available} available)</p>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <SimpleWalletButton />
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -103,6 +131,10 @@ const Profile = () => {
                   <BookOpen className="h-4 w-4 mr-2" />
                   Learning Path
                 </TabsTrigger>
+                <TabsTrigger value="rewards">
+                  <Coins className="h-4 w-4 mr-2" />
+                  Rewards
+                </TabsTrigger>
                 <TabsTrigger value="account">
                   <User className="h-4 w-4 mr-2" />
                   Account
@@ -115,6 +147,53 @@ const Profile = () => {
               
               <TabsContent value="learning-path">
                 <AdaptiveLearningPath />
+              </TabsContent>
+              
+              <TabsContent value="rewards">
+                <TokenRewards 
+                  availableRewards={rewards.available}
+                  totalEarned={rewards.total}
+                  streakDays={rewards.streak}
+                  onClaim={handleClaimRewards}
+                />
+                <Card className="mt-6">
+                  <CardHeader>
+                    <CardTitle>Reward History</CardTitle>
+                    <CardDescription>Your recent token earnings and redemptions</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                        <div>
+                          <p className="font-medium">Module Completion: Financial Accounting</p>
+                          <p className="text-sm text-muted-foreground">May 3, 2023</p>
+                        </div>
+                        <p className="text-green-500 font-medium">+50 STUDY</p>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                        <div>
+                          <p className="font-medium">Daily Streak Bonus</p>
+                          <p className="text-sm text-muted-foreground">May 1, 2023</p>
+                        </div>
+                        <p className="text-green-500 font-medium">+25 STUDY</p>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                        <div>
+                          <p className="font-medium">Practice Exam Completion</p>
+                          <p className="text-sm text-muted-foreground">April 28, 2023</p>
+                        </div>
+                        <p className="text-green-500 font-medium">+20 STUDY</p>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                        <div>
+                          <p className="font-medium">Premium Content Purchase</p>
+                          <p className="text-sm text-muted-foreground">April 20, 2023</p>
+                        </div>
+                        <p className="text-red-500 font-medium">-100 STUDY</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
               
               <TabsContent value="account">
@@ -139,6 +218,12 @@ const Profile = () => {
                         <h3 className="text-sm font-medium">Email Preferences</h3>
                         <p className="text-sm text-muted-foreground mt-1">
                           Subscribed to study reminders and progress updates
+                        </p>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium">Blockchain Wallet</h3>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {connected ? "Wallet connected" : "No wallet connected"}
                         </p>
                       </div>
                     </div>
@@ -172,6 +257,12 @@ const Profile = () => {
                         <h3 className="text-sm font-medium">Difficulty Preference</h3>
                         <p className="text-sm text-muted-foreground mt-1">
                           Adaptive (adjusts based on performance)
+                        </p>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium">Blockchain Features</h3>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          NFT Achievements, Token Rewards, Premium Content
                         </p>
                       </div>
                     </div>
