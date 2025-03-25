@@ -18,6 +18,13 @@ export interface QualificationModule {
   code: string;
   name: string;
   status: 'passed' | 'in-progress' | 'scheduled' | 'not-started';
+  topics?: QualificationTopic[];
+}
+
+export interface QualificationTopic {
+  id: string;
+  name: string;
+  weight: number;
 }
 
 export interface QualificationLevel {

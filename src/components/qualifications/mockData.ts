@@ -1,4 +1,3 @@
-
 import { QualificationType, QualificationLevel } from './types';
 
 export const qualifications: QualificationType[] = [
@@ -58,7 +57,7 @@ export const qualifications: QualificationType[] = [
     id: 'cfa',
     name: 'CFA',
     fullName: 'Chartered Financial Analyst',
-    description: 'A globally recognized professional designation that measures and certifies the competence and integrity of financial analysts.',
+    description: 'A globally recognized professional designation that measures and certifies the competence and integrity of financial analysts. The curriculum covers ethical and professional standards, investment tools, asset classes, portfolio management, and wealth planning.',
     levels: ['Level I', 'Level II', 'Level III'],
     totalExams: 3,
     examsPassed: 0,
@@ -148,11 +147,158 @@ export const cpaModules: QualificationLevel[] = [
 
 export const cfaModules: QualificationLevel[] = [
   {
-    level: 'Program Structure',
+    level: 'Level I',
     modules: [
-      { code: 'L1', name: 'Level I - Investment Tools', status: 'not-started' },
-      { code: 'L2', name: 'Level II - Asset Valuation', status: 'not-started' },
-      { code: 'L3', name: 'Level III - Portfolio Management', status: 'not-started' }
+      { 
+        code: 'ETH', 
+        name: 'Ethical and Professional Standards', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'QM', 
+        name: 'Quantitative Methods', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'ECO', 
+        name: 'Economics', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'FRA', 
+        name: 'Financial Reporting and Analysis', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'CM', 
+        name: 'Corporate Issuers', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'EI', 
+        name: 'Equity Investments', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'FI', 
+        name: 'Fixed Income', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'DER', 
+        name: 'Derivatives', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'AI', 
+        name: 'Alternative Investments', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'PM', 
+        name: 'Portfolio Management', 
+        status: 'not-started' 
+      }
+    ]
+  },
+  {
+    level: 'Level II',
+    modules: [
+      { 
+        code: 'ETH', 
+        name: 'Ethical and Professional Standards', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'QM', 
+        name: 'Quantitative Methods', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'ECO', 
+        name: 'Economics', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'FRA', 
+        name: 'Financial Reporting and Analysis', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'CM', 
+        name: 'Corporate Issuers', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'EI', 
+        name: 'Equity Investments', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'FI', 
+        name: 'Fixed Income', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'DER', 
+        name: 'Derivatives', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'AI', 
+        name: 'Alternative Investments', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'PM', 
+        name: 'Portfolio Management', 
+        status: 'not-started' 
+      }
+    ]
+  },
+  {
+    level: 'Level III',
+    modules: [
+      { 
+        code: 'ETH', 
+        name: 'Ethical and Professional Standards', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'ECO', 
+        name: 'Economics', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'EI', 
+        name: 'Equity Investments', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'FI', 
+        name: 'Fixed Income', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'AI', 
+        name: 'Alternative Investments', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'PFP', 
+        name: 'Private Wealth Management', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'IPM', 
+        name: 'Institutional Portfolio Management', 
+        status: 'not-started' 
+      },
+      { 
+        code: 'TPPM', 
+        name: 'Trading, Performance, and Support', 
+        status: 'not-started' 
+      }
     ]
   }
 ];
