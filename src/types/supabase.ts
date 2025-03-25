@@ -88,6 +88,7 @@ export type FlashcardReview = {
   difficulty_rating: number;
   reviewed_at: string;
   retention_estimate: number;
+  created_at?: string;
 };
 
 export type UserNote = {

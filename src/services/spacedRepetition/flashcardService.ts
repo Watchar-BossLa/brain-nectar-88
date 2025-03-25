@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { INITIAL_EASINESS_FACTOR, calculateMasteryLevel } from './algorithm';
 import { Flashcard } from '@/types/supabase';
@@ -213,7 +212,13 @@ export const getFlashcardStats = async (userId: string) => {
     }
     
     // Get due cards
-    const { data: dueCards, error: dueError } = await getDueFlashcards(userId);
+    const now = new Date().toISOString();
+    const { data: dueCards, error: dueError } = await supabase
+      .from('flashcards')
+      .select('*')
+      .eq('user_id', userId)
+      .lte('next_review_date', now);
+      
     if (dueError) {
       throw dueError;
     }
@@ -246,20 +251,30 @@ export const getFlashcardStats = async (userId: string) => {
     // Get reviews today count
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const { count: reviewsToday, error: reviewsError } = await supabase
-      .from('flashcard_reviews')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .gte('reviewed_at', today.toISOString());
-      
-    // Ignore error if table doesn't exist yet
+    
+    // Check if the flashcard_reviews table exists before querying it
+    let reviewsToday = 0;
+    try {
+      const { count: reviewsCount, error: reviewsError } = await supabase
+        .from('flashcard_reviews')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .gte('reviewed_at', today.toISOString());
+        
+      if (!reviewsError) {
+        reviewsToday = reviewsCount || 0;
+      }
+    } catch (error) {
+      console.warn('Could not get reviews count, table might not exist yet:', error);
+      // If the table doesn't exist, we'll just continue with reviewsToday = 0
+    }
     
     return {
       totalCards: totalCount || 0,
       dueCards: dueCards?.length || 0,
       masteredCards: masteredData?.length || 0,
       averageDifficulty: averageDifficulty || 0,
-      reviewsToday: reviewsToday || 0
+      reviewsToday: reviewsToday
     };
   } catch (error) {
     console.error('Error getting flashcard stats:', error);

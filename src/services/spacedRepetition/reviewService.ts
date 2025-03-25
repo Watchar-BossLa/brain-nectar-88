@@ -88,7 +88,7 @@ export const updateFlashcardAfterReview = async (
           retention_estimate: schedule.estimatedRetention
         });
     } catch (logError) {
-      // Soft error - if table doesn't exist yet, we'll just ignore
+      // Soft error - we'll continue even if review logging fails
       console.warn('Could not log flashcard review:', logError);
     }
     

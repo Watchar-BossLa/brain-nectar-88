@@ -97,6 +97,44 @@ export type Database = {
           },
         ]
       }
+      flashcard_reviews: {
+        Row: {
+          created_at: string
+          difficulty_rating: number
+          flashcard_id: string
+          id: string
+          retention_estimate: number | null
+          reviewed_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          difficulty_rating: number
+          flashcard_id: string
+          id?: string
+          retention_estimate?: number | null
+          reviewed_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          difficulty_rating?: number
+          flashcard_id?: string
+          id?: string
+          retention_estimate?: number | null
+          reviewed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flashcard_reviews_flashcard_id_fkey"
+            columns: ["flashcard_id"]
+            isOneToOne: false
+            referencedRelation: "flashcards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       flashcards: {
         Row: {
           back_content: string
@@ -104,6 +142,7 @@ export type Database = {
           difficulty: number | null
           front_content: string
           id: string
+          mastery_level: number | null
           next_review_date: string | null
           repetition_count: number
           topic_id: string | null
@@ -116,6 +155,7 @@ export type Database = {
           difficulty?: number | null
           front_content: string
           id?: string
+          mastery_level?: number | null
           next_review_date?: string | null
           repetition_count?: number
           topic_id?: string | null
@@ -128,6 +168,7 @@ export type Database = {
           difficulty?: number | null
           front_content?: string
           id?: string
+          mastery_level?: number | null
           next_review_date?: string | null
           repetition_count?: number
           topic_id?: string | null

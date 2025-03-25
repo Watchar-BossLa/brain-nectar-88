@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { spacedRepetitionService } from '@/services/flashcards/spacedRepetitionService';
+import { getDueFlashcards, getFlashcardStats } from '@/services/spacedRepetition';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Flashcard } from '@/types/supabase';
@@ -45,7 +45,13 @@ export const useFlashcardsPage = () => {
         
       if (error) throw error;
       
-      setFlashcards(data || []);
+      // Ensure mastery_level is present on each flashcard
+      const processedData = data?.map(card => ({
+        ...card,
+        mastery_level: card.mastery_level ?? 0,
+      })) as Flashcard[];
+      
+      setFlashcards(processedData || []);
     } catch (error) {
       console.error('Error fetching flashcards:', error);
       toast({
@@ -62,12 +68,21 @@ export const useFlashcardsPage = () => {
     if (!user) return;
     
     try {
-      const dueCards = await spacedRepetitionService.getDueFlashcards(user.id);
-      setDueFlashcards(dueCards);
+      const { data, error } = await getDueFlashcards(user.id);
+      
+      if (error) throw error;
+      
+      // Ensure mastery_level is present on each flashcard
+      const processedData = data?.map(card => ({
+        ...card,
+        mastery_level: card.mastery_level ?? 0,
+      })) as Flashcard[];
+      
+      setDueFlashcards(processedData || []);
       
       // Set the first due card for review if we're in review mode
-      if (dueCards.length > 0 && isReviewing) {
-        setCurrentReviewCard(dueCards[0]);
+      if (processedData && processedData.length > 0 && isReviewing) {
+        setCurrentReviewCard(processedData[0]);
       }
     } catch (error) {
       console.error('Error fetching due flashcards:', error);
