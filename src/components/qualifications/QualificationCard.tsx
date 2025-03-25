@@ -28,6 +28,10 @@ interface QualificationCardProps {
   cpaModules: any[];
   cfaModules: any[];
   frmModules: any[];
+  cimaModules?: any[];
+  cmaModules?: any[];
+  cfpModules?: any[];
+  caiaModules?: any[];
 }
 
 const QualificationCard: React.FC<QualificationCardProps> = ({ 
@@ -36,7 +40,11 @@ const QualificationCard: React.FC<QualificationCardProps> = ({
   accaModules,
   cpaModules,
   cfaModules,
-  frmModules
+  frmModules,
+  cimaModules,
+  cmaModules,
+  cfpModules,
+  caiaModules
 }) => {
   const item = {
     hidden: { opacity: 0, y: 20 },
@@ -195,10 +203,80 @@ const QualificationCard: React.FC<QualificationCardProps> = ({
           </Accordion>
         )}
         
-        {(qualification.id === 'cima' || qualification.id === 'cma' || qualification.id === 'cfp' || qualification.id === 'caia') && (
-          <div className="flex justify-center mt-6">
-            <Button>Explore {qualification.name} Structure</Button>
-          </div>
+        {qualification.id === 'cima' && (
+          <Accordion type="single" collapsible className="mt-6" defaultValue="cima-structure">
+            <AccordionItem value="cima-structure">
+              <AccordionTrigger>CIMA Qualification Structure</AccordionTrigger>
+              <AccordionContent>
+                {cimaModules && (
+                  <QualificationStructure modules={cimaModules} getStatusBadge={getStatusBadge} />
+                )}
+                <div className="flex justify-end mt-4">
+                  <Button variant="outline" size="sm" className="gap-1">
+                    <ExternalLink size={16} />
+                    CIMA Official Website
+                  </Button>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        )}
+        
+        {qualification.id === 'cma' && (
+          <Accordion type="single" collapsible className="mt-6" defaultValue="cma-structure">
+            <AccordionItem value="cma-structure">
+              <AccordionTrigger>CMA Certification Structure</AccordionTrigger>
+              <AccordionContent>
+                {cmaModules && (
+                  <QualificationStructure modules={cmaModules} getStatusBadge={getStatusBadge} />
+                )}
+                <div className="flex justify-end mt-4">
+                  <Button variant="outline" size="sm" className="gap-1">
+                    <ExternalLink size={16} />
+                    IMA Official Website
+                  </Button>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        )}
+        
+        {qualification.id === 'cfp' && (
+          <Accordion type="single" collapsible className="mt-6" defaultValue="cfp-structure">
+            <AccordionItem value="cfp-structure">
+              <AccordionTrigger>CFP Certification Structure</AccordionTrigger>
+              <AccordionContent>
+                {cfpModules && (
+                  <QualificationStructure modules={cfpModules} getStatusBadge={getStatusBadge} />
+                )}
+                <div className="flex justify-end mt-4">
+                  <Button variant="outline" size="sm" className="gap-1">
+                    <ExternalLink size={16} />
+                    CFP Board Website
+                  </Button>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        )}
+        
+        {qualification.id === 'caia' && (
+          <Accordion type="single" collapsible className="mt-6" defaultValue="caia-structure">
+            <AccordionItem value="caia-structure">
+              <AccordionTrigger>CAIA Certification Structure</AccordionTrigger>
+              <AccordionContent>
+                {caiaModules && (
+                  <QualificationStructure modules={caiaModules} getStatusBadge={getStatusBadge} />
+                )}
+                <div className="flex justify-end mt-4">
+                  <Button variant="outline" size="sm" className="gap-1">
+                    <ExternalLink size={16} />
+                    CAIA Association Website
+                  </Button>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         )}
       </div>
     </motion.div>

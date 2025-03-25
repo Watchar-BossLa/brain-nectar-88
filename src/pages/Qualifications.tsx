@@ -11,7 +11,11 @@ import {
   accaModules,
   cpaModules,
   cfaModules,
-  frmModules
+  frmModules,
+  cimaModules,
+  cmaModules,
+  cfpModules,
+  caiaModules
 } from '@/components/qualifications';
 
 const Qualifications = () => {
@@ -45,6 +49,10 @@ const Qualifications = () => {
               cpaModules={cpaModules}
               cfaModules={cfaModules}
               frmModules={frmModules}
+              cimaModules={cimaModules}
+              cmaModules={cmaModules}
+              cfpModules={cfpModules}
+              caiaModules={caiaModules}
             />
           ))}
         </motion.div>

@@ -76,7 +76,53 @@ export const cfaLevelTwoTopics: Record<string, QualificationTopic[]> = {
     { id: 'qm2-3', name: 'Time-Series Analysis', weight: 25 },
     { id: 'qm2-4', name: 'Probability Concepts', weight: 20 }
   ],
-  // Add other Level II topics as needed
+  'ECO': [
+    { id: 'eco2-1', name: 'Currency Exchange Rates', weight: 20 },
+    { id: 'eco2-2', name: 'Economic Growth and Development', weight: 25 },
+    { id: 'eco2-3', name: 'Effects of Government Regulation', weight: 25 },
+    { id: 'eco2-4', name: 'Economic Analysis and Setting Capital Market Expectations', weight: 30 }
+  ],
+  'FRA': [
+    { id: 'fra2-1', name: 'Intercorporate Investments', weight: 20 },
+    { id: 'fra2-2', name: 'Employee Compensation: Post-Employment and Share-Based', weight: 15 },
+    { id: 'fra2-3', name: 'Multinational Operations', weight: 20 },
+    { id: 'fra2-4', name: 'Analysis of Financial Institutions', weight: 20 },
+    { id: 'fra2-5', name: 'Evaluating Quality of Financial Reporting', weight: 25 }
+  ],
+  'CM': [
+    { id: 'cm2-1', name: 'Capital Structure Concepts', weight: 30 },
+    { id: 'cm2-2', name: 'Business and Financial Risk', weight: 25 },
+    { id: 'cm2-3', name: 'Dividend Policy', weight: 20 },
+    { id: 'cm2-4', name: 'Mergers and Acquisitions', weight: 25 }
+  ],
+  'EI': [
+    { id: 'ei2-1', name: 'Industry and Company Analysis', weight: 25 },
+    { id: 'ei2-2', name: 'Discounted Dividend Valuation', weight: 25 },
+    { id: 'ei2-3', name: 'Free Cash Flow Valuation', weight: 30 },
+    { id: 'ei2-4', name: 'Residual Income Valuation', weight: 20 }
+  ],
+  'FI': [
+    { id: 'fi2-1', name: 'Credit Analysis Models', weight: 25 },
+    { id: 'fi2-2', name: 'Credit Default Swaps', weight: 15 },
+    { id: 'fi2-3', name: 'Valuation of Bonds with Embedded Options', weight: 30 },
+    { id: 'fi2-4', name: 'Structured Products', weight: 30 }
+  ],
+  'DER': [
+    { id: 'der2-1', name: 'Pricing and Valuation of Forward Commitments', weight: 30 },
+    { id: 'der2-2', name: 'Pricing and Valuation of Options', weight: 30 },
+    { id: 'der2-3', name: 'Risk Management Applications of Option Strategies', weight: 40 }
+  ],
+  'AI': [
+    { id: 'ai2-1', name: 'Private Equity Valuation', weight: 35 },
+    { id: 'ai2-2', name: 'Real Estate Investment Analysis', weight: 35 },
+    { id: 'ai2-3', name: 'Alternative Investment Portfolio Management', weight: 30 }
+  ],
+  'PM': [
+    { id: 'pm2-1', name: 'Risk Management', weight: 25 },
+    { id: 'pm2-2', name: 'Factor Models', weight: 25 },
+    { id: 'pm2-3', name: 'Measuring and Managing Market Risk', weight: 25 },
+    { id: 'pm2-4', name: 'Performance Evaluation', weight: 25 }
+  ]
 };
 
 export const cfaLevelThreeTopics: Record<string, QualificationTopic[]> = {
@@ -99,5 +145,89 @@ export const cfaLevelThreeTopics: Record<string, QualificationTopic[]> = {
     { id: 'ipm-4', name: 'Investment Manager Selection', weight: 20 },
     { id: 'ipm-5', name: 'Performance Evaluation', weight: 20 }
   ],
-  // Add other Level III topics as needed
+  'ECO': [
+    { id: 'eco3-1', name: 'Market Expectations and Asset Allocation', weight: 35 },
+    { id: 'eco3-2', name: 'Global Investment Performance Standards', weight: 30 },
+    { id: 'eco3-3', name: 'Economics for Investment Decision Making', weight: 35 }
+  ],
+  'EI': [
+    { id: 'ei3-1', name: 'Advanced Equity Analysis', weight: 25 },
+    { id: 'ei3-2', name: 'Equity Portfolio Strategies', weight: 25 },
+    { id: 'ei3-3', name: 'Equity Market Valuation', weight: 30 },
+    { id: 'ei3-4', name: 'Equity Investment Process Integration', weight: 20 }
+  ],
+  'FI': [
+    { id: 'fi3-1', name: 'Fixed Income Portfolio Management', weight: 30 },
+    { id: 'fi3-2', name: 'Liability-Driven Strategies', weight: 35 },
+    { id: 'fi3-3', name: 'Fixed Income Active Management', weight: 35 }
+  ],
+  'AI': [
+    { id: 'ai3-1', name: 'Alternative Investments Portfolio Management', weight: 35 },
+    { id: 'ai3-2', name: 'Risk Management of Alternative Investments', weight: 30 },
+    { id: 'ai3-3', name: 'Due Diligence in Alternative Investments', weight: 35 }
+  ],
+  'TPPM': [
+    { id: 'tppm-1', name: 'Portfolio Trading Strategies', weight: 25 },
+    { id: 'tppm-2', name: 'Performance Attribution', weight: 25 },
+    { id: 'tppm-3', name: 'Investment Manager Selection', weight: 25 },
+    { id: 'tppm-4', name: 'Portfolio Risk Management Techniques', weight: 25 }
+  ]
+};
+
+// FRM detailed topics
+export const frmPartOneTopics: Record<string, QualificationTopic[]> = {
+  'FR': [
+    { id: 'fr-1', name: 'Foundations of Risk Management', weight: 20 },
+    { id: 'fr-2', name: 'Risk Management Framework', weight: 30 },
+    { id: 'fr-3', name: 'Corporate Governance', weight: 30 },
+    { id: 'fr-4', name: 'Risk Governance', weight: 20 }
+  ],
+  'QA': [
+    { id: 'qa-1', name: 'Probability Distributions', weight: 25 },
+    { id: 'qa-2', name: 'Hypothesis Testing', weight: 20 },
+    { id: 'qa-3', name: 'Linear Regression', weight: 30 },
+    { id: 'qa-4', name: 'Time Series Analysis', weight: 25 }
+  ],
+  'FM': [
+    { id: 'fm-1', name: 'Valuation and Risk Models', weight: 20 },
+    { id: 'fm-2', name: 'Financial Markets', weight: 20 },
+    { id: 'fm-3', name: 'Fixed Income', weight: 30 },
+    { id: 'fm-4', name: 'Derivatives', weight: 30 }
+  ],
+  'VR': [
+    { id: 'vr-1', name: 'Risk Models', weight: 35 },
+    { id: 'vr-2', name: 'Option Valuation', weight: 35 },
+    { id: 'vr-3', name: 'Fixed Income Valuation', weight: 30 }
+  ]
+};
+
+export const frmPartTwoTopics: Record<string, QualificationTopic[]> = {
+  'MR': [
+    { id: 'mr-1', name: 'Market Risk Measurement', weight: 25 },
+    { id: 'mr-2', name: 'VaR and Expected Shortfall', weight: 25 },
+    { id: 'mr-3', name: 'Stress Testing', weight: 25 },
+    { id: 'mr-4', name: 'Risk Monitoring', weight: 25 }
+  ],
+  'CR': [
+    { id: 'cr-1', name: 'Credit Risk Measurement', weight: 30 },
+    { id: 'cr-2', name: 'Credit VaR', weight: 20 },
+    { id: 'cr-3', name: 'Counterparty Risk', weight: 30 },
+    { id: 'cr-4', name: 'Credit Derivatives', weight: 20 }
+  ],
+  'OR': [
+    { id: 'or-1', name: 'Operational Risk Framework', weight: 30 },
+    { id: 'or-2', name: 'Operational Risk Measurement', weight: 40 },
+    { id: 'or-3', name: 'Operational Risk Management', weight: 30 }
+  ],
+  'RM': [
+    { id: 'rm-1', name: 'Enterprise Risk Management', weight: 25 },
+    { id: 'rm-2', name: 'Liquidity Risk', weight: 25 },
+    { id: 'rm-3', name: 'Economic Capital', weight: 25 },
+    { id: 'rm-4', name: 'Regulatory Framework and Basel Accords', weight: 25 }
+  ],
+  'PI': [
+    { id: 'pi-1', name: 'Risk Management for Investment Funds', weight: 35 },
+    { id: 'pi-2', name: 'Risk-Return Analysis', weight: 30 },
+    { id: 'pi-3', name: 'Portfolio Construction and Risk Budgeting', weight: 35 }
+  ]
 };

@@ -1,3 +1,4 @@
+
 import { QualificationType, QualificationLevel } from './types';
 
 export const qualifications: QualificationType[] = [
@@ -305,10 +306,125 @@ export const cfaModules: QualificationLevel[] = [
 
 export const frmModules: QualificationLevel[] = [
   {
-    level: 'Program Structure',
+    level: 'Part I',
     modules: [
-      { code: 'P1', name: 'Part I - Foundations of Risk Management', status: 'not-started' },
-      { code: 'P2', name: 'Part II - Advanced Risk Management', status: 'not-started' }
+      { code: 'FR', name: 'Foundations of Risk Management', status: 'not-started' },
+      { code: 'QA', name: 'Quantitative Analysis', status: 'not-started' },
+      { code: 'FM', name: 'Financial Markets and Products', status: 'not-started' },
+      { code: 'VR', name: 'Valuation and Risk Models', status: 'not-started' }
+    ]
+  },
+  {
+    level: 'Part II',
+    modules: [
+      { code: 'MR', name: 'Market Risk Measurement and Management', status: 'not-started' },
+      { code: 'CR', name: 'Credit Risk Measurement and Management', status: 'not-started' },
+      { code: 'OR', name: 'Operational Risk and Resiliency', status: 'not-started' },
+      { code: 'RM', name: 'Risk Management and Investment Management', status: 'not-started' },
+      { code: 'PI', name: 'Current Issues in Financial Markets', status: 'not-started' }
+    ]
+  }
+];
+
+// Add new modules for CIMA
+export const cimaModules: QualificationLevel[] = [
+  {
+    level: 'Operational',
+    modules: [
+      { code: 'E1', name: 'Managing Finance in a Digital World', status: 'not-started' },
+      { code: 'P1', name: 'Management Accounting', status: 'not-started' },
+      { code: 'F1', name: 'Financial Reporting', status: 'not-started' },
+      { code: 'OCS', name: 'Operational Case Study', status: 'not-started' }
+    ]
+  },
+  {
+    level: 'Management',
+    modules: [
+      { code: 'E2', name: 'Managing Performance', status: 'not-started' },
+      { code: 'P2', name: 'Advanced Management Accounting', status: 'not-started' },
+      { code: 'F2', name: 'Advanced Financial Reporting', status: 'not-started' },
+      { code: 'MCS', name: 'Management Case Study', status: 'not-started' }
+    ]
+  },
+  {
+    level: 'Strategic',
+    modules: [
+      { code: 'E3', name: 'Strategic Management', status: 'not-started' },
+      { code: 'P3', name: 'Risk Management', status: 'not-started' },
+      { code: 'F3', name: 'Financial Strategy', status: 'not-started' },
+      { code: 'SCS', name: 'Strategic Case Study', status: 'not-started' }
+    ]
+  }
+];
+
+// Add new modules for CMA
+export const cmaModules: QualificationLevel[] = [
+  {
+    level: 'Part 1',
+    modules: [
+      { code: 'EA', name: 'External Financial Reporting Decisions', status: 'not-started' },
+      { code: 'ICR', name: 'Internal Controls and Technology', status: 'not-started' }
+    ]
+  },
+  {
+    level: 'Part 2',
+    modules: [
+      { code: 'FDM', name: 'Financial Decision Making', status: 'not-started' },
+      { code: 'IP', name: 'Investment Planning and Professional Ethics', status: 'not-started' }
+    ]
+  }
+];
+
+// Add new modules for CFP
+export const cfpModules: QualificationLevel[] = [
+  {
+    level: 'Education',
+    modules: [
+      { code: 'FPP', name: 'Financial Planning Process and Client Relationships', status: 'not-started' },
+      { code: 'IM', name: 'Investment Management', status: 'not-started' },
+      { code: 'IP', name: 'Insurance Planning', status: 'not-started' },
+      { code: 'TP', name: 'Tax Planning', status: 'not-started' },
+      { code: 'RP', name: 'Retirement Planning', status: 'not-started' },
+      { code: 'EP', name: 'Estate Planning', status: 'not-started' }
+    ]
+  },
+  {
+    level: 'Exam',
+    modules: [
+      { code: 'EX', name: 'CFP® Certification Examination', status: 'not-started' }
+    ]
+  },
+  {
+    level: 'Experience',
+    modules: [
+      { code: 'PE', name: 'Professional Experience Requirement', status: 'not-started' }
+    ]
+  },
+  {
+    level: 'Ethics',
+    modules: [
+      { code: 'ET', name: 'Ethics Declaration and Background Check', status: 'not-started' }
+    ]
+  }
+];
+
+// Add new modules for CAIA
+export const caiaModules: QualificationLevel[] = [
+  {
+    level: 'Level I',
+    modules: [
+      { code: 'PF', name: 'Professional Standards and Alternative Investments', status: 'not-started' },
+      { code: 'PE', name: 'Private Equity and Private Debt', status: 'not-started' },
+      { code: 'HF', name: 'Hedge Funds and Managed Futures', status: 'not-started' },
+      { code: 'SR', name: 'Structured Products and Risk Management', status: 'not-started' }
+    ]
+  },
+  {
+    level: 'Level II',
+    modules: [
+      { code: 'AA', name: 'Asset Allocation and Institutional Investors', status: 'not-started' },
+      { code: 'AP', name: 'Alternative Investment Strategies', status: 'not-started' },
+      { code: 'DS', name: 'Due Diligence and Current Issues', status: 'not-started' }
     ]
   }
 ];
