@@ -24,7 +24,9 @@ import {
 import { 
   updateFlashcardAfterReview,
   calculateFlashcardRetention,
-  getFlashcardLearningStats
+  getFlashcardLearningStats,
+  type FlashcardRetentionResult,
+  type FlashcardLearningStats
 } from './reviewService';
 
 export {
@@ -50,5 +52,7 @@ export {
   // Review management
   updateFlashcardAfterReview,
   calculateFlashcardRetention,
-  getFlashcardLearningStats
+  getFlashcardLearningStats,
+  type FlashcardRetentionResult,
+  type FlashcardLearningStats
 };
