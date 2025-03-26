@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { MultiAgentSystem, TaskType } from '@/services/agents';
+import { MultiAgentSystem } from '@/services/agents';
+import { TaskType } from '@/services/agents/types';
 
 /**
  * Service to manage user learning paths
@@ -30,16 +31,7 @@ export const userLearningPathService = {
       }
       
       // Generate initial learning path using the agent system
-      await MultiAgentSystem.submitTask(
-        userId,
-        TaskType.LEARNING_PATH_GENERATION,
-        'Generate initial learning path for user',
-        {
-          qualificationId,
-          isInitial: true
-        },
-        'HIGH'
-      );
+      // In a real implementation, we would call the multi-agent system
       */
       
       console.log('Learning path generation task submitted successfully');
@@ -137,17 +129,7 @@ export const userLearningPathService = {
       }
       
       // Notify the agent system about the progress update
-      await MultiAgentSystem.submitTask(
-        userId,
-        TaskType.LEARNING_PATH_UPDATE,
-        'Update learning path based on topic progress',
-        {
-          topicId,
-          status,
-          masteryLevel
-        },
-        'MEDIUM'
-      );
+      // In a real implementation, we would call the multi-agent system
       */
     } catch (error) {
       console.error('Error updating topic progress:', error);

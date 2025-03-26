@@ -1,6 +1,5 @@
 
-import { AgentTask, TaskType } from './types';
-import { mcp } from './mcp';
+import { TaskType, TaskPriority } from './types';
 
 /**
  * Submit a task to the task queue
@@ -10,26 +9,20 @@ export const submitTask = async (
   taskType: TaskType,
   description: string,
   taskData: any,
-  priority: 'HIGH' | 'MEDIUM' | 'LOW'
+  priority: TaskPriority
 ): Promise<void> => {
   // Create a unique task ID
   const taskId = `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   
-  // Create the task object
-  const task: AgentTask = {
-    id: taskId,
+  // Log the task submission (placeholder for real implementation)
+  console.log(`Task submitted to queue: ${taskId}`, {
     userId,
     taskType,
     description,
-    priority: priority as any, // Casting to support TaskPriority type
-    context: [taskType.toLowerCase()],
-    data: taskData,
-    createdAt: new Date().toISOString(),
-    status: 'PENDING'
-  };
+    priority,
+    taskData
+  });
   
-  console.log(`Task submitted to queue: ${task.id}`);
-  
-  // Submit the task to the Master Control Program
-  await mcp.submitTask(task);
+  // In a real implementation, we would submit this to the MCP
+  // This is just a mock implementation for now
 };

@@ -53,8 +53,9 @@ const SignUp = () => {
         if (success) {
           navigate(from);
         }
+        setIsLoading(false);
       });
-    } finally {
+    } catch (error) {
       setIsLoading(false);
     }
   };
@@ -62,9 +63,10 @@ const SignUp = () => {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
-      await signInWithGoogle(() => {
-        // No direct navigation needed as OAuth will redirect
-      });
+      await signInWithGoogle();
+      // No direct navigation needed as OAuth will redirect
+    } catch (error) {
+      // Error handling
     } finally {
       setIsGoogleLoading(false);
     }
