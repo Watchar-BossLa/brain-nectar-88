@@ -1,13 +1,12 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
 
+// Remove the useNavigate import and direct usage in hooks
 export function useAuthService() {
   const { toast } = useToast();
-  const navigate = useNavigate();
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, callback?: (success: boolean) => void) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
@@ -18,6 +17,7 @@ export function useAuthService() {
           description: error.message,
           variant: 'destructive',
         });
+        if (callback) callback(false);
         return { error };
       }
       
@@ -27,8 +27,8 @@ export function useAuthService() {
           description: 'You have successfully signed in.',
         });
         
-        // Successful login - redirect to dashboard
-        navigate('/');
+        // Use callback instead of direct navigation
+        if (callback) callback(true);
         return { error: null };
       } else {
         toast({
@@ -36,6 +36,7 @@ export function useAuthService() {
           description: 'No session was created.',
           variant: 'destructive',
         });
+        if (callback) callback(false);
         return { error: new Error('No session created') };
       }
     } catch (error) {
@@ -45,11 +46,12 @@ export function useAuthService() {
         description: 'An unexpected error occurred.',
         variant: 'destructive',
       });
+      if (callback) callback(false);
       return { error: error as Error };
     }
   };
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (callback?: () => void) => {
     try {
       // Determine the correct redirect URL based on environment
       const redirectTo = window.location.hostname === 'localhost' 
@@ -75,7 +77,8 @@ export function useAuthService() {
         return { error };
       }
       
-      // No success toast here as the page will redirect to Google
+      // Use callback if provided
+      if (callback) callback();
       return { error: null };
     } catch (error) {
       console.error('Unexpected Google sign in error:', error);
@@ -88,7 +91,7 @@ export function useAuthService() {
     }
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, callback?: (success: boolean) => void) => {
     try {
       const { data, error } = await supabase.auth.signUp({ 
         email, 
@@ -105,6 +108,7 @@ export function useAuthService() {
           description: error.message,
           variant: 'destructive',
         });
+        if (callback) callback(false);
         return { error };
       }
       
@@ -114,9 +118,9 @@ export function useAuthService() {
           description: 'Your account has been created successfully. Please check your email for verification.',
         });
         
-        // Redirect to dashboard if auto-confirmed
-        if (data.session) {
-          navigate('/');
+        // Use callback for navigation if session exists
+        if (data.session && callback) {
+          callback(true);
         }
         
         return { error: null };
@@ -126,6 +130,7 @@ export function useAuthService() {
           description: 'No user was created.',
           variant: 'destructive',
         });
+        if (callback) callback(false);
         return { error: new Error('No user created') };
       }
     } catch (error) {
@@ -135,11 +140,12 @@ export function useAuthService() {
         description: 'An unexpected error occurred.',
         variant: 'destructive',
       });
+      if (callback) callback(false);
       return { error: error as Error };
     }
   };
 
-  const signOut = async () => {
+  const signOut = async (callback?: () => void) => {
     try {
       const { error } = await supabase.auth.signOut();
       
@@ -158,8 +164,8 @@ export function useAuthService() {
         description: 'You have been successfully signed out.',
       });
       
-      // Redirect to sign in page
-      navigate('/signin');
+      // Use callback for navigation
+      if (callback) callback();
     } catch (error) {
       console.error('Unexpected sign out error:', error);
       toast({

@@ -6,7 +6,6 @@ import { useToast } from '@/hooks/use-toast';
 import { PLATFORM_OWNER } from './constants';
 import { AuthContext } from './AuthContext';
 import { useAuthService } from './authService';
-import { useNavigate } from 'react-router-dom';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -80,16 +79,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [toast]);
 
+  // Create wrapped versions of auth methods that handle navigation within components
+  const wrappedAuthMethods = {
+    signIn: authService.signIn,
+    signUp: authService.signUp,
+    signInWithGoogle: authService.signInWithGoogle,
+    signOut: authService.signOut
+  };
+
   return (
     <AuthContext.Provider 
       value={{
         session,
         user,
         loading,
-        signIn: authService.signIn,
-        signUp: authService.signUp,
-        signInWithGoogle: authService.signInWithGoogle,
-        signOut: authService.signOut,
+        signIn: wrappedAuthMethods.signIn,
+        signUp: wrappedAuthMethods.signUp,
+        signInWithGoogle: wrappedAuthMethods.signInWithGoogle,
+        signOut: wrappedAuthMethods.signOut,
         platformOwner: PLATFORM_OWNER,
         isAdmin,
       }}

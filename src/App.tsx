@@ -5,12 +5,12 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
-import { AuthProvider } from "@/context/auth";
 import { ThemeProvider } from "@/context/theme/ThemeContext";
 import { LearningPathProvider } from "@/components/learning/LearningPathProvider";
 import { SolanaProvider } from "@/context/SolanaContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { EnvCheckWarning } from "@/components/auth/EnvCheckWarning";
+import { AuthProvider } from "@/context/auth";
 import AuthWrapper from "@/context/AuthWrapper";
 import Index from "./pages/Index";
 import Courses from "./pages/Courses";
@@ -34,14 +34,14 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
-      <AuthProvider>
-        <AuthWrapper>
-          <SolanaProvider>
-            <LearningPathProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
+      <BrowserRouter> {/* Move BrowserRouter to wrap everything including AuthProvider */}
+        <AuthProvider>
+          <AuthWrapper>
+            <SolanaProvider>
+              <LearningPathProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
                   <div className="container mx-auto px-4">
                     <EnvCheckWarning />
                     <AnimatePresence>
@@ -161,12 +161,12 @@ const App = () => (
                       </Routes>
                     </AnimatePresence>
                   </div>
-                </BrowserRouter>
-              </TooltipProvider>
-            </LearningPathProvider>
-          </SolanaProvider>
-        </AuthWrapper>
-      </AuthProvider>
+                </TooltipProvider>
+              </LearningPathProvider>
+            </SolanaProvider>
+          </AuthWrapper>
+        </AuthProvider>
+      </BrowserRouter>
     </ThemeProvider>
   </QueryClientProvider>
 );

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
@@ -50,8 +49,11 @@ const SignUp = () => {
     
     setIsLoading(true);
     try {
-      await signUp(email, password);
-      // Navigation is handled in the auth service
+      await signUp(email, password, (success) => {
+        if (success) {
+          navigate(from);
+        }
+      });
     } finally {
       setIsLoading(false);
     }
@@ -60,8 +62,9 @@ const SignUp = () => {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
-      await signInWithGoogle();
-      // No navigation here as OAuth will redirect the page
+      await signInWithGoogle(() => {
+        // No direct navigation needed as OAuth will redirect
+      });
     } finally {
       setIsGoogleLoading(false);
     }

@@ -1,6 +1,6 @@
 
 import { ReactNode, useEffect } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
 
 interface ProtectedRouteProps {

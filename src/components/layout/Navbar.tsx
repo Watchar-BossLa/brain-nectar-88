@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -43,11 +43,19 @@ const navigationItems = [
 const Navbar: React.FC = () => {
   const { user, signOut } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   
   // Get user initials for avatar
   const userInitials = user?.email 
     ? user.email.split('@')[0].substring(0, 2).toUpperCase() 
     : 'U';
+
+  // Handle sign out with navigation callback
+  const handleSignOut = () => {
+    signOut(() => {
+      navigate('/signin');
+    });
+  };
 
   return (
     <nav className="bg-background border-b border-border h-16 flex items-center justify-between px-4 sm:px-6">
@@ -92,7 +100,7 @@ const Navbar: React.FC = () => {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => signOut()}>
+            <DropdownMenuItem onClick={handleSignOut}>
               Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>
