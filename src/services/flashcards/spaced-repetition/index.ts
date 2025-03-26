@@ -4,6 +4,17 @@
  * Re-exports all functionality from specialized modules
  */
 
+// Import the algorithm
+import { calculateNextReview } from './algorithm';
+
+// Import services
+import { ReviewService, reviewService } from './review-service';
+import { RetrievalService, retrievalService } from './retrieval-service';
+import { StatsService, statsService } from './stats-service';
+
+// Import types
+import { FlashcardReviewResult } from './types';
+
 // Re-export the algorithm
 export { calculateNextReview } from './algorithm';
 
