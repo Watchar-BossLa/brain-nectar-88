@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { createFlashcard } from '@/services/spacedRepetition';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/auth';
 
 interface FlashcardFormProps {
   onFlashcardCreated?: () => void;
@@ -16,6 +17,7 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({ onFlashcardCreated }) => 
   const [backContent, setBackContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,10 +31,19 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({ onFlashcardCreated }) => 
       return;
     }
     
+    if (!user) {
+      toast({
+        title: 'Error',
+        description: 'You must be logged in to create flashcards.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
-      const { error } = await createFlashcard(frontContent, backContent);
+      const { error } = await createFlashcard(user.id, frontContent, backContent);
       
       if (error) {
         throw error;

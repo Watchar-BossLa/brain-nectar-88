@@ -2,14 +2,40 @@
 import React from 'react';
 import { Flashcard } from '@/types/supabase';
 import FlashcardCard from './FlashcardCard';
+import { deleteFlashcard } from '@/services/spacedRepetition';
+import { useToast } from '@/hooks/use-toast';
 
 interface FlashcardGridProps {
   flashcards: Flashcard[];
-  onDelete: (id: string) => void;
-  onCardUpdated?: () => void; // Add the missing prop
+  onDelete?: (id: string) => void;
+  onCardUpdated?: () => void;
 }
 
 const FlashcardGrid: React.FC<FlashcardGridProps> = ({ flashcards, onDelete, onCardUpdated }) => {
+  const { toast } = useToast();
+  
+  const handleDelete = async (id: string) => {
+    if (onDelete) {
+      onDelete(id);
+    } else {
+      try {
+        const { error } = await deleteFlashcard(id);
+        if (error) throw error;
+        
+        if (onCardUpdated) {
+          onCardUpdated();
+        }
+      } catch (error) {
+        console.error('Error deleting flashcard:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to delete flashcard',
+          variant: 'destructive'
+        });
+      }
+    }
+  };
+  
   if (flashcards.length === 0) {
     return (
       <div className="col-span-full text-center p-4">
@@ -24,7 +50,7 @@ const FlashcardGrid: React.FC<FlashcardGridProps> = ({ flashcards, onDelete, onC
         <FlashcardCard
           key={flashcard.id}
           flashcard={flashcard}
-          onDelete={() => onDelete(flashcard.id)}
+          onDelete={() => handleDelete(flashcard.id)}
           onUpdated={onCardUpdated}
         />
       ))}

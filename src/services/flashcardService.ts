@@ -68,7 +68,7 @@ export const createFlashcard = async (frontContent: string, backContent: string,
       return { data: null, error: new Error('User not authenticated') };
     }
     
-    return createSpacedRepFlashcard(frontContent, backContent, topicId);
+    return createSpacedRepFlashcard(user.id, frontContent, backContent, topicId);
   } catch (error) {
     console.error('Error in createFlashcard:', error);
     return { data: null, error };

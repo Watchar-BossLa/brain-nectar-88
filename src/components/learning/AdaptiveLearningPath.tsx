@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRightIcon, BookOpenIcon, CheckCircleIcon, BarChart2Icon, BrainIcon, FlaskConicalIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion'; // Fix: Removed Motion, just use motion
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Topic {
   id: string;
@@ -71,7 +71,6 @@ const AdaptiveLearningPath = () => {
       try {
         setLoading(true);
         
-        // Fetch qualifications
         const { data: qualificationsData, error: qualificationsError } = await supabase
           .from('qualifications')
           .select('*')
@@ -82,7 +81,6 @@ const AdaptiveLearningPath = () => {
         if (qualificationsData && qualificationsData.length > 0) {
           setQualifications(qualificationsData);
           
-          // Set the first qualification as default if none is selected
           if (!currentQualification) {
             setCurrentQualification(qualificationsData[0].id);
           }
@@ -110,7 +108,6 @@ const AdaptiveLearningPath = () => {
       try {
         setLoading(true);
         
-        // Fetch modules for the current qualification
         const { data: modulesData, error: modulesError } = await supabase
           .from('modules')
           .select('*')
@@ -119,7 +116,6 @@ const AdaptiveLearningPath = () => {
         
         if (modulesError) throw modulesError;
         
-        // Fetch topics for all modules
         let allTopics: Topic[] = [];
         if (modulesData && modulesData.length > 0) {
           for (const module of modulesData) {
@@ -137,7 +133,6 @@ const AdaptiveLearningPath = () => {
           }
         }
         
-        // Fetch user progress
         const { data: progressData, error: progressError } = await supabase
           .from('user_progress')
           .select('content_id, progress_percentage, status')
@@ -145,41 +140,42 @@ const AdaptiveLearningPath = () => {
         
         if (progressError) throw progressError;
         
-        // Fetch flashcard counts for topics
         const { data: flashcardData, error: flashcardError } = await supabase
           .from('flashcards')
-          .select('topic_id, count(*)')
+          .select('topic_id, count')
           .eq('user_id', user.id)
-          .not('topic_id', 'is', null);
-          // Fix: Removed the .group('topic_id') call
+          .not('topic_id', 'is', null)
+          .then(response => {
+            if (response.error) return { data: null, error: response.error };
+            
+            const counts = new Map();
+            response.data?.forEach(item => {
+              const topicId = item.topic_id;
+              const count = counts.get(topicId) || 0;
+              counts.set(topicId, count + 1);
+            });
+            
+            const processedData = Array.from(counts.entries()).map(([topicId, count]) => ({
+              topic_id: topicId,
+              count: count
+            }));
+            
+            return { data: processedData, error: null };
+          });
         
         if (flashcardError) throw flashcardError;
         
-        // Process flashcard data
         const topicFlashcardCounts = new Map();
         flashcardData?.forEach(item => {
-          topicFlashcardCounts.set(item.topic_id, item.count);
+          if (item && item.topic_id) {
+            topicFlashcardCounts.set(item.topic_id, item.count);
+          }
         });
         
-        // Simple algorithm to calculate recommendation score
-        // This would be much more sophisticated in a real system
-        const calculateRecommendationScore = (topicId: string, progress: number) => {
-          // Base score - inverse of progress (recommend less completed topics higher)
-          let score = 100 - progress;
-          
-          // Bonus for topics with flashcards
-          const flashcardCount = topicFlashcardCounts.get(topicId) || 0;
-          score += flashcardCount * 5;
-          
-          // Cap at 100
-          return Math.min(100, score);
-        };
-        
-        // Create learning path items from topics
         const pathItems: LearningPathItem[] = allTopics.map(topic => {
           const progress = progressData?.find(p => p.content_id === topic.id)?.progress_percentage || 0;
           const status = progress === 0 ? 'not_started' : 
-                       progress === 100 ? 'completed' : 'in_progress';
+                         progress === 100 ? 'completed' : 'in_progress';
           const recommendationScore = calculateRecommendationScore(topic.id, progress);
           
           return {
@@ -196,12 +192,10 @@ const AdaptiveLearningPath = () => {
           };
         });
         
-        // Sort by recommendation score (highest first)
         pathItems.sort((a, b) => b.recommendation_score - a.recommendation_score);
         
         setLearningPath(pathItems);
         
-        // Calculate overall progress
         if (pathItems.length > 0) {
           const totalProgress = pathItems.reduce((sum, item) => sum + item.progress, 0);
           setOverallProgress(Math.round(totalProgress / pathItems.length));
@@ -345,7 +339,6 @@ const AdaptiveLearningPath = () => {
   );
 };
 
-// Learning Path Item Component
 const PathItem = ({ item }: { item: LearningPathItem }) => {
   const navigate = useNavigate();
   

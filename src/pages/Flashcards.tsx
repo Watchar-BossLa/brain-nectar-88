@@ -2,19 +2,16 @@
 import { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import FlashcardCard from '@/components/flashcards/FlashcardCard';
 import FlashcardForm from '@/components/flashcards/FlashcardForm';
 import FlashcardGrid from '@/components/flashcards/FlashcardGrid';
 import FlashcardReviewSystem from '@/components/flashcards/FlashcardReviewSystem';
 import FlashcardStats from '@/components/flashcards/FlashcardStats';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { getUserFlashcards, getDueFlashcards, getFlashcardStats } from '@/services/spacedRepetition';
-import { useAuth } from '@/context/auth';
-import { useToast } from '@/hooks/use-toast';
+import { deleteFlashcard } from '@/services/spacedRepetition';
 import { Loader2, PlusCircle } from 'lucide-react';
 import { useFlashcardsPage } from '@/hooks/useFlashcardsPage';
+import { useToast } from '@/hooks/use-toast';
 
 const Flashcards = () => {
   const {
@@ -31,6 +28,30 @@ const Flashcards = () => {
     handleStartReview,
     handleUpdateStats
   } = useFlashcardsPage();
+  
+  const { toast } = useToast();
+  
+  const handleDeleteFlashcard = async (id: string) => {
+    try {
+      const { error } = await deleteFlashcard(id);
+      if (error) throw error;
+      
+      toast({
+        title: 'Success',
+        description: 'Flashcard deleted successfully.'
+      });
+      
+      // Update stats and refresh data
+      handleUpdateStats();
+    } catch (error) {
+      console.error('Error deleting flashcard:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete flashcard',
+        variant: 'destructive'
+      });
+    }
+  };
 
   return (
     <MainLayout>
@@ -68,7 +89,11 @@ const Flashcards = () => {
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : flashcards.length > 0 ? (
-              <FlashcardGrid flashcards={flashcards} onCardUpdated={handleUpdateStats} />
+              <FlashcardGrid 
+                flashcards={flashcards} 
+                onDelete={handleDeleteFlashcard}
+                onCardUpdated={handleUpdateStats} 
+              />
             ) : (
               <Card>
                 <CardContent className="flex flex-col items-center justify-center space-y-4 py-12">
@@ -92,7 +117,11 @@ const Flashcards = () => {
                   <h3 className="text-lg font-medium">Cards Due for Review</h3>
                   <Button onClick={handleStartReview}>Start Review</Button>
                 </div>
-                <FlashcardGrid flashcards={dueFlashcards} onCardUpdated={handleUpdateStats} />
+                <FlashcardGrid 
+                  flashcards={dueFlashcards} 
+                  onDelete={handleDeleteFlashcard}
+                  onCardUpdated={handleUpdateStats} 
+                />
               </div>
             ) : (
               <Card>

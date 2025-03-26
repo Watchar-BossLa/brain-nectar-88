@@ -4,7 +4,7 @@ import { Flashcard } from '@/types/supabase';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { calculateNextReviewDate } from '@/services/spacedRepetition';
-import FlashcardContent from './components/FlashcardContent';
+import { FlashcardContent } from './components/FlashcardContent';
 import DeleteFlashcardDialog from './DeleteFlashcardDialog';
 import { format } from 'date-fns';
 
@@ -12,6 +12,8 @@ interface FlashcardCardProps {
   flashcard: Flashcard;
   onDelete: (id: string) => void;
   onUpdated?: () => void;
+  isReviewMode?: boolean;
+  onRating?: (rating: number) => Promise<void>;
 }
 
 const FlashcardCard: React.FC<FlashcardCardProps> = ({ 

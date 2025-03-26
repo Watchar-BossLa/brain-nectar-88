@@ -5,8 +5,8 @@ import { renderContent } from '../utils/content-renderer';
 
 interface FlashcardContentProps {
   content: string;
-  isAnswer: boolean;
-  onClick: () => void;
+  isAnswer?: boolean;
+  onClick?: () => void;
 }
 
 export const FlashcardContent: React.FC<FlashcardContentProps> = ({
@@ -19,15 +19,19 @@ export const FlashcardContent: React.FC<FlashcardContentProps> = ({
       className="w-full h-full flex flex-col items-center justify-center p-6 border rounded-lg bg-card overflow-auto"
       onClick={onClick}
     >
-      <div className="text-lg font-medium text-center mb-4">
-        {isAnswer ? 'Answer' : 'Question'}
-      </div>
+      {isAnswer !== undefined && (
+        <div className="text-lg font-medium text-center mb-4">
+          {isAnswer ? 'Answer' : 'Question'}
+        </div>
+      )}
       <div className="text-xl text-center">
         {renderContent(content)}
       </div>
-      <div className="text-sm text-muted-foreground mt-4">
-        {isAnswer ? 'Click to see question' : 'Click to reveal answer'}
-      </div>
+      {isAnswer !== undefined && onClick && (
+        <div className="text-sm text-muted-foreground mt-4">
+          {isAnswer ? 'Click to see question' : 'Click to reveal answer'}
+        </div>
+      )}
     </div>
   );
 };

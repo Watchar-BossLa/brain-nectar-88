@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { getDueFlashcards, updateFlashcardAfterReview } from '@/services/spacedRepetition';
 import { Flashcard } from '@/types/supabase';
@@ -7,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/auth';
 
 const FlashcardReview: React.FC = () => {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
@@ -57,11 +56,9 @@ const FlashcardReview: React.FC = () => {
     try {
       await updateFlashcardAfterReview(currentFlashcard.id, rating);
       
-      // Move to the next card or end review if it was the last card
       if (currentIndex < flashcards.length - 1) {
         setCurrentIndex(currentIndex + 1);
       } else {
-        // End of review session
         setIsReviewing(false);
         toast({
           title: 'Review complete',
@@ -140,6 +137,7 @@ const FlashcardReview: React.FC = () => {
       {currentFlashcard && (
         <FlashcardCard
           flashcard={currentFlashcard}
+          onDelete={(id) => console.log('Delete not available in review mode')}
           isReviewMode={true}
           onRating={handleRating}
         />
