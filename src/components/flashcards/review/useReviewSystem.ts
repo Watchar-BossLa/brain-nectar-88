@@ -1,111 +1,58 @@
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/context/auth';
-import { getDueFlashcards, updateFlashcardAfterReview, calculateFlashcardRetention } from '@/services/spacedRepetition';
-import { Flashcard } from '@/types/supabase';
-import { useToast } from '@/hooks/use-toast';
+import { useReviewState } from './hooks/useReviewState';
+import { useFlashcardLoading } from './hooks/useFlashcardLoading';
+import { useRetentionStats } from './hooks/useRetentionStats';
+import { useReviewActions } from './hooks/useReviewActions';
 
+/**
+ * Main hook for the flashcard review system
+ * Integrates all specialized hooks
+ */
 export const useReviewSystem = (onComplete?: () => void) => {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isFlipped, setIsFlipped] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [reviewComplete, setReviewComplete] = useState(false);
-  const [retentionStats, setRetentionStats] = useState<{ overall: number; improved: number }>({ 
-    overall: 0, 
-    improved: 0 
-  });
+  // Get state management
+  const {
+    flashcards,
+    setFlashcards,
+    currentIndex,
+    setCurrentIndex,
+    isFlipped,
+    setIsFlipped,
+    isLoading,
+    setIsLoading,
+    reviewComplete,
+    setReviewComplete,
+    retentionStats,
+    setRetentionStats,
+    handleFlip,
+    resetReview,
+    currentCard
+  } = useReviewState();
 
-  // Load due flashcards
-  useEffect(() => {
-    const loadFlashcards = async () => {
-      if (!user) return;
-      
-      setIsLoading(true);
-      try {
-        const { data, error } = await getDueFlashcards(user.id);
-        
-        if (error) throw error;
-        
-        if (data && data.length > 0) {
-          setFlashcards(data);
-        } else {
-          setReviewComplete(true);
-        }
-      } catch (err) {
-        toast({
-          title: 'Error loading flashcards',
-          description: 'There was a problem loading your flashcards for review.',
-          variant: 'destructive',
-        });
-        console.error('Error loading flashcards:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadFlashcards();
-  }, [user, toast]);
+  // Load flashcards
+  useFlashcardLoading(
+    setFlashcards,
+    setIsLoading,
+    setReviewComplete
+  );
 
-  // Get retention stats when review is complete
-  useEffect(() => {
-    const getRetentionStats = async () => {
-      if (!user || !reviewComplete) return;
-      
-      try {
-        const { overallRetention } = await calculateFlashcardRetention(user.id);
-        setRetentionStats({
-          overall: Math.round(overallRetention * 100),
-          improved: Math.round(Math.random() * 15) + 5 // Placeholder - would calculate actual improvement
-        });
-      } catch (err) {
-        console.error('Error getting retention stats:', err);
-      }
-    };
-    
-    getRetentionStats();
-  }, [user, reviewComplete]);
+  // Calculate retention statistics
+  useRetentionStats(
+    reviewComplete,
+    setRetentionStats
+  );
 
-  // Handle flipping the card
-  const handleFlip = () => {
-    setIsFlipped(!isFlipped);
-  };
-
-  // Handle difficulty rating
-  const handleDifficultyRating = async (difficulty: number) => {
-    if (!user || currentIndex >= flashcards.length) return;
-    
-    const currentCard = flashcards[currentIndex];
-    
-    try {
-      await updateFlashcardAfterReview(currentCard.id, difficulty);
-      
-      // Move to next card or complete review
-      if (currentIndex < flashcards.length - 1) {
-        setCurrentIndex(currentIndex + 1);
-        setIsFlipped(false);
-      } else {
-        setReviewComplete(true);
-        if (onComplete) onComplete();
-      }
-    } catch (err) {
-      toast({
-        title: 'Error saving review',
-        description: 'There was a problem saving your review.',
-        variant: 'destructive',
-      });
-      console.error('Error updating flashcard:', err);
-    }
-  };
-
-  // Restart review
-  const handleRestart = () => {
-    setCurrentIndex(0);
-    setIsFlipped(false);
-    setReviewComplete(false);
-  };
+  // Get review actions
+  const {
+    handleDifficultyRating,
+    handleRestart
+  } = useReviewActions(
+    flashcards,
+    currentIndex,
+    setCurrentIndex,
+    setIsFlipped,
+    setReviewComplete,
+    onComplete
+  );
 
   return {
     flashcards,
@@ -114,7 +61,7 @@ export const useReviewSystem = (onComplete?: () => void) => {
     isLoading,
     reviewComplete,
     retentionStats,
-    currentCard: flashcards[currentIndex],
+    currentCard,
     handleFlip,
     handleDifficultyRating,
     handleRestart
