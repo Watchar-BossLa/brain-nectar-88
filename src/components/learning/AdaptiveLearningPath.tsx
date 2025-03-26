@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRightIcon, BookOpenIcon, CheckCircleIcon, BarChart2Icon, BrainIcon, FlaskConicalIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Motion, AnimatePresence, motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion'; // Fix: Removed Motion, just use motion
 
 interface Topic {
   id: string;
@@ -149,22 +148,14 @@ const AdaptiveLearningPath = () => {
         // Fetch flashcard counts for topics
         const { data: flashcardData, error: flashcardError } = await supabase
           .from('flashcards')
-          .select('topic_id, count')
+          .select('topic_id, count(*)')
           .eq('user_id', user.id)
-          .not('topic_id', 'is', null)
-          .group('topic_id');
+          .not('topic_id', 'is', null);
+          // Fix: Removed the .group('topic_id') call
         
         if (flashcardError) throw flashcardError;
         
-        // Fetch flashcard review performance
-        const { data: reviewData, error: reviewError } = await supabase
-          .from('flashcard_reviews')
-          .select('flashcard_id, retention_estimate')
-          .eq('user_id', user.id);
-        
-        if (reviewError) throw reviewError;
-        
-        // Process data to create adaptive learning path
+        // Process flashcard data
         const topicFlashcardCounts = new Map();
         flashcardData?.forEach(item => {
           topicFlashcardCounts.set(item.topic_id, item.count);

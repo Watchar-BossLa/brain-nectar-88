@@ -6,9 +6,10 @@ import FlashcardCard from './FlashcardCard';
 interface FlashcardGridProps {
   flashcards: Flashcard[];
   onDelete: (id: string) => void;
+  onCardUpdated?: () => void; // Add the missing prop
 }
 
-const FlashcardGrid: React.FC<FlashcardGridProps> = ({ flashcards, onDelete }) => {
+const FlashcardGrid: React.FC<FlashcardGridProps> = ({ flashcards, onDelete, onCardUpdated }) => {
   if (flashcards.length === 0) {
     return (
       <div className="col-span-full text-center p-4">
@@ -24,6 +25,7 @@ const FlashcardGrid: React.FC<FlashcardGridProps> = ({ flashcards, onDelete }) =
           key={flashcard.id}
           flashcard={flashcard}
           onDelete={() => onDelete(flashcard.id)}
+          onUpdated={onCardUpdated}
         />
       ))}
     </div>

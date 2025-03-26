@@ -1,93 +1,60 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
 import { createFlashcard } from '@/services/spacedRepetition';
-import { Flashcard } from '@/types/supabase';
-import { useAuth } from '@/context/AuthContext';
-import FlashcardPreview from './FlashcardPreview';
-import FlashcardFormInputs from './FlashcardFormInputs';
+import { useToast } from '@/hooks/use-toast';
 
 interface FlashcardFormProps {
-  onSuccess?: (flashcard: Flashcard) => void;
-  onCancel?: () => void;
-  flashcard?: Flashcard;
-  topics?: Array<{ id: string; title: string }>;
+  onFlashcardCreated?: () => void;
 }
 
-const FlashcardForm: React.FC<FlashcardFormProps> = ({ 
-  onSuccess, 
-  onCancel,
-  flashcard,
-  topics = []
-}) => {
-  const [frontContent, setFrontContent] = useState(flashcard?.front_content || '');
-  const [backContent, setBackContent] = useState(flashcard?.back_content || '');
-  const [topicId, setTopicId] = useState(flashcard?.topic_id || '');
+const FlashcardForm: React.FC<FlashcardFormProps> = ({ onFlashcardCreated }) => {
+  const [frontContent, setFrontContent] = useState('');
+  const [backContent, setBackContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [useLatex, setUseLatex] = useState(
-    flashcard?.front_content?.includes('$$') || flashcard?.back_content?.includes('$$') || false
-  );
   const { toast } = useToast();
-  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
+    
+    if (!frontContent || !backContent) {
       toast({
-        title: "Authentication required",
-        description: "Please sign in to create flashcards",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Both front and back content are required.',
+        variant: 'destructive',
       });
       return;
     }
-
-    if (!frontContent.trim() || !backContent.trim()) {
-      toast({
-        title: "Missing content",
-        description: "Please fill out both sides of the flashcard",
-        variant: "destructive"
-      });
-      return;
-    }
-
+    
     setIsSubmitting(true);
-
+    
     try {
-      const { data, error } = await createFlashcard(
-        frontContent, 
-        backContent, 
-        topicId || undefined
-      );
-
-      if (error || !data) {
-        throw new Error(error?.message || "Failed to create flashcard");
+      const { error } = await createFlashcard(frontContent, backContent);
+      
+      if (error) {
+        throw error;
       }
-
+      
       toast({
-        title: "Success",
-        description: "Flashcard created successfully"
+        title: 'Success',
+        description: 'Flashcard created successfully.',
       });
-
-      // Clear form
+      
       setFrontContent('');
       setBackContent('');
-      setTopicId('');
-
-      // Call success callback
-      if (onSuccess && data[0]) {
-        onSuccess(data[0]);
+      
+      if (onFlashcardCreated) {
+        onFlashcardCreated();
       }
     } catch (error) {
-      console.error("Error creating flashcard:", error);
+      console.error('Error creating flashcard:', error);
       toast({
-        title: "Error",
-        description: "Failed to create flashcard. Please try again.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to create flashcard. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);
@@ -95,59 +62,48 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({
   };
 
   return (
-    <Card className="max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>{flashcard ? 'Edit Flashcard' : 'Create New Flashcard'}</CardTitle>
-        <div className="flex items-center space-x-2 mt-2">
-          <Switch 
-            id="latex-toggle" 
-            checked={useLatex} 
-            onCheckedChange={setUseLatex}
-          />
-          <Label htmlFor="latex-toggle">Enable LaTeX for math formulas (use $$formula$$)</Label>
-        </div>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          <Tabs defaultValue="edit" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="edit">Edit</TabsTrigger>
-              <TabsTrigger value="preview">Preview</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="edit" className="space-y-4">
-              <FlashcardFormInputs
-                frontContent={frontContent}
-                setFrontContent={setFrontContent}
-                backContent={backContent}
-                setBackContent={setBackContent}
-                topicId={topicId}
-                setTopicId={setTopicId}
-                topics={topics}
-              />
-            </TabsContent>
-            
-            <TabsContent value="preview">
-              <FlashcardPreview 
-                frontContent={frontContent}
-                backContent={backContent}
-                useLatex={useLatex}
-              />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-        <CardFooter className="flex justify-between space-x-2">
-          {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>
-              Cancel
-            </Button>
-          )}
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Saving...' : flashcard ? 'Update' : 'Create'}
-          </Button>
-        </CardFooter>
-      </form>
-    </Card>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="frontContent">Front Content</Label>
+        <Textarea
+          id="frontContent"
+          placeholder="Question or prompt"
+          value={frontContent}
+          onChange={(e) => setFrontContent(e.target.value)}
+          required
+          disabled={isSubmitting}
+          className="min-h-20"
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="backContent">Back Content</Label>
+        <Textarea
+          id="backContent"
+          placeholder="Answer or explanation"
+          value={backContent}
+          onChange={(e) => setBackContent(e.target.value)}
+          required
+          disabled={isSubmitting}
+          className="min-h-20"
+        />
+      </div>
+      
+      <Button 
+        type="submit" 
+        className="w-full"
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? (
+          <div className="flex items-center justify-center">
+            <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></div>
+            Creating Flashcard...
+          </div>
+        ) : (
+          'Create Flashcard'
+        )}
+      </Button>
+    </form>
   );
 };
 

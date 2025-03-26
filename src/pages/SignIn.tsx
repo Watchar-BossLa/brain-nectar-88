@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
@@ -33,13 +34,12 @@ const SignIn = () => {
     setIsLoading(true);
     
     try {
-      await signIn(email, password, (success) => {
-        if (success) {
-          navigate(from);
-        }
-        setIsLoading(false);
-      });
+      // Using signIn with email and password, without the callback
+      await signIn(email, password);
+      navigate(from);
     } catch (error) {
+      console.error('Sign in error:', error);
+    } finally {
       setIsLoading(false);
     }
   };

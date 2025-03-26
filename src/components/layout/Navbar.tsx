@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
@@ -50,11 +49,10 @@ const Navbar: React.FC = () => {
     ? user.email.split('@')[0].substring(0, 2).toUpperCase() 
     : 'U';
 
-  // Handle sign out with navigation callback
+  // Handle sign out with navigation
   const handleSignOut = () => {
-    signOut(() => {
-      navigate('/signin');
-    });
+    signOut();
+    navigate('/signin');
   };
 
   return (

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
@@ -49,13 +50,12 @@ const SignUp = () => {
     
     setIsLoading(true);
     try {
-      await signUp(email, password, (success) => {
-        if (success) {
-          navigate(from);
-        }
-        setIsLoading(false);
-      });
+      // Using signUp with email and password, without the callback
+      await signUp(email, password);
+      navigate(from);
     } catch (error) {
+      console.error('Sign up error:', error);
+    } finally {
       setIsLoading(false);
     }
   };
