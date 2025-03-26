@@ -50,7 +50,7 @@ export const getDueFlashcards = async (topicId?: string) => {
       return { data: null, error: new Error('User not authenticated') };
     }
     
-    return getSpacedRepDueFlashcards(user.id, topicId);
+    return getSpacedRepDueFlashcards(user.id);
   } catch (error) {
     console.error('Error in getDueFlashcards:', error);
     return { data: null, error };
