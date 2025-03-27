@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { useAuth } from './AuthContext';
+import { useAuth } from './auth';
 import { MultiAgentSystem } from '@/services/agents';
 
 interface AuthWrapperProps {
