@@ -106,3 +106,30 @@ export const copyToClipboard = (text: string) => {
       console.error('Failed to copy: ', err);
     });
 };
+
+// Format currency values consistently
+export const formatCurrency = (value: number): string => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(value);
+};
+
+// Calculate financial ratios
+export const calculateFinancialRatios = (balanceSheet: any, incomeStatement: any) => {
+  const totalAssets = balanceSheet.assets.reduce((sum: number, item: any) => sum + item.value, 0);
+  const totalLiabilities = balanceSheet.liabilities.reduce((sum: number, item: any) => sum + item.value, 0);
+  const totalEquity = balanceSheet.equity.reduce((sum: number, item: any) => sum + item.value, 0);
+  const netIncome = incomeStatement.revenues.reduce((sum: number, item: any) => sum + item.value, 0) - 
+                   incomeStatement.expenses.reduce((sum: number, item: any) => sum + item.value, 0);
+  
+  return {
+    currentRatio: balanceSheet.assets[0].value / balanceSheet.liabilities[0].value,
+    debtToEquityRatio: totalLiabilities / totalEquity,
+    returnOnAssets: netIncome / totalAssets,
+    returnOnEquity: netIncome / totalEquity,
+    profitMargin: netIncome / incomeStatement.revenues.reduce((sum: number, item: any) => sum + item.value, 0),
+  };
+};

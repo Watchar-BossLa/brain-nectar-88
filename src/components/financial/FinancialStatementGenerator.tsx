@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -36,7 +35,8 @@ const FinancialStatementGenerator = () => {
           description: "Your financial statement has been exported as a PDF",
         });
       } else if (type === 'csv') {
-        exportToCSV([], `${activeTab}.csv`);
+        const data = getDataForActiveTab();
+        exportToCSV(data, `${activeTab}.csv`);
         toast({
           title: "CSV Export Successful",
           description: "Your financial statement has been exported as a CSV file",
@@ -58,9 +58,10 @@ const FinancialStatementGenerator = () => {
   };
 
   const getDataForActiveTab = () => {
-    // This would normally fetch the actual data from the tabs
-    // For now returning a placeholder
-    return { type: activeTab, data: "Placeholder data" };
+    return [
+      { type: activeTab, category: "Revenue", name: "Sample Revenue", value: 1000 },
+      { type: activeTab, category: "Expense", name: "Sample Expense", value: 500 }
+    ];
   };
 
   const handleTemplateSelect = (templateId: string) => {

@@ -1,42 +1,22 @@
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import LatexRenderer from '@/components/math/LatexRenderer';
-import { Plus, Minus, RefreshCw } from 'lucide-react';
-import { AccountComponent } from './types';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer, 
-  PieChart, 
-  Pie, 
-  Cell
-} from 'recharts';
+import React, { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Plus, Trash2, RefreshCw } from 'lucide-react';
+import { AccountComponent, UpdateComponentFunction } from './types';
+import { LatexRenderer } from '../../math/LatexRendererWrapper';
 
 interface AdvancedModeProps {
   assetComponents: AccountComponent[];
   liabilityComponents: AccountComponent[];
   equityComponents: AccountComponent[];
-  updateComponent: (type: 'assets' | 'liabilities' | 'equity', id: string, value: number, name?: string, remove?: boolean) => void;
+  updateComponent: UpdateComponentFunction;
   totalAssets: number;
   totalLiabilities: number;
   totalEquity: number;
   isBalanced: boolean;
   resetValues: () => void;
 }
-
-const colors = {
-  assets: ['#8884d8', '#9c88e0', '#aa8ce8', '#b991f0', '#c795f8'],
-  liabilities: ['#82ca9d', '#8ed4a8', '#9adeb3', '#a6e8be', '#b2f2c9'],
-  equity: ['#ffc658', '#ffd066', '#ffda75', '#ffe483', '#ffee91']
-};
 
 const AdvancedMode: React.FC<AdvancedModeProps> = ({
   assetComponents,
@@ -47,290 +27,239 @@ const AdvancedMode: React.FC<AdvancedModeProps> = ({
   totalLiabilities,
   totalEquity,
   isBalanced,
-  resetValues
+  resetValues,
 }) => {
-  const formatForPieChart = (components: AccountComponent[]) => {
-    return components.map(comp => ({
-      name: comp.name,
-      value: comp.value
-    }));
+  const [newAssetName, setNewAssetName] = useState('');
+  const [newAssetValue, setNewAssetValue] = useState(0);
+  const [newLiabilityName, setNewLiabilityName] = useState('');
+  const [newLiabilityValue, setNewLiabilityValue] = useState(0);
+  const [newEquityName, setNewEquityName] = useState('');
+  const [newEquityValue, setNewEquityValue] = useState(0);
+
+  // Add new asset
+  const handleAddAsset = () => {
+    if (newAssetName && newAssetValue) {
+      const id = `asset-${Date.now()}`;
+      updateComponent('assets', id, newAssetValue, newAssetName);
+      setNewAssetName('');
+      setNewAssetValue(0);
+    }
   };
 
-  const formatForBarChart = () => {
-    return [
-      { name: 'Assets', value: totalAssets },
-      { name: 'Liabilities', value: totalLiabilities },
-      { name: 'Equity', value: totalEquity }
-    ];
+  // Add new liability
+  const handleAddLiability = () => {
+    if (newLiabilityName && newLiabilityValue) {
+      const id = `liability-${Date.now()}`;
+      updateComponent('liabilities', id, newLiabilityValue, newLiabilityName);
+      setNewLiabilityName('');
+      setNewLiabilityValue(0);
+    }
+  };
+
+  // Add new equity
+  const handleAddEquity = () => {
+    if (newEquityName && newEquityValue) {
+      const id = `equity-${Date.now()}`;
+      updateComponent('equity', id, newEquityValue, newEquityName);
+      setNewEquityName('');
+      setNewEquityValue(0);
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <div className="flex items-center justify-center mb-4">
-          <LatexRenderer 
-            latex="\\assets = \\liabilities + \\equity" 
-            display={true} 
-            size="large"
-            interactive={true}
-          />
-        </div>
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div>
-            <p className="text-lg font-medium text-purple-700">${totalAssets.toLocaleString()}</p>
-          </div>
-          <div>
-            <p className="text-lg font-medium text-green-700">${totalLiabilities.toLocaleString()}</p>
-          </div>
-          <div>
-            <p className="text-lg font-medium text-amber-600">${totalEquity.toLocaleString()}</p>
-          </div>
-        </div>
-        <div className="mt-2">
-          {isBalanced ? (
-            <span className="text-sm text-green-600 font-medium">Equation is balanced ✓</span>
-          ) : (
-            <span className="text-sm text-red-600 font-medium">Equation is not balanced ✗</span>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Assets Column */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-purple-700">Assets</h3>
-            <Button 
-              size="sm" 
-              variant="outline" 
-              className="text-xs"
-              onClick={() => {
-                // Add a new asset component with a unique ID
-                const id = `asset-${Date.now()}`;
-                updateComponent('assets', id, 0);
-              }}
-            >
-              <Plus className="h-3 w-3 mr-1" />
-              Add
-            </Button>
-          </div>
-          <div className="space-y-3">
-            {assetComponents.map((component) => (
-              <div key={component.id} className="flex items-center gap-2">
-                <Input 
-                  value={component.name} 
-                  onChange={(e) => {
-                    const newName = e.target.value;
-                    updateComponent('assets', component.id, component.value, newName);
-                  }}
-                  className="w-1/2"
-                  placeholder="Asset name"
-                />
-                <Input 
-                  type="number" 
-                  value={component.value} 
-                  onChange={(e) => updateComponent('assets', component.id, Number(e.target.value))}
-                  className="w-1/2"
-                />
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  className="text-destructive"
-                  onClick={() => updateComponent('assets', component.id, 0, component.name, true)}
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Liabilities Column */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-green-700">Liabilities</h3>
-            <Button 
-              size="sm" 
-              variant="outline" 
-              className="text-xs"
-              onClick={() => {
-                // Add a new liability component with a unique ID
-                const id = `liability-${Date.now()}`;
-                updateComponent('liabilities', id, 0);
-              }}
-            >
-              <Plus className="h-3 w-3 mr-1" />
-              Add
-            </Button>
-          </div>
-          <div className="space-y-3">
-            {liabilityComponents.map((component) => (
-              <div key={component.id} className="flex items-center gap-2">
-                <Input 
-                  value={component.name} 
-                  onChange={(e) => {
-                    const newName = e.target.value;
-                    updateComponent('liabilities', component.id, component.value, newName);
-                  }}
-                  className="w-1/2"
-                  placeholder="Liability name"
-                />
-                <Input 
-                  type="number" 
-                  value={component.value} 
-                  onChange={(e) => updateComponent('liabilities', component.id, Number(e.target.value))}
-                  className="w-1/2"
-                />
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  className="text-destructive"
-                  onClick={() => updateComponent('liabilities', component.id, 0, component.name, true)}
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Equity Column */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-amber-600">Equity</h3>
-            <Button 
-              size="sm" 
-              variant="outline" 
-              className="text-xs"
-              onClick={() => {
-                // Add a new equity component with a unique ID
-                const id = `equity-${Date.now()}`;
-                updateComponent('equity', id, 0);
-              }}
-            >
-              <Plus className="h-3 w-3 mr-1" />
-              Add
-            </Button>
-          </div>
-          <div className="space-y-3">
-            {equityComponents.map((component) => (
-              <div key={component.id} className="flex items-center gap-2">
-                <Input 
-                  value={component.name} 
-                  onChange={(e) => {
-                    const newName = e.target.value;
-                    updateComponent('equity', component.id, component.value, newName);
-                  }}
-                  className="w-1/2"
-                  placeholder="Equity name"
-                />
-                <Input 
-                  type="number" 
-                  value={component.value} 
-                  onChange={(e) => updateComponent('equity', component.id, Number(e.target.value))}
-                  className="w-1/2"
-                />
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  className="text-destructive"
-                  onClick={() => updateComponent('equity', component.id, 0, component.name, true)}
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="flex justify-center">
+    <div>
+      <div className="mb-6 flex justify-end">
         <Button 
           variant="outline" 
+          size="sm" 
           onClick={resetValues}
-          className="flex items-center gap-2"
+          className="flex items-center gap-1"
         >
           <RefreshCw className="h-4 w-4" />
-          Reset All Values
+          Reset
         </Button>
       </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-        {/* Bar Chart */}
-        <div className="h-64">
-          <h3 className="text-lg font-semibold mb-2 text-center">Balance Overview</h3>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={formatForBarChart()}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
-              <Legend />
-              <Bar dataKey="value" name="Amount" fill="#8884d8" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Pie Charts */}
-        <div className="grid grid-cols-3 gap-2 h-64">
-          <div>
-            <h3 className="text-xs text-center text-purple-700 font-medium">Assets</h3>
-            <ResponsiveContainer width="100%" height="90%">
-              <PieChart>
-                <Pie
-                  data={formatForPieChart(assetComponents)}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={40}
-                  dataKey="value"
-                >
-                  {formatForPieChart(assetComponents).map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={colors.assets[index % colors.assets.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div>
-            <h3 className="text-xs text-center text-green-700 font-medium">Liabilities</h3>
-            <ResponsiveContainer width="100%" height="90%">
-              <PieChart>
-                <Pie
-                  data={formatForPieChart(liabilityComponents)}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={40}
-                  dataKey="value"
-                >
-                  {formatForPieChart(liabilityComponents).map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={colors.liabilities[index % colors.liabilities.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div>
-            <h3 className="text-xs text-center text-amber-600 font-medium">Equity</h3>
-            <ResponsiveContainer width="100%" height="90%">
-              <PieChart>
-                <Pie
-                  data={formatForPieChart(equityComponents)}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={40}
-                  dataKey="value"
-                >
-                  {formatForPieChart(equityComponents).map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={colors.equity[index % colors.equity.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
-              </PieChart>
-            </ResponsiveContainer>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Assets Section */}
+        <div className="border rounded-md p-4">
+          <h3 className="font-medium mb-3 flex justify-between">
+            <span>Assets</span>
+            <span className="text-primary">${totalAssets.toLocaleString()}</span>
+          </h3>
+          
+          {assetComponents.map(asset => (
+            <div key={asset.id} className="flex items-center gap-2 mb-2">
+              <Input 
+                value={asset.name}
+                onChange={(e) => updateComponent('assets', asset.id, asset.value, e.target.value)}
+                className="flex-1"
+              />
+              <Input 
+                type="number"
+                value={asset.value}
+                onChange={(e) => updateComponent('assets', asset.id, parseFloat(e.target.value) || 0)}
+                className="w-24"
+              />
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => updateComponent('assets', asset.id, 0, '', true)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+          
+          {/* Add new asset */}
+          <div className="flex items-center gap-2 mt-4">
+            <Input 
+              placeholder="New asset name"
+              value={newAssetName}
+              onChange={(e) => setNewAssetName(e.target.value)}
+              className="flex-1"
+            />
+            <Input 
+              type="number"
+              placeholder="Value"
+              value={newAssetValue || ''}
+              onChange={(e) => setNewAssetValue(parseFloat(e.target.value) || 0)}
+              className="w-24"
+            />
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={handleAddAsset}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
           </div>
         </div>
+        
+        {/* Liabilities Section */}
+        <div className="border rounded-md p-4">
+          <h3 className="font-medium mb-3 flex justify-between">
+            <span>Liabilities</span>
+            <span className="text-primary">${totalLiabilities.toLocaleString()}</span>
+          </h3>
+          
+          {liabilityComponents.map(liability => (
+            <div key={liability.id} className="flex items-center gap-2 mb-2">
+              <Input 
+                value={liability.name}
+                onChange={(e) => updateComponent('liabilities', liability.id, liability.value, e.target.value)}
+                className="flex-1"
+              />
+              <Input 
+                type="number"
+                value={liability.value}
+                onChange={(e) => updateComponent('liabilities', liability.id, parseFloat(e.target.value) || 0)}
+                className="w-24"
+              />
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => updateComponent('liabilities', liability.id, 0, '', true)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+          
+          {/* Add new liability */}
+          <div className="flex items-center gap-2 mt-4">
+            <Input 
+              placeholder="New liability name"
+              value={newLiabilityName}
+              onChange={(e) => setNewLiabilityName(e.target.value)}
+              className="flex-1"
+            />
+            <Input 
+              type="number"
+              placeholder="Value"
+              value={newLiabilityValue || ''}
+              onChange={(e) => setNewLiabilityValue(parseFloat(e.target.value) || 0)}
+              className="w-24"
+            />
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={handleAddLiability}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        
+        {/* Equity Section */}
+        <div className="border rounded-md p-4">
+          <h3 className="font-medium mb-3 flex justify-between">
+            <span>Equity</span>
+            <span className="text-primary">${totalEquity.toLocaleString()}</span>
+          </h3>
+          
+          {equityComponents.map(equity => (
+            <div key={equity.id} className="flex items-center gap-2 mb-2">
+              <Input 
+                value={equity.name}
+                onChange={(e) => updateComponent('equity', equity.id, equity.value, e.target.value)}
+                className="flex-1"
+              />
+              <Input 
+                type="number"
+                value={equity.value}
+                onChange={(e) => updateComponent('equity', equity.id, parseFloat(e.target.value) || 0)}
+                className="w-24"
+              />
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => updateComponent('equity', equity.id, 0, '', true)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+          
+          {/* Add new equity */}
+          <div className="flex items-center gap-2 mt-4">
+            <Input 
+              placeholder="New equity name"
+              value={newEquityName}
+              onChange={(e) => setNewEquityName(e.target.value)}
+              className="flex-1"
+            />
+            <Input 
+              type="number"
+              placeholder="Value"
+              value={newEquityValue || ''}
+              onChange={(e) => setNewEquityValue(parseFloat(e.target.value) || 0)}
+              className="w-24"
+            />
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={handleAddEquity}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+      
+      <div className={`p-4 rounded-md mt-6 ${isBalanced ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+        <h3 className="font-medium mb-2">Accounting Equation Status</h3>
+        <div className="mb-3">
+          <LatexRenderer 
+            latex={`\\text{Assets} = \\text{Liabilities} + \\text{Equity} \\quad \\Rightarrow \\quad $${totalAssets.toLocaleString()} = ${totalLiabilities.toLocaleString()} + ${totalEquity.toLocaleString()}$`} 
+            display={true} 
+          />
+        </div>
+        <p className={`text-sm ${isBalanced ? 'text-green-600' : 'text-red-600'}`}>
+          {isBalanced 
+            ? 'The accounting equation is balanced.' 
+            : `The accounting equation is not balanced. Difference: $${Math.abs(totalAssets - (totalLiabilities + totalEquity)).toLocaleString()}`}
+        </p>
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ import { ArrowDownToLine } from 'lucide-react';
 import { CashFlowItem } from '../types';
 import CashFlowTable from './CashFlowTable';
 import CashFlowForm from './CashFlowForm';
-import { exportToCSV } from '../utils/exportUtils';
+import { exportToCSV, formatCurrency } from '../utils/exportUtils';
 
 const CashFlowTab: React.FC = () => {
   // Cash Flow State
@@ -67,6 +67,11 @@ const CashFlowTab: React.FC = () => {
     setCashFlowItems(cashFlowItems.filter(item => item.id !== id));
   };
 
+  // Handle export to CSV
+  const handleExportToCsv = () => {
+    exportToCSV(cashFlowItems, 'cash_flow_statement.csv');
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -74,7 +79,7 @@ const CashFlowTab: React.FC = () => {
         <Button 
           variant="outline" 
           size="sm" 
-          onClick={() => exportToCSV(cashFlowItems, 'cash_flow_statement')}
+          onClick={handleExportToCsv}
         >
           <ArrowDownToLine className="mr-2 h-4 w-4" />
           Export

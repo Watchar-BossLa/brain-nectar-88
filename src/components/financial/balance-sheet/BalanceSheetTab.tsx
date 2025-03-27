@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowDownToLine } from 'lucide-react';
 import { BalanceSheetItem } from '../types';
 import BalanceSheetTable from './BalanceSheetTable';
 import BalanceSheetForm from './BalanceSheetForm';
-import { exportToCSV } from '../utils/exportUtils';
+import { exportToCSV, formatCurrency } from '../utils/exportUtils';
 
 const BalanceSheetTab: React.FC = () => {
   // Balance Sheet State
@@ -67,6 +66,11 @@ const BalanceSheetTab: React.FC = () => {
     setBalanceSheetItems(balanceSheetItems.filter(item => item.id !== id));
   };
 
+  // Handle export to CSV
+  const handleExportToCsv = () => {
+    exportToCSV(balanceSheetItems, 'balance_sheet.csv');
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -74,7 +78,7 @@ const BalanceSheetTab: React.FC = () => {
         <Button 
           variant="outline" 
           size="sm" 
-          onClick={() => exportToCSV(balanceSheetItems, 'balance_sheet')}
+          onClick={handleExportToCsv}
         >
           <ArrowDownToLine className="mr-2 h-4 w-4" />
           Export

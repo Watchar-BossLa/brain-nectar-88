@@ -8,6 +8,8 @@ import Dashboard from '@/pages/Dashboard';
 import AgentDashboard from '@/pages/AgentDashboard';
 import AdvancedLearning from '@/pages/AdvancedLearning';
 import FinancialTools from '@/pages/FinancialTools';
+import Quiz from '@/pages/Quiz';
+import Flashcards from '@/pages/Flashcards';
 import { AuthProvider } from '@/context/auth';
 import { ThemeProvider } from '@/context/theme/ThemeContext';
 import { LearningPathProvider } from '@/components/learning/LearningPathProvider';
@@ -26,6 +28,8 @@ function App() {
               <Route path="/agent-dashboard" element={<AgentDashboard />} />
               <Route path="/advanced-learning" element={<AdvancedLearning />} />
               <Route path="/financial-tools" element={<FinancialTools />} />
+              <Route path="/quiz" element={<Quiz />} />
+              <Route path="/flashcards" element={<Flashcards />} />
             </Routes>
             <Toaster />
           </LearningPathProvider>

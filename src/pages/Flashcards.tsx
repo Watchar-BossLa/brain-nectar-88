@@ -6,12 +6,13 @@ import FlashcardForm from '@/components/flashcards/FlashcardForm';
 import FlashcardGrid from '@/components/flashcards/FlashcardGrid';
 import FlashcardReviewSystem from '@/components/flashcards/FlashcardReviewSystem';
 import FlashcardStats from '@/components/flashcards/FlashcardStats';
+import AdvancedFlashcardForm from '@/components/flashcards/AdvancedFlashcardForm';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { deleteFlashcard } from '@/services/spacedRepetition';
-import { Loader2, PlusCircle } from 'lucide-react';
+import { Loader2, PlusCircle, Calculator, BookText, Brain } from 'lucide-react';
 import { useFlashcardsPage } from '@/hooks/useFlashcardsPage';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 
 const Flashcards = () => {
   const {
@@ -30,6 +31,7 @@ const Flashcards = () => {
   } = useFlashcardsPage();
   
   const { toast } = useToast();
+  const [isAdvancedForm, setIsAdvancedForm] = useState(false);
   
   const handleDeleteFlashcard = async (id: string) => {
     try {
@@ -64,10 +66,22 @@ const Flashcards = () => {
             </p>
           </div>
           {!isCreating && (
-            <Button onClick={handleCreateFlashcard}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Create Flashcard
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button variant="outline" onClick={() => {
+                setIsAdvancedForm(false); 
+                handleCreateFlashcard();
+              }}>
+                <BookText className="mr-2 h-4 w-4" />
+                Simple Flashcard
+              </Button>
+              <Button onClick={() => {
+                setIsAdvancedForm(true);
+                handleCreateFlashcard();
+              }}>
+                <Calculator className="mr-2 h-4 w-4" />
+                Advanced Flashcard
+              </Button>
+            </div>
           )}
         </div>
         
@@ -101,10 +115,22 @@ const Flashcards = () => {
                   <p className="text-center text-sm text-muted-foreground max-w-md">
                     Start creating flashcards to help you learn and retain information more effectively with spaced repetition.
                   </p>
-                  <Button onClick={handleCreateFlashcard}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Create Your First Flashcard
-                  </Button>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button variant="outline" onClick={() => {
+                      setIsAdvancedForm(false); 
+                      handleCreateFlashcard();
+                    }}>
+                      <BookText className="mr-2 h-4 w-4" />
+                      Simple Flashcard
+                    </Button>
+                    <Button onClick={() => {
+                      setIsAdvancedForm(true);
+                      handleCreateFlashcard();
+                    }}>
+                      <Calculator className="mr-2 h-4 w-4" />
+                      Advanced Flashcard
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}
@@ -115,7 +141,10 @@ const Flashcards = () => {
               <div className="space-y-6">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-medium">Cards Due for Review</h3>
-                  <Button onClick={handleStartReview}>Start Review</Button>
+                  <Button onClick={handleStartReview}>
+                    <Brain className="mr-2 h-4 w-4" />
+                    Start Review
+                  </Button>
                 </div>
                 <FlashcardGrid 
                   flashcards={dueFlashcards} 
@@ -130,27 +159,40 @@ const Flashcards = () => {
                   <p className="text-center text-sm text-muted-foreground max-w-md">
                     Great job! You've reviewed all your due flashcards. Check back later or create new cards.
                   </p>
-                  <Button onClick={handleCreateFlashcard}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Create New Flashcard
-                  </Button>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button variant="outline" onClick={() => {
+                      setIsAdvancedForm(false); 
+                      handleCreateFlashcard();
+                    }}>
+                      <BookText className="mr-2 h-4 w-4" />
+                      Simple Flashcard
+                    </Button>
+                    <Button onClick={() => {
+                      setIsAdvancedForm(true);
+                      handleCreateFlashcard();
+                    }}>
+                      <Calculator className="mr-2 h-4 w-4" />
+                      Advanced Flashcard
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}
           </TabsContent>
           
           <TabsContent value="create" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Create New Flashcard</CardTitle>
-                <CardDescription>
-                  Create a new flashcard to help you remember important information
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <FlashcardForm onFlashcardCreated={handleFlashcardCreated} />
-              </CardContent>
-            </Card>
+            {isAdvancedForm ? (
+              <AdvancedFlashcardForm 
+                onSuccess={handleFlashcardCreated} 
+                onCancel={() => setIsCreating(false)}
+              />
+            ) : (
+              <Card>
+                <CardContent className="py-6">
+                  <FlashcardForm onFlashcardCreated={handleFlashcardCreated} />
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
           
           <TabsContent value="review" className="mt-6">

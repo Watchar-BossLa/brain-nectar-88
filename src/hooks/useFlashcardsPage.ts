@@ -1,159 +1,94 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { getDueFlashcards, getFlashcardStats } from '@/services/spacedRepetition';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { Flashcard } from '@/types/supabase';
 
-export const useFlashcardsPage = () => {
-  const { user } = useAuth();
-  const { toast } = useToast();
+import { useState, useEffect } from 'react';
+import { 
+  getUserFlashcards, 
+  getDueFlashcards, 
+  getFlashcardStats,
+  type FlashcardLearningStats 
+} from '@/services/spacedRepetition';
+
+export interface Flashcard {
+  id: string;
+  front: string;
+  back: string;
+  dueDate?: Date;
+  lastReviewed?: Date;
+  repetitionCount?: number;
+  easinessFactor?: number;
+  interval?: number;
+  topicId?: string | null;
+}
+
+export function useFlashcardsPage() {
   const [activeTab, setActiveTab] = useState('all');
   const [isCreating, setIsCreating] = useState(false);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [dueFlashcards, setDueFlashcards] = useState<Flashcard[]>([]);
-  const [currentReviewCard, setCurrentReviewCard] = useState<Flashcard | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isReviewing, setIsReviewing] = useState(false);
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<FlashcardLearningStats>({
     totalCards: 0,
-    masteredCards: 0,
     dueCards: 0,
-    averageDifficulty: 0,
-    reviewsToday: 0
+    masteredCards: 0,
+    learningCards: 0,
+    newCards: 0,
+    reviewedToday: 0,
+    averageRetention: 0,
+    streakDays: 0
   });
 
-  useEffect(() => {
-    if (user) {
-      fetchFlashcards();
-      fetchDueFlashcards();
-      fetchStats();
-    }
-  }, [user]);
-
-  const fetchFlashcards = async () => {
-    if (!user) return;
-    
+  // Load flashcards and stats
+  const loadFlashcards = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('flashcards')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-        
-      if (error) throw error;
+      // In a real app, these would be API calls to get data from the backend
+      const userFlashcards = await getUserFlashcards();
+      const dueCards = await getDueFlashcards();
+      const flashcardStats = await getFlashcardStats();
       
-      // Ensure mastery_level is present on each flashcard
-      const processedData = data?.map(card => ({
-        ...card,
-        mastery_level: card.mastery_level ?? 0,
-      })) as Flashcard[];
-      
-      setFlashcards(processedData || []);
-    } catch (error) {
-      console.error('Error fetching flashcards:', error);
-      toast({
-        title: 'Error fetching flashcards',
-        description: 'There was a problem loading your flashcards.',
-        variant: 'destructive',
+      setFlashcards(userFlashcards || []);
+      setDueFlashcards(dueCards || []);
+      setStats(flashcardStats || {
+        totalCards: userFlashcards?.length || 0,
+        dueCards: dueCards?.length || 0,
+        masteredCards: 0,
+        learningCards: 0,
+        newCards: 0,
+        reviewedToday: 0,
+        averageRetention: 0,
+        streakDays: 0
       });
+    } catch (error) {
+      console.error('Error loading flashcards:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const fetchDueFlashcards = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await getDueFlashcards(user.id);
-      
-      if (error) throw error;
-      
-      // Ensure mastery_level is present on each flashcard
-      const processedData = data?.map(card => ({
-        ...card,
-        mastery_level: card.mastery_level ?? 0,
-      })) as Flashcard[];
-      
-      setDueFlashcards(processedData || []);
-      
-      // Set the first due card for review if we're in review mode
-      if (processedData && processedData.length > 0 && isReviewing) {
-        setCurrentReviewCard(processedData[0]);
-      }
-    } catch (error) {
-      console.error('Error fetching due flashcards:', error);
-    }
-  };
-  
-  const fetchStats = async () => {
-    if (!user) return;
-    
-    try {
-      const flashcardStats = await getFlashcardStats(user.id);
-      setStats(flashcardStats);
-    } catch (error) {
-      console.error('Error fetching flashcard stats:', error);
-    }
-  };
+  useEffect(() => {
+    loadFlashcards();
+  }, []);
 
+  // Create a new flashcard
   const handleCreateFlashcard = () => {
     setIsCreating(true);
     setActiveTab('create');
   };
 
+  // Flashcard created handler
   const handleFlashcardCreated = () => {
     setIsCreating(false);
     setActiveTab('all');
-    fetchFlashcards();
-    fetchDueFlashcards();
-    fetchStats();
-    
-    toast({
-      title: 'Flashcard created',
-      description: 'Your new flashcard has been added.',
-    });
+    loadFlashcards();
   };
 
+  // Start review handler
   const handleStartReview = () => {
-    if (dueFlashcards.length === 0) {
-      toast({
-        title: 'No cards to review',
-        description: 'You don\'t have any flashcards due for review right now.',
-      });
-      return;
-    }
-    
-    setIsReviewing(true);
-    setCurrentReviewCard(dueFlashcards[0]);
     setActiveTab('review');
   };
 
-  const handleCompleteReview = () => {
-    // Move to the next card or finish review
-    const currentIndex = dueFlashcards.findIndex(card => card.id === currentReviewCard?.id);
-    if (currentIndex < dueFlashcards.length - 1) {
-      // Move to next card
-      setCurrentReviewCard(dueFlashcards[currentIndex + 1]);
-    } else {
-      // Finish review
-      setIsReviewing(false);
-      setCurrentReviewCard(null);
-      fetchDueFlashcards();
-      fetchStats();
-      setActiveTab('all');
-      
-      toast({
-        title: 'Review complete',
-        description: 'Your progress has been saved.',
-      });
-    }
-  };
-
+  // Update stats handler
   const handleUpdateStats = () => {
-    fetchStats();
+    loadFlashcards();
   };
 
   return {
@@ -163,15 +98,11 @@ export const useFlashcardsPage = () => {
     setIsCreating,
     flashcards,
     dueFlashcards,
-    currentReviewCard,
     isLoading,
-    isReviewing,
     stats,
-    fetchFlashcards,
     handleCreateFlashcard,
     handleFlashcardCreated,
     handleStartReview,
-    handleCompleteReview,
     handleUpdateStats
   };
-};
+}

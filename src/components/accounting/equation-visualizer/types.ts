@@ -20,3 +20,12 @@ export interface Transaction {
     decreases: string[];
   };
 }
+
+// Define type for updateComponent function
+export type UpdateComponentFunction = (
+  type: 'assets' | 'liabilities' | 'equity',
+  id: string,
+  value: number,
+  name?: string,
+  remove?: boolean
+) => void;

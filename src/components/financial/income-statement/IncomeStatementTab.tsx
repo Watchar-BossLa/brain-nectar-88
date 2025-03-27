@@ -5,7 +5,7 @@ import { ArrowDownToLine } from 'lucide-react';
 import { IncomeStatementItem } from '../types';
 import IncomeStatementTable from './IncomeStatementTable';
 import IncomeStatementForm from './IncomeStatementForm';
-import { exportToCSV } from '../utils/exportUtils';
+import { exportToCSV, formatCurrency } from '../utils/exportUtils';
 
 const IncomeStatementTab: React.FC = () => {
   // Income Statement State
@@ -63,6 +63,11 @@ const IncomeStatementTab: React.FC = () => {
     setIncomeItems(incomeItems.filter(item => item.id !== id));
   };
 
+  // Handle export to CSV
+  const handleExportToCsv = () => {
+    exportToCSV(incomeItems, 'income_statement.csv');
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -70,7 +75,7 @@ const IncomeStatementTab: React.FC = () => {
         <Button 
           variant="outline" 
           size="sm" 
-          onClick={() => exportToCSV(incomeItems, 'income_statement')}
+          onClick={handleExportToCsv}
         >
           <ArrowDownToLine className="mr-2 h-4 w-4" />
           Export
