@@ -1,15 +1,16 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Filter, X, Download, BookOpen, RefreshCw } from 'lucide-react';
+import { Search, Filter, X, Download, BookOpen, RefreshCw, ArrowUpDown } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import ComparisonTool from './ComparisonTool';
 
 interface AccountingStandard {
   id: string;
@@ -52,8 +53,9 @@ const StandardsLibrary: React.FC<StandardsLibraryProps> = ({
   const [dateRangeFilter, setDateRangeFilter] = useState<string>('all');
   const [exactMatchOnly, setExactMatchOnly] = useState(false);
   const [searchInContent, setSearchInContent] = useState(true);
+  const [showComparisonTool, setShowComparisonTool] = useState(false);
+  const [selectedStandards, setSelectedStandards] = useState<string[]>([]);
   
-  // Sample standards data with more fields
   const enhancedStandards: AccountingStandard[] = [
     {
       id: 'GAAP-ASC-606',
@@ -139,10 +141,60 @@ const StandardsLibrary: React.FC<StandardsLibraryProps> = ({
       ],
       relatedStandards: ['IFRS-3', 'IFRS-36'],
       searchKeywords: ['goodwill', 'intangible', 'impairment', 'asset', 'amortization']
+    },
+    {
+      id: 'IFRS-36',
+      name: 'IAS 36 - Impairment of Assets',
+      description: 'Ensures that assets are carried at no more than their recoverable amount and defines how recoverable amount is determined.',
+      framework: 'IFRS',
+      category: 'Assets',
+      lastUpdated: '2021-01-15',
+      effectiveDate: '2004-03-31',
+      content: '<p>IAS 36 seeks to ensure that an entity\'s assets are not carried at more than their recoverable amount. An asset is carried at more than its recoverable amount if its carrying amount exceeds the amount to be recovered through use or sale of the asset.</p><p>If this is the case, the asset is described as impaired and the standard requires the entity to recognize an impairment loss.</p>',
+      examples: [
+        'Goodwill impairment testing',
+        'Property, plant and equipment impairment',
+        'Intangible asset impairment'
+      ],
+      relatedStandards: ['GAAP-ASC-350'],
+      searchKeywords: ['impairment', 'assets', 'recoverable amount', 'goodwill', 'intangible']
+    },
+    {
+      id: 'GAAP-ASC-230',
+      name: 'ASC 230 - Statement of Cash Flows',
+      description: 'Provides guidance on cash flow statement preparation and classification of cash receipts and payments.',
+      framework: 'GAAP',
+      category: 'Financial Statements',
+      lastUpdated: '2019-11-10',
+      effectiveDate: '2016-01-01',
+      content: '<p>ASC 230 establishes standards for cash flow reporting. It requires a statement of cash flows as part of a full set of financial statements for all business entities.</p><p>The statement classifies cash receipts and payments according to whether they stem from operating, investing, or financing activities.</p>',
+      examples: [
+        'Classification of interest and dividends',
+        'Reporting non-cash transactions',
+        'Direct vs. indirect method'
+      ],
+      relatedStandards: ['IFRS-7'],
+      searchKeywords: ['cash flow', 'statement', 'operating', 'investing', 'financing']
+    },
+    {
+      id: 'IFRS-7',
+      name: 'IAS 7 - Statement of Cash Flows',
+      description: 'Requires presentation of information about historical changes in cash and cash equivalents by means of a statement of cash flows.',
+      framework: 'IFRS',
+      category: 'Financial Statements',
+      lastUpdated: '2022-01-10',
+      effectiveDate: '1994-01-01',
+      content: '<p>IAS 7 requires an entity to present a statement of cash flows as an integral part of its primary financial statements.</p><p>Cash flows are classified and presented into operating activities, investing activities or financing activities.</p>',
+      examples: [
+        'Operating activities classification',
+        'Treatment of interest and dividends',
+        'Foreign currency cash flows'
+      ],
+      relatedStandards: ['GAAP-ASC-230'],
+      searchKeywords: ['cash flow', 'statement', 'operating', 'investing', 'financing']
     }
   ];
   
-  // Combine provided standards with enhanced ones, avoiding duplicates
   const combinedStandards = [...standards];
   enhancedStandards.forEach(enhancedStandard => {
     if (!combinedStandards.some(std => std.id === enhancedStandard.id)) {
@@ -150,47 +202,35 @@ const StandardsLibrary: React.FC<StandardsLibraryProps> = ({
     }
   });
   
-  // Extract all available categories from standards
   const categories = ['all', ...new Set(combinedStandards
     .filter(std => std.category)
     .map(std => std.category as string))];
   
-  // Filter standards based on search query, active framework, and other filters
   const performSearch = () => {
     setIsSearching(true);
     onSearchStart?.();
     
-    // Add to recent searches if not empty and not already in list
     if (searchQuery && !recentSearches.includes(searchQuery)) {
       setRecentSearches(prev => [searchQuery, ...prev.slice(0, 4)]);
     }
     
-    // Simulate search delay
     setTimeout(() => {
       const filteredStandards = combinedStandards.filter(standard => {
-        // Framework filter
         const matchesFramework = activeFramework === 'all' || standard.framework === activeFramework;
-        
-        // Category filter
         const matchesCategory = categoryFilter === 'all' || standard.category === categoryFilter;
+        const matchesDateRange = dateRangeFilter === 'all';
         
-        // Date range filter (simplified for this example)
-        const matchesDateRange = dateRangeFilter === 'all'; // Implement actual date filtering as needed
-        
-        // Search query
         let matchesQuery = true;
         if (searchQuery) {
           const query = searchQuery.toLowerCase();
           
           if (exactMatchOnly) {
-            // Exact match only
             matchesQuery = 
               standard.name.toLowerCase() === query || 
               standard.description.toLowerCase() === query || 
               standard.id.toLowerCase() === query || 
               (searchInContent && standard.content.toLowerCase() === query);
           } else {
-            // Partial match
             matchesQuery = 
               standard.name.toLowerCase().includes(query) || 
               standard.description.toLowerCase().includes(query) || 
@@ -206,7 +246,6 @@ const StandardsLibrary: React.FC<StandardsLibraryProps> = ({
       setIsSearching(false);
       onSearchComplete?.(filteredStandards);
       
-      // If no results, show a toast
       if (filteredStandards.length === 0 && searchQuery) {
         toast({
           title: "No standards found",
@@ -216,7 +255,6 @@ const StandardsLibrary: React.FC<StandardsLibraryProps> = ({
     }, 600);
   };
   
-  // Debounced search
   useEffect(() => {
     const handler = setTimeout(() => {
       performSearch();
@@ -227,7 +265,6 @@ const StandardsLibrary: React.FC<StandardsLibraryProps> = ({
     };
   }, [searchQuery, activeFramework, categoryFilter, dateRangeFilter, exactMatchOnly, searchInContent]);
   
-  // Get filtered standards
   const filteredStandards = combinedStandards.filter(standard => {
     const matchesFramework = activeFramework === 'all' || standard.framework === activeFramework;
     const matchesCategory = categoryFilter === 'all' || standard.category === categoryFilter;
@@ -258,6 +295,25 @@ const StandardsLibrary: React.FC<StandardsLibraryProps> = ({
     }
   };
 
+  const toggleStandardSelection = (id: string) => {
+    if (selectedStandards.includes(id)) {
+      setSelectedStandards(prev => prev.filter(standardId => standardId !== id));
+    } else {
+      if (selectedStandards.length < 2) {
+        setSelectedStandards(prev => [...prev, id]);
+      } else {
+        toast({
+          title: "Maximum Selection Reached",
+          description: "You can only compare up to 2 standards at a time",
+        });
+      }
+    }
+  };
+
+  const getSelectedStandardsData = () => {
+    return combinedStandards.filter(standard => selectedStandards.includes(standard.id));
+  };
+
   return (
     <Card className={className}>
       <CardHeader>
@@ -278,6 +334,17 @@ const StandardsLibrary: React.FC<StandardsLibraryProps> = ({
               <Filter className="h-4 w-4" />
               <span>Filters</span>
             </Button>
+            {selectedStandards.length > 0 && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="flex items-center gap-2"
+                onClick={() => setShowComparisonTool(true)}
+              >
+                <ArrowUpDown className="h-4 w-4" />
+                <span>Compare ({selectedStandards.length})</span>
+              </Button>
+            )}
             <Button 
               variant="outline" 
               size="sm"
@@ -436,7 +503,9 @@ const StandardsLibrary: React.FC<StandardsLibraryProps> = ({
             <StandardsList 
               standards={filteredStandards} 
               bookmarks={bookmarks}
+              selectedStandards={selectedStandards}
               onToggleBookmark={toggleBookmark}
+              onToggleSelection={toggleStandardSelection}
             />
           </TabsContent>
           
@@ -444,7 +513,9 @@ const StandardsLibrary: React.FC<StandardsLibraryProps> = ({
             <StandardsList 
               standards={filteredStandards} 
               bookmarks={bookmarks}
+              selectedStandards={selectedStandards}
               onToggleBookmark={toggleBookmark}
+              onToggleSelection={toggleStandardSelection}
             />
           </TabsContent>
           
@@ -452,7 +523,9 @@ const StandardsLibrary: React.FC<StandardsLibraryProps> = ({
             <StandardsList 
               standards={filteredStandards} 
               bookmarks={bookmarks}
+              selectedStandards={selectedStandards}
               onToggleBookmark={toggleBookmark}
+              onToggleSelection={toggleStandardSelection}
             />
           </TabsContent>
           
@@ -460,7 +533,9 @@ const StandardsLibrary: React.FC<StandardsLibraryProps> = ({
             <StandardsList 
               standards={filteredStandards} 
               bookmarks={bookmarks}
+              selectedStandards={selectedStandards}
               onToggleBookmark={toggleBookmark}
+              onToggleSelection={toggleStandardSelection}
             />
           </TabsContent>
           
@@ -468,7 +543,9 @@ const StandardsLibrary: React.FC<StandardsLibraryProps> = ({
             <StandardsList 
               standards={filteredStandards} 
               bookmarks={bookmarks}
+              selectedStandards={selectedStandards}
               onToggleBookmark={toggleBookmark}
+              onToggleSelection={toggleStandardSelection}
             />
           </TabsContent>
           
@@ -476,7 +553,9 @@ const StandardsLibrary: React.FC<StandardsLibraryProps> = ({
             <StandardsList 
               standards={filteredStandards} 
               bookmarks={bookmarks}
+              selectedStandards={selectedStandards}
               onToggleBookmark={toggleBookmark}
+              onToggleSelection={toggleStandardSelection}
             />
           </TabsContent>
           
@@ -484,24 +563,44 @@ const StandardsLibrary: React.FC<StandardsLibraryProps> = ({
             <StandardsList 
               standards={filteredStandards} 
               bookmarks={bookmarks}
+              selectedStandards={selectedStandards}
               onToggleBookmark={toggleBookmark}
+              onToggleSelection={toggleStandardSelection}
             />
           </TabsContent>
         </Tabs>
       </CardContent>
+
+      <Dialog open={showComparisonTool} onOpenChange={setShowComparisonTool}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Standards Comparison Tool</DialogTitle>
+            <DialogDescription>
+              Compare accounting standards across different frameworks
+            </DialogDescription>
+          </DialogHeader>
+          <ComparisonTool 
+            standards={getSelectedStandardsData()} 
+            onClose={() => setShowComparisonTool(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
 
-// Helper component to display the list of standards
 const StandardsList: React.FC<{ 
   standards: AccountingStandard[],
   bookmarks: string[],
-  onToggleBookmark: (id: string) => void
+  selectedStandards: string[],
+  onToggleBookmark: (id: string) => void,
+  onToggleSelection: (id: string) => void
 }> = ({ 
   standards,
   bookmarks,
-  onToggleBookmark
+  selectedStandards,
+  onToggleBookmark,
+  onToggleSelection
 }) => {
   const [expandedStandard, setExpandedStandard] = useState<string | null>(null);
   
@@ -522,7 +621,7 @@ const StandardsList: React.FC<{
       </p>
       
       {standards.map(standard => (
-        <Card key={standard.id} className="overflow-hidden">
+        <Card key={standard.id} className={`overflow-hidden ${selectedStandards.includes(standard.id) ? 'border-primary' : ''}`}>
           <div
             className="p-4 cursor-pointer hover:bg-muted"
             onClick={() => setExpandedStandard(expandedStandard === standard.id ? null : standard.id)}
@@ -548,6 +647,16 @@ const StandardsList: React.FC<{
                 )}
               </div>
               <div className="flex items-center gap-2">
+                <Button 
+                  variant={selectedStandards.includes(standard.id) ? "default" : "outline"}
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleSelection(standard.id);
+                  }}
+                >
+                  {selectedStandards.includes(standard.id) ? "Selected" : "Select for Compare"}
+                </Button>
                 <Button 
                   variant="ghost" 
                   size="icon"

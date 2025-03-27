@@ -1,48 +1,41 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { 
-  getUserFlashcards, 
-  getDueFlashcards, 
-  getFlashcardStats,
-  type FlashcardLearningStats 
-} from '@/services/spacedRepetition';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/components/ui/use-toast';
 
+// Define proper types for our hook
 export interface Flashcard {
   id: string;
-  front: string;
-  back: string;
-  dueDate?: Date;
-  lastReviewed?: Date;
-  repetitionCount?: number;
-  easinessFactor?: number;
-  interval?: number;
-  topicId?: string | null;
-  // Add missing properties from Supabase Flashcard type
   user_id?: string;
+  topicId?: string | null;
+  topic_id?: string | null;
+  front?: string;
+  back?: string;
   front_content?: string;
   back_content?: string;
   difficulty?: number;
-  mastery_level?: number;
   next_review_date?: string;
+  repetitionCount?: number;
+  mastery_level?: number;
   created_at?: string;
   updated_at?: string;
+  easinessFactor?: number;
   last_retention?: number;
-  last_reviewed_at?: string;
-  topic_id?: string;
+  last_reviewed_at?: string | null;
 }
 
-// Extension of the existing type to ensure compatibility
-export interface ExtendedFlashcardStats {
+export interface FlashcardLearningStats {
   totalCards: number;
-  dueCards: number;
   masteredCards: number;
-  learningCards: number;
-  newCards: number;
-  reviewedToday: number;
-  averageRetention: number;
-  streakDays: number;
-  averageDifficulty?: number;
+  dueCards: number;
+  averageDifficulty: number;
+  reviewsToday: number;
+  // Extended stats
+  learningCards?: number;
+  newCards?: number;
+  reviewedToday?: number;
+  averageRetention?: number;
+  streakDays?: number;
   totalReviews?: number;
   averageEaseFactor?: number;
   retentionRate?: number;
@@ -51,115 +44,253 @@ export interface ExtendedFlashcardStats {
   recommendedDailyReviews?: number;
 }
 
-export function useFlashcardsPage() {
-  const [activeTab, setActiveTab] = useState('all');
-  const [isCreating, setIsCreating] = useState(false);
+export interface UseFlashcardsReturn {
+  flashcards: Flashcard[];
+  dueFlashcards: Flashcard[];
+  stats: FlashcardLearningStats;
+  loading: boolean;
+  error: Error | null;
+  refreshFlashcards: () => Promise<void>;
+  createFlashcard: (flashcard: Partial<Flashcard>) => Promise<void>;
+  updateFlashcard: (id: string, updates: Partial<Flashcard>) => Promise<void>;
+  deleteFlashcard: (id: string) => Promise<void>;
+}
+
+export const useFlashcardsPage = (): UseFlashcardsReturn => {
+  const { toast } = useToast();
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [dueFlashcards, setDueFlashcards] = useState<Flashcard[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [stats, setStats] = useState<ExtendedFlashcardStats>({
+  const [stats, setStats] = useState<FlashcardLearningStats>({
     totalCards: 0,
-    dueCards: 0,
     masteredCards: 0,
-    learningCards: 0,
-    newCards: 0,
-    reviewedToday: 0,
-    averageRetention: 0,
-    streakDays: 0,
-    averageDifficulty: 0
+    dueCards: 0,
+    averageDifficulty: 0,
+    reviewsToday: 0
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  // Load flashcards and stats
-  const loadFlashcards = async () => {
-    setIsLoading(true);
+  const refreshFlashcards = async () => {
     try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.error('No authenticated user found');
-        setIsLoading(false);
-        return;
-      }
+      setLoading(true);
       
-      // In a real app, these would be API calls to get data from the backend
-      const userFlashcardsResult = await getUserFlashcards(user.id);
-      const dueCardsResult = await getDueFlashcards(user.id);
-      const flashcardStats = await getFlashcardStats(user.id);
+      // Fetch all flashcards
+      const { data: allFlashcards, error: allError } = await supabase
+        .from('flashcards')
+        .select('*')
+        .order('created_at', { ascending: false });
       
-      if (userFlashcardsResult && userFlashcardsResult.data) {
-        setFlashcards(userFlashcardsResult.data || []);
-      }
+      if (allError) throw allError;
       
-      if (dueCardsResult && dueCardsResult.data) {
-        setDueFlashcards(dueCardsResult.data || []);
-      }
+      // Fetch due flashcards (next_review_date <= current time)
+      const { data: dueCards, error: dueError } = await supabase
+        .from('flashcards')
+        .select('*')
+        .lte('next_review_date', new Date().toISOString())
+        .order('next_review_date', { ascending: true });
       
-      if (flashcardStats) {
-        const statsToSet: ExtendedFlashcardStats = {
-          totalCards: flashcardStats.totalCards || 0,
-          dueCards: flashcardStats.dueCards || 0,
-          masteredCards: flashcardStats.masteredCards || 0,
-          learningCards: flashcardStats.learningCards || 0,
-          newCards: flashcardStats.newCards || 0,
-          reviewedToday: flashcardStats.reviewsToday || 0,
-          averageRetention: flashcardStats.averageRetention || 0,
-          streakDays: flashcardStats.streakDays || 0,
-          averageDifficulty: flashcardStats.averageDifficulty || 0,
-          totalReviews: flashcardStats.totalReviews,
-          averageEaseFactor: flashcardStats.averageEaseFactor,
-          retentionRate: flashcardStats.retentionRate,
-          strugglingCardCount: flashcardStats.strugglingCardCount,
-          learningEfficiency: flashcardStats.learningEfficiency,
-          recommendedDailyReviews: flashcardStats.recommendedDailyReviews
-        };
-        setStats(statsToSet);
-      }
-    } catch (error) {
-      console.error('Error loading flashcards:', error);
+      if (dueError) throw dueError;
+      
+      setFlashcards(allFlashcards || []);
+      setDueFlashcards(dueCards || []);
+      
+      // Calculate stats
+      const masteredCount = (allFlashcards || []).filter(card => card.mastery_level && card.mastery_level >= 0.9).length;
+      const avgDifficulty = (allFlashcards || []).reduce((sum, card) => sum + (card.difficulty || 0), 0) / 
+                          ((allFlashcards || []).length || 1);
+      
+      // Count reviews done today
+      const today = new Date().toISOString().split('T')[0];
+      const reviewsToday = (allFlashcards || []).filter(card => 
+        card.last_reviewed_at && card.last_reviewed_at.startsWith(today)
+      ).length;
+      
+      const newStats: FlashcardLearningStats = {
+        totalCards: (allFlashcards || []).length,
+        masteredCards: masteredCount,
+        dueCards: (dueCards || []).length,
+        averageDifficulty: Number(avgDifficulty.toFixed(2)),
+        reviewsToday,
+        // Set extended stats with default values
+        learningCards: (allFlashcards || []).filter(card => 
+          card.mastery_level && card.mastery_level > 0 && card.mastery_level < 0.9
+        ).length,
+        newCards: (allFlashcards || []).filter(card => 
+          !card.mastery_level || card.mastery_level === 0
+        ).length,
+        reviewedToday: reviewsToday,
+        averageRetention: 0.85, // Default placeholder
+        streakDays: 1, // Default placeholder
+        totalReviews: (allFlashcards || []).reduce((sum, card) => sum + (card.repetitionCount || 0), 0),
+        averageEaseFactor: (allFlashcards || []).reduce((sum, card) => sum + (card.easinessFactor || 2.5), 0) / 
+                          ((allFlashcards || []).length || 1),
+        retentionRate: 0.85, // Default placeholder
+        strugglingCardCount: (allFlashcards || []).filter(card => 
+          card.difficulty && card.difficulty >= 3
+        ).length,
+        learningEfficiency: 0.75, // Default placeholder
+        recommendedDailyReviews: Math.min(20, Math.ceil((dueCards || []).length * 1.2)) // Simple formula
+      };
+      
+      setStats(newStats);
+    } catch (err) {
+      console.error('Error fetching flashcards:', err);
+      setError(err as Error);
+      toast({
+        title: 'Error fetching flashcards',
+        description: (err as Error).message,
+        variant: 'destructive',
+      });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
+    }
+  };
+
+  const createFlashcard = async (flashcard: Partial<Flashcard>) => {
+    try {
+      setLoading(true);
+      
+      // Ensure required fields
+      if (!flashcard.front && !flashcard.front_content) {
+        throw new Error('Front content is required');
+      }
+      
+      if (!flashcard.back && !flashcard.back_content) {
+        throw new Error('Back content is required');
+      }
+      
+      // Prepare data for insert
+      const newFlashcard = {
+        front_content: flashcard.front || flashcard.front_content,
+        back_content: flashcard.back || flashcard.back_content,
+        topic_id: flashcard.topicId || flashcard.topic_id || null,
+        difficulty: flashcard.difficulty || 1,
+        mastery_level: 0,
+        next_review_date: new Date().toISOString(),
+        easiness_factor: 2.5,
+        repetition_count: 0
+      };
+      
+      const { data, error: insertError } = await supabase
+        .from('flashcards')
+        .insert([newFlashcard])
+        .select();
+      
+      if (insertError) throw insertError;
+      
+      toast({
+        title: 'Flashcard created',
+        description: 'Your new flashcard has been added',
+      });
+      
+      // Refresh flashcards to update the list
+      await refreshFlashcards();
+    } catch (err) {
+      console.error('Error creating flashcard:', err);
+      setError(err as Error);
+      toast({
+        title: 'Error creating flashcard',
+        description: (err as Error).message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateFlashcard = async (id: string, updates: Partial<Flashcard>) => {
+    try {
+      setLoading(true);
+      
+      // Prepare data for update
+      const updateData: any = {};
+      if (updates.front || updates.front_content) {
+        updateData.front_content = updates.front || updates.front_content;
+      }
+      if (updates.back || updates.back_content) {
+        updateData.back_content = updates.back || updates.back_content;
+      }
+      if (updates.difficulty !== undefined) {
+        updateData.difficulty = updates.difficulty;
+      }
+      if (updates.topicId || updates.topic_id) {
+        updateData.topic_id = updates.topicId || updates.topic_id;
+      }
+      if (updates.next_review_date) {
+        updateData.next_review_date = updates.next_review_date;
+      }
+      
+      const { error: updateError } = await supabase
+        .from('flashcards')
+        .update(updateData)
+        .eq('id', id);
+      
+      if (updateError) throw updateError;
+      
+      toast({
+        title: 'Flashcard updated',
+        description: 'Your flashcard has been updated',
+      });
+      
+      // Refresh flashcards to update the list
+      await refreshFlashcards();
+    } catch (err) {
+      console.error('Error updating flashcard:', err);
+      setError(err as Error);
+      toast({
+        title: 'Error updating flashcard',
+        description: (err as Error).message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteFlashcard = async (id: string) => {
+    try {
+      setLoading(true);
+      
+      const { error: deleteError } = await supabase
+        .from('flashcards')
+        .delete()
+        .eq('id', id);
+      
+      if (deleteError) throw deleteError;
+      
+      toast({
+        title: 'Flashcard deleted',
+        description: 'Your flashcard has been removed',
+      });
+      
+      // Refresh flashcards to update the list
+      await refreshFlashcards();
+    } catch (err) {
+      console.error('Error deleting flashcard:', err);
+      setError(err as Error);
+      toast({
+        title: 'Error deleting flashcard',
+        description: (err as Error).message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadFlashcards();
+    refreshFlashcards();
   }, []);
 
-  // Create a new flashcard
-  const handleCreateFlashcard = () => {
-    setIsCreating(true);
-    setActiveTab('create');
-  };
-
-  // Flashcard created handler
-  const handleFlashcardCreated = () => {
-    setIsCreating(false);
-    setActiveTab('all');
-    loadFlashcards();
-  };
-
-  // Start review handler
-  const handleStartReview = () => {
-    setActiveTab('review');
-  };
-
-  // Update stats handler
-  const handleUpdateStats = () => {
-    loadFlashcards();
-  };
-
   return {
-    activeTab,
-    setActiveTab,
-    isCreating,
-    setIsCreating,
     flashcards,
     dueFlashcards,
-    isLoading,
     stats,
-    handleCreateFlashcard,
-    handleFlashcardCreated,
-    handleStartReview,
-    handleUpdateStats
+    loading,
+    error,
+    refreshFlashcards,
+    createFlashcard,
+    updateFlashcard,
+    deleteFlashcard
   };
-}
+};
