@@ -27,17 +27,32 @@ export function useFlashcardReview(onComplete: () => void) {
         {
           id: '1',
           front: 'What is the accounting equation?',
-          back: 'Assets = Liabilities + Equity'
+          back: 'Assets = Liabilities + Equity',
+          front_content: 'What is the accounting equation?',
+          back_content: 'Assets = Liabilities + Equity',
+          topicId: 'accounting-basics',
+          repetitionCount: 2,
+          topic_id: 'accounting-basics'
         },
         {
           id: '2',
           front: 'What is working capital?',
-          back: 'Current Assets - Current Liabilities'
+          back: 'Current Assets - Current Liabilities',
+          front_content: 'What is working capital?',
+          back_content: 'Current Assets - Current Liabilities',
+          topicId: 'financial-analysis',
+          repetitionCount: 1,
+          topic_id: 'financial-analysis'
         },
         {
           id: '3',
           front: 'What is depreciation?',
-          back: 'The systematic allocation of the cost of an asset over its useful life'
+          back: 'The systematic allocation of the cost of an asset over its useful life',
+          front_content: 'What is depreciation?',
+          back_content: 'The systematic allocation of the cost of an asset over its useful life',
+          topicId: 'accounting-principles',
+          repetitionCount: 3,
+          topic_id: 'accounting-principles'
         }
       ];
       
@@ -50,11 +65,6 @@ export function useFlashcardReview(onComplete: () => void) {
 
   const currentCard = reviewCards[currentCardIndex];
   
-  // Properties and methods needed by FlashcardReview.tsx
-  const reviewsCompleted = reviewStats.totalReviewed;
-  const totalToReview = reviewCards.length;
-  const currentFlashcard = currentCard;
-
   // Show the answer for the current card
   const showAnswer = () => {
     setReviewState('answering');
@@ -137,11 +147,8 @@ export function useFlashcardReview(onComplete: () => void) {
     completeReview,
     // Additional properties needed by FlashcardReview.tsx
     isLoading,
-    flashcards: reviewCards,
-    currentIndex: currentCardIndex,
-    reviewsCompleted,
-    totalToReview,
-    currentFlashcard,
+    reviewCards,
+    currentCardIndex,
     handleFlip,
     handleDifficultyRating,
     handleSkip

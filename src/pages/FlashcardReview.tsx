@@ -10,11 +10,10 @@ import RatingButtons from '@/components/flashcards/review-page/RatingButtons';
 const FlashcardReview = () => {
   const {
     isLoading,
-    flashcards,
-    currentIndex,
-    reviewsCompleted,
-    totalToReview,
-    currentFlashcard,
+    reviewCards,
+    currentCardIndex,
+    reviewStats,
+    currentCard,
     reviewState,
     handleFlip,
     handleDifficultyRating,
@@ -28,10 +27,12 @@ const FlashcardReview = () => {
     return <LoadingSkeleton />;
   }
 
-  if (!flashcards || flashcards.length === 0) {
+  if (!reviewCards || reviewCards.length === 0) {
     return <EmptyReviewState />;
   }
 
+  const reviewsCompleted = reviewStats.totalReviewed || 0;
+  const totalToReview = reviewCards.length || 0;
   const isFlipped = reviewState === 'answering';
 
   return (
@@ -41,9 +42,15 @@ const FlashcardReview = () => {
         totalToReview={totalToReview} 
       />
       
-      {currentFlashcard && (
+      {currentCard && (
         <FlashcardView
-          flashcard={currentFlashcard}
+          flashcard={{
+            ...currentCard,
+            front_content: currentCard.front || currentCard.front_content || '',
+            back_content: currentCard.back || currentCard.back_content || '',
+            topic_id: currentCard.topicId || null,
+            repetition_count: currentCard.repetitionCount || 0
+          }}
           isFlipped={isFlipped}
           onFlip={handleFlip}
         />

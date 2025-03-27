@@ -29,6 +29,7 @@ export interface Flashcard {
   updated_at?: string;
   last_retention?: number;
   last_reviewed_at?: string;
+  topic_id?: string;
 }
 
 export function useFlashcardsPage() {
@@ -65,18 +66,28 @@ export function useFlashcardsPage() {
       const dueCardsResult = await getDueFlashcards(user.id);
       const flashcardStats = await getFlashcardStats(user.id);
       
-      setFlashcards(userFlashcardsResult?.data || []);
-      setDueFlashcards(dueCardsResult?.data || []);
-      setStats(flashcardStats || {
-        totalCards: (userFlashcardsResult?.data || []).length || 0,
-        dueCards: (dueCardsResult?.data || []).length || 0,
-        masteredCards: 0,
-        learningCards: 0,
-        newCards: 0,
-        reviewedToday: 0,
-        averageRetention: 0,
-        streakDays: 0
-      });
+      if (userFlashcardsResult && userFlashcardsResult.data) {
+        setFlashcards(userFlashcardsResult.data || []);
+      }
+      
+      if (dueCardsResult && dueCardsResult.data) {
+        setDueFlashcards(dueCardsResult.data || []);
+      }
+      
+      if (flashcardStats) {
+        const statsToSet: FlashcardLearningStats = {
+          totalCards: flashcardStats.totalCards || 0,
+          dueCards: flashcardStats.dueCards || 0,
+          masteredCards: flashcardStats.masteredCards || 0,
+          learningCards: flashcardStats.learningCards || 0,
+          newCards: flashcardStats.newCards || 0,
+          reviewedToday: flashcardStats.reviewsToday || 0,
+          averageRetention: flashcardStats.averageRetention || 0,
+          streakDays: flashcardStats.streakDays || 0,
+          averageDifficulty: flashcardStats.averageDifficulty
+        };
+        setStats(statsToSet);
+      }
     } catch (error) {
       console.error('Error loading flashcards:', error);
     } finally {

@@ -91,8 +91,7 @@ export const getFlashcardLearningStats = async (
     const { data: flashcards, error } = await supabase
       .from('flashcards')
       .select('*')
-      .eq('user_id', userId)
-      .gt('repetition_count', 0);
+      .eq('user_id', userId);
       
     if (error) {
       throw error;
@@ -100,10 +99,17 @@ export const getFlashcardLearningStats = async (
     
     if (!flashcards || flashcards.length === 0) {
       return {
+        totalCards: 0,
+        dueCards: 0,
+        masteredCards: 0,
+        learningCards: 0,
+        newCards: 0,
+        reviewedToday: 0,
+        averageRetention: 0,
+        streakDays: 0,
         totalReviews: 0,
         averageEaseFactor: 0,
         retentionRate: 0,
-        masteredCardCount: 0,
         strugglingCardCount: 0,
         learningEfficiency: 0,
         recommendedDailyReviews: 0
@@ -115,6 +121,8 @@ export const getFlashcardLearningStats = async (
     let totalRetention = 0;
     let masteredCount = 0;
     let strugglingCount = 0;
+    let learningCount = 0;
+    let newCount = 0;
     
     flashcards.forEach(card => {
       // Sum up ease factors
@@ -126,6 +134,10 @@ export const getFlashcardLearningStats = async (
       // Count mastered cards (high repetition count and high mastery level)
       if (card.repetition_count >= 5 && (card.mastery_level || 0) >= 0.7) {
         masteredCount++;
+      } else if (card.repetition_count > 0) {
+        learningCount++;
+      } else {
+        newCount++;
       }
       
       // Count struggling cards (low ease factor or low mastery level after multiple reviews)
@@ -155,11 +167,38 @@ export const getFlashcardLearningStats = async (
       )
     );
     
+    // Get due cards count
+    const now = new Date();
+    const dueCount = flashcards.filter(card => 
+      new Date(card.next_review_date) <= now
+    ).length;
+    
+    // Get reviews done today
+    const startOfDay = new Date(now);
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const { data: reviewsToday, error: reviewError } = await supabase
+      .from('flashcard_reviews')
+      .select('id')
+      .eq('user_id', userId)
+      .gte('reviewed_at', startOfDay.toISOString());
+      
+    if (reviewError) {
+      throw reviewError;
+    }
+    
     return {
-      totalReviews: flashcards.reduce((sum, card) => sum + card.repetition_count, 0),
+      totalCards: flashcards.length,
+      dueCards: dueCount,
+      masteredCards: masteredCount,
+      learningCards: learningCount,
+      newCards: newCount,
+      reviewedToday: reviewsToday?.length || 0,
+      totalReviews: flashcards.reduce((sum, card) => sum + (card.repetition_count || 0), 0),
+      averageRetention: retentionRate,
+      streakDays: 0, // This would require additional tracking
       averageEaseFactor,
       retentionRate,
-      masteredCardCount: masteredCount,
       strugglingCardCount: strugglingCount,
       learningEfficiency,
       recommendedDailyReviews
@@ -167,13 +206,14 @@ export const getFlashcardLearningStats = async (
   } catch (error) {
     console.error('Error getting flashcard learning stats:', error);
     return {
-      totalReviews: 0,
-      averageEaseFactor: 0,
-      retentionRate: 0,
-      masteredCardCount: 0,
-      strugglingCardCount: 0,
-      learningEfficiency: 0,
-      recommendedDailyReviews: 0
+      totalCards: 0,
+      dueCards: 0,
+      masteredCards: 0,
+      learningCards: 0,
+      newCards: 0,
+      reviewedToday: 0,
+      averageRetention: 0,
+      streakDays: 0
     };
   }
 };

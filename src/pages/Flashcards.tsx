@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,15 +11,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { deleteFlashcard } from '@/services/spacedRepetition';
 import { Loader2, PlusCircle, Calculator, BookText, Brain } from 'lucide-react';
-import { useFlashcardsPage } from '@/hooks/useFlashcardsPage';
+import { useFlashcardsPage, Flashcard } from '@/hooks/useFlashcardsPage';
 import { useToast } from '@/components/ui/use-toast';
 import { Flashcard as SupabaseFlashcard } from '@/types/supabase';
 
-const convertToSupabaseFlashcard = (flashcard: any): SupabaseFlashcard => {
+const convertToSupabaseFlashcard = (flashcard: Flashcard): SupabaseFlashcard => {
   return {
     id: flashcard.id,
     user_id: flashcard.user_id || '',
-    topic_id: flashcard.topicId || null,
+    topic_id: flashcard.topicId || flashcard.topic_id || null,
     front_content: flashcard.front || flashcard.front_content || '',
     back_content: flashcard.back || flashcard.back_content || '',
     difficulty: flashcard.difficulty || 0,
@@ -73,8 +74,18 @@ const Flashcards = () => {
     }
   };
 
+  // Convert our internal flashcard type to the Supabase flashcard type expected by components
   const supabaseFlashcards = flashcards.map(convertToSupabaseFlashcard);
   const supaDueFlashcards = dueFlashcards.map(convertToSupabaseFlashcard);
+
+  // Create a version of stats compatible with FlashcardStats component
+  const compatStats = {
+    totalCards: stats.totalCards,
+    masteredCards: stats.masteredCards,
+    dueCards: stats.dueCards,
+    averageDifficulty: stats.averageDifficulty || 0,
+    reviewsToday: stats.reviewedToday || 0
+  };
 
   return (
     <MainLayout>
