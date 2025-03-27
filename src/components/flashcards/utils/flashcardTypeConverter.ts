@@ -14,11 +14,11 @@ export const convertToSupabaseFlashcard = (flashcard: HookFlashcard): SupabaseFl
     back_content: flashcard.back || flashcard.back_content || '',
     difficulty: flashcard.difficulty || 0,
     next_review_date: flashcard.next_review_date || new Date().toISOString(),
-    repetition_count: flashcard.repetitionCount || 0,
+    repetition_count: flashcard.repetition_count || 0,
     mastery_level: flashcard.mastery_level || 0,
     created_at: flashcard.created_at || new Date().toISOString(),
     updated_at: flashcard.updated_at || new Date().toISOString(),
-    easiness_factor: flashcard.easinessFactor || 2.5,
+    easiness_factor: flashcard.easiness_factor || 2.5,
     last_retention: flashcard.last_retention || 0,
     last_reviewed_at: flashcard.last_reviewed_at || null
   };

@@ -54,6 +54,16 @@ export interface UseFlashcardsReturn {
   createFlashcard: (flashcard: Partial<Flashcard>) => Promise<void>;
   updateFlashcard: (id: string, updates: Partial<Flashcard>) => Promise<void>;
   deleteFlashcard: (id: string) => Promise<void>;
+  // Additional properties for the Flashcards page
+  activeTab?: string;
+  setActiveTab?: (tab: string) => void;
+  isCreating?: boolean;
+  setIsCreating?: (creating: boolean) => void;
+  isLoading?: boolean;
+  handleCreateFlashcard?: () => void;
+  handleFlashcardCreated?: () => void;
+  handleStartReview?: () => void;
+  handleUpdateStats?: () => void;
 }
 
 export const useFlashcardsPage = (): UseFlashcardsReturn => {
@@ -159,8 +169,15 @@ export const useFlashcardsPage = (): UseFlashcardsReturn => {
         throw new Error('Back content is required');
       }
       
+      // Get user ID from current session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.id) {
+        throw new Error('User not authenticated');
+      }
+      
       // Prepare data for insert
       const newFlashcard = {
+        user_id: session.user.id,
         front_content: flashcard.front || flashcard.front_content,
         back_content: flashcard.back || flashcard.back_content,
         topic_id: flashcard.topicId || flashcard.topic_id || null,

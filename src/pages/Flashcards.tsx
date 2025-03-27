@@ -16,19 +16,15 @@ import CreateFlashcardTab from '@/components/flashcards/tabs/CreateFlashcardTab'
 import ReviewFlashcardsTab from '@/components/flashcards/tabs/ReviewFlashcardsTab';
 
 const Flashcards = () => {
+  const [activeTab, setActiveTab] = useState('all');
+  const [isCreating, setIsCreating] = useState(false);
+  
   const {
-    activeTab,
-    setActiveTab,
-    isCreating,
-    setIsCreating,
     flashcards,
     dueFlashcards,
-    isLoading,
     stats,
-    handleCreateFlashcard,
-    handleFlashcardCreated,
-    handleStartReview,
-    handleUpdateStats
+    loading: isLoading,
+    refreshFlashcards
   } = useFlashcardsPage();
   
   const { toast } = useToast();
@@ -54,6 +50,29 @@ const Flashcards = () => {
         variant: 'destructive'
       });
     }
+  };
+
+  // Handle updating stats after changes
+  const handleUpdateStats = () => {
+    refreshFlashcards();
+  };
+
+  // Create new flashcard
+  const handleCreateFlashcard = () => {
+    setIsCreating(true);
+    setActiveTab('create');
+  };
+
+  // Handle flashcard creation completed
+  const handleFlashcardCreated = () => {
+    setIsCreating(false);
+    setActiveTab('all');
+    handleUpdateStats();
+  };
+
+  // Start flashcard review
+  const handleStartReview = () => {
+    setActiveTab('review');
   };
 
   // Create handlers for the different flashcard creation types

@@ -45,11 +45,11 @@ const FlashcardReview = () => {
     back_content: currentCard.back || currentCard.back_content || '',
     difficulty: currentCard.difficulty || 0,
     next_review_date: currentCard.next_review_date || new Date().toISOString(),
-    repetition_count: currentCard.repetitionCount || 0,
+    repetition_count: currentCard.repetition_count || 0,
     mastery_level: currentCard.mastery_level || 0,
     created_at: currentCard.created_at || new Date().toISOString(),
     updated_at: currentCard.updated_at || new Date().toISOString(),
-    easiness_factor: currentCard.easinessFactor || 2.5,
+    easiness_factor: currentCard.easiness_factor || 2.5,
     last_retention: currentCard.last_retention || 0,
     last_reviewed_at: currentCard.last_reviewed_at || null
   } : {} as Flashcard;

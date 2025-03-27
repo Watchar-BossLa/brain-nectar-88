@@ -25,14 +25,17 @@ export const useFlashcardReview = (onComplete: () => void) => {
     hard: 0,
     averageRating: 0
   });
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   const currentCard = cards[currentIndex] || null;
+  const reviewCards = cards; // Expose the cards array for FlashcardReview.tsx
 
   // Fetch due flashcards
   useEffect(() => {
     const fetchDueCards = async () => {
       try {
+        setIsLoading(true);
         const { data, error } = await supabase
           .from('flashcards')
           .select('*')
@@ -50,6 +53,8 @@ export const useFlashcardReview = (onComplete: () => void) => {
           description: 'Failed to load flashcards for review',
           variant: 'destructive'
         });
+      } finally {
+        setIsLoading(false);
       }
     };
     
@@ -60,6 +65,9 @@ export const useFlashcardReview = (onComplete: () => void) => {
   const showAnswer = () => {
     setReviewState('answering');
   };
+  
+  // Alias for showAnswer to match the interface expected by FlashcardReview.tsx
+  const handleFlip = showAnswer;
   
   // Rate the current card and move to the next one
   const rateCard = async (rating: number) => {
@@ -123,6 +131,19 @@ export const useFlashcardReview = (onComplete: () => void) => {
     }
   };
   
+  // Alias for rateCard to match the interface expected by FlashcardReview.tsx
+  const handleDifficultyRating = rateCard;
+  
+  // Skip the current card without rating
+  const handleSkip = () => {
+    if (currentIndex < cards.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+      setReviewState('reviewing');
+    } else {
+      setReviewState('complete');
+    }
+  };
+  
   // Complete the review session
   const completeReview = () => {
     onComplete();
@@ -134,6 +155,13 @@ export const useFlashcardReview = (onComplete: () => void) => {
     reviewStats,
     showAnswer,
     rateCard,
-    completeReview
+    completeReview,
+    // Additional properties for FlashcardReview.tsx
+    isLoading,
+    reviewCards,
+    currentCardIndex: currentIndex,
+    handleFlip,
+    handleDifficultyRating,
+    handleSkip
   };
 };
