@@ -15,10 +15,12 @@ export function useFlashcardReview(onComplete: () => void) {
     hard: 0,
     averageRating: 0
   });
+  const [isLoading, setIsLoading] = useState(true);
 
   // Load due flashcards for review
   useEffect(() => {
     const loadDueCards = async () => {
+      setIsLoading(true);
       // In a real app, this would be an API call to get due cards from the backend
       // For this demo, we'll use mock data
       const mockDueCards: Flashcard[] = [
@@ -40,16 +42,47 @@ export function useFlashcardReview(onComplete: () => void) {
       ];
       
       setReviewCards(mockDueCards);
+      setIsLoading(false);
     };
     
     loadDueCards();
   }, []);
 
   const currentCard = reviewCards[currentCardIndex];
+  
+  // Properties and methods needed by FlashcardReview.tsx
+  const reviewsCompleted = reviewStats.totalReviewed;
+  const totalToReview = reviewCards.length;
+  const currentFlashcard = currentCard;
 
   // Show the answer for the current card
   const showAnswer = () => {
     setReviewState('answering');
+  };
+
+  // Handle flipping the card
+  const handleFlip = () => {
+    if (reviewState === 'reviewing') {
+      setReviewState('answering');
+    } else {
+      setReviewState('reviewing');
+    }
+  };
+
+  // Handle difficulty rating
+  const handleDifficultyRating = async (rating: 0 | 1 | 2 | 3 | 4 | 5) => {
+    await rateCard(rating);
+  };
+
+  // Skip the current card
+  const handleSkip = () => {
+    if (currentCardIndex < reviewCards.length - 1) {
+      setCurrentCardIndex(prev => prev + 1);
+      setReviewState('reviewing');
+      setUserRating(null);
+    } else {
+      setReviewState('complete');
+    }
   };
 
   // Rate the current card and move to the next one
@@ -72,7 +105,9 @@ export function useFlashcardReview(onComplete: () => void) {
     
     try {
       // In a real app, this would update the flashcard in the backend
-      await updateFlashcardAfterReview(currentCard.id, rating);
+      if (currentCard) {
+        await updateFlashcardAfterReview(currentCard.id, rating);
+      }
       
       // Move to the next card or complete the review
       if (currentCardIndex < reviewCards.length - 1) {
@@ -99,6 +134,16 @@ export function useFlashcardReview(onComplete: () => void) {
     reviewStats,
     showAnswer,
     rateCard,
-    completeReview
+    completeReview,
+    // Additional properties needed by FlashcardReview.tsx
+    isLoading,
+    flashcards: reviewCards,
+    currentIndex: currentCardIndex,
+    reviewsCompleted,
+    totalToReview,
+    currentFlashcard,
+    handleFlip,
+    handleDifficultyRating,
+    handleSkip
   };
 }

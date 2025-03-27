@@ -9,25 +9,30 @@ import RatingButtons from '@/components/flashcards/review-page/RatingButtons';
 
 const FlashcardReview = () => {
   const {
-    loading,
+    isLoading,
     flashcards,
     currentIndex,
-    showAnswer,
     reviewsCompleted,
     totalToReview,
     currentFlashcard,
+    reviewState,
     handleFlip,
     handleDifficultyRating,
     handleSkip
-  } = useFlashcardReview();
+  } = useFlashcardReview(() => {
+    // Callback for when review is complete
+    console.log("Review completed");
+  });
 
-  if (loading) {
+  if (isLoading) {
     return <LoadingSkeleton />;
   }
 
-  if (flashcards.length === 0) {
+  if (!flashcards || flashcards.length === 0) {
     return <EmptyReviewState />;
   }
+
+  const isFlipped = reviewState === 'answering';
 
   return (
     <div className="container max-w-5xl py-10">
@@ -39,13 +44,13 @@ const FlashcardReview = () => {
       {currentFlashcard && (
         <FlashcardView
           flashcard={currentFlashcard}
-          isFlipped={showAnswer}
+          isFlipped={isFlipped}
           onFlip={handleFlip}
         />
       )}
       
       <RatingButtons 
-        isFlipped={showAnswer}
+        isFlipped={isFlipped}
         onRating={handleDifficultyRating}
         onSkip={handleSkip}
         onRevealAnswer={handleFlip}

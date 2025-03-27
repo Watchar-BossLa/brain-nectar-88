@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   getUserFlashcards, 
   getDueFlashcards, 
@@ -17,6 +18,17 @@ export interface Flashcard {
   easinessFactor?: number;
   interval?: number;
   topicId?: string | null;
+  // Add missing properties from Supabase Flashcard type
+  user_id?: string;
+  front_content?: string;
+  back_content?: string;
+  difficulty?: number;
+  mastery_level?: number;
+  next_review_date?: string;
+  created_at?: string;
+  updated_at?: string;
+  last_retention?: number;
+  last_reviewed_at?: string;
 }
 
 export function useFlashcardsPage() {
@@ -40,16 +52,24 @@ export function useFlashcardsPage() {
   const loadFlashcards = async () => {
     setIsLoading(true);
     try {
-      // In a real app, these would be API calls to get data from the backend
-      const userFlashcards = await getUserFlashcards();
-      const dueCards = await getDueFlashcards();
-      const flashcardStats = await getFlashcardStats();
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.error('No authenticated user found');
+        setIsLoading(false);
+        return;
+      }
       
-      setFlashcards(userFlashcards || []);
-      setDueFlashcards(dueCards || []);
+      // In a real app, these would be API calls to get data from the backend
+      const userFlashcardsResult = await getUserFlashcards(user.id);
+      const dueCardsResult = await getDueFlashcards(user.id);
+      const flashcardStats = await getFlashcardStats(user.id);
+      
+      setFlashcards(userFlashcardsResult?.data || []);
+      setDueFlashcards(dueCardsResult?.data || []);
       setStats(flashcardStats || {
-        totalCards: userFlashcards?.length || 0,
-        dueCards: dueCards?.length || 0,
+        totalCards: (userFlashcardsResult?.data || []).length || 0,
+        dueCards: (dueCardsResult?.data || []).length || 0,
         masteredCards: 0,
         learningCards: 0,
         newCards: 0,

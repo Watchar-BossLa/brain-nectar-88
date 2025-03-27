@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FlashcardForm from '@/components/flashcards/FlashcardForm';
@@ -13,6 +12,26 @@ import { deleteFlashcard } from '@/services/spacedRepetition';
 import { Loader2, PlusCircle, Calculator, BookText, Brain } from 'lucide-react';
 import { useFlashcardsPage } from '@/hooks/useFlashcardsPage';
 import { useToast } from '@/components/ui/use-toast';
+import { Flashcard as SupabaseFlashcard } from '@/types/supabase';
+
+const convertToSupabaseFlashcard = (flashcard: any): SupabaseFlashcard => {
+  return {
+    id: flashcard.id,
+    user_id: flashcard.user_id || '',
+    topic_id: flashcard.topicId || null,
+    front_content: flashcard.front || flashcard.front_content || '',
+    back_content: flashcard.back || flashcard.back_content || '',
+    difficulty: flashcard.difficulty || 0,
+    next_review_date: flashcard.next_review_date || new Date().toISOString(),
+    repetition_count: flashcard.repetitionCount || 0,
+    mastery_level: flashcard.mastery_level || 0,
+    created_at: flashcard.created_at || new Date().toISOString(),
+    updated_at: flashcard.updated_at || new Date().toISOString(),
+    easiness_factor: flashcard.easinessFactor || 2.5,
+    last_retention: flashcard.last_retention || 0,
+    last_reviewed_at: flashcard.last_reviewed_at || null
+  };
+};
 
 const Flashcards = () => {
   const {
@@ -43,7 +62,6 @@ const Flashcards = () => {
         description: 'Flashcard deleted successfully.'
       });
       
-      // Update stats and refresh data
       handleUpdateStats();
     } catch (error) {
       console.error('Error deleting flashcard:', error);
@@ -54,6 +72,9 @@ const Flashcards = () => {
       });
     }
   };
+
+  const supabaseFlashcards = flashcards.map(convertToSupabaseFlashcard);
+  const supaDueFlashcards = dueFlashcards.map(convertToSupabaseFlashcard);
 
   return (
     <MainLayout>
@@ -102,9 +123,9 @@ const Flashcards = () => {
               <div className="flex justify-center py-16">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
-            ) : flashcards.length > 0 ? (
+            ) : supabaseFlashcards.length > 0 ? (
               <FlashcardGrid 
-                flashcards={flashcards} 
+                flashcards={supabaseFlashcards} 
                 onDelete={handleDeleteFlashcard}
                 onCardUpdated={handleUpdateStats} 
               />
@@ -137,7 +158,7 @@ const Flashcards = () => {
           </TabsContent>
           
           <TabsContent value="due" className="mt-6">
-            {dueFlashcards.length > 0 ? (
+            {supaDueFlashcards.length > 0 ? (
               <div className="space-y-6">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-medium">Cards Due for Review</h3>
@@ -147,7 +168,7 @@ const Flashcards = () => {
                   </Button>
                 </div>
                 <FlashcardGrid 
-                  flashcards={dueFlashcards} 
+                  flashcards={supaDueFlashcards} 
                   onDelete={handleDeleteFlashcard}
                   onCardUpdated={handleUpdateStats} 
                 />

@@ -1,9 +1,6 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeftIcon } from 'lucide-react';
 
 interface ReviewHeaderProps {
   reviewsCompleted: number;
@@ -14,26 +11,21 @@ const ReviewHeader: React.FC<ReviewHeaderProps> = ({
   reviewsCompleted, 
   totalToReview 
 }) => {
-  const navigate = useNavigate();
-  const progressPercentage = Math.round((reviewsCompleted / totalToReview) * 100);
-  
+  const progress = totalToReview > 0 
+    ? Math.round((reviewsCompleted / totalToReview) * 100) 
+    : 0;
+
   return (
-    <>
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Flashcard Review</h1>
-          <p className="text-muted-foreground">
-            Reviewing {reviewsCompleted} of {totalToReview} cards
-          </p>
-        </div>
-        <Button variant="outline" onClick={() => navigate('/flashcards')}>
-          <ArrowLeftIcon className="mr-2 h-4 w-4" />
-          Back to flashcards
-        </Button>
+    <div className="mb-8">
+      <h1 className="text-2xl font-bold mb-2">Flashcard Review</h1>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm text-muted-foreground">
+          Progress: {reviewsCompleted} of {totalToReview} cards
+        </span>
+        <span className="text-sm font-medium">{progress}%</span>
       </div>
-      
-      <Progress value={progressPercentage} className="mb-8 h-2" />
-    </>
+      <Progress value={progress} className="h-2" />
+    </div>
   );
 };
 

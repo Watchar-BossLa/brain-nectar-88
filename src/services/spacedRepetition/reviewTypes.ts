@@ -16,11 +16,27 @@ export interface FlashcardRetentionResult {
  * Type for flashcard learning statistics
  */
 export interface FlashcardLearningStats {
-  totalReviews: number;
-  averageEaseFactor: number;
-  retentionRate: number;
-  masteredCardCount: number;
-  strugglingCardCount: number;
-  learningEfficiency: number;
-  recommendedDailyReviews: number;
+  // Core usage metrics
+  totalCards: number;
+  dueCards: number;
+  masteredCards: number;
+  learningCards: number;
+  newCards: number;
+  
+  // Performance metrics
+  reviewedToday: number;
+  totalReviews?: number;
+  averageRetention: number;
+  streakDays: number;
+  
+  // Additional stats
+  averageEaseFactor?: number;
+  retentionRate?: number;
+  strugglingCardCount?: number;
+  learningEfficiency?: number;
+  recommendedDailyReviews?: number;
+  
+  // Legacy properties for backward compatibility
+  averageDifficulty?: number;
+  reviewsToday?: number;
 }
