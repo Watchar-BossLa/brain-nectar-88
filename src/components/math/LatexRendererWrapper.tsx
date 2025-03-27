@@ -1,4 +1,6 @@
 
-import LatexRenderer from './LatexRenderer';
+import React from 'react';
+import LatexRendererComp from './LatexRenderer';
 
-export const LatexRenderer = LatexRenderer;
+// Re-export with a different name to avoid naming conflicts
+export const LatexRenderer = LatexRendererComp;

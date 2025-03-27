@@ -1,31 +1,22 @@
 
 import { useState, useEffect } from 'react';
-import { VisualizerMode, TransactionType, AccountComponent } from './types';
+import { VisualizerMode, TransactionType, AccountComponent, UpdateComponentFunction } from './types';
+import { initialState } from './types/state';
+import { transactionHandler } from './utils/transactions';
+import { componentManager } from './utils/components';
 
 export const useEquationVisualizer = () => {
-  const [assets, setAssets] = useState(1000);
-  const [liabilities, setLiabilities] = useState(400);
-  const [equity, setEquity] = useState(600);
-  const [isBalanced, setIsBalanced] = useState(true);
-  const [mode, setMode] = useState<VisualizerMode>('basic');
-  const [transactions, setTransactions] = useState<string[]>([]);
+  const [assets, setAssets] = useState(initialState.assets);
+  const [liabilities, setLiabilities] = useState(initialState.liabilities);
+  const [equity, setEquity] = useState(initialState.equity);
+  const [isBalanced, setIsBalanced] = useState(initialState.isBalanced);
+  const [mode, setMode] = useState<VisualizerMode>(initialState.mode);
+  const [transactions, setTransactions] = useState<string[]>(initialState.transactions);
 
   // Advanced mode components
-  const [assetComponents, setAssetComponents] = useState<AccountComponent[]>([
-    { id: 'asset-1', name: 'Cash', value: 500 },
-    { id: 'asset-2', name: 'Accounts Receivable', value: 300 },
-    { id: 'asset-3', name: 'Inventory', value: 200 }
-  ]);
-  
-  const [liabilityComponents, setLiabilityComponents] = useState<AccountComponent[]>([
-    { id: 'liability-1', name: 'Accounts Payable', value: 250 },
-    { id: 'liability-2', name: 'Notes Payable', value: 150 }
-  ]);
-  
-  const [equityComponents, setEquityComponents] = useState<AccountComponent[]>([
-    { id: 'equity-1', name: 'Common Stock', value: 400 },
-    { id: 'equity-2', name: 'Retained Earnings', value: 200 }
-  ]);
+  const [assetComponents, setAssetComponents] = useState<AccountComponent[]>(initialState.assetComponents);
+  const [liabilityComponents, setLiabilityComponents] = useState<AccountComponent[]>(initialState.liabilityComponents);
+  const [equityComponents, setEquityComponents] = useState<AccountComponent[]>(initialState.equityComponents);
 
   // Calculate totals from components for advanced mode
   useEffect(() => {
@@ -81,127 +72,47 @@ export const useEquationVisualizer = () => {
 
   // Predefined transactions
   const applyTransaction = (type: TransactionType) => {
-    switch (type) {
-      case 'purchase-cash':
-        setAssets(prev => prev - 100);
-        const transaction1 = 'Purchased equipment for $100 cash';
-        setTransactions(prev => [transaction1, ...prev.slice(0, 9)]);
-        break;
-      case 'loan':
-        setAssets(prev => prev + 500);
-        setLiabilities(prev => prev + 500);
-        const transaction2 = 'Took a loan of $500';
-        setTransactions(prev => [transaction2, ...prev.slice(0, 9)]);
-        break;
-      case 'revenue':
-        setAssets(prev => prev + 200);
-        setEquity(prev => prev + 200);
-        const transaction3 = 'Earned revenue of $200';
-        setTransactions(prev => [transaction3, ...prev.slice(0, 9)]);
-        break;
-      case 'expense':
-        setAssets(prev => prev - 150);
-        setEquity(prev => prev - 150);
-        const transaction4 = 'Paid expense of $150';
-        setTransactions(prev => [transaction4, ...prev.slice(0, 9)]);
-        break;
-      case 'pay-debt':
-        setAssets(prev => prev - 100);
-        setLiabilities(prev => prev - 100);
-        const transaction5 = 'Paid off debt of $100';
-        setTransactions(prev => [transaction5, ...prev.slice(0, 9)]);
-        break;
-      default:
-        break;
-    }
+    const result = transactionHandler.applyTransaction(
+      type, 
+      assets, 
+      liabilities, 
+      equity, 
+      transactions
+    );
+    
+    setAssets(result.assets);
+    setLiabilities(result.liabilities);
+    setEquity(result.equity);
+    setTransactions(result.transactions);
   };
 
   // Update component value for advanced mode
-  const updateComponent = (
-    type: 'assets' | 'liabilities' | 'equity', 
-    id: string, 
-    value: number, 
-    name?: string,
-    remove: boolean = false
+  const updateComponent: UpdateComponentFunction = (
+    type, 
+    id, 
+    value, 
+    name, 
+    remove = false
   ) => {
-    if (type === 'assets') {
-      if (remove) {
-        setAssetComponents(prev => prev.filter(comp => comp.id !== id));
-      } else if (name !== undefined) {
-        setAssetComponents(prev => 
-          prev.map(comp => comp.id === id ? { ...comp, value, name } : comp)
-        );
-      } else {
-        const exists = assetComponents.some(comp => comp.id === id);
-        if (exists) {
-          setAssetComponents(prev => 
-            prev.map(comp => comp.id === id ? { ...comp, value } : comp)
-          );
-        } else {
-          setAssetComponents(prev => 
-            [...prev, { id, name: `Asset ${prev.length + 1}`, value }]
-          );
-        }
-      }
-    } else if (type === 'liabilities') {
-      if (remove) {
-        setLiabilityComponents(prev => prev.filter(comp => comp.id !== id));
-      } else if (name !== undefined) {
-        setLiabilityComponents(prev => 
-          prev.map(comp => comp.id === id ? { ...comp, value, name } : comp)
-        );
-      } else {
-        const exists = liabilityComponents.some(comp => comp.id === id);
-        if (exists) {
-          setLiabilityComponents(prev => 
-            prev.map(comp => comp.id === id ? { ...comp, value } : comp)
-          );
-        } else {
-          setLiabilityComponents(prev => 
-            [...prev, { id, name: `Liability ${prev.length + 1}`, value }]
-          );
-        }
-      }
-    } else { // equity
-      if (remove) {
-        setEquityComponents(prev => prev.filter(comp => comp.id !== id));
-      } else if (name !== undefined) {
-        setEquityComponents(prev => 
-          prev.map(comp => comp.id === id ? { ...comp, value, name } : comp)
-        );
-      } else {
-        const exists = equityComponents.some(comp => comp.id === id);
-        if (exists) {
-          setEquityComponents(prev => 
-            prev.map(comp => comp.id === id ? { ...comp, value } : comp)
-          );
-        } else {
-          setEquityComponents(prev => 
-            [...prev, { id, name: `Equity ${prev.length + 1}`, value }]
-          );
-        }
-      }
-    }
+    const result = componentManager.updateComponent(
+      type,
+      id,
+      value,
+      { assetComponents, liabilityComponents, equityComponents },
+      name,
+      remove
+    );
+    
+    setAssetComponents(result.assetComponents);
+    setLiabilityComponents(result.liabilityComponents);
+    setEquityComponents(result.equityComponents);
   };
 
   // Reset all values to initial state
   const resetValues = () => {
-    setAssetComponents([
-      { id: 'asset-1', name: 'Cash', value: 500 },
-      { id: 'asset-2', name: 'Accounts Receivable', value: 300 },
-      { id: 'asset-3', name: 'Inventory', value: 200 }
-    ]);
-    
-    setLiabilityComponents([
-      { id: 'liability-1', name: 'Accounts Payable', value: 250 },
-      { id: 'liability-2', name: 'Notes Payable', value: 150 }
-    ]);
-    
-    setEquityComponents([
-      { id: 'equity-1', name: 'Common Stock', value: 400 },
-      { id: 'equity-2', name: 'Retained Earnings', value: 200 }
-    ]);
-    
+    setAssetComponents(initialState.assetComponents);
+    setLiabilityComponents(initialState.liabilityComponents);
+    setEquityComponents(initialState.equityComponents);
     setTransactions([]);
   };
 
