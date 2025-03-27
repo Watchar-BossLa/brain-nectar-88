@@ -1,158 +1,139 @@
 
 import { useState, useEffect } from 'react';
-import { updateFlashcardAfterReview } from '@/services/spacedRepetition';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/components/ui/use-toast';
 import { Flashcard } from './useFlashcardsPage';
 
-export function useFlashcardReview(onComplete: () => void) {
-  const [currentCardIndex, setCurrentCardIndex] = useState(0);
-  const [reviewState, setReviewState] = useState<'reviewing' | 'answering' | 'complete'>('reviewing');
-  const [reviewCards, setReviewCards] = useState<Flashcard[]>([]);
-  const [userRating, setUserRating] = useState<0 | 1 | 2 | 3 | 4 | 5 | null>(null);
-  const [reviewStats, setReviewStats] = useState({
+type ReviewState = 'loading' | 'reviewing' | 'answering' | 'complete';
+
+interface ReviewStats {
+  totalReviewed: number;
+  easy: number;
+  medium: number;
+  hard: number;
+  averageRating: number;
+}
+
+export const useFlashcardReview = (onComplete: () => void) => {
+  const [cards, setCards] = useState<Flashcard[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [reviewState, setReviewState] = useState<ReviewState>('loading');
+  const [reviewStats, setReviewStats] = useState<ReviewStats>({
     totalReviewed: 0,
     easy: 0,
     medium: 0,
     hard: 0,
     averageRating: 0
   });
-  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
-  // Load due flashcards for review
+  const currentCard = cards[currentIndex] || null;
+
+  // Fetch due flashcards
   useEffect(() => {
-    const loadDueCards = async () => {
-      setIsLoading(true);
-      // In a real app, this would be an API call to get due cards from the backend
-      // For this demo, we'll use mock data
-      const mockDueCards: Flashcard[] = [
-        {
-          id: '1',
-          front: 'What is the accounting equation?',
-          back: 'Assets = Liabilities + Equity',
-          front_content: 'What is the accounting equation?',
-          back_content: 'Assets = Liabilities + Equity',
-          topicId: 'accounting-basics',
-          repetitionCount: 2,
-          topic_id: 'accounting-basics'
-        },
-        {
-          id: '2',
-          front: 'What is working capital?',
-          back: 'Current Assets - Current Liabilities',
-          front_content: 'What is working capital?',
-          back_content: 'Current Assets - Current Liabilities',
-          topicId: 'financial-analysis',
-          repetitionCount: 1,
-          topic_id: 'financial-analysis'
-        },
-        {
-          id: '3',
-          front: 'What is depreciation?',
-          back: 'The systematic allocation of the cost of an asset over its useful life',
-          front_content: 'What is depreciation?',
-          back_content: 'The systematic allocation of the cost of an asset over its useful life',
-          topicId: 'accounting-principles',
-          repetitionCount: 3,
-          topic_id: 'accounting-principles'
-        }
-      ];
-      
-      setReviewCards(mockDueCards);
-      setIsLoading(false);
+    const fetchDueCards = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('flashcards')
+          .select('*')
+          .lte('next_review_date', new Date().toISOString())
+          .order('next_review_date', { ascending: true });
+          
+        if (error) throw error;
+        
+        setCards(data || []);
+        setReviewState(data && data.length > 0 ? 'reviewing' : 'complete');
+      } catch (error) {
+        console.error('Error fetching due flashcards:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load flashcards for review',
+          variant: 'destructive'
+        });
+      }
     };
     
-    loadDueCards();
+    fetchDueCards();
   }, []);
-
-  const currentCard = reviewCards[currentCardIndex];
   
   // Show the answer for the current card
   const showAnswer = () => {
     setReviewState('answering');
   };
-
-  // Handle flipping the card
-  const handleFlip = () => {
-    if (reviewState === 'reviewing') {
-      setReviewState('answering');
-    } else {
-      setReviewState('reviewing');
-    }
-  };
-
-  // Handle difficulty rating
-  const handleDifficultyRating = async (rating: 0 | 1 | 2 | 3 | 4 | 5) => {
-    await rateCard(rating);
-  };
-
-  // Skip the current card
-  const handleSkip = () => {
-    if (currentCardIndex < reviewCards.length - 1) {
-      setCurrentCardIndex(prev => prev + 1);
-      setReviewState('reviewing');
-      setUserRating(null);
-    } else {
-      setReviewState('complete');
-      onComplete();
-    }
-  };
-
+  
   // Rate the current card and move to the next one
-  const rateCard = async (rating: 0 | 1 | 2 | 3 | 4 | 5) => {
-    setUserRating(rating);
-    
-    // Update review statistics
-    setReviewStats(prev => {
-      const newStats = { ...prev };
-      newStats.totalReviewed += 1;
-      
-      if (rating <= 2) newStats.hard += 1;
-      else if (rating <= 4) newStats.medium += 1;
-      else newStats.easy += 1;
-      
-      newStats.averageRating = (prev.averageRating * prev.totalReviewed + rating) / newStats.totalReviewed;
-      
-      return newStats;
-    });
+  const rateCard = async (rating: number) => {
+    if (!currentCard) return;
     
     try {
-      // In a real app, this would update the flashcard in the backend
-      if (currentCard) {
-        await updateFlashcardAfterReview(currentCard.id, rating);
-      }
+      // Update the flashcard in the database
+      const now = new Date();
+      
+      // Calculate new review date based on rating
+      // Simple algorithm: easier cards get longer intervals
+      const daysToAdd = rating === 1 ? 1 : (rating === 3 ? 3 : 7);
+      const nextReviewDate = new Date(now);
+      nextReviewDate.setDate(nextReviewDate.getDate() + daysToAdd);
+      
+      // Calculate new mastery level - increases more with higher ratings
+      const masteryIncrease = rating === 1 ? 0.05 : (rating === 3 ? 0.1 : 0.15);
+      const newMastery = Math.min(1, (currentCard.mastery_level || 0) + masteryIncrease);
+      
+      // Update the card's record
+      const { error } = await supabase
+        .from('flashcards')
+        .update({
+          repetition_count: (currentCard.repetition_count || 0) + 1,
+          next_review_date: nextReviewDate.toISOString(),
+          last_reviewed_at: now.toISOString(),
+          mastery_level: newMastery,
+          difficulty: rating
+        })
+        .eq('id', currentCard.id);
+        
+      if (error) throw error;
+      
+      // Update our statistics
+      setReviewStats(prev => {
+        const totalRatings = prev.totalReviewed + 1;
+        const totalPoints = prev.averageRating * prev.totalReviewed + rating;
+        return {
+          totalReviewed: totalRatings,
+          easy: rating === 5 ? prev.easy + 1 : prev.easy,
+          medium: rating === 3 ? prev.medium + 1 : prev.medium,
+          hard: rating === 1 ? prev.hard + 1 : prev.hard,
+          averageRating: totalPoints / totalRatings
+        };
+      });
       
       // Move to the next card or complete the review
-      if (currentCardIndex < reviewCards.length - 1) {
-        setCurrentCardIndex(prev => prev + 1);
+      if (currentIndex < cards.length - 1) {
+        setCurrentIndex(currentIndex + 1);
         setReviewState('reviewing');
-        setUserRating(null);
       } else {
         setReviewState('complete');
-        onComplete();
       }
     } catch (error) {
       console.error('Error updating flashcard review:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save your rating',
+        variant: 'destructive'
+      });
     }
   };
-
+  
   // Complete the review session
   const completeReview = () => {
     onComplete();
   };
-
+  
   return {
     currentCard,
     reviewState,
-    userRating,
     reviewStats,
     showAnswer,
     rateCard,
-    completeReview,
-    // Additional properties needed by FlashcardReview.tsx
-    isLoading,
-    reviewCards,
-    currentCardIndex,
-    handleFlip,
-    handleDifficultyRating,
-    handleSkip
+    completeReview
   };
-}
+};

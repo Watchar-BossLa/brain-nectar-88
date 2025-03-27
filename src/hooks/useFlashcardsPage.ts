@@ -15,11 +15,11 @@ export interface Flashcard {
   back_content?: string;
   difficulty?: number;
   next_review_date?: string;
-  repetitionCount?: number;
+  repetition_count?: number;
   mastery_level?: number;
   created_at?: string;
   updated_at?: string;
-  easinessFactor?: number;
+  easiness_factor?: number;
   last_retention?: number;
   last_reviewed_at?: string | null;
 }
@@ -121,8 +121,8 @@ export const useFlashcardsPage = (): UseFlashcardsReturn => {
         reviewedToday: reviewsToday,
         averageRetention: 0.85, // Default placeholder
         streakDays: 1, // Default placeholder
-        totalReviews: (allFlashcards || []).reduce((sum, card) => sum + (card.repetitionCount || 0), 0),
-        averageEaseFactor: (allFlashcards || []).reduce((sum, card) => sum + (card.easinessFactor || 2.5), 0) / 
+        totalReviews: (allFlashcards || []).reduce((sum, card) => sum + (card.repetition_count || 0), 0),
+        averageEaseFactor: (allFlashcards || []).reduce((sum, card) => sum + (card.easiness_factor || 2.5), 0) / 
                           ((allFlashcards || []).length || 1),
         retentionRate: 0.85, // Default placeholder
         strugglingCardCount: (allFlashcards || []).filter(card => 
@@ -173,7 +173,7 @@ export const useFlashcardsPage = (): UseFlashcardsReturn => {
       
       const { data, error: insertError } = await supabase
         .from('flashcards')
-        .insert([newFlashcard])
+        .insert(newFlashcard)
         .select();
       
       if (insertError) throw insertError;
