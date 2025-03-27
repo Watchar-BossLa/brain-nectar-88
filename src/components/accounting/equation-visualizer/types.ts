@@ -8,3 +8,15 @@ export interface AccountComponent {
   name: string;
   value: number;
 }
+
+export interface Transaction {
+  id: string;
+  type: TransactionType;
+  amount: number;
+  description: string;
+  date: Date;
+  affectedAccounts: {
+    increases: string[];
+    decreases: string[];
+  };
+}

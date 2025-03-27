@@ -8,24 +8,27 @@ import Dashboard from '@/pages/Dashboard';
 import AgentDashboard from '@/pages/AgentDashboard';
 import AdvancedLearning from '@/pages/AdvancedLearning';
 import { AuthProvider } from '@/context/auth';
+import { ThemeProvider } from '@/context/theme/ThemeContext';
 import { LearningPathProvider } from '@/components/learning/LearningPathProvider';
 
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <LearningPathProvider>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/agent-dashboard" element={<AgentDashboard />} />
-            <Route path="/advanced-learning" element={<AdvancedLearning />} />
-          </Routes>
-          <Toaster />
-        </LearningPathProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <LearningPathProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/agent-dashboard" element={<AgentDashboard />} />
+              <Route path="/advanced-learning" element={<AdvancedLearning />} />
+            </Routes>
+            <Toaster />
+          </LearningPathProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </Router>
   );
 }

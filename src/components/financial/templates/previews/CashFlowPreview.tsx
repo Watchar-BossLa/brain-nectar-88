@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { getFinancialData } from '../../utils/exportUtils';
 
 interface CashFlowPreviewProps {
   templateId: string;
