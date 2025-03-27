@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useFlashcardReview } from '@/hooks/useFlashcardReview';
 import { ThumbsUp, ThumbsDown, Lightbulb, Star, Trophy } from 'lucide-react';
-import LatexRenderer from '@/components/math/LatexRendererWrapper';
+import { LatexRenderer } from '@/components/math/LatexRendererWrapper';
 
 interface FlashcardReviewSystemProps {
   onComplete: () => void;

@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react-router-dom';
-import { Auth } from '@supabase/auth-ui-react';
-import { ThemeSupa } from '@supabase/auth-ui-shared';
-import { supabase } from './lib/supabase';
 import { Session } from '@supabase/supabase-js';
-import { AuthWrapper } from './AuthWrapper';
+import { supabase } from './lib/supabase';
+import AuthWrapper from './context/AuthWrapper';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {
