@@ -13,7 +13,8 @@ import { Spinner } from '@/components/ui/spinner';
 const AdaptiveQuizPlatform = () => {
   const [isLoading, setIsLoading] = useState(true);
   
-  // Use the standard quiz setup hooks to get topic and subject selection
+  // Use the quiz hook primarily for topic and subject selection functionality
+  const quizHook = useQuiz();
   const {
     selectedTopics,
     quizLength,
@@ -23,15 +24,17 @@ const AdaptiveQuizPlatform = () => {
     selectedSubject,
     setSelectedSubject,
     toggleTopic,
-    getFilteredQuestions,
-  } = useQuiz();
+    currentDifficulty: initialDifficulty,
+    setCurrentDifficulty: setInitialDifficulty,
+  } = quizHook;
 
   // Filter questions based on selected topics and subject
   const [filteredQuestions, setFilteredQuestions] = useState(quizQuestions);
   useEffect(() => {
-    setFilteredQuestions(getFilteredQuestions());
+    // Use the getFilteredQuestions method from the quizHook
+    setFilteredQuestions(quizHook.getFilteredQuestions());
     setIsLoading(false);
-  }, [selectedTopics, selectedSubject, getFilteredQuestions]);
+  }, [selectedTopics, selectedSubject, quizHook]);
 
   // Use the adaptive quiz hook with filtered questions
   const {
@@ -54,7 +57,7 @@ const AdaptiveQuizPlatform = () => {
     skipQuestion,
     restartQuiz,
     setConfidence,
-  } = useAdaptiveQuiz(filteredQuestions, currentDifficulty, quizLength);
+  } = useAdaptiveQuiz(filteredQuestions, initialDifficulty, quizLength);
 
   if (isLoading) {
     return (
