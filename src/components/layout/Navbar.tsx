@@ -1,89 +1,122 @@
-
-import { Link } from 'react-router-dom';
-import { useAuth } from '@/context/auth';
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Home, BookOpen, Brain, FlaskConical, Award, User } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from '@/components/ui/use-toast';
+import { useNavigate } from 'react-router-dom';
+import { LogOut } from 'lucide-react';
 
-export default function Navbar() {
-  const { user, signOut } = useAuth();
+const Navbar = () => {
+  const { user, logout } = useAuth();
+  const location = useLocation();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
+      navigate('/login');
+    } catch (error) {
+      console.error("Logout failed:", error);
+      toast({
+        title: "Logout Failed",
+        description: "There was an error logging you out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
   
   return (
-    <nav className="border-b">
-      <div className="container mx-auto flex items-center justify-between h-16 px-4">
-        <div className="flex items-center">
-          <Link to="/" className="flex items-center">
-            <span className="text-xl font-bold">StudyBee</span>
+    <header className="sticky top-0 z-40 w-full border-b bg-background">
+      <div className="container flex h-16 items-center">
+        <div className="mr-4 hidden md:flex">
+          <Link to="/" className="mr-6 flex items-center space-x-2">
+            <span className="hidden font-bold sm:inline-block text-xl">StudyBee</span>
           </Link>
-          
-          {user && (
-            <div className="ml-10 hidden md:flex items-center space-x-4">
-              <Link to="/" className="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors hover:text-primary">
-                <Home className="w-4 h-4 mr-2" />
-                <span>Home</span>
-              </Link>
-              <Link to="/dashboard" className="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors hover:text-primary">
-                <BookOpen className="w-4 h-4 mr-2" />
-                <span>Learning Path</span>
-              </Link>
-              <Link to="/advanced-learning" className="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors hover:text-primary">
-                <Brain className="w-4 h-4 mr-2" />
-                <span>Advanced Learning</span>
-              </Link>
-              <Link to="/agent-dashboard" className="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors hover:text-primary">
-                <FlaskConical className="w-4 h-4 mr-2" />
-                <span>Agent System</span>
-              </Link>
-            </div>
-          )}
+          <nav className="flex items-center space-x-6 text-sm font-medium">
+            <Link to="/dashboard" className={`transition-colors hover:text-primary ${location.pathname === '/dashboard' ? 'text-primary' : 'text-foreground/60'}`}>
+              Dashboard
+            </Link>
+            <Link to="/flashcards" className={`transition-colors hover:text-primary ${location.pathname === '/flashcards' ? 'text-primary' : 'text-foreground/60'}`}>
+              Flashcards
+            </Link>
+            <Link to="/qualifications" className={`transition-colors hover:text-primary ${location.pathname === '/qualifications' ? 'text-primary' : 'text-foreground/60'}`}>
+              Qualifications
+            </Link>
+            <Link to="/study-planner" className={`transition-colors hover:text-primary ${location.pathname === '/study-planner' ? 'text-primary' : 'text-foreground/60'}`}>
+              Study Planner
+            </Link>
+            <Link to="/accounting-tools" className={`transition-colors hover:text-primary ${location.pathname === '/accounting-tools' ? 'text-primary' : 'text-foreground/60'}`}>
+              Accounting Tools
+            </Link>
+          </nav>
         </div>
         
-        <div className="flex items-center space-x-4">
+        <div className="ml-auto flex items-center space-x-4">
+          {/* Mobile menu (example, implement your actual mobile menu) */}
+          <div className="md:hidden">
+            {/* Add your mobile menu icon and logic here */}
+            {/* Example: */}
+            <button>
+              {/* Mobile Menu Icon */}
+            </button>
+          </div>
+          
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Button variant="ghost" className="h-8 w-8 p-0">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email || ''} />
-                    <AvatarFallback>{user.email?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
+                    <AvatarImage src={user?.avatar_url || ""} alt={user?.email || "User Avatar"} />
+                    <AvatarFallback>{user?.email?.[0]?.toUpperCase() || "U"}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuLabel>{user?.email}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link to="/dashboard" className="cursor-pointer">Dashboard</Link>
+                  <Link to="/profile">Profile</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/profile" className="cursor-pointer">Profile</Link>
+                  <Link to="/user-profile">User Profile</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={signOut} className="cursor-pointer">
-                  Log out
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                  Logout
+                  <LogOut className="ml-auto h-4 w-4" />
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
             <>
-              <Button variant="ghost" asChild>
-                <Link to="/login">Log in</Link>
-              </Button>
-              <Button asChild>
-                <Link to="/register">Register</Link>
-              </Button>
+              <Link to="/login">
+                <Button variant="outline" size="sm">
+                  Log In
+                </Button>
+              </Link>
+              <Link to="/sign-up">
+                <Button size="sm">Sign Up</Button>
+              </Link>
             </>
           )}
         </div>
       </div>
-    </nav>
+    </header>
   );
-}
+};
+
+export default Navbar;

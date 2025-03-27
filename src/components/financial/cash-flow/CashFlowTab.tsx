@@ -5,25 +5,26 @@ import { ArrowDownToLine } from 'lucide-react';
 import { CashFlowItem } from '../types';
 import CashFlowTable from './CashFlowTable';
 import CashFlowForm from './CashFlowForm';
-import { exportToCSV, formatCurrency } from '../utils/exportUtils';
+import { exportToCSV } from '../utils/exportUtils';
 
 const CashFlowTab: React.FC = () => {
-  // Cash Flow State
+  // Cash Flow Statement State
   const [cashFlowItems, setCashFlowItems] = useState<CashFlowItem[]>([
-    { id: '1', name: 'Net Income', amount: 7500, category: 'operating', type: 'Cash from Operations' },
-    { id: '2', name: 'Depreciation', amount: 1000, category: 'operating', type: 'Cash from Operations' },
-    { id: '3', name: 'Increase in Accounts Receivable', amount: -1500, category: 'operating', type: 'Cash from Operations' },
-    { id: '4', name: 'Purchase of Equipment', amount: -5000, category: 'investing', type: 'Cash from Investing' },
-    { id: '5', name: 'Sale of Investments', amount: 2000, category: 'investing', type: 'Cash from Investing' },
-    { id: '6', name: 'Debt Repayment', amount: -2000, category: 'financing', type: 'Cash from Financing' },
-    { id: '7', name: 'Issuance of Stock', amount: 5000, category: 'financing', type: 'Cash from Financing' },
+    { id: '1', name: 'Net Income', amount: 12000, category: 'operating', type: 'Operating Activities' },
+    { id: '2', name: 'Depreciation and Amortization', amount: 3000, category: 'operating', type: 'Operating Activities' },
+    { id: '3', name: 'Increase in Accounts Receivable', amount: -2000, category: 'operating', type: 'Operating Activities' },
+    { id: '4', name: 'Decrease in Inventory', amount: 1500, category: 'operating', type: 'Operating Activities' },
+    { id: '5', name: 'Purchase of Equipment', amount: -8000, category: 'investing', type: 'Investing Activities' },
+    { id: '6', name: 'Sale of Investments', amount: 3000, category: 'investing', type: 'Investing Activities' },
+    { id: '7', name: 'Proceeds from Long-term Debt', amount: 10000, category: 'financing', type: 'Financing Activities' },
+    { id: '8', name: 'Dividend Payments', amount: -4000, category: 'financing', type: 'Financing Activities' },
   ]);
   
   const [newCashFlowItem, setNewCashFlowItem] = useState({
     name: '',
     amount: 0,
     category: 'operating',
-    type: 'Cash from Operations'
+    type: 'Operating Activities'
   });
 
   // Cash Flow Calculations
@@ -43,7 +44,7 @@ const CashFlowTab: React.FC = () => {
 
   // Add Cash Flow Item
   const addCashFlowItem = () => {
-    if (newCashFlowItem.name && newCashFlowItem.amount !== undefined) {
+    if (newCashFlowItem.name && newCashFlowItem.amount) {
       const newItem: CashFlowItem = {
         id: Date.now().toString(),
         name: newCashFlowItem.name,
@@ -57,7 +58,7 @@ const CashFlowTab: React.FC = () => {
         name: '',
         amount: 0,
         category: 'operating',
-        type: 'Cash from Operations'
+        type: 'Operating Activities'
       });
     }
   };
@@ -88,20 +89,12 @@ const CashFlowTab: React.FC = () => {
       
       <div className={`p-3 rounded-md ${netCashFlow >= 0 ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
         <p className="font-medium">
-          {netCashFlow >= 0 
-            ? `Net Cash Flow: $${netCashFlow.toLocaleString()}` 
-            : `Net Cash Outflow: $${Math.abs(netCashFlow).toLocaleString()}`}
+          Net Cash Flow: ${netCashFlow.toLocaleString()}
         </p>
-        <div className="mt-1 text-sm grid grid-cols-1 md:grid-cols-3 gap-2">
-          <p className={operatingCashFlow >= 0 ? 'text-green-700' : 'text-red-700'}>
-            Operating Activities: ${operatingCashFlow.toLocaleString()}
-          </p>
-          <p className={investingCashFlow >= 0 ? 'text-green-700' : 'text-red-700'}>
-            Investing Activities: ${investingCashFlow.toLocaleString()}
-          </p>
-          <p className={financingCashFlow >= 0 ? 'text-green-700' : 'text-red-700'}>
-            Financing Activities: ${financingCashFlow.toLocaleString()}
-          </p>
+        <div className="mt-1 text-sm">
+          <p>Operating Activities: ${operatingCashFlow.toLocaleString()}</p>
+          <p>Investing Activities: ${investingCashFlow.toLocaleString()}</p>
+          <p>Financing Activities: ${financingCashFlow.toLocaleString()}</p>
         </div>
       </div>
       

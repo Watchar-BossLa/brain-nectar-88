@@ -1,24 +1,27 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowDownToLine } from 'lucide-react';
 import { BalanceSheetItem } from '../types';
 import BalanceSheetTable from './BalanceSheetTable';
 import BalanceSheetForm from './BalanceSheetForm';
-import { exportToCSV, formatCurrency } from '../utils/exportUtils';
+import { exportToCSV } from '../utils/exportUtils';
 
 const BalanceSheetTab: React.FC = () => {
   // Balance Sheet State
   const [balanceSheetItems, setBalanceSheetItems] = useState<BalanceSheetItem[]>([
-    { id: '1', name: 'Cash', amount: 5000, category: 'assets', type: 'Current Assets' },
-    { id: '2', name: 'Accounts Receivable', amount: 3000, category: 'assets', type: 'Current Assets' },
-    { id: '3', name: 'Equipment', amount: 10000, category: 'assets', type: 'Non-Current Assets' },
-    { id: '4', name: 'Accounts Payable', amount: 2000, category: 'liabilities', type: 'Current Liabilities' },
-    { id: '5', name: 'Long-term Debt', amount: 8000, category: 'liabilities', type: 'Non-Current Liabilities' },
-    { id: '6', name: 'Common Stock', amount: 5000, category: 'equity', type: 'Equity' },
-    { id: '7', name: 'Retained Earnings', amount: 3000, category: 'equity', type: 'Equity' },
+    { id: '1', name: 'Cash', amount: 10000, category: 'assets', type: 'Current Assets' },
+    { id: '2', name: 'Accounts Receivable', amount: 5000, category: 'assets', type: 'Current Assets' },
+    { id: '3', name: 'Inventory', amount: 15000, category: 'assets', type: 'Current Assets' },
+    { id: '4', name: 'Property, Plant & Equipment', amount: 50000, category: 'assets', type: 'Non-Current Assets' },
+    { id: '5', name: 'Accounts Payable', amount: 8000, category: 'liabilities', type: 'Current Liabilities' },
+    { id: '6', name: 'Short-term Loans', amount: 2000, category: 'liabilities', type: 'Current Liabilities' },
+    { id: '7', name: 'Long-term Debt', amount: 35000, category: 'liabilities', type: 'Non-Current Liabilities' },
+    { id: '8', name: 'Common Stock', amount: 20000, category: 'equity', type: 'Contributed Capital' },
+    { id: '9', name: 'Retained Earnings', amount: 15000, category: 'equity', type: 'Retained Earnings' },
   ]);
   
-  const [newBalanceItem, setNewBalanceItem] = useState({
+  const [newBalanceSheetItem, setNewBalanceSheetItem] = useState({
     name: '',
     amount: 0,
     category: 'assets',
@@ -38,21 +41,21 @@ const BalanceSheetTab: React.FC = () => {
     .filter(item => item.category === 'equity')
     .reduce((sum, item) => sum + item.amount, 0);
     
-  const isBalanceSheetBalanced = totalAssets === (totalLiabilities + totalEquity);
+  const isBalanced = Math.abs(totalAssets - (totalLiabilities + totalEquity)) < 0.01;
 
   // Add Balance Sheet Item
   const addBalanceSheetItem = () => {
-    if (newBalanceItem.name && newBalanceItem.amount) {
+    if (newBalanceSheetItem.name && newBalanceSheetItem.amount) {
       const newItem: BalanceSheetItem = {
         id: Date.now().toString(),
-        name: newBalanceItem.name,
-        amount: newBalanceItem.amount,
-        category: newBalanceItem.category as 'assets' | 'liabilities' | 'equity',
-        type: newBalanceItem.type
+        name: newBalanceSheetItem.name,
+        amount: newBalanceSheetItem.amount,
+        category: newBalanceSheetItem.category as 'assets' | 'liabilities' | 'equity',
+        type: newBalanceSheetItem.type
       };
       
       setBalanceSheetItems([...balanceSheetItems, newItem]);
-      setNewBalanceItem({
+      setNewBalanceSheetItem({
         name: '',
         amount: 0,
         category: 'assets',
@@ -85,20 +88,16 @@ const BalanceSheetTab: React.FC = () => {
         </Button>
       </div>
       
-      <div className={`p-3 rounded-md ${isBalanceSheetBalanced ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+      <div className={`p-3 rounded-md ${isBalanced ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
         <p className="font-medium">
-          {isBalanceSheetBalanced 
-            ? 'Balance Sheet is balanced!' 
-            : 'Balance Sheet is not balanced. Assets should equal Liabilities + Equity.'}
+          {isBalanced 
+            ? 'Balance Sheet is balanced' 
+            : 'Balance Sheet is not balanced'}
         </p>
         <div className="mt-1 text-sm">
           <p>Total Assets: ${totalAssets.toLocaleString()}</p>
-          <p>Total Liabilities + Equity: ${(totalLiabilities + totalEquity).toLocaleString()}</p>
-          {!isBalanceSheetBalanced && (
-            <p className="mt-1">
-              Difference: ${Math.abs(totalAssets - (totalLiabilities + totalEquity)).toLocaleString()}
-            </p>
-          )}
+          <p>Total Liabilities: ${totalLiabilities.toLocaleString()}</p>
+          <p>Total Equity: ${totalEquity.toLocaleString()}</p>
         </div>
       </div>
       
@@ -111,8 +110,8 @@ const BalanceSheetTab: React.FC = () => {
       />
       
       <BalanceSheetForm 
-        newBalanceItem={newBalanceItem}
-        setNewBalanceItem={setNewBalanceItem}
+        newBalanceSheetItem={newBalanceSheetItem}
+        setNewBalanceSheetItem={setNewBalanceSheetItem}
         addBalanceSheetItem={addBalanceSheetItem}
       />
     </div>
