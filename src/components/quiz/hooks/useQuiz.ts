@@ -132,5 +132,6 @@ export function useQuiz() {
     skipQuestion,
     restartQuiz,
     toggleTopic,
+    getFilteredQuestions, // Make sure we're exporting this function
   };
 }

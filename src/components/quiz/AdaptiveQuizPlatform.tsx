@@ -13,7 +13,7 @@ import { Spinner } from '@/components/ui/spinner';
 const AdaptiveQuizPlatform = () => {
   const [isLoading, setIsLoading] = useState(true);
   
-  // Use the quiz hook primarily for topic and subject selection functionality
+  // Create a full quizHook instance to access all methods
   const quizHook = useQuiz();
   const {
     selectedTopics,
@@ -31,8 +31,9 @@ const AdaptiveQuizPlatform = () => {
   // Filter questions based on selected topics and subject
   const [filteredQuestions, setFilteredQuestions] = useState(quizQuestions);
   useEffect(() => {
-    // Use the getFilteredQuestions method from the quizHook
-    setFilteredQuestions(quizHook.getFilteredQuestions());
+    // Get filtered questions from the quiz hook instance
+    const filteredQuestionsData = quizHook.getFilteredQuestions();
+    setFilteredQuestions(filteredQuestionsData);
     setIsLoading(false);
   }, [selectedTopics, selectedSubject, quizHook]);
 
