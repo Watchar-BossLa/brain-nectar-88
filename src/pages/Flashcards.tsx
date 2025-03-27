@@ -2,37 +2,18 @@
 import { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import FlashcardForm from '@/components/flashcards/FlashcardForm';
-import FlashcardGrid from '@/components/flashcards/FlashcardGrid';
-import FlashcardReviewSystem from '@/components/flashcards/FlashcardReviewSystem';
-import FlashcardStats from '@/components/flashcards/FlashcardStats';
-import AdvancedFlashcardForm from '@/components/flashcards/AdvancedFlashcardForm';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { deleteFlashcard } from '@/services/spacedRepetition';
-import { Loader2, PlusCircle, Calculator, BookText, Brain } from 'lucide-react';
-import { useFlashcardsPage, Flashcard } from '@/hooks/useFlashcardsPage';
 import { useToast } from '@/components/ui/use-toast';
-import { Flashcard as SupabaseFlashcard } from '@/types/supabase';
+import { useFlashcardsPage } from '@/hooks/useFlashcardsPage';
+import { deleteFlashcard } from '@/services/spacedRepetition';
+import { convertToSupabaseFlashcard } from '@/components/flashcards/utils/flashcardTypeConverter';
 
-const convertToSupabaseFlashcard = (flashcard: Flashcard): SupabaseFlashcard => {
-  return {
-    id: flashcard.id,
-    user_id: flashcard.user_id || '',
-    topic_id: flashcard.topicId || flashcard.topic_id || null,
-    front_content: flashcard.front || flashcard.front_content || '',
-    back_content: flashcard.back || flashcard.back_content || '',
-    difficulty: flashcard.difficulty || 0,
-    next_review_date: flashcard.next_review_date || new Date().toISOString(),
-    repetition_count: flashcard.repetitionCount || 0,
-    mastery_level: flashcard.mastery_level || 0,
-    created_at: flashcard.created_at || new Date().toISOString(),
-    updated_at: flashcard.updated_at || new Date().toISOString(),
-    easiness_factor: flashcard.easinessFactor || 2.5,
-    last_retention: flashcard.last_retention || 0,
-    last_reviewed_at: flashcard.last_reviewed_at || null
-  };
-};
+// Component imports
+import FlashcardStats from '@/components/flashcards/FlashcardStats';
+import FlashcardsHeader from '@/components/flashcards/FlashcardsHeader';
+import AllFlashcardsTab from '@/components/flashcards/tabs/AllFlashcardsTab';
+import DueFlashcardsTab from '@/components/flashcards/tabs/DueFlashcardsTab';
+import CreateFlashcardTab from '@/components/flashcards/tabs/CreateFlashcardTab';
+import ReviewFlashcardsTab from '@/components/flashcards/tabs/ReviewFlashcardsTab';
 
 const Flashcards = () => {
   const {
@@ -53,6 +34,7 @@ const Flashcards = () => {
   const { toast } = useToast();
   const [isAdvancedForm, setIsAdvancedForm] = useState(false);
   
+  // Handle flashcard deletion
   const handleDeleteFlashcard = async (id: string) => {
     try {
       const { error } = await deleteFlashcard(id);
@@ -74,48 +56,29 @@ const Flashcards = () => {
     }
   };
 
-  // Convert our internal flashcard type to the Supabase flashcard type expected by components
+  // Create handlers for the different flashcard creation types
+  const handleCreateSimpleFlashcard = () => {
+    setIsAdvancedForm(false);
+    handleCreateFlashcard();
+  };
+
+  const handleCreateAdvancedFlashcard = () => {
+    setIsAdvancedForm(true);
+    handleCreateFlashcard();
+  };
+
+  // Convert internal flashcard types to Supabase types for components
   const supabaseFlashcards = flashcards.map(convertToSupabaseFlashcard);
   const supaDueFlashcards = dueFlashcards.map(convertToSupabaseFlashcard);
-
-  // Create a version of stats compatible with FlashcardStats component
-  const compatStats = {
-    totalCards: stats.totalCards,
-    masteredCards: stats.masteredCards,
-    dueCards: stats.dueCards,
-    averageDifficulty: stats.averageDifficulty || 0,
-    reviewsToday: stats.reviewedToday || 0
-  };
 
   return (
     <MainLayout>
       <div className="flex flex-col space-y-6">
-        <div className="flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-0">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight">Flashcards</h2>
-            <p className="text-muted-foreground">
-              Create and review flashcards with spaced repetition
-            </p>
-          </div>
-          {!isCreating && (
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Button variant="outline" onClick={() => {
-                setIsAdvancedForm(false); 
-                handleCreateFlashcard();
-              }}>
-                <BookText className="mr-2 h-4 w-4" />
-                Simple Flashcard
-              </Button>
-              <Button onClick={() => {
-                setIsAdvancedForm(true);
-                handleCreateFlashcard();
-              }}>
-                <Calculator className="mr-2 h-4 w-4" />
-                Advanced Flashcard
-              </Button>
-            </div>
-          )}
-        </div>
+        <FlashcardsHeader 
+          isCreating={isCreating}
+          onCreateSimpleFlashcard={handleCreateSimpleFlashcard}
+          onCreateAdvancedFlashcard={handleCreateAdvancedFlashcard}
+        />
         
         <FlashcardStats stats={stats} />
         
@@ -130,105 +93,37 @@ const Flashcards = () => {
           </TabsList>
           
           <TabsContent value="all" className="mt-6">
-            {isLoading ? (
-              <div className="flex justify-center py-16">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : supabaseFlashcards.length > 0 ? (
-              <FlashcardGrid 
-                flashcards={supabaseFlashcards} 
-                onDelete={handleDeleteFlashcard}
-                onCardUpdated={handleUpdateStats} 
-              />
-            ) : (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center space-y-4 py-12">
-                  <h3 className="text-lg font-medium">No flashcards yet</h3>
-                  <p className="text-center text-sm text-muted-foreground max-w-md">
-                    Start creating flashcards to help you learn and retain information more effectively with spaced repetition.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <Button variant="outline" onClick={() => {
-                      setIsAdvancedForm(false); 
-                      handleCreateFlashcard();
-                    }}>
-                      <BookText className="mr-2 h-4 w-4" />
-                      Simple Flashcard
-                    </Button>
-                    <Button onClick={() => {
-                      setIsAdvancedForm(true);
-                      handleCreateFlashcard();
-                    }}>
-                      <Calculator className="mr-2 h-4 w-4" />
-                      Advanced Flashcard
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            <AllFlashcardsTab 
+              isLoading={isLoading}
+              flashcards={supabaseFlashcards}
+              onDeleteFlashcard={handleDeleteFlashcard}
+              onCardUpdated={handleUpdateStats}
+              onCreateSimpleFlashcard={handleCreateSimpleFlashcard}
+              onCreateAdvancedFlashcard={handleCreateAdvancedFlashcard}
+            />
           </TabsContent>
           
           <TabsContent value="due" className="mt-6">
-            {supaDueFlashcards.length > 0 ? (
-              <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-medium">Cards Due for Review</h3>
-                  <Button onClick={handleStartReview}>
-                    <Brain className="mr-2 h-4 w-4" />
-                    Start Review
-                  </Button>
-                </div>
-                <FlashcardGrid 
-                  flashcards={supaDueFlashcards} 
-                  onDelete={handleDeleteFlashcard}
-                  onCardUpdated={handleUpdateStats} 
-                />
-              </div>
-            ) : (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center space-y-4 py-12">
-                  <h3 className="text-lg font-medium">No cards due for review</h3>
-                  <p className="text-center text-sm text-muted-foreground max-w-md">
-                    Great job! You've reviewed all your due flashcards. Check back later or create new cards.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <Button variant="outline" onClick={() => {
-                      setIsAdvancedForm(false); 
-                      handleCreateFlashcard();
-                    }}>
-                      <BookText className="mr-2 h-4 w-4" />
-                      Simple Flashcard
-                    </Button>
-                    <Button onClick={() => {
-                      setIsAdvancedForm(true);
-                      handleCreateFlashcard();
-                    }}>
-                      <Calculator className="mr-2 h-4 w-4" />
-                      Advanced Flashcard
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            <DueFlashcardsTab 
+              flashcards={supaDueFlashcards}
+              onStartReview={handleStartReview}
+              onDeleteFlashcard={handleDeleteFlashcard}
+              onCardUpdated={handleUpdateStats}
+              onCreateSimpleFlashcard={handleCreateSimpleFlashcard}
+              onCreateAdvancedFlashcard={handleCreateAdvancedFlashcard}
+            />
           </TabsContent>
           
           <TabsContent value="create" className="mt-6">
-            {isAdvancedForm ? (
-              <AdvancedFlashcardForm 
-                onSuccess={handleFlashcardCreated} 
-                onCancel={() => setIsCreating(false)}
-              />
-            ) : (
-              <Card>
-                <CardContent className="py-6">
-                  <FlashcardForm onFlashcardCreated={handleFlashcardCreated} />
-                </CardContent>
-              </Card>
-            )}
+            <CreateFlashcardTab 
+              isAdvancedForm={isAdvancedForm}
+              onFlashcardCreated={handleFlashcardCreated}
+              onCancel={() => setIsCreating(false)}
+            />
           </TabsContent>
           
           <TabsContent value="review" className="mt-6">
-            <FlashcardReviewSystem 
+            <ReviewFlashcardsTab 
               onComplete={() => {
                 handleUpdateStats();
                 setActiveTab('all');

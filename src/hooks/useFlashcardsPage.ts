@@ -32,13 +32,32 @@ export interface Flashcard {
   topic_id?: string;
 }
 
+// Extension of the existing type to ensure compatibility
+export interface ExtendedFlashcardStats {
+  totalCards: number;
+  dueCards: number;
+  masteredCards: number;
+  learningCards: number;
+  newCards: number;
+  reviewedToday: number;
+  averageRetention: number;
+  streakDays: number;
+  averageDifficulty?: number;
+  totalReviews?: number;
+  averageEaseFactor?: number;
+  retentionRate?: number;
+  strugglingCardCount?: number;
+  learningEfficiency?: number;
+  recommendedDailyReviews?: number;
+}
+
 export function useFlashcardsPage() {
   const [activeTab, setActiveTab] = useState('all');
   const [isCreating, setIsCreating] = useState(false);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [dueFlashcards, setDueFlashcards] = useState<Flashcard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [stats, setStats] = useState<FlashcardLearningStats>({
+  const [stats, setStats] = useState<ExtendedFlashcardStats>({
     totalCards: 0,
     dueCards: 0,
     masteredCards: 0,
@@ -46,7 +65,8 @@ export function useFlashcardsPage() {
     newCards: 0,
     reviewedToday: 0,
     averageRetention: 0,
-    streakDays: 0
+    streakDays: 0,
+    averageDifficulty: 0
   });
 
   // Load flashcards and stats
@@ -75,7 +95,7 @@ export function useFlashcardsPage() {
       }
       
       if (flashcardStats) {
-        const statsToSet: FlashcardLearningStats = {
+        const statsToSet: ExtendedFlashcardStats = {
           totalCards: flashcardStats.totalCards || 0,
           dueCards: flashcardStats.dueCards || 0,
           masteredCards: flashcardStats.masteredCards || 0,
@@ -84,7 +104,13 @@ export function useFlashcardsPage() {
           reviewedToday: flashcardStats.reviewsToday || 0,
           averageRetention: flashcardStats.averageRetention || 0,
           streakDays: flashcardStats.streakDays || 0,
-          averageDifficulty: flashcardStats.averageDifficulty
+          averageDifficulty: flashcardStats.averageDifficulty || 0,
+          totalReviews: flashcardStats.totalReviews,
+          averageEaseFactor: flashcardStats.averageEaseFactor,
+          retentionRate: flashcardStats.retentionRate,
+          strugglingCardCount: flashcardStats.strugglingCardCount,
+          learningEfficiency: flashcardStats.learningEfficiency,
+          recommendedDailyReviews: flashcardStats.recommendedDailyReviews
         };
         setStats(statsToSet);
       }

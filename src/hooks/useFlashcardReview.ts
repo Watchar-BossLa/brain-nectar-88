@@ -92,6 +92,7 @@ export function useFlashcardReview(onComplete: () => void) {
       setUserRating(null);
     } else {
       setReviewState('complete');
+      onComplete();
     }
   };
 
@@ -126,6 +127,7 @@ export function useFlashcardReview(onComplete: () => void) {
         setUserRating(null);
       } else {
         setReviewState('complete');
+        onComplete();
       }
     } catch (error) {
       console.error('Error updating flashcard review:', error);
