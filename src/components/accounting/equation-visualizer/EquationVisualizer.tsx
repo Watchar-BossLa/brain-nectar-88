@@ -2,10 +2,11 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calculator } from 'lucide-react';
+import { Calculator, ArrowRight, PlusSquare, MinusSquare } from 'lucide-react';
 import { useEquationVisualizer } from './useEquationVisualizer';
 import BasicMode from './BasicMode';
 import InteractiveMode from './InteractiveMode';
+import AdvancedMode from './AdvancedMode';
 import { VisualizerMode } from './types';
 
 const EquationVisualizer = () => {
@@ -20,7 +21,12 @@ const EquationVisualizer = () => {
     handleAssetChange,
     handleLiabilityChange,
     handleEquityChange,
-    applyTransaction
+    applyTransaction,
+    resetValues,
+    assetComponents,
+    liabilityComponents,
+    equityComponents,
+    updateComponent
   } = useEquationVisualizer();
 
   return (
@@ -39,6 +45,7 @@ const EquationVisualizer = () => {
           <TabsList className="mb-4">
             <TabsTrigger value="basic">Basic Mode</TabsTrigger>
             <TabsTrigger value="interactive">Interactive Mode</TabsTrigger>
+            <TabsTrigger value="advanced">Advanced Mode</TabsTrigger>
           </TabsList>
           
           <TabsContent value="basic">
@@ -62,6 +69,20 @@ const EquationVisualizer = () => {
               handleLiabilityChange={handleLiabilityChange}
               handleEquityChange={handleEquityChange}
               applyTransaction={applyTransaction}
+            />
+          </TabsContent>
+          
+          <TabsContent value="advanced">
+            <AdvancedMode
+              assetComponents={assetComponents}
+              liabilityComponents={liabilityComponents}
+              equityComponents={equityComponents}
+              updateComponent={updateComponent}
+              totalAssets={assets}
+              totalLiabilities={liabilities}
+              totalEquity={equity}
+              isBalanced={isBalanced}
+              resetValues={resetValues}
             />
           </TabsContent>
         </Tabs>

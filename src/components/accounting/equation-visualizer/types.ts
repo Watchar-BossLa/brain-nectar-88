@@ -1,8 +1,10 @@
 
-export interface Transaction {
-  id: number;
-  description: string;
-  timestamp: number;
-}
+export type VisualizerMode = 'basic' | 'interactive' | 'advanced';
 
-export type VisualizerMode = 'basic' | 'interactive';
+export type TransactionType = 'purchase-cash' | 'loan' | 'revenue' | 'expense' | 'pay-debt';
+
+export interface AccountComponent {
+  id: string;
+  name: string;
+  value: number;
+}
