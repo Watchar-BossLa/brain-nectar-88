@@ -17,14 +17,14 @@ import { useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
 
 const Navbar = () => {
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth(); // Changed 'logout' to 'signOut' to match AuthContextType
   const location = useLocation();
   const { toast } = useToast();
   const navigate = useNavigate();
   
   const handleLogout = async () => {
     try {
-      await logout();
+      await signOut(); // Changed to use signOut instead of logout
       toast({
         title: "Logged out",
         description: "You have been successfully logged out.",
@@ -81,7 +81,7 @@ const Navbar = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user?.avatar_url || ""} alt={user?.email || "User Avatar"} />
+                    <AvatarImage src={user?.email} alt={user?.email || "User Avatar"} />
                     <AvatarFallback>{user?.email?.[0]?.toUpperCase() || "U"}</AvatarFallback>
                   </Avatar>
                 </Button>
