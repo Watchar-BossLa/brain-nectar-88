@@ -33,6 +33,7 @@ import AgentDashboard from './pages/AgentDashboard';
 import AdvancedLearning from './pages/AdvancedLearning';
 import FinancialTools from './pages/FinancialTools';
 import AccountingTools from './pages/AccountingTools';
+import AdaptiveQuiz from './pages/AdaptiveQuiz';
 import AuthWrapper from './context/AuthWrapper';
 
 function App() {
@@ -68,6 +69,7 @@ function App() {
                   <Route path="/flashcard-review" element={<FlashcardReview />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/quiz" element={<Quiz />} />
+                  <Route path="/adaptive-quiz" element={<AdaptiveQuiz />} />
                   <Route path="/blockchain" element={<Blockchain />} />
                   <Route path="/qualifications" element={<Qualifications />} />
                   <Route path="/user-profile" element={<UserProfile />} />

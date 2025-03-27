@@ -19,11 +19,3 @@ export interface StandardsLibraryProps {
   onSearchStart?: () => void;
   onSearchComplete?: (results: AccountingStandard[]) => void;
 }
-
-export interface StandardsListProps { 
-  standards: AccountingStandard[];
-  bookmarks: string[];
-  selectedStandards: string[];
-  onToggleBookmark: (id: string) => void;
-  onToggleSelection: (id: string) => void;
-}

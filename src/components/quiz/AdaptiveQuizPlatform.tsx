@@ -1,15 +1,41 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuiz } from './hooks/useQuiz';
+import { useAdaptiveQuiz } from './hooks/useAdaptiveQuiz';
+import { quizQuestions } from './data/quizQuestions';
 import QuizSetupCard from './components/QuizSetupCard';
 import ActiveQuizCard from './components/ActiveQuizCard';
 import QuizResultsCard from './components/QuizResultsCard';
+import ConfidenceSelector from './components/ConfidenceSelector';
+import { Card, CardContent } from '@/components/ui/card';
+import { Spinner } from '@/components/ui/spinner';
 
 const AdaptiveQuizPlatform = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Use the standard quiz setup hooks to get topic and subject selection
+  const {
+    selectedTopics,
+    quizLength,
+    setQuizLength,
+    allTopics,
+    allSubjects,
+    selectedSubject,
+    setSelectedSubject,
+    toggleTopic,
+    getFilteredQuestions,
+  } = useQuiz();
+
+  // Filter questions based on selected topics and subject
+  const [filteredQuestions, setFilteredQuestions] = useState(quizQuestions);
+  useEffect(() => {
+    setFilteredQuestions(getFilteredQuestions());
+    setIsLoading(false);
+  }, [selectedTopics, selectedSubject, getFilteredQuestions]);
+
+  // Use the adaptive quiz hook with filtered questions
   const {
     activeQuiz,
-    currentDifficulty,
-    setCurrentDifficulty,
     currentQuestion,
     currentIndex,
     selectedAnswer,
@@ -17,31 +43,29 @@ const AdaptiveQuizPlatform = () => {
     isAnswerSubmitted,
     isCorrect,
     quizResults,
-    selectedTopics,
-    quizLength,
-    setQuizLength,
-    availableQuestions,
+    currentDifficulty,
+    setCurrentDifficulty,
     answeredQuestions,
-    allTopics,
-    allSubjects,
-    selectedSubject,
-    setSelectedSubject,
+    userConfidence,
     startQuiz,
     submitAnswer,
     nextQuestion,
     previousQuestion,
     skipQuestion,
     restartQuiz,
-    toggleTopic,
-  } = useQuiz();
+    setConfidence,
+  } = useAdaptiveQuiz(filteredQuestions, currentDifficulty, quizLength);
 
-  const resetQuiz = () => {
-    // Reset quiz state without starting a new one
-    if (quizResults) {
-      // Just hide the results to go back to setup
-      window.location.href = window.location.pathname;
-    }
-  };
+  if (isLoading) {
+    return (
+      <Card className="w-full flex justify-center items-center p-8">
+        <CardContent>
+          <Spinner size="lg" />
+          <p className="text-center mt-4">Loading quiz questions...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="w-full max-w-4xl mx-auto">
@@ -62,19 +86,31 @@ const AdaptiveQuizPlatform = () => {
       )}
       
       {activeQuiz && currentQuestion && (
-        <ActiveQuizCard
-          currentQuestion={currentQuestion}
-          currentIndex={currentIndex}
-          availableQuestions={availableQuestions}
-          selectedAnswer={selectedAnswer}
-          setSelectedAnswer={setSelectedAnswer}
-          isAnswerSubmitted={isAnswerSubmitted}
-          isCorrect={isCorrect}
-          submitAnswer={submitAnswer}
-          nextQuestion={() => nextQuestion()}
-          previousQuestion={() => previousQuestion(availableQuestions)}
-          skipQuestion={() => skipQuestion()}
-        />
+        <>
+          {!isAnswerSubmitted && (
+            <div className="mb-4">
+              <ConfidenceSelector
+                selected={userConfidence}
+                onChange={setConfidence}
+                disabled={isAnswerSubmitted}
+              />
+            </div>
+          )}
+          
+          <ActiveQuizCard
+            currentQuestion={currentQuestion}
+            currentIndex={currentIndex}
+            availableQuestions={filteredQuestions.slice(0, quizLength)}
+            selectedAnswer={selectedAnswer}
+            setSelectedAnswer={setSelectedAnswer}
+            isAnswerSubmitted={isAnswerSubmitted}
+            isCorrect={isCorrect}
+            submitAnswer={submitAnswer}
+            nextQuestion={() => nextQuestion()}
+            previousQuestion={() => previousQuestion()}
+            skipQuestion={() => skipQuestion()}
+          />
+        </>
       )}
       
       {quizResults && (
@@ -82,7 +118,7 @@ const AdaptiveQuizPlatform = () => {
           quizResults={quizResults}
           answeredQuestions={answeredQuestions}
           restartQuiz={restartQuiz}
-          resetQuiz={resetQuiz}
+          resetQuiz={() => window.location.href = window.location.pathname}
         />
       )}
     </div>
