@@ -24,7 +24,7 @@ interface AdvancedModeProps {
   assetComponents: AccountComponent[];
   liabilityComponents: AccountComponent[];
   equityComponents: AccountComponent[];
-  updateComponent: (type: 'assets' | 'liabilities' | 'equity', id: string, value: number) => void;
+  updateComponent: (type: 'assets' | 'liabilities' | 'equity', id: string, value: number, name?: string, remove?: boolean) => void;
   totalAssets: number;
   totalLiabilities: number;
   totalEquity: number;
@@ -120,8 +120,8 @@ const AdvancedMode: React.FC<AdvancedModeProps> = ({
                 <Input 
                   value={component.name} 
                   onChange={(e) => {
-                    const newComponent = { ...component, name: e.target.value };
-                    updateComponent('assets', component.id, component.value, newComponent.name);
+                    const newName = e.target.value;
+                    updateComponent('assets', component.id, component.value, newName);
                   }}
                   className="w-1/2"
                   placeholder="Asset name"
@@ -169,8 +169,8 @@ const AdvancedMode: React.FC<AdvancedModeProps> = ({
                 <Input 
                   value={component.name} 
                   onChange={(e) => {
-                    const newComponent = { ...component, name: e.target.value };
-                    updateComponent('liabilities', component.id, component.value, newComponent.name);
+                    const newName = e.target.value;
+                    updateComponent('liabilities', component.id, component.value, newName);
                   }}
                   className="w-1/2"
                   placeholder="Liability name"
@@ -218,8 +218,8 @@ const AdvancedMode: React.FC<AdvancedModeProps> = ({
                 <Input 
                   value={component.name} 
                   onChange={(e) => {
-                    const newComponent = { ...component, name: e.target.value };
-                    updateComponent('equity', component.id, component.value, newComponent.name);
+                    const newName = e.target.value;
+                    updateComponent('equity', component.id, component.value, newName);
                   }}
                   className="w-1/2"
                   placeholder="Equity name"

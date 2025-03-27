@@ -30,19 +30,19 @@ const FinancialStatementGenerator = () => {
   const handleExport = (type: 'pdf' | 'csv' | 'clipboard') => {
     try {
       if (type === 'pdf') {
-        exportToPDF(activeTab);
+        exportToPDF(activeTab, `${activeTab}.pdf`);
         toast({
           title: "PDF Export Successful",
           description: "Your financial statement has been exported as a PDF",
         });
       } else if (type === 'csv') {
-        exportToCSV(activeTab);
+        exportToCSV([], `${activeTab}.csv`);
         toast({
           title: "CSV Export Successful",
           description: "Your financial statement has been exported as a CSV file",
         });
       } else if (type === 'clipboard') {
-        copyToClipboard(activeTab);
+        copyToClipboard(JSON.stringify(getDataForActiveTab()));
         toast({
           title: "Copied to Clipboard",
           description: "Your financial statement data has been copied to clipboard",
@@ -55,6 +55,12 @@ const FinancialStatementGenerator = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const getDataForActiveTab = () => {
+    // This would normally fetch the actual data from the tabs
+    // For now returning a placeholder
+    return { type: activeTab, data: "Placeholder data" };
   };
 
   const handleTemplateSelect = (templateId: string) => {

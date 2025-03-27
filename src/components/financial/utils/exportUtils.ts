@@ -52,11 +52,47 @@ export const getFinancialData = (templateId: string) => {
 };
 
 // Export to PDF function
-export const exportToPDF = (elementId: string, filename: string) => {
+export const exportToPDF = (elementId: string, filename: string = 'financial-statement.pdf') => {
   console.log(`Exporting element with ID ${elementId} to PDF as ${filename}`);
   // In a real application, this would use a library like jsPDF or html2pdf.js
   // to generate a PDF from the element
   alert('PDF export feature is not implemented yet.');
+};
+
+// Export to CSV function
+export const exportToCSV = (data: any[], filename: string = 'financial-statement.csv') => {
+  console.log(`Exporting data to CSV as ${filename}`);
+  
+  try {
+    // Convert the data to CSV format
+    const headers = Object.keys(data[0]).filter(key => key !== 'id');
+    const csvContent = [
+      headers.join(','),
+      ...data.map(row => 
+        headers.map(header => {
+          const value = row[header];
+          // Handle strings with commas by wrapping in quotes
+          return typeof value === 'string' && value.includes(',') 
+            ? `"${value}"` 
+            : value;
+        }).join(',')
+      )
+    ].join('\n');
+    
+    // Create a blob and download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error('Failed to export CSV:', error);
+    alert('Failed to export CSV file');
+  }
 };
 
 // Copy to clipboard function

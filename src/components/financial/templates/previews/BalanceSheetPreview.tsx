@@ -35,12 +35,12 @@ const BalanceSheetPreview: React.FC<BalanceSheetPreviewProps> = ({ templateId })
               {data.assets.map((asset, index) => (
                 <div key={index} className="flex justify-between">
                   <span>{asset.name}</span>
-                  <span>${asset.amount.toLocaleString()}</span>
+                  <span>${asset.value.toLocaleString()}</span>
                 </div>
               ))}
               <div className="flex justify-between font-bold border-t pt-2 mt-4">
                 <span>Total Assets</span>
-                <span>${data.assets.reduce((sum, asset) => sum + asset.amount, 0).toLocaleString()}</span>
+                <span>${data.assets.reduce((sum, asset) => sum + asset.value, 0).toLocaleString()}</span>
               </div>
             </div>
           </div>
@@ -54,12 +54,12 @@ const BalanceSheetPreview: React.FC<BalanceSheetPreviewProps> = ({ templateId })
                 {data.liabilities.map((liability, index) => (
                   <div key={index} className="flex justify-between">
                     <span>{liability.name}</span>
-                    <span>${liability.amount.toLocaleString()}</span>
+                    <span>${liability.value.toLocaleString()}</span>
                   </div>
                 ))}
                 <div className="flex justify-between font-medium border-t pt-2 mt-2">
                   <span>Total Liabilities</span>
-                  <span>${data.liabilities.reduce((sum, liability) => sum + liability.amount, 0).toLocaleString()}</span>
+                  <span>${data.liabilities.reduce((sum, liability) => sum + liability.value, 0).toLocaleString()}</span>
                 </div>
               </div>
               
@@ -68,20 +68,20 @@ const BalanceSheetPreview: React.FC<BalanceSheetPreviewProps> = ({ templateId })
                 {data.equity.map((item, index) => (
                   <div key={index} className="flex justify-between">
                     <span>{item.name}</span>
-                    <span>${item.amount.toLocaleString()}</span>
+                    <span>${item.value.toLocaleString()}</span>
                   </div>
                 ))}
                 <div className="flex justify-between font-medium border-t pt-2 mt-2">
                   <span>Total Equity</span>
-                  <span>${data.equity.reduce((sum, item) => sum + item.amount, 0).toLocaleString()}</span>
+                  <span>${data.equity.reduce((sum, item) => sum + item.value, 0).toLocaleString()}</span>
                 </div>
               </div>
               
               <div className="flex justify-between font-bold border-t-2 border-black pt-4 mt-4">
                 <span>Total Liabilities & Equity</span>
                 <span>${(
-                  data.liabilities.reduce((sum, item) => sum + item.amount, 0) +
-                  data.equity.reduce((sum, item) => sum + item.amount, 0)
+                  data.liabilities.reduce((sum, item) => sum + item.value, 0) +
+                  data.equity.reduce((sum, item) => sum + item.value, 0)
                 ).toLocaleString()}</span>
               </div>
             </div>
@@ -97,9 +97,9 @@ const BalanceSheetPreview: React.FC<BalanceSheetPreviewProps> = ({ templateId })
             />
           </div>
           <p className="text-sm">
-            ${data.assets.reduce((sum, asset) => sum + asset.amount, 0).toLocaleString()} = 
-            ${data.liabilities.reduce((sum, liability) => sum + liability.amount, 0).toLocaleString()} + 
-            ${data.equity.reduce((sum, item) => sum + item.amount, 0).toLocaleString()}
+            ${data.assets.reduce((sum, asset) => sum + asset.value, 0).toLocaleString()} = 
+            ${data.liabilities.reduce((sum, liability) => sum + liability.value, 0).toLocaleString()} + 
+            ${data.equity.reduce((sum, item) => sum + item.value, 0).toLocaleString()}
           </p>
         </div>
       </Card>
@@ -129,11 +129,11 @@ const BalanceSheetPreview: React.FC<BalanceSheetPreviewProps> = ({ templateId })
               <div>
                 {data.assets.map((asset, index) => (
                   <div key={index} className="flex justify-end">
-                    <span>${asset.amount.toLocaleString()}</span>
+                    <span>${asset.value.toLocaleString()}</span>
                   </div>
                 ))}
                 <div className="flex justify-end font-bold border-t pt-2">
-                  <span>${data.assets.reduce((sum, asset) => sum + asset.amount, 0).toLocaleString()}</span>
+                  <span>${data.assets.reduce((sum, asset) => sum + asset.value, 0).toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -154,11 +154,11 @@ const BalanceSheetPreview: React.FC<BalanceSheetPreviewProps> = ({ templateId })
               <div>
                 {data.liabilities.map((liability, index) => (
                   <div key={index} className="flex justify-end">
-                    <span>${liability.amount.toLocaleString()}</span>
+                    <span>${liability.value.toLocaleString()}</span>
                   </div>
                 ))}
                 <div className="flex justify-end font-bold border-t pt-2">
-                  <span>${data.liabilities.reduce((sum, liability) => sum + liability.amount, 0).toLocaleString()}</span>
+                  <span>${data.liabilities.reduce((sum, liability) => sum + liability.value, 0).toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -179,11 +179,11 @@ const BalanceSheetPreview: React.FC<BalanceSheetPreviewProps> = ({ templateId })
               <div>
                 {data.equity.map((item, index) => (
                   <div key={index} className="flex justify-end">
-                    <span>${item.amount.toLocaleString()}</span>
+                    <span>${item.value.toLocaleString()}</span>
                   </div>
                 ))}
                 <div className="flex justify-end font-bold border-t pt-2">
-                  <span>${data.equity.reduce((sum, item) => sum + item.amount, 0).toLocaleString()}</span>
+                  <span>${data.equity.reduce((sum, item) => sum + item.value, 0).toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -197,8 +197,8 @@ const BalanceSheetPreview: React.FC<BalanceSheetPreviewProps> = ({ templateId })
               </div>
               <div className="flex justify-end font-bold">
                 <span>${(
-                  data.liabilities.reduce((sum, item) => sum + item.amount, 0) +
-                  data.equity.reduce((sum, item) => sum + item.amount, 0)
+                  data.liabilities.reduce((sum, item) => sum + item.value, 0) +
+                  data.equity.reduce((sum, item) => sum + item.value, 0)
                 ).toLocaleString()}</span>
               </div>
             </div>
@@ -209,18 +209,18 @@ const BalanceSheetPreview: React.FC<BalanceSheetPreviewProps> = ({ templateId })
   } else if (templateId === 'multi-period-balance-sheet') {
     // Create sample data for previous period
     const previousPeriodData = {
-      assets: data.assets.map(asset => ({ ...asset, amount: asset.amount * 0.9 })),
-      liabilities: data.liabilities.map(liability => ({ ...liability, amount: liability.amount * 0.85 })),
-      equity: data.equity.map(item => ({ ...item, amount: item.amount * 0.95 }))
+      assets: data.assets.map(asset => ({ ...asset, value: asset.value * 0.9 })),
+      liabilities: data.liabilities.map(liability => ({ ...liability, value: liability.value * 0.85 })),
+      equity: data.equity.map(item => ({ ...item, value: item.value * 0.95 }))
     };
     
-    const totalCurrentAssets = data.assets.reduce((sum, asset) => sum + asset.amount, 0);
-    const totalCurrentLiabilities = data.liabilities.reduce((sum, liability) => sum + liability.amount, 0);
-    const totalCurrentEquity = data.equity.reduce((sum, item) => sum + item.amount, 0);
+    const totalCurrentAssets = data.assets.reduce((sum, asset) => sum + asset.value, 0);
+    const totalCurrentLiabilities = data.liabilities.reduce((sum, liability) => sum + liability.value, 0);
+    const totalCurrentEquity = data.equity.reduce((sum, item) => sum + item.value, 0);
     
-    const totalPrevAssets = previousPeriodData.assets.reduce((sum, asset) => sum + asset.amount, 0);
-    const totalPrevLiabilities = previousPeriodData.liabilities.reduce((sum, liability) => sum + liability.amount, 0);
-    const totalPrevEquity = previousPeriodData.equity.reduce((sum, item) => sum + item.amount, 0);
+    const totalPrevAssets = previousPeriodData.assets.reduce((sum, asset) => sum + asset.value, 0);
+    const totalPrevLiabilities = previousPeriodData.liabilities.reduce((sum, liability) => sum + liability.value, 0);
+    const totalPrevEquity = previousPeriodData.equity.reduce((sum, item) => sum + item.value, 0);
     
     return (
       <Card className="border-2 p-6 mx-auto max-w-5xl bg-white">
@@ -245,15 +245,15 @@ const BalanceSheetPreview: React.FC<BalanceSheetPreviewProps> = ({ templateId })
               <td colSpan={5} className="font-bold p-2 bg-gray-100">Assets</td>
             </tr>
             {data.assets.map((asset, index) => {
-              const prevAmount = previousPeriodData.assets[index].amount;
-              const change = asset.amount - prevAmount;
-              const percentChange = (change / prevAmount) * 100;
+              const prevValue = previousPeriodData.assets[index].value;
+              const change = asset.value - prevValue;
+              const percentChange = (change / prevValue) * 100;
               
               return (
                 <tr key={index} className="border-b">
                   <td className="p-2">{asset.name}</td>
-                  <td className="text-right p-2">${asset.amount.toLocaleString()}</td>
-                  <td className="text-right p-2">${prevAmount.toLocaleString()}</td>
+                  <td className="text-right p-2">${asset.value.toLocaleString()}</td>
+                  <td className="text-right p-2">${prevValue.toLocaleString()}</td>
                   <td className="text-right p-2">${change.toLocaleString()}</td>
                   <td className="text-right p-2">{percentChange.toFixed(1)}%</td>
                 </tr>
@@ -271,15 +271,15 @@ const BalanceSheetPreview: React.FC<BalanceSheetPreviewProps> = ({ templateId })
               <td colSpan={5} className="font-bold p-2 bg-gray-100">Liabilities</td>
             </tr>
             {data.liabilities.map((liability, index) => {
-              const prevAmount = previousPeriodData.liabilities[index].amount;
-              const change = liability.amount - prevAmount;
-              const percentChange = (change / prevAmount) * 100;
+              const prevValue = previousPeriodData.liabilities[index].value;
+              const change = liability.value - prevValue;
+              const percentChange = (change / prevValue) * 100;
               
               return (
                 <tr key={index} className="border-b">
                   <td className="p-2">{liability.name}</td>
-                  <td className="text-right p-2">${liability.amount.toLocaleString()}</td>
-                  <td className="text-right p-2">${prevAmount.toLocaleString()}</td>
+                  <td className="text-right p-2">${liability.value.toLocaleString()}</td>
+                  <td className="text-right p-2">${prevValue.toLocaleString()}</td>
                   <td className="text-right p-2">${change.toLocaleString()}</td>
                   <td className="text-right p-2">{percentChange.toFixed(1)}%</td>
                 </tr>
@@ -297,15 +297,15 @@ const BalanceSheetPreview: React.FC<BalanceSheetPreviewProps> = ({ templateId })
               <td colSpan={5} className="font-bold p-2 bg-gray-100">Equity</td>
             </tr>
             {data.equity.map((item, index) => {
-              const prevAmount = previousPeriodData.equity[index].amount;
-              const change = item.amount - prevAmount;
-              const percentChange = (change / prevAmount) * 100;
+              const prevValue = previousPeriodData.equity[index].value;
+              const change = item.value - prevValue;
+              const percentChange = (change / prevValue) * 100;
               
               return (
                 <tr key={index} className="border-b">
                   <td className="p-2">{item.name}</td>
-                  <td className="text-right p-2">${item.amount.toLocaleString()}</td>
-                  <td className="text-right p-2">${prevAmount.toLocaleString()}</td>
+                  <td className="text-right p-2">${item.value.toLocaleString()}</td>
+                  <td className="text-right p-2">${prevValue.toLocaleString()}</td>
                   <td className="text-right p-2">${change.toLocaleString()}</td>
                   <td className="text-right p-2">{percentChange.toFixed(1)}%</td>
                 </tr>
