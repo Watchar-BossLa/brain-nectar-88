@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 export interface TopicItemProps {
   id: string;
   title: string;
-  duration: number;
+  duration: string;
   isCompleted: boolean;
   onClick?: (id: string) => void;
 }
@@ -46,7 +46,7 @@ export const TopicItem = ({
       </div>
       <div className="flex items-center text-sm text-muted-foreground">
         <Clock className="h-3.5 w-3.5 mr-1" />
-        <span>{duration} min</span>
+        <span>{duration}</span>
       </div>
     </li>
   );
