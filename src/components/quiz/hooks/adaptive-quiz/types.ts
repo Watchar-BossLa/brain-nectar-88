@@ -1,5 +1,5 @@
 
-import { QuizQuestion, AnsweredQuestion, QuizResults } from '../../types';
+import { QuizQuestion, QuizResults, AnsweredQuestion } from '../../types';
 
 export interface AdaptiveQuizState {
   activeQuiz: boolean;
@@ -14,20 +14,6 @@ export interface AdaptiveQuizState {
   userConfidence: number;
 }
 
-export interface AdaptiveQuizStateWithSetters extends AdaptiveQuizState {
-  setQuestions: React.Dispatch<React.SetStateAction<QuizQuestion[]>>;
-  setCurrentIndex: React.Dispatch<React.SetStateAction<number>>;
-  setCurrentQuestion: React.Dispatch<React.SetStateAction<QuizQuestion | null>>;
-  setAnsweredQuestions: React.Dispatch<React.SetStateAction<AnsweredQuestion[]>>;
-  setSelectedAnswer: React.Dispatch<React.SetStateAction<string>>;
-  setIsAnswerSubmitted: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsCorrect: React.Dispatch<React.SetStateAction<boolean | null>>;
-  setActiveQuiz: React.Dispatch<React.SetStateAction<boolean>>;
-  setQuizResults: React.Dispatch<React.SetStateAction<QuizResults | null>>;
-  setCurrentDifficulty: React.Dispatch<React.SetStateAction<1 | 2 | 3>>;
-  setUserConfidence: React.Dispatch<React.SetStateAction<number>>;
-}
-
 export interface AdaptiveQuizActions {
   startQuiz: () => void;
   submitAnswer: () => boolean | undefined;
@@ -35,12 +21,20 @@ export interface AdaptiveQuizActions {
   previousQuestion: () => void;
   skipQuestion: () => boolean;
   restartQuiz: () => void;
-  setConfidence: (level: number) => void;
   setSelectedAnswer: (answer: string) => void;
   setCurrentDifficulty: (difficulty: 1 | 2 | 3) => void;
+  setConfidence: (level: number) => void;
 }
 
-export interface AdaptiveQuizOptions {
-  initialDifficulty?: 1 | 2 | 3;
-  maxQuestions?: number;
+export interface QuizStateWithSetters extends AdaptiveQuizState {
+  setActiveQuiz: (active: boolean) => void;
+  setCurrentQuestion: (question: QuizQuestion | null) => void;
+  setCurrentIndex: (index: number) => void;
+  setSelectedAnswer: (answer: string) => void;
+  setIsAnswerSubmitted: (submitted: boolean) => void;
+  setIsCorrect: (correct: boolean | null) => void;
+  setQuizResults: (results: QuizResults | null) => void;
+  setAnsweredQuestions: (questions: AnsweredQuestion[]) => void;
+  setCurrentDifficulty: (difficulty: 1 | 2 | 3) => void;
+  setUserConfidence: (level: number) => void;
 }

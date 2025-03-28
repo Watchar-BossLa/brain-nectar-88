@@ -1,20 +1,19 @@
 
 import { useState } from 'react';
-import { QuizQuestion, AnsweredQuestion, QuizResults } from '../../types';
-import { AdaptiveQuizStateWithSetters } from './types';
+import { QuizQuestion, QuizResults, AnsweredQuestion } from '../../types';
+import { QuizStateWithSetters } from './types';
 
-export function useQuizState(initialDifficulty: 1 | 2 | 3 = 2): AdaptiveQuizStateWithSetters {
-  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+export function useQuizState(initialDifficulty: 1 | 2 | 3): QuizStateWithSetters {
+  const [activeQuiz, setActiveQuiz] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState<QuizQuestion | null>(null);
-  const [answeredQuestions, setAnsweredQuestions] = useState<AnsweredQuestion[]>([]);
-  const [selectedAnswer, setSelectedAnswer] = useState<string>('');
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState('');
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-  const [activeQuiz, setActiveQuiz] = useState(false);
   const [quizResults, setQuizResults] = useState<QuizResults | null>(null);
+  const [answeredQuestions, setAnsweredQuestions] = useState<AnsweredQuestion[]>([]);
   const [currentDifficulty, setCurrentDifficulty] = useState<1 | 2 | 3>(initialDifficulty);
-  const [userConfidence, setUserConfidence] = useState<number>(0.5); // 0.0 to 1.0
+  const [userConfidence, setUserConfidence] = useState<number>(0.5); // Default medium confidence
 
   return {
     // State
@@ -29,19 +28,16 @@ export function useQuizState(initialDifficulty: 1 | 2 | 3 = 2): AdaptiveQuizStat
     answeredQuestions,
     userConfidence,
     
-    // Internal state setters
-    setQuestions,
-    setCurrentIndex,
+    // Setters
+    setActiveQuiz,
     setCurrentQuestion,
-    setAnsweredQuestions,
+    setCurrentIndex,
     setSelectedAnswer,
     setIsAnswerSubmitted,
     setIsCorrect,
-    setActiveQuiz,
     setQuizResults,
+    setAnsweredQuestions,
     setCurrentDifficulty,
-    setUserConfidence,
+    setUserConfidence
   };
 }
-
-export type QuizStateWithSetters = ReturnType<typeof useQuizState>;
