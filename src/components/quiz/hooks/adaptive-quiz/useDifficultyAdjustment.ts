@@ -1,7 +1,7 @@
 
 import { useCallback, useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
-import { QuizStateWithSetters } from './useQuizState';
+import { QuizStateWithSetters } from './types';
 
 export function useDifficultyAdjustment(state: QuizStateWithSetters) {
   const { toast } = useToast();

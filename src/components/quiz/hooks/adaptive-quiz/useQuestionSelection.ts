@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { QuizQuestion } from '../../types';
-import { QuizStateWithSetters } from './useQuizState';
+import { QuizStateWithSetters } from './types';
 
 export function useQuestionSelection(quizState: QuizStateWithSetters) {
   const { 

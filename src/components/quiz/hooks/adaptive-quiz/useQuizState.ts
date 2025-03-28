@@ -41,3 +41,5 @@ export function useQuizState(initialDifficulty: 1 | 2 | 3): QuizStateWithSetters
     setUserConfidence
   };
 }
+
+export type { QuizStateWithSetters };

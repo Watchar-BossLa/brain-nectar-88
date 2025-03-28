@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { QuizQuestion } from '../../types';
 import { calculateQuizResults, evaluateAnswer } from '../quizUtils';
 import { useToast } from '@/components/ui/use-toast';
-import { QuizStateWithSetters } from './useQuizState';
+import { QuizStateWithSetters } from './types';
 import { useDifficultyAdjustment } from './useDifficultyAdjustment';
 import { useQuestionSelection } from './useQuestionSelection';
 
