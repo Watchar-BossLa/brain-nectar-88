@@ -36,7 +36,8 @@ export function useStudyPlanner() {
       // In a real application, we'd use the user's ID from auth
       const userId = 'user-123';
       
-      // Call the scheduling agent to generate an optimized schedule
+      // Call the scheduling agent's optimizeSchedule method directly 
+      // which now uses the scheduleOptimizer module internally
       const response = await schedulingAgent.optimizeSchedule(userId, options);
       
       if (response.status === 'success') {
@@ -138,6 +139,8 @@ export function useStudyPlanner() {
     setIsLoading(true);
     
     try {
+      // Call the scheduling agent's optimizeFlashcards method directly
+      // which now uses the flashcardScheduler module internally
       const response = await schedulingAgent.optimizeFlashcards(userId, options);
       
       if (response.status === 'success') {
@@ -153,11 +156,81 @@ export function useStudyPlanner() {
     }
   };
 
+  const createSpacedRepetitionSchedule = async (userId: string, options: any) => {
+    setIsLoading(true);
+    
+    try {
+      // Use the new dedicated method for spaced repetition scheduling
+      const response = await schedulingAgent.createSpacedRepetitionSchedule(userId, options);
+      
+      if (response.status === 'success') {
+        toast({
+          title: 'Spaced Repetition Schedule Created',
+          description: 'Your personalized review schedule is ready',
+        });
+        return { success: true, data: response.schedule };
+      } else {
+        toast({
+          title: 'Error Creating Schedule',
+          description: 'There was a problem creating your review schedule',
+          variant: 'destructive',
+        });
+        return { success: false, error: 'Failed to create schedule' };
+      }
+    } catch (error) {
+      console.error('Error creating spaced repetition schedule:', error);
+      toast({
+        title: 'Error Creating Schedule',
+        description: 'There was a problem creating your review schedule',
+        variant: 'destructive',
+      });
+      return { success: false, error: 'Exception occurred' };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const createExamPrepPlan = async (userId: string, options: any) => {
+    setIsLoading(true);
+    
+    try {
+      // Use the new dedicated method for exam preparation planning
+      const response = await schedulingAgent.createExamPrepPlan(userId, options);
+      
+      if (response.status === 'success') {
+        toast({
+          title: 'Exam Preparation Plan Created',
+          description: 'Your exam prep plan is ready',
+        });
+        return { success: true, data: response.examPlan };
+      } else {
+        toast({
+          title: 'Error Creating Plan',
+          description: 'There was a problem creating your exam prep plan',
+          variant: 'destructive',
+        });
+        return { success: false, error: 'Failed to create plan' };
+      }
+    } catch (error) {
+      console.error('Error creating exam prep plan:', error);
+      toast({
+        title: 'Error Creating Plan',
+        description: 'There was a problem creating your exam prep plan',
+        variant: 'destructive',
+      });
+      return { success: false, error: 'Exception occurred' };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     isLoading,
     studyPlan,
     generatedSessions,
     generateStudyPlan,
-    optimizeFlashcards
+    optimizeFlashcards,
+    createSpacedRepetitionSchedule,
+    createExamPrepPlan
   };
 }
