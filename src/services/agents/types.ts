@@ -19,16 +19,21 @@ export type TaskType =
   | 'FEEDBACK_GENERATION' 
   | 'SCHEDULE_OPTIMIZATION'
   | 'FLASHCARD_OPTIMIZATION'
-  | 'FLASHCARD_SEQUENCE_OPTIMIZATION';
+  | 'FLASHCARD_SEQUENCE_OPTIMIZATION'
+  | 'UI_OPTIMIZATION'
+  | 'MULTI_AGENT_COORDINATION';
 
 export type MessageType = 
   | 'NOTIFICATION' 
   | 'REQUEST' 
   | 'RESPONSE' 
   | 'UPDATE' 
-  | 'SYSTEM';
+  | 'SYSTEM'
+  | 'TASK';
 
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+
+export type TaskStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
 export interface AgentTask {
   id: string;
@@ -41,7 +46,7 @@ export interface AgentTask {
   data: Record<string, any>;
   createdAt: string;
   completedAt?: string;
-  status?: 'pending' | 'processing' | 'completed' | 'failed';
+  status?: TaskStatus;
   result?: Record<string, any>;
 }
 
@@ -66,10 +71,16 @@ export interface CognitiveProfile {
 
 export interface SystemState {
   activeAgents: AgentType[];
-  taskQueue: number;
-  completedTasks: number;
-  failedTasks: number;
-  uptime: number;
+  taskQueue?: number;
+  completedTasks?: number;
+  failedTasks?: number;
+  uptime?: number;
   globalVariables: Record<string, any>;
-  lastUpdated: string;
+  lastUpdated?: string;
+  metrics?: {
+    taskCompletionRate: number;
+    averageResponseTime: number;
+    userSatisfactionScore: number;
+  };
+  priorityMatrix?: Record<string, number>;
 }

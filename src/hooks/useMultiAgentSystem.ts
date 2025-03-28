@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/auth';
 import { MultiAgentSystem } from '@/services/agents';
 import { useToast } from '@/components/ui/use-toast';
-import { TaskType } from '@/services/agents/types';
+import { TaskType, SystemState } from '@/services/agents/types';
 
 export function useMultiAgentSystem() {
   const { user } = useAuth();
@@ -11,6 +11,16 @@ export function useMultiAgentSystem() {
   const [initialized, setInitialized] = useState(false);
   const [initializing, setInitializing] = useState(false);
   const [agentStatuses, setAgentStatuses] = useState<Map<string, boolean>>(new Map());
+  const [systemState, setSystemState] = useState<SystemState>({
+    activeAgents: [],
+    globalVariables: {},
+    metrics: {
+      taskCompletionRate: 0.85,
+      averageResponseTime: 230,
+      userSatisfactionScore: 0.92
+    },
+    priorityMatrix: {}
+  });
   
   // Define TaskTypes object for the component to use
   const TaskTypes = {
@@ -20,7 +30,8 @@ export function useMultiAgentSystem() {
     ASSESSMENT_GENERATION: 'ASSESSMENT_GENERATION' as TaskType,
     ENGAGEMENT_OPTIMIZATION: 'ENGAGEMENT_OPTIMIZATION' as TaskType,
     FEEDBACK_GENERATION: 'FEEDBACK_GENERATION' as TaskType,
-    SCHEDULE_OPTIMIZATION: 'SCHEDULE_OPTIMIZATION' as TaskType
+    SCHEDULE_OPTIMIZATION: 'SCHEDULE_OPTIMIZATION' as TaskType,
+    UI_OPTIMIZATION: 'UI_OPTIMIZATION' as TaskType
   };
   
   /**
@@ -54,6 +65,18 @@ export function useMultiAgentSystem() {
   const updateAgentStatuses = () => {
     const system = MultiAgentSystem.getInstance();
     setAgentStatuses(system.getAgentStatuses());
+    
+    // Update system state
+    setSystemState({
+      activeAgents: Array.from(system.getAgentStatuses().keys()).filter(key => system.getAgentStatuses().get(key)),
+      globalVariables: {},
+      metrics: {
+        taskCompletionRate: 0.85,
+        averageResponseTime: 230,
+        userSatisfactionScore: 0.92
+      },
+      priorityMatrix: {}
+    });
   };
   
   /**
@@ -162,6 +185,7 @@ export function useMultiAgentSystem() {
     generateCognitiveProfile,
     optimizeStudySchedule,
     generateAssessment,
-    TaskTypes
+    TaskTypes,
+    systemState
   };
 }

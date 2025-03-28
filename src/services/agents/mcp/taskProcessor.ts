@@ -1,4 +1,5 @@
-import { AgentTask, AgentType, TaskStatus } from '../types';
+
+import { AgentTask, AgentType, TaskType, TaskStatus } from '../types';
 import { createAgentRegistry } from './agentRegistry';
 import { agentIntegration } from '../../llm/agentIntegration';
 
