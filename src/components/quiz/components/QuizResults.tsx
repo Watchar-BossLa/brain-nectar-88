@@ -2,17 +2,16 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { QuizResults as QuizResultsType } from "@/types/quiz";
-import { ArrowRight, CheckCircle, XCircle, SkipForward, Clock, Target, Award, BookOpen } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { ArrowRight, Target, Award, BookOpen } from 'lucide-react';
 
-interface QuizResultsProps {
-  results: QuizResultsType;
-  onRestart: () => void;
-  onReview?: () => void;
-}
+// Import refactored components
+import ScoreSummary from './results/ScoreSummary';
+import PerformanceByTopic from './results/PerformanceByTopic';
+import PerformanceByDifficulty from './results/PerformanceByDifficulty';
+import PerformanceChart from './results/PerformanceChart';
+import { QuizResultsProps } from './results/types';
 
 const QuizResults: React.FC<QuizResultsProps> = ({ 
   results, 
@@ -23,10 +22,6 @@ const QuizResults: React.FC<QuizResultsProps> = ({
     ? Math.round((results.correctAnswers / results.questionsAttempted) * 100) 
     : 0;
   
-  const accuracyColor = 
-    scorePercentage >= 80 ? 'text-green-500' :
-    scorePercentage >= 60 ? 'text-amber-500' : 'text-red-500';
-  
   const timeInMinutes = Math.floor(results.timeSpent / 60000);
   const timeInSeconds = Math.floor((results.timeSpent % 60000) / 1000);
   
@@ -36,7 +31,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({
     { name: 'Skipped', value: results.skippedQuestions, color: '#d1d5db' }
   ];
   
-  // Calculate topic performance for bar charts
+  // Calculate topic performance for charts
   const topicPerformance = Object.entries(results.performanceByTopic).map(([topic, data]) => ({
     topic,
     percentage: data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0,
@@ -65,44 +60,15 @@ const QuizResults: React.FC<QuizResultsProps> = ({
       </CardHeader>
       
       <CardContent className="p-6 space-y-6">
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <span className={`text-4xl font-bold ${accuracyColor}`}>{scorePercentage}%</span>
-            <span className="text-lg text-muted-foreground">
-              ({results.correctAnswers}/{results.questionsAttempted})
-            </span>
-          </div>
-          <div className="flex items-center justify-center gap-2 text-muted-foreground">
-            <Clock className="h-4 w-4" />
-            <span>Completed in {timeInMinutes}m {timeInSeconds}s</span>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-3 gap-4 py-2">
-          <div className="flex flex-col items-center">
-            <div className="flex items-center gap-1 text-green-500">
-              <CheckCircle className="h-5 w-5" />
-              <span className="text-lg font-semibold">{results.correctAnswers}</span>
-            </div>
-            <span className="text-xs text-muted-foreground">Correct</span>
-          </div>
-          
-          <div className="flex flex-col items-center">
-            <div className="flex items-center gap-1 text-red-500">
-              <XCircle className="h-5 w-5" />
-              <span className="text-lg font-semibold">{results.incorrectAnswers}</span>
-            </div>
-            <span className="text-xs text-muted-foreground">Incorrect</span>
-          </div>
-          
-          <div className="flex flex-col items-center">
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <SkipForward className="h-5 w-5" />
-              <span className="text-lg font-semibold">{results.skippedQuestions}</span>
-            </div>
-            <span className="text-xs text-muted-foreground">Skipped</span>
-          </div>
-        </div>
+        <ScoreSummary 
+          scorePercentage={scorePercentage}
+          correctAnswers={results.correctAnswers}
+          questionsAttempted={results.questionsAttempted}
+          incorrectAnswers={results.incorrectAnswers}
+          skippedQuestions={results.skippedQuestions}
+          timeInMinutes={timeInMinutes}
+          timeInSeconds={timeInSeconds}
+        />
         
         <Separator />
         
@@ -112,19 +78,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({
             Performance by Topic
           </h3>
           
-          <div className="space-y-3">
-            {topicPerformance.map((topic) => (
-              <div key={topic.topic}>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>{topic.topic}</span>
-                  <span className="font-medium">
-                    {topic.correct}/{topic.total} ({topic.percentage}%)
-                  </span>
-                </div>
-                <Progress value={topic.percentage} className="h-2" />
-              </div>
-            ))}
-          </div>
+          <PerformanceByTopic topics={results.performanceByTopic} />
         </div>
         
         <Separator />
@@ -136,30 +90,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({
               Performance Breakdown
             </h3>
             
-            <div className="h-[180px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={scoreData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {scoreData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    formatter={(value) => [`${value} questions`, '']}
-                    itemStyle={{ color: 'inherit' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+            <PerformanceChart scoreData={scoreData} />
           </div>
           
           <div>
@@ -168,26 +99,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({
               Performance by Difficulty
             </h3>
             
-            <div className="space-y-3">
-              {difficultyData.map((item) => (
-                <div key={item.name}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>{item.name}</span>
-                    <span className="font-medium">
-                      {item.correct}/{item.total} ({item.value}%)
-                    </span>
-                  </div>
-                  <Progress 
-                    value={item.value} 
-                    className="h-2" 
-                    indicatorClassName={
-                      item.name === 'Easy' ? "bg-green-500" : 
-                      item.name === 'Medium' ? "bg-amber-500" : "bg-red-500"
-                    }
-                  />
-                </div>
-              ))}
-            </div>
+            <PerformanceByDifficulty difficulties={results.performanceByDifficulty} />
           </div>
         </div>
       </CardContent>

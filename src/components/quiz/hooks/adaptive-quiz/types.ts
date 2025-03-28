@@ -1,7 +1,8 @@
 
 import { QuizQuestion, QuizResults, AnsweredQuestion } from '../../types';
 
-export interface AdaptiveQuizState {
+export interface QuizStateWithSetters {
+  // State
   activeQuiz: boolean;
   currentQuestion: QuizQuestion | null;
   currentIndex: number;
@@ -12,29 +13,16 @@ export interface AdaptiveQuizState {
   currentDifficulty: 1 | 2 | 3;
   answeredQuestions: AnsweredQuestion[];
   userConfidence: number;
-}
-
-export interface AdaptiveQuizActions {
-  startQuiz: () => void;
-  submitAnswer: () => boolean | undefined;
-  nextQuestion: () => boolean;
-  previousQuestion: () => void;
-  skipQuestion: () => boolean;
-  restartQuiz: () => void;
-  setSelectedAnswer: (answer: string) => void;
-  setCurrentDifficulty: (difficulty: 1 | 2 | 3) => void;
-  setConfidence: (level: number) => void;
-}
-
-export interface QuizStateWithSetters extends AdaptiveQuizState {
-  setActiveQuiz: (active: boolean) => void;
-  setCurrentQuestion: (question: QuizQuestion | null) => void;
-  setCurrentIndex: (index: number) => void;
-  setSelectedAnswer: (answer: string) => void;
-  setIsAnswerSubmitted: (submitted: boolean) => void;
-  setIsCorrect: (correct: boolean | null) => void;
-  setQuizResults: (results: QuizResults | null) => void;
-  setAnsweredQuestions: (questions: AnsweredQuestion[]) => void;
-  setCurrentDifficulty: (difficulty: 1 | 2 | 3) => void;
-  setUserConfidence: (level: number) => void;
+  
+  // Setters
+  setActiveQuiz: React.Dispatch<React.SetStateAction<boolean>>;
+  setCurrentQuestion: React.Dispatch<React.SetStateAction<QuizQuestion | null>>;
+  setCurrentIndex: React.Dispatch<React.SetStateAction<number>>;
+  setSelectedAnswer: React.Dispatch<React.SetStateAction<string>>;
+  setIsAnswerSubmitted: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsCorrect: React.Dispatch<React.SetStateAction<boolean | null>>;
+  setQuizResults: React.Dispatch<React.SetStateAction<QuizResults | null>>;
+  setAnsweredQuestions: React.Dispatch<React.SetStateAction<AnsweredQuestion[]>>;
+  setCurrentDifficulty: React.Dispatch<React.SetStateAction<1 | 2 | 3>>;
+  setUserConfidence: React.Dispatch<React.SetStateAction<number>>;
 }

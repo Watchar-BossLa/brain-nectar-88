@@ -91,13 +91,13 @@ export function useQuizActions(
       timeTaken,
     };
     
-    setAnsweredQuestions(prev => [...prev, answeredQuestion]);
+    setAnsweredQuestions([...answeredQuestions, answeredQuestion]);
     updateDifficulty(correct);
     setStartTime(Date.now());
     
     return correct;
   }, [currentQuestion, isAnswerSubmitted, selectedAnswer, startTime, updateDifficulty, 
-       setIsCorrect, setIsAnswerSubmitted, setAnsweredQuestions]);
+       setIsCorrect, setIsAnswerSubmitted, answeredQuestions, setAnsweredQuestions]);
 
   // Move to next question
   const nextQuestion = useCallback(() => {
@@ -112,7 +112,7 @@ export function useQuizActions(
     const nextQ = selectNextQuestion();
     if (nextQ) {
       setCurrentQuestion(nextQ);
-      setCurrentIndex(prev => prev + 1);
+      setCurrentIndex(currentIndex + 1);
       setSelectedAnswer('');
       setIsAnswerSubmitted(false);
       setIsCorrect(null);
@@ -125,7 +125,7 @@ export function useQuizActions(
       return true;
     }
   }, [answeredQuestions, maxQuestions, availableQuestions, selectNextQuestion, 
-       setQuizResults, setActiveQuiz, setCurrentQuestion, setCurrentIndex, 
+       setQuizResults, setActiveQuiz, setCurrentQuestion, currentIndex, setCurrentIndex, 
        setSelectedAnswer, setIsAnswerSubmitted, setIsCorrect]);
 
   // Skip current question
@@ -139,9 +139,9 @@ export function useQuizActions(
       timeTaken: 0,
     };
     
-    setAnsweredQuestions(prev => [...prev, skippedQuestion]);
+    setAnsweredQuestions([...answeredQuestions, skippedQuestion]);
     return nextQuestion();
-  }, [currentQuestion, nextQuestion, setAnsweredQuestions]);
+  }, [currentQuestion, nextQuestion, answeredQuestions, setAnsweredQuestions]);
 
   // Go back to previous question (for review)
   const previousQuestion = useCallback(() => {
@@ -153,7 +153,7 @@ export function useQuizActions(
     
     if (prevQuestion) {
       setCurrentQuestion(prevQuestion);
-      setCurrentIndex(prev => prev - 1);
+      setCurrentIndex(currentIndex - 1);
       setSelectedAnswer(prevAnswered.userAnswer);
       setIsAnswerSubmitted(true);
       setIsCorrect(prevAnswered.isCorrect);
