@@ -18,7 +18,10 @@ export function useQuizActions(quizState: QuizStateWithSetters) {
     setStartTime,
     setQuizResults,
     currentDifficulty,
-    quizLength
+    quizLength,
+    setCurrentDifficulty,
+    setSelectedSubject,
+    setQuizLength
   } = quizState;
   
   // Import sub-hooks
@@ -85,6 +88,10 @@ export function useQuizActions(quizState: QuizStateWithSetters) {
     toggleTopic,
     getFilteredQuestions,
     allTopics,
-    allSubjects
+    allSubjects,
+    setSelectedSubject,
+    setQuizLength,
+    setCurrentDifficulty,
+    setSelectedAnswer: quizState.setSelectedAnswer
   };
 }

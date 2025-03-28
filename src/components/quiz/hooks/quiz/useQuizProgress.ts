@@ -1,3 +1,4 @@
+
 import { useCallback } from 'react';
 import { QuizQuestion } from '../../types';
 import { evaluateAnswer, calculateQuizResults } from '../quizUtils';
@@ -22,6 +23,33 @@ export function useQuizProgress(quizState: QuizStateWithSetters) {
     setQuizResults,
     setActiveQuiz
   } = quizState;
+  
+  // Adapt difficulty based on performance
+  const adaptDifficulty = useCallback((isCorrect: boolean) => {
+    // Get performance on recent questions (last 3 or fewer if not enough)
+    const recentQuestions = [...answeredQuestions, { 
+      id: currentQuestion?.id || '', 
+      isCorrect, 
+      userAnswer: selectedAnswer, 
+      timeTaken: 0 
+    }];
+    const recentPerformance = recentQuestions.slice(-3).filter(q => q.id !== '');
+    
+    // Calculate success rate
+    const successRate = recentPerformance.length > 0
+      ? recentPerformance.filter(q => q.isCorrect).length / recentPerformance.length
+      : 0.5;
+    
+    // Adjust difficulty based on performance
+    if (successRate > 0.7 && currentDifficulty < 3) {
+      // Doing well, increase difficulty
+      setCurrentDifficulty(Math.min(3, currentDifficulty + 1) as 1 | 2 | 3);
+    } else if (successRate < 0.3 && currentDifficulty > 1) {
+      // Struggling, decrease difficulty
+      setCurrentDifficulty(Math.max(1, currentDifficulty - 1) as 1 | 2 | 3);
+    }
+    // Otherwise keep current difficulty
+  }, [answeredQuestions, currentQuestion, selectedAnswer, currentDifficulty, setCurrentDifficulty]);
   
   // Submit answer for current question
   const submitAnswer = useCallback(() => {
@@ -52,7 +80,7 @@ export function useQuizProgress(quizState: QuizStateWithSetters) {
     
     return correct;
   }, [currentQuestion, selectedAnswer, startTime, answeredQuestions, setIsCorrect, 
-      setIsAnswerSubmitted, setAnsweredQuestions, setStartTime, currentDifficulty, adaptDifficulty]);
+      setIsAnswerSubmitted, setAnsweredQuestions, setStartTime, adaptDifficulty]);
   
   // Move to the next question
   const nextQuestion = useCallback(() => {
@@ -106,33 +134,6 @@ export function useQuizProgress(quizState: QuizStateWithSetters) {
     
     return nextQuestion();
   }, [currentQuestion, answeredQuestions, nextQuestion, setAnsweredQuestions]);
-  
-  // Adapt difficulty based on performance
-  const adaptDifficulty = useCallback((isCorrect: boolean) => {
-    // Get performance on recent questions (last 3 or fewer if not enough)
-    const recentQuestions = [...answeredQuestions, { 
-      id: currentQuestion?.id || '', 
-      isCorrect, 
-      userAnswer: selectedAnswer, 
-      timeTaken: 0 
-    }];
-    const recentPerformance = recentQuestions.slice(-3).filter(q => q.id !== '');
-    
-    // Calculate success rate
-    const successRate = recentPerformance.length > 0
-      ? recentPerformance.filter(q => q.isCorrect).length / recentPerformance.length
-      : 0.5;
-    
-    // Adjust difficulty based on performance
-    if (successRate > 0.7 && currentDifficulty < 3) {
-      // Doing well, increase difficulty
-      setCurrentDifficulty(Math.min(3, currentDifficulty + 1) as 1 | 2 | 3);
-    } else if (successRate < 0.3 && currentDifficulty > 1) {
-      // Struggling, decrease difficulty
-      setCurrentDifficulty(Math.max(1, currentDifficulty - 1) as 1 | 2 | 3);
-    }
-    // Otherwise keep current difficulty
-  }, [answeredQuestions, currentQuestion, selectedAnswer, currentDifficulty, setCurrentDifficulty]);
   
   return {
     submitAnswer,

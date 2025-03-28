@@ -15,6 +15,7 @@ export interface QuizState {
   startTime: number | null;
   quizLength: number;
   answeredQuestions: AnsweredQuestion[];
+  selectedSubject: string;
 }
 
 export interface QuizActions {
@@ -30,6 +31,8 @@ export interface QuizActions {
   setCurrentDifficulty: (difficulty: 1 | 2 | 3) => void;
   setSelectedAnswer: (answer: string) => void;
   getFilteredQuestions: () => QuizQuestion[];
+  allTopics: string[];
+  allSubjects: string[];
 }
 
 export interface QuizStateWithSetters extends QuizState {
@@ -43,5 +46,8 @@ export interface QuizStateWithSetters extends QuizState {
   setQuizResults: React.Dispatch<React.SetStateAction<QuizResults | null>>;
   setSelectedTopics: React.Dispatch<React.SetStateAction<string[]>>;
   setStartTime: React.Dispatch<React.SetStateAction<number | null>>;
+  setQuizLength: React.Dispatch<React.SetStateAction<number>>;
+  setCurrentDifficulty: React.Dispatch<React.SetStateAction<1 | 2 | 3>>;
   setAnsweredQuestions: React.Dispatch<React.SetStateAction<AnsweredQuestion[]>>;
+  setSelectedSubject: React.Dispatch<React.SetStateAction<string>>;
 }
