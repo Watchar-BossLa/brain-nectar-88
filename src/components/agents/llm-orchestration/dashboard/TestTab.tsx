@@ -77,9 +77,9 @@ export function TestTab({
               onChange={(e) => setSelectedModel(e.target.value)}
             >
               <option value="">Select specific model</option>
-              {Object.values(TaskCategory).map((category) => (
-                <option key={category} value={category}>{category}</option>
-              ))}
+              <option value="llama3-8b">Llama 3 8B</option>
+              <option value="mistral-7b">Mistral 7B</option>
+              <option value="mixtral-8x7b">Mixtral 8x7B</option>
             </select>
             
             <Button
