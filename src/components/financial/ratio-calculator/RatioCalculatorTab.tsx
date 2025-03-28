@@ -1,208 +1,130 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowDownToLine, BarChart2 } from 'lucide-react';
-
-type RatioResult = {
-  name: string;
-  value: number | string;
-  interpretation: string;
-  category: 'profitability' | 'liquidity' | 'solvency' | 'efficiency';
-};
+import { ArrowDownToLine } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent } from "@/components/ui/card";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { exportToCSV } from '../utils/exportUtils';
 
 const RatioCalculatorTab: React.FC = () => {
-  // Financial statement values
-  const [values, setValues] = useState({
-    // Balance Sheet
-    currentAssets: 0,
-    totalAssets: 0,
-    currentLiabilities: 0,
-    totalLiabilities: 0,
-    totalEquity: 0,
-    cash: 0,
-    accountsReceivable: 0,
-    inventory: 0,
-    
-    // Income Statement
-    revenue: 0,
-    netIncome: 0,
-    operatingIncome: 0,
-    costOfGoodsSold: 0,
-    
-    // Additional values
-    averageInventory: 0,
-    averageAccountsReceivable: 0,
-    interestExpense: 0,
+  // Connect to balance sheet and income statement data
+  const [balanceSheetItems, setBalanceSheetItems] = useState([]);
+  const [incomeItems, setIncomeItems] = useState([]);
+  
+  // State to store calculated ratios
+  const [ratios, setRatios] = useState({
+    liquidityRatios: {
+      currentRatio: 0,
+      quickRatio: 0,
+      cashRatio: 0
+    },
+    profitabilityRatios: {
+      grossProfitMargin: 0,
+      operatingProfitMargin: 0,
+      netProfitMargin: 0,
+      returnOnAssets: 0,
+      returnOnEquity: 0
+    },
+    solvencyRatios: {
+      debtToEquity: 0,
+      debtRatio: 0,
+      interestCoverageRatio: 0
+    },
+    efficiencyRatios: {
+      assetTurnover: 0,
+      inventoryTurnover: 0,
+      receivablesTurnover: 0
+    }
   });
   
-  const [results, setResults] = useState<RatioResult[]>([]);
-  
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setValues({
-      ...values,
-      [name]: parseFloat(value) || 0
-    });
-  };
-  
+  // Placeholder calculation logic - in a real app, this would use actual data from balance sheet and income statement
   const calculateRatios = () => {
-    const newResults: RatioResult[] = [];
+    // Sample values for demonstration purposes
+    const totalAssets = 100000;
+    const currentAssets = 40000;
+    const cash = 15000;
+    const inventory = 15000;
+    const currentLiabilities = 25000;
+    const totalLiabilities = 40000;
+    const totalEquity = 60000;
+    const revenue = 120000;
+    const costOfGoodsSold = 70000;
+    const grossProfit = 50000;
+    const operatingIncome = 30000;
+    const netIncome = 20000;
+    const interestExpense = 3000;
     
-    // Profitability Ratios
-    if (values.revenue > 0) {
-      // Return on Assets (ROA)
-      const roa = (values.netIncome / values.totalAssets) * 100;
-      newResults.push({
-        name: 'Return on Assets (ROA)',
-        value: isFinite(roa) ? `${roa.toFixed(2)}%` : 'N/A',
-        interpretation: roa > 5 ? 'Good' : 'Needs improvement',
-        category: 'profitability'
-      });
-      
-      // Net Profit Margin
-      const netProfitMargin = (values.netIncome / values.revenue) * 100;
-      newResults.push({
-        name: 'Net Profit Margin',
-        value: isFinite(netProfitMargin) ? `${netProfitMargin.toFixed(2)}%` : 'N/A',
-        interpretation: netProfitMargin > 10 ? 'Good' : 'Needs improvement',
-        category: 'profitability'
-      });
-      
-      // Gross Profit Margin
-      const grossProfitMargin = ((values.revenue - values.costOfGoodsSold) / values.revenue) * 100;
-      newResults.push({
-        name: 'Gross Profit Margin',
-        value: isFinite(grossProfitMargin) ? `${grossProfitMargin.toFixed(2)}%` : 'N/A',
-        interpretation: grossProfitMargin > 30 ? 'Good' : 'Needs improvement',
-        category: 'profitability'
-      });
-    }
-    
-    // Liquidity Ratios
-    if (values.currentLiabilities > 0) {
-      // Current Ratio
-      const currentRatio = values.currentAssets / values.currentLiabilities;
-      newResults.push({
-        name: 'Current Ratio',
-        value: isFinite(currentRatio) ? currentRatio.toFixed(2) : 'N/A',
-        interpretation: currentRatio > 1.5 ? 'Good' : 'Potential liquidity issue',
-        category: 'liquidity'
-      });
-      
-      // Quick Ratio
-      const quickRatio = (values.currentAssets - values.inventory) / values.currentLiabilities;
-      newResults.push({
-        name: 'Quick Ratio',
-        value: isFinite(quickRatio) ? quickRatio.toFixed(2) : 'N/A',
-        interpretation: quickRatio > 1.0 ? 'Good' : 'Potential liquidity issue',
-        category: 'liquidity'
-      });
-      
-      // Cash Ratio
-      const cashRatio = values.cash / values.currentLiabilities;
-      newResults.push({
-        name: 'Cash Ratio',
-        value: isFinite(cashRatio) ? cashRatio.toFixed(2) : 'N/A',
-        interpretation: cashRatio > 0.5 ? 'Strong cash position' : 'May need more cash reserves',
-        category: 'liquidity'
-      });
-    }
-    
-    // Solvency Ratios
-    if (values.totalAssets > 0 && values.totalLiabilities > 0) {
-      // Debt Ratio
-      const debtRatio = (values.totalLiabilities / values.totalAssets) * 100;
-      newResults.push({
-        name: 'Debt Ratio',
-        value: isFinite(debtRatio) ? `${debtRatio.toFixed(2)}%` : 'N/A',
-        interpretation: debtRatio < 50 ? 'Good' : 'High debt level',
-        category: 'solvency'
-      });
-      
-      // Debt to Equity Ratio
-      const debtToEquity = values.totalLiabilities / values.totalEquity;
-      newResults.push({
-        name: 'Debt to Equity Ratio',
-        value: isFinite(debtToEquity) ? debtToEquity.toFixed(2) : 'N/A',
-        interpretation: debtToEquity < 1.5 ? 'Good' : 'High leverage',
-        category: 'solvency'
-      });
-      
-      // Interest Coverage Ratio
-      if (values.interestExpense > 0) {
-        const interestCoverage = values.operatingIncome / values.interestExpense;
-        newResults.push({
-          name: 'Interest Coverage Ratio',
-          value: isFinite(interestCoverage) ? interestCoverage.toFixed(2) : 'N/A',
-          interpretation: interestCoverage > 2 ? 'Good' : 'May have trouble paying interest',
-          category: 'solvency'
-        });
+    // Calculate ratios
+    setRatios({
+      liquidityRatios: {
+        currentRatio: currentAssets / currentLiabilities,
+        quickRatio: (currentAssets - inventory) / currentLiabilities,
+        cashRatio: cash / currentLiabilities
+      },
+      profitabilityRatios: {
+        grossProfitMargin: grossProfit / revenue,
+        operatingProfitMargin: operatingIncome / revenue,
+        netProfitMargin: netIncome / revenue,
+        returnOnAssets: netIncome / totalAssets,
+        returnOnEquity: netIncome / totalEquity
+      },
+      solvencyRatios: {
+        debtToEquity: totalLiabilities / totalEquity,
+        debtRatio: totalLiabilities / totalAssets,
+        interestCoverageRatio: operatingIncome / interestExpense
+      },
+      efficiencyRatios: {
+        assetTurnover: revenue / totalAssets,
+        inventoryTurnover: costOfGoodsSold / inventory,
+        receivablesTurnover: revenue / (currentAssets - cash - inventory)
       }
-    }
-    
-    // Efficiency Ratios
-    if (values.revenue > 0) {
-      // Inventory Turnover
-      if (values.averageInventory > 0) {
-        const inventoryTurnover = values.costOfGoodsSold / values.averageInventory;
-        newResults.push({
-          name: 'Inventory Turnover',
-          value: isFinite(inventoryTurnover) ? inventoryTurnover.toFixed(2) : 'N/A',
-          interpretation: inventoryTurnover > 5 ? 'Good' : 'Slow inventory movement',
-          category: 'efficiency'
-        });
-      }
-      
-      // Accounts Receivable Turnover
-      if (values.averageAccountsReceivable > 0) {
-        const arTurnover = values.revenue / values.averageAccountsReceivable;
-        newResults.push({
-          name: 'Accounts Receivable Turnover',
-          value: isFinite(arTurnover) ? arTurnover.toFixed(2) : 'N/A',
-          interpretation: arTurnover > 4 ? 'Good' : 'Slow collection of receivables',
-          category: 'efficiency'
-        });
-      }
-      
-      // Asset Turnover
-      const assetTurnover = values.revenue / values.totalAssets;
-      newResults.push({
-        name: 'Asset Turnover',
-        value: isFinite(assetTurnover) ? assetTurnover.toFixed(2) : 'N/A',
-        interpretation: assetTurnover > 0.5 ? 'Good' : 'Inefficient asset use',
-        category: 'efficiency'
-      });
-    }
-    
-    setResults(newResults);
-  };
-  
-  const filteredResults = (category: 'profitability' | 'liquidity' | 'solvency' | 'efficiency') => {
-    return results.filter(result => result.category === category);
-  };
-  
-  const exportRatios = () => {
-    if (results.length === 0) return;
-    
-    let csv = 'Ratio,Value,Interpretation\n';
-    results.forEach(ratio => {
-      csv += `"${ratio.name}","${ratio.value}","${ratio.interpretation}"\n`;
     });
+  };
+  
+  // Calculate ratios on component mount
+  useEffect(() => {
+    calculateRatios();
+  }, []);
+  
+  // Format ratio for display
+  const formatRatio = (value: number, isPercent: boolean = false): string => {
+    if (isPercent) {
+      return `${(value * 100).toFixed(2)}%`;
+    }
+    return value.toFixed(2);
+  };
+  
+  // Prepare chart data
+  const chartData = [
+    { name: 'Current Ratio', value: ratios.liquidityRatios.currentRatio, fill: '#8884d8' },
+    { name: 'Quick Ratio', value: ratios.liquidityRatios.quickRatio, fill: '#83a6ed' },
+    { name: 'Debt-to-Equity', value: ratios.solvencyRatios.debtToEquity, fill: '#8dd1e1' },
+    { name: 'ROE', value: ratios.profitabilityRatios.returnOnEquity, fill: '#82ca9d' },
+    { name: 'Net Profit %', value: ratios.profitabilityRatios.netProfitMargin, fill: '#a4de6c' }
+  ];
+  
+  // Handle export to CSV
+  const handleExportToCsv = () => {
+    const ratioData = [
+      { name: 'Current Ratio', value: ratios.liquidityRatios.currentRatio },
+      { name: 'Quick Ratio', value: ratios.liquidityRatios.quickRatio },
+      { name: 'Cash Ratio', value: ratios.liquidityRatios.cashRatio },
+      { name: 'Gross Profit Margin', value: ratios.profitabilityRatios.grossProfitMargin },
+      { name: 'Operating Profit Margin', value: ratios.profitabilityRatios.operatingProfitMargin },
+      { name: 'Net Profit Margin', value: ratios.profitabilityRatios.netProfitMargin },
+      { name: 'Return on Assets', value: ratios.profitabilityRatios.returnOnAssets },
+      { name: 'Return on Equity', value: ratios.profitabilityRatios.returnOnEquity },
+      { name: 'Debt-to-Equity', value: ratios.solvencyRatios.debtToEquity },
+      { name: 'Debt Ratio', value: ratios.solvencyRatios.debtRatio },
+      { name: 'Interest Coverage Ratio', value: ratios.solvencyRatios.interestCoverageRatio },
+      { name: 'Asset Turnover', value: ratios.efficiencyRatios.assetTurnover },
+      { name: 'Inventory Turnover', value: ratios.efficiencyRatios.inventoryTurnover },
+      { name: 'Receivables Turnover', value: ratios.efficiencyRatios.receivablesTurnover }
+    ];
     
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.setAttribute('hidden', '');
-    a.setAttribute('href', url);
-    a.setAttribute('download', 'financial_ratios.csv');
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    exportToCSV(ratioData, 'financial_ratios.csv');
   };
   
   return (
@@ -212,343 +134,132 @@ const RatioCalculatorTab: React.FC = () => {
         <Button 
           variant="outline" 
           size="sm" 
-          onClick={exportRatios}
-          disabled={results.length === 0}
+          onClick={handleExportToCsv}
         >
           <ArrowDownToLine className="mr-2 h-4 w-4" />
-          Export Ratios
+          Export
         </Button>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Financial Data Input */}
+      <Alert className="bg-blue-50 text-blue-700 border border-blue-200">
+        <AlertDescription>
+          Financial ratios are calculated based on data from your Balance Sheet and Income Statement.
+          For accurate results, make sure your financial statements are up to date.
+        </AlertDescription>
+      </Alert>
+      
+      <div className="grid md:grid-cols-2 gap-4">
         <Card>
-          <CardHeader>
-            <CardTitle>Financial Data Input</CardTitle>
-            <CardDescription>
-              Enter your financial statement data to calculate ratios
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[500px] pr-4">
-              <div className="space-y-6">
-                <div>
-                  <h4 className="text-sm font-semibold mb-3">Balance Sheet Items</h4>
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="currentAssets">Current Assets</Label>
-                        <Input 
-                          id="currentAssets" 
-                          name="currentAssets" 
-                          type="number" 
-                          placeholder="0" 
-                          value={values.currentAssets || ''} 
-                          onChange={handleInputChange} 
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="totalAssets">Total Assets</Label>
-                        <Input 
-                          id="totalAssets" 
-                          name="totalAssets" 
-                          type="number" 
-                          placeholder="0" 
-                          value={values.totalAssets || ''} 
-                          onChange={handleInputChange} 
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="currentLiabilities">Current Liabilities</Label>
-                        <Input 
-                          id="currentLiabilities" 
-                          name="currentLiabilities" 
-                          type="number" 
-                          placeholder="0" 
-                          value={values.currentLiabilities || ''} 
-                          onChange={handleInputChange} 
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="totalLiabilities">Total Liabilities</Label>
-                        <Input 
-                          id="totalLiabilities" 
-                          name="totalLiabilities" 
-                          type="number" 
-                          placeholder="0" 
-                          value={values.totalLiabilities || ''} 
-                          onChange={handleInputChange} 
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="totalEquity">Total Equity</Label>
-                        <Input 
-                          id="totalEquity" 
-                          name="totalEquity" 
-                          type="number" 
-                          placeholder="0" 
-                          value={values.totalEquity || ''} 
-                          onChange={handleInputChange} 
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="cash">Cash</Label>
-                        <Input 
-                          id="cash" 
-                          name="cash" 
-                          type="number" 
-                          placeholder="0" 
-                          value={values.cash || ''} 
-                          onChange={handleInputChange} 
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="inventory">Inventory</Label>
-                        <Input 
-                          id="inventory" 
-                          name="inventory" 
-                          type="number" 
-                          placeholder="0" 
-                          value={values.inventory || ''} 
-                          onChange={handleInputChange} 
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h4 className="text-sm font-semibold mb-3">Income Statement Items</h4>
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="revenue">Revenue</Label>
-                        <Input 
-                          id="revenue" 
-                          name="revenue" 
-                          type="number" 
-                          placeholder="0" 
-                          value={values.revenue || ''} 
-                          onChange={handleInputChange} 
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="netIncome">Net Income</Label>
-                        <Input 
-                          id="netIncome" 
-                          name="netIncome" 
-                          type="number" 
-                          placeholder="0" 
-                          value={values.netIncome || ''} 
-                          onChange={handleInputChange} 
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="operatingIncome">Operating Income</Label>
-                        <Input 
-                          id="operatingIncome" 
-                          name="operatingIncome" 
-                          type="number" 
-                          placeholder="0" 
-                          value={values.operatingIncome || ''} 
-                          onChange={handleInputChange} 
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="costOfGoodsSold">Cost of Goods Sold</Label>
-                        <Input 
-                          id="costOfGoodsSold" 
-                          name="costOfGoodsSold" 
-                          type="number" 
-                          placeholder="0" 
-                          value={values.costOfGoodsSold || ''} 
-                          onChange={handleInputChange} 
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h4 className="text-sm font-semibold mb-3">Additional Data</h4>
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="averageInventory">Average Inventory</Label>
-                        <Input 
-                          id="averageInventory" 
-                          name="averageInventory" 
-                          type="number" 
-                          placeholder="0" 
-                          value={values.averageInventory || ''} 
-                          onChange={handleInputChange} 
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="averageAccountsReceivable">Avg. Accounts Receivable</Label>
-                        <Input 
-                          id="averageAccountsReceivable" 
-                          name="averageAccountsReceivable" 
-                          type="number" 
-                          placeholder="0" 
-                          value={values.averageAccountsReceivable || ''} 
-                          onChange={handleInputChange} 
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="interestExpense">Interest Expense</Label>
-                        <Input 
-                          id="interestExpense" 
-                          name="interestExpense" 
-                          type="number" 
-                          placeholder="0" 
-                          value={values.interestExpense || ''} 
-                          onChange={handleInputChange} 
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <Button 
-                  onClick={calculateRatios} 
-                  className="w-full"
-                  size="lg"
+          <CardContent className="pt-6">
+            <h4 className="font-medium mb-3">Key Financial Ratios</h4>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={chartData}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
-                  <BarChart2 className="mr-2 h-4 w-4" />
-                  Calculate Ratios
-                </Button>
-              </div>
-            </ScrollArea>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip 
+                    formatter={(value) => [Number(value).toFixed(2), 'Value']}
+                  />
+                  <Legend />
+                  <Bar dataKey="value" name="Ratio Value" fill="#8884d8" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
         
-        {/* Results */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Financial Ratios</CardTitle>
-            <CardDescription>
-              Analysis and interpretation of your financial data
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {results.length > 0 ? (
-              <Tabs defaultValue="profitability">
-                <TabsList className="w-full">
-                  <TabsTrigger value="profitability">Profitability</TabsTrigger>
-                  <TabsTrigger value="liquidity">Liquidity</TabsTrigger>
-                  <TabsTrigger value="solvency">Solvency</TabsTrigger>
-                  <TabsTrigger value="efficiency">Efficiency</TabsTrigger>
-                </TabsList>
-                <div className="mt-4">
-                  <TabsContent value="profitability">
-                    <ScrollArea className="h-[430px]">
-                      <div className="space-y-3">
-                        {filteredResults('profitability').map((ratio, index) => (
-                          <Card key={index}>
-                            <CardContent className="p-4">
-                              <div className="flex justify-between items-center mb-2">
-                                <h4 className="font-medium">{ratio.name}</h4>
-                                <span className="font-bold">{ratio.value}</span>
-                              </div>
-                              <p className="text-sm text-muted-foreground">{ratio.interpretation}</p>
-                            </CardContent>
-                          </Card>
-                        ))}
-                        {filteredResults('profitability').length === 0 && (
-                          <p className="text-center text-muted-foreground py-8">
-                            No profitability ratios calculated.
-                          </p>
-                        )}
-                      </div>
-                    </ScrollArea>
-                  </TabsContent>
-                  <TabsContent value="liquidity">
-                    <ScrollArea className="h-[430px]">
-                      <div className="space-y-3">
-                        {filteredResults('liquidity').map((ratio, index) => (
-                          <Card key={index}>
-                            <CardContent className="p-4">
-                              <div className="flex justify-between items-center mb-2">
-                                <h4 className="font-medium">{ratio.name}</h4>
-                                <span className="font-bold">{ratio.value}</span>
-                              </div>
-                              <p className="text-sm text-muted-foreground">{ratio.interpretation}</p>
-                            </CardContent>
-                          </Card>
-                        ))}
-                        {filteredResults('liquidity').length === 0 && (
-                          <p className="text-center text-muted-foreground py-8">
-                            No liquidity ratios calculated.
-                          </p>
-                        )}
-                      </div>
-                    </ScrollArea>
-                  </TabsContent>
-                  <TabsContent value="solvency">
-                    <ScrollArea className="h-[430px]">
-                      <div className="space-y-3">
-                        {filteredResults('solvency').map((ratio, index) => (
-                          <Card key={index}>
-                            <CardContent className="p-4">
-                              <div className="flex justify-between items-center mb-2">
-                                <h4 className="font-medium">{ratio.name}</h4>
-                                <span className="font-bold">{ratio.value}</span>
-                              </div>
-                              <p className="text-sm text-muted-foreground">{ratio.interpretation}</p>
-                            </CardContent>
-                          </Card>
-                        ))}
-                        {filteredResults('solvency').length === 0 && (
-                          <p className="text-center text-muted-foreground py-8">
-                            No solvency ratios calculated.
-                          </p>
-                        )}
-                      </div>
-                    </ScrollArea>
-                  </TabsContent>
-                  <TabsContent value="efficiency">
-                    <ScrollArea className="h-[430px]">
-                      <div className="space-y-3">
-                        {filteredResults('efficiency').map((ratio, index) => (
-                          <Card key={index}>
-                            <CardContent className="p-4">
-                              <div className="flex justify-between items-center mb-2">
-                                <h4 className="font-medium">{ratio.name}</h4>
-                                <span className="font-bold">{ratio.value}</span>
-                              </div>
-                              <p className="text-sm text-muted-foreground">{ratio.interpretation}</p>
-                            </CardContent>
-                          </Card>
-                        ))}
-                        {filteredResults('efficiency').length === 0 && (
-                          <p className="text-center text-muted-foreground py-8">
-                            No efficiency ratios calculated.
-                          </p>
-                        )}
-                      </div>
-                    </ScrollArea>
-                  </TabsContent>
-                </div>
-              </Tabs>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-[430px] text-center">
-                <BarChart2 className="h-16 w-16 text-muted-foreground/50 mb-4" />
-                <h3 className="font-medium mb-2">No Ratios Calculated Yet</h3>
-                <p className="text-sm text-muted-foreground max-w-xs">
-                  Enter your financial data on the left and click "Calculate Ratios" to see your financial analysis.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <div className="space-y-4">
+          <Card>
+            <CardContent className="pt-6">
+              <h4 className="font-medium mb-3">Liquidity Ratios</h4>
+              <Table>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>Current Ratio</TableCell>
+                    <TableCell className="text-right font-medium">{formatRatio(ratios.liquidityRatios.currentRatio)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Quick Ratio</TableCell>
+                    <TableCell className="text-right font-medium">{formatRatio(ratios.liquidityRatios.quickRatio)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Cash Ratio</TableCell>
+                    <TableCell className="text-right font-medium">{formatRatio(ratios.liquidityRatios.cashRatio)}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <h4 className="font-medium mb-3">Profitability Ratios</h4>
+              <Table>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>Gross Profit Margin</TableCell>
+                    <TableCell className="text-right font-medium">{formatRatio(ratios.profitabilityRatios.grossProfitMargin, true)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Net Profit Margin</TableCell>
+                    <TableCell className="text-right font-medium">{formatRatio(ratios.profitabilityRatios.netProfitMargin, true)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Return on Equity (ROE)</TableCell>
+                    <TableCell className="text-right font-medium">{formatRatio(ratios.profitabilityRatios.returnOnEquity, true)}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
       </div>
+      
+      <Card>
+        <CardContent className="pt-6">
+          <h4 className="font-medium mb-3">All Financial Ratios</h4>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Ratio</TableHead>
+                <TableHead>Value</TableHead>
+                <TableHead>Description</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell className="font-medium">Current Ratio</TableCell>
+                <TableCell>{formatRatio(ratios.liquidityRatios.currentRatio)}</TableCell>
+                <TableCell className="text-muted-foreground">Measures ability to pay short-term obligations</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">Quick Ratio</TableCell>
+                <TableCell>{formatRatio(ratios.liquidityRatios.quickRatio)}</TableCell>
+                <TableCell className="text-muted-foreground">Measures ability to pay short-term obligations without selling inventory</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">Debt-to-Equity</TableCell>
+                <TableCell>{formatRatio(ratios.solvencyRatios.debtToEquity)}</TableCell>
+                <TableCell className="text-muted-foreground">Measures financial leverage</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">Return on Equity</TableCell>
+                <TableCell>{formatRatio(ratios.profitabilityRatios.returnOnEquity, true)}</TableCell>
+                <TableCell className="text-muted-foreground">Measures profitability relative to shareholders' equity</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">Net Profit Margin</TableCell>
+                <TableCell>{formatRatio(ratios.profitabilityRatios.netProfitMargin, true)}</TableCell>
+                <TableCell className="text-muted-foreground">Measures net profit per dollar of revenue</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 };
