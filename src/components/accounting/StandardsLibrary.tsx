@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Filter, ArrowUpDown, Download } from 'lucide-react';
-import ComparisonTool from './ComparisonTool';
+import { ComparisonTool } from './comparison';
 import StandardsList from './standards/StandardsList';
 import SearchAndFilters from './standards/SearchAndFilters';
 import { enhancedStandards } from './standards/StandardsData';
