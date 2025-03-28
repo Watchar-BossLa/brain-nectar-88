@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import TopicItem, { TopicItemProps } from './topic-item';
+import { TopicItem, TopicItemProps } from './topic-item';
 
 export interface ModuleContentProps {
   topics: TopicItemProps[];
