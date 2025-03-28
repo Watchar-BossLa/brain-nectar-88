@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/auth';
 import { MultiAgentSystem } from '@/services/agents';
 import { useToast } from '@/components/ui/use-toast';
-import { TaskType, SystemState } from '@/services/agents/types';
+import { TaskType, SystemState, AgentType } from '@/services/agents/types';
 
 export function useMultiAgentSystem() {
   const { user } = useAuth();
@@ -12,7 +12,7 @@ export function useMultiAgentSystem() {
   const [initializing, setInitializing] = useState(false);
   const [agentStatuses, setAgentStatuses] = useState<Map<string, boolean>>(new Map());
   const [systemState, setSystemState] = useState<SystemState>({
-    activeAgents: [],
+    activeAgents: [] as AgentType[],
     globalVariables: {},
     metrics: {
       taskCompletionRate: 0.85,

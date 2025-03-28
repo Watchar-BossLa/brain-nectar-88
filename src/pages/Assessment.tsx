@@ -1,7 +1,7 @@
 
 import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { AdaptiveQuizPlatform } from '@/components/quiz/AdaptiveQuizPlatform';
+import AdaptiveQuizPlatform from '@/components/quiz/AdaptiveQuizPlatform';
 
 const Assessment = () => {
   return (

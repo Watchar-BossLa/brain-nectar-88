@@ -1,4 +1,3 @@
-
 import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -6,7 +5,7 @@ import { useTheme } from '@/context/theme';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { UserProfileCard } from '@/components/profile/UserProfileCard';
+import UserProfileCard from '@/components/profile/UserProfileCard';
 
 const Settings = () => {
   const { theme, setMode, toggleHighContrast } = useTheme();

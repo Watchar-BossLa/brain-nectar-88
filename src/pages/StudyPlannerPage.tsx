@@ -1,7 +1,7 @@
 
 import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { StudyPlanner } from '@/components/study-planner/StudyPlanner';
+import StudyPlanner from '@/components/study-planner/StudyPlanner';
 
 const StudyPlannerPage = () => {
   return (
