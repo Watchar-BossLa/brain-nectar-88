@@ -15,6 +15,7 @@ import StudyPlannerPage from './pages/StudyPlannerPage';
 import AgentDashboard from './pages/AgentDashboard';
 import LearningPath from './pages/LearningPath';
 import { useEffect } from 'react';
+import Index from './pages/Index';
 
 function App() {
   useEffect(() => {
@@ -26,7 +27,7 @@ function App() {
       <ThemeProvider defaultTheme="light" storageKey="study-bee-theme">
         <AuthProvider>
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/courses" element={<Courses />} />
