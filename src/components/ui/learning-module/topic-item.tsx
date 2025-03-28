@@ -8,19 +8,24 @@ export interface TopicItemProps {
   title: string;
   duration: number;
   isCompleted: boolean;
+  onClick?: (id: string) => void;
 }
 
 export const TopicItem = ({ 
   id, 
   title, 
   duration, 
-  isCompleted 
+  isCompleted,
+  onClick
 }: TopicItemProps) => {
   return (
-    <li className={cn(
-      "flex items-center justify-between p-3 rounded-md border",
-      isCompleted ? "bg-primary/5 border-primary/20" : "bg-card border-border"
-    )}>
+    <li 
+      className={cn(
+        "flex items-center justify-between p-3 rounded-md border cursor-pointer hover:bg-accent/50 transition-colors",
+        isCompleted ? "bg-primary/5 border-primary/20" : "bg-card border-border"
+      )}
+      onClick={() => onClick?.(id)}
+    >
       <div className="flex items-center">
         <div className={cn(
           "w-5 h-5 rounded-full flex items-center justify-center mr-3",
