@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/auth';
 import { MultiAgentSystem } from '@/services/agents';
@@ -66,9 +65,11 @@ export function useMultiAgentSystem() {
     const system = MultiAgentSystem.getInstance();
     setAgentStatuses(system.getAgentStatuses());
     
-    // Update system state
+    // Update system state with proper type casting
     setSystemState({
-      activeAgents: Array.from(system.getAgentStatuses().keys()).filter(key => system.getAgentStatuses().get(key)),
+      activeAgents: Array.from(system.getAgentStatuses().keys())
+        .filter(key => system.getAgentStatuses().get(key))
+        .map(key => key as AgentType),
       globalVariables: {},
       metrics: {
         taskCompletionRate: 0.85,
