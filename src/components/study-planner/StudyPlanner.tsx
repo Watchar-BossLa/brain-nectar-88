@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -7,48 +7,43 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarIcon, BarChart, ListTodo } from 'lucide-react';
-import StudyPlan from './StudyPlan';
-import { useToast } from "@/components/ui/use-toast";
 
-// Import our new components
+// Import our components
 import AddSessionForm from './components/AddSessionForm';
 import StudySessionList from './components/StudySessionList';
 import StudyStats from './components/StudyStats';
 import StudyPlanTips from './components/StudyPlanTips';
+import StudyPlan from './StudyPlan';
 
 // Import our custom hook
-import { useStudySessions } from './hooks/useStudySessions';
+import { useStudyPlannerState } from './hooks/useStudyPlannerState';
+
+// Define topics
+const topics = [
+  { value: "accounting-basics", label: "Accounting Basics" },
+  { value: "financial-statements", label: "Financial Statements" },
+  { value: "tax-accounting", label: "Tax Accounting" },
+  { value: "managerial-accounting", label: "Managerial Accounting" },
+  { value: "auditing", label: "Auditing" },
+  { value: "accounting-standards", label: "Accounting Standards" },
+  { value: "generated-plan", label: "From Study Plan" }
+];
 
 const StudyPlanner = () => {
-  const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<string>("schedule");
-  const [studyPlan, setStudyPlan] = useState<any>(null);
-  
-  // Use our custom hook
   const {
+    activeTab,
+    setActiveTab,
+    studyPlan,
+    createStudyPlan,
     filteredSessions,
     showCompleted,
     setShowCompleted,
     statistics,
-    topics,
     addSession,
     toggleCompleted,
-    deleteSession
-  } = useStudySessions();
-
-  const handleCreatePlan = (plan: any) => {
-    setStudyPlan(plan);
-    setActiveTab("schedule");
-    
-    // In a real application, we would generate sessions based on the plan
-    // For now, we'll just add a sample session
-    addSession({
-      title: `${plan.priorityTopics[0] || "Study"} Session`,
-      date: plan.startDate,
-      duration: plan.dailyStudyMinutes,
-      topic: "generated-plan",
-    });
-  };
+    deleteSession,
+    isLoading
+  } = useStudyPlannerState();
 
   return (
     <div className="space-y-6">
@@ -98,7 +93,7 @@ const StudyPlanner = () => {
                   
                   {studyPlan && (
                     <Badge variant="outline" className="px-3 py-1">
-                      {studyPlan.dailyStudyMinutes} min/day goal
+                      {studyPlan.dailyStudyMinutes || Math.round((studyPlan.studyHoursPerWeek * 60) / 7)} min/day goal
                     </Badge>
                   )}
                 </div>
@@ -119,7 +114,10 @@ const StudyPlanner = () => {
         <TabsContent value="plan">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <StudyPlan onPlanCreated={handleCreatePlan} />
+              <StudyPlan 
+                onPlanCreated={createStudyPlan} 
+                isLoading={isLoading}
+              />
             </div>
             <StudyPlanTips />
           </div>

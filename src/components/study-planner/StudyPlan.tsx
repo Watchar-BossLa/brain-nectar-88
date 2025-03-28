@@ -9,29 +9,27 @@ import { format, addDays, isAfter, isBefore, differenceInDays } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { AlertCircle, Calendar as CalendarIcon, Check, CheckCircle, Clock, Info } from 'lucide-react';
+import { AlertCircle, Calendar as CalendarIcon, Check, CheckCircle, Clock, Info, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
+import { StudyPlanOptions } from './types';
 
 interface StudyPlanProps {
-  qualificationId?: string;
-  examDate?: Date;
-  onPlanCreated?: (plan: any) => void;
+  onPlanCreated: (plan: StudyPlanOptions) => Promise<any>;
+  isLoading: boolean;
 }
 
 const StudyPlan: React.FC<StudyPlanProps> = ({ 
-  qualificationId, 
-  examDate: initialExamDate,
-  onPlanCreated 
+  onPlanCreated,
+  isLoading
 }) => {
   const { toast } = useToast();
-  const [examDate, setExamDate] = useState<Date | undefined>(initialExamDate);
+  const [examDate, setExamDate] = useState<Date | undefined>(undefined);
   const [startDate, setStartDate] = useState<Date | undefined>(new Date());
   const [studyHoursPerWeek, setStudyHoursPerWeek] = useState(10);
   const [priorityTopics, setPriorityTopics] = useState<string[]>([]);
-  const [difficulty, setDifficulty] = useState<string>("medium");
-  const [isCreatingPlan, setIsCreatingPlan] = useState(false);
+  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [planCreated, setPlanCreated] = useState(false);
   
   // Sample topics for the demo
@@ -64,6 +62,11 @@ const StudyPlan: React.FC<StudyPlanProps> = ({
   };
   
   const calculateDailyStudyTime = () => {
+    if (!examDate) {
+      // If no exam date, just divide by 7 days in a week
+      return Math.round((studyHoursPerWeek * 60) / 7);
+    }
+    
     const availableDays = calculateAvailableDays();
     if (availableDays <= 0) return 0;
     
@@ -71,17 +74,17 @@ const StudyPlan: React.FC<StudyPlanProps> = ({
     return Math.round((totalHours / availableDays) * 60); // minutes per day
   };
   
-  const handleCreatePlan = () => {
-    if (!examDate || !startDate) {
+  const handleCreatePlan = async () => {
+    if (!startDate) {
       toast({
         title: "Missing Information",
-        description: "Please set both start date and exam date",
+        description: "Please set a start date for your study plan",
         variant: "destructive"
       });
       return;
     }
     
-    if (isBefore(examDate, startDate)) {
+    if (examDate && isBefore(examDate, startDate)) {
       toast({
         title: "Invalid Dates",
         description: "Exam date cannot be before start date",
@@ -90,29 +93,20 @@ const StudyPlan: React.FC<StudyPlanProps> = ({
       return;
     }
     
-    setIsCreatingPlan(true);
+    const planOptions: StudyPlanOptions = {
+      startDate,
+      examDate,
+      studyHoursPerWeek,
+      priorityTopics,
+      difficulty,
+      dailyStudyMinutes: calculateDailyStudyTime()
+    };
     
-    // Simulate creating a study plan
-    setTimeout(() => {
-      setIsCreatingPlan(false);
+    const result = await onPlanCreated(planOptions);
+    
+    if (result?.success) {
       setPlanCreated(true);
-      
-      toast({
-        title: "Study Plan Created",
-        description: "Your personalized study plan is ready",
-      });
-      
-      if (onPlanCreated) {
-        onPlanCreated({
-          startDate,
-          examDate,
-          studyHoursPerWeek,
-          priorityTopics,
-          difficulty,
-          dailyStudyMinutes: calculateDailyStudyTime()
-        });
-      }
-    }, 1500);
+    }
   };
   
   return (
@@ -138,9 +132,9 @@ const StudyPlan: React.FC<StudyPlanProps> = ({
               <div className="p-4 border rounded-lg bg-muted/50">
                 <p className="text-sm font-medium mb-2">Study Period</p>
                 <p className="text-sm">
-                  {format(startDate!, "MMM d, yyyy")} to {format(examDate!, "MMM d, yyyy")}
+                  {format(startDate!, "MMM d, yyyy")} {examDate && `to ${format(examDate, "MMM d, yyyy")}`}
                 </p>
-                <p className="text-sm mt-1">({calculateAvailableDays()} days available)</p>
+                {examDate && <p className="text-sm mt-1">({calculateAvailableDays()} days available)</p>}
               </div>
               
               <div className="p-4 border rounded-lg bg-muted/50">
@@ -170,7 +164,7 @@ const StudyPlan: React.FC<StudyPlanProps> = ({
               <Info className="h-4 w-4" />
               <AlertTitle>Next Steps</AlertTitle>
               <AlertDescription>
-                Go to the Study Planner page to view your complete schedule and track your progress.
+                Switch to the Schedule tab to view your complete study schedule and track your progress.
               </AlertDescription>
             </Alert>
           </div>
@@ -205,7 +199,7 @@ const StudyPlan: React.FC<StudyPlanProps> = ({
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="exam-date">Exam Date</Label>
+                <Label htmlFor="exam-date">Exam Date (Optional)</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -255,7 +249,7 @@ const StudyPlan: React.FC<StudyPlanProps> = ({
                   className="w-24"
                 />
                 <span className="text-sm text-muted-foreground">
-                  {studyHoursPerWeek > 0 && startDate && examDate && isAfter(examDate, startDate) && (
+                  {studyHoursPerWeek > 0 && startDate && (
                     <>= {calculateDailyStudyTime()} minutes per day</>
                   )}
                 </span>
@@ -264,7 +258,7 @@ const StudyPlan: React.FC<StudyPlanProps> = ({
             
             <div className="space-y-2">
               <Label htmlFor="difficulty">Study Plan Difficulty</Label>
-              <Select value={difficulty} onValueChange={setDifficulty}>
+              <Select value={difficulty} onValueChange={(val) => setDifficulty(val as 'easy' | 'medium' | 'hard')}>
                 <SelectTrigger id="difficulty">
                   <SelectValue placeholder="Select difficulty" />
                 </SelectTrigger>
@@ -309,17 +303,21 @@ const StudyPlan: React.FC<StudyPlanProps> = ({
             >
               Modify Plan
             </Button>
-            <Button className="flex-1">
-              View Full Schedule
-            </Button>
           </div>
         ) : (
           <Button 
             onClick={handleCreatePlan} 
-            disabled={!startDate || !examDate || isBefore(examDate, startDate) || isCreatingPlan}
+            disabled={!startDate || (examDate && isBefore(examDate, startDate)) || isLoading}
             className="w-full"
           >
-            {isCreatingPlan ? "Creating Plan..." : "Create Study Plan"}
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating Plan...
+              </>
+            ) : (
+              "Create Study Plan"
+            )}
           </Button>
         )}
       </CardFooter>

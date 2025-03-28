@@ -1,54 +1,72 @@
 
 import React from 'react';
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertCircle, BookOpen, BrainCircuit, Clock, LayoutGrid } from 'lucide-react';
 
-const StudyPlanTips: React.FC = () => {
+const StudyPlanTips = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Study Plan Tips</CardTitle>
-        <CardDescription>Get the most from your study plan</CardDescription>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <AlertCircle className="h-5 w-5 text-amber-500" />
+          Study Planning Tips
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <h3 className="font-medium">Effective Time Management</h3>
-          <p className="text-sm text-muted-foreground">
-            Break your study sessions into 25-30 minute blocks with short breaks in between for optimal focus and retention.
-          </p>
+          <div className="flex items-start gap-2">
+            <Clock className="h-4 w-4 text-muted-foreground mt-0.5" />
+            <div>
+              <p className="text-sm font-medium">Time Management</p>
+              <p className="text-xs text-muted-foreground">
+                Shorter, focused study sessions (25-30 minutes) with breaks are more effective than long cramming sessions.
+              </p>
+            </div>
+          </div>
         </div>
-        
-        <Separator />
         
         <div className="space-y-2">
-          <h3 className="font-medium">Spaced Repetition</h3>
-          <p className="text-sm text-muted-foreground">
-            Review material at increasing intervals to improve long-term retention. Integrate flashcards into your study routine.
-          </p>
+          <div className="flex items-start gap-2">
+            <LayoutGrid className="h-4 w-4 text-muted-foreground mt-0.5" />
+            <div>
+              <p className="text-sm font-medium">Mix Topics</p>
+              <p className="text-xs text-muted-foreground">
+                Interleaving different subjects in your study plan leads to better long-term retention than focusing on one topic at a time.
+              </p>
+            </div>
+          </div>
         </div>
-        
-        <Separator />
         
         <div className="space-y-2">
-          <h3 className="font-medium">Practice Tests</h3>
-          <p className="text-sm text-muted-foreground">
-            Take regular practice tests to identify knowledge gaps and become familiar with the exam format.
-          </p>
+          <div className="flex items-start gap-2">
+            <BrainCircuit className="h-4 w-4 text-muted-foreground mt-0.5" />
+            <div>
+              <p className="text-sm font-medium">Spaced Repetition</p>
+              <p className="text-xs text-muted-foreground">
+                Reviewing material at increasing intervals helps transfer knowledge to long-term memory.
+              </p>
+            </div>
+          </div>
         </div>
         
-        <div className="mt-4 p-3 bg-muted rounded-lg">
-          <h3 className="font-medium mb-1">Did you know?</h3>
-          <p className="text-sm text-muted-foreground">
-            Studies show that students who follow a structured study plan are 65% more likely to achieve their target scores.
+        <div className="space-y-2">
+          <div className="flex items-start gap-2">
+            <BookOpen className="h-4 w-4 text-muted-foreground mt-0.5" />
+            <div>
+              <p className="text-sm font-medium">Active Recall</p>
+              <p className="text-xs text-muted-foreground">
+                Test yourself frequently. Actively recalling information is more effective than re-reading or highlighting.
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="mt-4 pt-4 border-t text-xs text-muted-foreground">
+          <p>
+            Your personalized study plan will help you balance these principles for optimal learning.
           </p>
         </div>
       </CardContent>
-      <CardFooter>
-        <Button variant="outline" className="w-full">
-          View Study Resources
-        </Button>
-      </CardFooter>
     </Card>
   );
 };

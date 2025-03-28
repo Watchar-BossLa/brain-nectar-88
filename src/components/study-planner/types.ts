@@ -21,3 +21,19 @@ export interface StudyStatistics {
   completedMinutes: number;
   upcomingSessions: StudySession[];
 }
+
+export interface StudyPlanOptions {
+  startDate: Date;
+  examDate?: Date;
+  studyHoursPerWeek: number;
+  priorityTopics: string[];
+  difficulty: 'easy' | 'medium' | 'hard';
+  dailyStudyMinutes?: number;
+}
+
+export interface StudyPlanResponse {
+  success: boolean;
+  schedule?: any;
+  sessions?: StudySession[];
+  error?: string;
+}
