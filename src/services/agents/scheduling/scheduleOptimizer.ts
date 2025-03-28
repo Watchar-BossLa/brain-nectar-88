@@ -1,132 +1,196 @@
 
+import { supabase } from '@/integrations/supabase/client';
+
 /**
- * Schedule Optimizer
- * 
- * Handles optimization of study schedules based on user preferences and constraints.
+ * ScheduleOptimizer
+ *
+ * Optimizes study timing and session structure.
  */
 export class ScheduleOptimizer {
-  async optimizeSchedule(userId: string, data: any): Promise<any> {
-    console.log(`Optimizing schedule for user ${userId}`, data);
+  private static readonly DEFAULT_SESSION_DURATION = 25; // Pomodoro default duration
+
+  /**
+   * Optimize a study schedule based on user preferences and constraints
+   */
+  async optimizeSchedule(userId: string, options: {
+    startDate?: string;
+    endDate?: string;
+    examDate?: string;
+    dailyAvailableTime?: number;
+    priorityTopics?: string[];
+    difficulty?: 'easy' | 'medium' | 'hard';
+  }): Promise<any> {
+    console.log(`Optimizing schedule for user ${userId}`);
     
-    // Extract parameters from data
-    const startDate = data.startDate || new Date().toISOString();
-    const endDate = data.endDate;
-    const examDate = data.examDate;
-    const dailyAvailableTime = data.dailyAvailableTime || 60; // minutes
-    const priorityTopics = data.priorityTopics || [];
-    const difficulty = data.difficulty || 'medium';
-    
-    // In a real implementation, we would use algorithms to determine optimal study times
-    // based on the user's cognitive profile, historical data, and the specific topics
-    
-    // Generate recommended study times
-    const recommendedTimes = this.generateRecommendedTimes(
-      startDate, 
-      endDate || examDate, 
-      dailyAvailableTime, 
-      difficulty
-    );
-    
-    // Allocate topics based on priority
-    const topicDistribution = this.allocateTopics(priorityTopics);
-    
-    return {
-      status: 'success',
-      schedule: {
-        recommendedTimes,
-        topicDistribution,
-        startDate,
-        endDate: endDate || examDate,
-        dailyGoalMinutes: dailyAvailableTime,
-        difficulty
-      }
-    };
-  }
-  
-  private generateRecommendedTimes(
-    startDateStr: string, 
-    endDateStr: string | undefined, 
-    dailyMinutes: number, 
-    difficulty: string
-  ): any[] {
-    const startDate = new Date(startDateStr);
-    const endDate = endDateStr ? new Date(endDateStr) : new Date(startDate);
-    endDate.setDate(endDate.getDate() + 14); // Default to 2 weeks if no end date
-    
-    const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    const recommendedTimes = [];
-    
-    // Determine how many sessions per day based on difficulty and daily minutes
-    const sessionsPerDay = difficulty === 'easy' ? 1 : (difficulty === 'hard' ? 3 : 2);
-    const minutesPerSession = Math.round(dailyMinutes / sessionsPerDay);
-    
-    // Generate study sessions
-    // For this example, we'll create a 2-week schedule
-    for (let i = 0; i < 14; i++) {
-      const currentDate = new Date(startDate);
-      currentDate.setDate(startDate.getDate() + i);
+    try {
+      // Parse dates
+      const startDate = options.startDate ? new Date(options.startDate) : new Date();
+      const endDate = options.endDate ? new Date(options.endDate) : undefined;
+      const examDate = options.examDate ? new Date(options.examDate) : undefined;
       
-      // Skip weekends for easy difficulty
-      const dayIndex = currentDate.getDay();
-      const dayName = daysOfWeek[dayIndex === 0 ? 6 : dayIndex - 1]; // Adjust for Sunday
-      
-      if (difficulty === 'easy' && (dayIndex === 0 || dayIndex === 6)) {
-        continue; // Skip weekends for easy difficulty
+      // Calculate schedule end date based on options
+      let scheduleEndDate: Date;
+      if (endDate) {
+        scheduleEndDate = endDate;
+      } else if (examDate) {
+        scheduleEndDate = examDate;
+      } else {
+        // Default to 4 weeks
+        scheduleEndDate = new Date(startDate);
+        scheduleEndDate.setDate(startDate.getDate() + 28);
       }
       
-      // Generate sessions for this day
-      for (let session = 0; session < sessionsPerDay; session++) {
-        let time;
-        if (sessionsPerDay === 1) {
-          time = '18:00'; // Evening for single session
-        } else if (session === 0) {
-          time = '09:00'; // Morning
-        } else if (session === 1) {
-          time = '15:00'; // Afternoon
-        } else {
-          time = '19:00'; // Evening
-        }
-        
-        recommendedTimes.push({
-          day: dayName,
-          time: time,
-          duration: minutesPerSession,
-          week: Math.floor(i / 7) + 1
-        });
-      }
-    }
-    
-    return recommendedTimes;
-  }
-  
-  private allocateTopics(priorityTopics: string[]): any[] {
-    if (priorityTopics.length === 0) {
-      return [
-        { topicId: 'topic-1', percentage: 50 },
-        { topicId: 'topic-2', percentage: 50 }
-      ];
-    }
-    
-    // Allocate higher percentage to priority topics
-    const result = [];
-    const totalTopics = priorityTopics.length;
-    const basePercentage = Math.floor(100 / (totalTopics + 1));
-    let remainingPercentage = 100;
-    
-    for (let i = 0; i < totalTopics; i++) {
-      const percentage = i === totalTopics - 1 
-        ? remainingPercentage 
-        : basePercentage + (i < 2 ? 10 : 0); // Give more weight to first two topics
+      // Calculate days between start and end
+      const dayDifference = Math.round((scheduleEndDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
       
-      result.push({
-        topicId: `priority-${i + 1}`,
-        topic: priorityTopics[i],
-        percentage
+      // Calculate daily available time (in minutes)
+      const dailyAvailableTime = options.dailyAvailableTime || 60; // Default 1 hour
+      
+      // Adjust session duration based on difficulty
+      let sessionDuration = ScheduleOptimizer.DEFAULT_SESSION_DURATION;
+      switch (options.difficulty) {
+        case 'easy':
+          sessionDuration = 20;
+          break;
+        case 'medium':
+          sessionDuration = 25;
+          break;
+        case 'hard':
+          sessionDuration = 30;
+          break;
+        default:
+          sessionDuration = 25;
+      }
+      
+      // Calculate daily sessions based on available time
+      const dailySessions = Math.floor(dailyAvailableTime / sessionDuration);
+      
+      // Get topics or use defaults
+      const topics = options.priorityTopics || ['accounting-basics', 'financial-statements', 'tax-accounting'];
+      
+      // Calculate topic distribution based on priority (give more sessions to priority topics)
+      const topicDistribution = topics.map((topicId, index) => {
+        return {
+          topicId,
+          // First topics get more sessions
+          weight: 1 - (index / (topics.length * 2))
+        };
       });
       
-      remainingPercentage -= percentage;
+      // Normalize weights to sum to 1
+      const totalWeight = topicDistribution.reduce((sum, topic) => sum + topic.weight, 0);
+      topicDistribution.forEach(topic => {
+        topic.weight = topic.weight / totalWeight;
+      });
+      
+      // Generate optimal time slots
+      const optimalTimes = [];
+      const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+      
+      // Get preferred study times based on difficulty
+      const timeSlots = this.getPreferredTimeSlots(options.difficulty);
+      
+      // Create recommended times for each day
+      for (let day = 0; day < dayDifference; day++) {
+        const currentDate = new Date(startDate);
+        currentDate.setDate(startDate.getDate() + day);
+        const dayOfWeek = daysOfWeek[currentDate.getDay()];
+        
+        // Select a subset of time slots for each day
+        const dailySlots = timeSlots.slice(0, dailySessions);
+        
+        // For variety, rotate the slots each day
+        timeSlots.push(timeSlots.shift()!);
+        
+        dailySlots.forEach(slot => {
+          optimalTimes.push({
+            day: dayOfWeek,
+            date: new Date(currentDate).toISOString(),
+            time: slot.time,
+            duration: sessionDuration,
+            // Add topic information based on distribution
+            topicId: this.getWeightedRandomTopic(topicDistribution).topicId
+          });
+        });
+      }
+      
+      // Build the schedule
+      const schedule = {
+        userId,
+        startDate: startDate.toISOString(),
+        endDate: scheduleEndDate.toISOString(),
+        dailyAvailableTime,
+        sessionDuration,
+        dailySessions,
+        topicDistribution,
+        recommendedTimes: optimalTimes,
+        totalStudyTime: optimalTimes.length * sessionDuration,
+        details: {
+          difficulty: options.difficulty || 'medium',
+          priorityTopics: topics,
+          examPreparation: !!examDate
+        }
+      };
+      
+      return {
+        status: 'success',
+        schedule
+      };
+    } catch (error) {
+      console.error('Error optimizing schedule:', error);
+      return {
+        status: 'error',
+        message: 'Failed to optimize schedule'
+      };
+    }
+  }
+  
+  /**
+   * Get preferred time slots based on difficulty level
+   */
+  private getPreferredTimeSlots(difficulty?: string): { time: string, quality: number }[] {
+    switch (difficulty) {
+      case 'easy':
+        return [
+          { time: '09:00', quality: 0.9 },
+          { time: '14:00', quality: 0.8 },
+          { time: '17:00', quality: 0.7 },
+          { time: '19:00', quality: 0.6 }
+        ];
+      case 'hard':
+        return [
+          { time: '06:00', quality: 0.9 },
+          { time: '10:00', quality: 0.85 },
+          { time: '15:00', quality: 0.8 },
+          { time: '19:00', quality: 0.7 },
+          { time: '21:00', quality: 0.6 }
+        ];
+      case 'medium':
+      default:
+        return [
+          { time: '08:00', quality: 0.9 },
+          { time: '11:00', quality: 0.85 },
+          { time: '15:00', quality: 0.8 },
+          { time: '19:00', quality: 0.75 }
+        ];
+    }
+  }
+  
+  /**
+   * Get a random topic based on weight distribution
+   */
+  private getWeightedRandomTopic(topicDistribution: { topicId: string, weight: number }[]) {
+    const totalWeight = topicDistribution.reduce((sum, topic) => sum + topic.weight, 0);
+    let random = Math.random() * totalWeight;
+    
+    for (const topic of topicDistribution) {
+      random -= topic.weight;
+      if (random <= 0) {
+        return topic;
+      }
     }
     
-    return result;
+    // Default to first topic if something goes wrong
+    return topicDistribution[0];
   }
 }

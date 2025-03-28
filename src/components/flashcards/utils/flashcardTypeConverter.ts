@@ -1,25 +1,46 @@
 
-import { Flashcard as HookFlashcard } from '@/hooks/useFlashcardsPage';
-import { Flashcard as SupabaseFlashcard } from '@/types/supabase';
+import { Flashcard } from '@/types/supabase';
 
 /**
- * Converts the internal hook Flashcard type to the Supabase Flashcard type
+ * Convert internal flashcard type to Supabase flashcard type
  */
-export const convertToSupabaseFlashcard = (flashcard: HookFlashcard): SupabaseFlashcard => {
+export const convertToSupabaseFlashcard = (flashcard: any): Flashcard => {
   return {
     id: flashcard.id,
-    user_id: flashcard.user_id || '',
-    topic_id: flashcard.topicId || flashcard.topic_id || null,
-    front_content: flashcard.front || flashcard.front_content || '',
-    back_content: flashcard.back || flashcard.back_content || '',
+    user_id: flashcard.user_id || flashcard.userId,
+    topic_id: flashcard.topic_id || flashcard.topicId,
+    front_content: flashcard.front_content || flashcard.front,
+    back_content: flashcard.back_content || flashcard.back,
     difficulty: flashcard.difficulty || 0,
-    next_review_date: flashcard.next_review_date || new Date().toISOString(),
+    next_review_date: flashcard.next_review_date,
     repetition_count: flashcard.repetition_count || 0,
     mastery_level: flashcard.mastery_level || 0,
+    easiness_factor: flashcard.easiness_factor || 2.5,
+    last_retention: flashcard.last_retention || 0.85,
+    last_reviewed_at: flashcard.last_reviewed_at,
     created_at: flashcard.created_at || new Date().toISOString(),
     updated_at: flashcard.updated_at || new Date().toISOString(),
-    easiness_factor: flashcard.easiness_factor || 2.5,
-    last_retention: flashcard.last_retention || 0,
-    last_reviewed_at: flashcard.last_reviewed_at || null
+  };
+};
+
+/**
+ * Convert Supabase flashcard type to internal flashcard type
+ */
+export const convertFromSupabaseFlashcard = (flashcard: Flashcard): any => {
+  return {
+    id: flashcard.id,
+    userId: flashcard.user_id,
+    topicId: flashcard.topic_id,
+    front: flashcard.front_content,
+    back: flashcard.back_content,
+    difficulty: flashcard.difficulty || 0,
+    nextReviewDate: flashcard.next_review_date,
+    repetitionCount: flashcard.repetition_count || 0,
+    masteryLevel: flashcard.mastery_level || 0,
+    easinessFactor: flashcard.easiness_factor || 2.5,
+    lastRetention: flashcard.last_retention || 0.85,
+    lastReviewedAt: flashcard.last_reviewed_at,
+    createdAt: flashcard.created_at,
+    updatedAt: flashcard.updated_at,
   };
 };

@@ -2,324 +2,275 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { format, addDays, isAfter, isBefore, differenceInDays } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
-import { AlertCircle, Calendar as CalendarIcon, Check, CheckCircle, Clock, Info, Loader2 } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/components/ui/use-toast";
-import { StudyPlanOptions } from './types';
+import { Loader2, Calendar as CalendarIcon, Target, Brain, Trophy } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { StudyPlanOptions, StudyPlanResponse } from './types';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from "@/components/ui/checkbox";
+
+// Define topics
+const topics = [
+  { value: "accounting-basics", label: "Accounting Basics" },
+  { value: "financial-statements", label: "Financial Statements" },
+  { value: "tax-accounting", label: "Tax Accounting" },
+  { value: "managerial-accounting", label: "Managerial Accounting" },
+  { value: "auditing", label: "Auditing" },
+  { value: "accounting-standards", label: "Accounting Standards" }
+];
 
 interface StudyPlanProps {
-  onPlanCreated: (plan: StudyPlanOptions) => Promise<any>;
+  onPlanCreated: (planOptions: StudyPlanOptions) => Promise<StudyPlanResponse>;
   isLoading: boolean;
 }
 
-const StudyPlan: React.FC<StudyPlanProps> = ({ 
-  onPlanCreated,
-  isLoading
-}) => {
-  const { toast } = useToast();
-  const [examDate, setExamDate] = useState<Date | undefined>(undefined);
+const StudyPlan: React.FC<StudyPlanProps> = ({ onPlanCreated, isLoading }) => {
   const [startDate, setStartDate] = useState<Date | undefined>(new Date());
-  const [studyHoursPerWeek, setStudyHoursPerWeek] = useState(10);
-  const [priorityTopics, setPriorityTopics] = useState<string[]>([]);
+  const [examDate, setExamDate] = useState<Date | undefined>(undefined);
+  const [studyHoursPerWeek, setStudyHoursPerWeek] = useState<number>(10);
+  const [dailyStudyMinutes, setDailyStudyMinutes] = useState<number>(Math.round((10 * 60) / 7)); // Default based on weekly hours
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
-  const [planCreated, setPlanCreated] = useState(false);
-  
-  // Sample topics for the demo
-  const availableTopics = [
-    "Accounting Fundamentals",
-    "Financial Statements",
-    "Balance Sheets",
-    "Income Statements",
-    "Cash Flow Statements",
-    "Budgeting",
-    "Tax Accounting",
-    "GAAP Principles",
-    "IFRS Standards",
-    "Auditing"
-  ];
-  
-  const toggleTopic = (topic: string) => {
-    if (priorityTopics.includes(topic)) {
-      setPriorityTopics(priorityTopics.filter(t => t !== topic));
-    } else {
-      setPriorityTopics([...priorityTopics, topic]);
+  const [useCustomMinutes, setUseCustomMinutes] = useState<boolean>(false);
+
+  // Update daily minutes when weekly hours change
+  React.useEffect(() => {
+    if (!useCustomMinutes) {
+      setDailyStudyMinutes(Math.round((studyHoursPerWeek * 60) / 7));
     }
+  }, [studyHoursPerWeek, useCustomMinutes]);
+
+  const handleTopicToggle = (topicValue: string) => {
+    setSelectedTopics(prev => 
+      prev.includes(topicValue)
+        ? prev.filter(t => t !== topicValue)
+        : [...prev, topicValue]
+    );
   };
-  
-  const calculateAvailableDays = () => {
-    if (!startDate || !examDate) return 0;
-    if (isBefore(examDate, startDate)) return 0;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     
-    return differenceInDays(examDate, startDate);
-  };
-  
-  const calculateDailyStudyTime = () => {
-    if (!examDate) {
-      // If no exam date, just divide by 7 days in a week
-      return Math.round((studyHoursPerWeek * 60) / 7);
-    }
-    
-    const availableDays = calculateAvailableDays();
-    if (availableDays <= 0) return 0;
-    
-    const totalHours = (studyHoursPerWeek / 7) * availableDays;
-    return Math.round((totalHours / availableDays) * 60); // minutes per day
-  };
-  
-  const handleCreatePlan = async () => {
     if (!startDate) {
-      toast({
-        title: "Missing Information",
-        description: "Please set a start date for your study plan",
-        variant: "destructive"
-      });
       return;
     }
-    
-    if (examDate && isBefore(examDate, startDate)) {
-      toast({
-        title: "Invalid Dates",
-        description: "Exam date cannot be before start date",
-        variant: "destructive"
-      });
-      return;
-    }
-    
+
     const planOptions: StudyPlanOptions = {
       startDate,
       examDate,
       studyHoursPerWeek,
-      priorityTopics,
+      priorityTopics: selectedTopics,
       difficulty,
-      dailyStudyMinutes: calculateDailyStudyTime()
+      dailyStudyMinutes: useCustomMinutes ? dailyStudyMinutes : undefined
     };
-    
-    const result = await onPlanCreated(planOptions);
-    
-    if (result?.success) {
-      setPlanCreated(true);
-    }
+
+    await onPlanCreated(planOptions);
   };
-  
+
   return (
-    <Card className="w-full">
+    <Card>
       <CardHeader>
-        <CardTitle>Create Study Plan</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Target className="h-5 w-5" />
+          Create Study Plan
+        </CardTitle>
         <CardDescription>
-          Generate a personalized study plan based on your schedule and exam date
+          Generate a personalized study schedule based on your preferences
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {planCreated ? (
-          <div className="space-y-4">
-            <Alert>
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              <AlertTitle>Study Plan Created!</AlertTitle>
-              <AlertDescription>
-                Your personalized study plan has been generated based on your preferences.
-              </AlertDescription>
-            </Alert>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <div className="p-4 border rounded-lg bg-muted/50">
-                <p className="text-sm font-medium mb-2">Study Period</p>
-                <p className="text-sm">
-                  {format(startDate!, "MMM d, yyyy")} {examDate && `to ${format(examDate, "MMM d, yyyy")}`}
-                </p>
-                {examDate && <p className="text-sm mt-1">({calculateAvailableDays()} days available)</p>}
-              </div>
-              
-              <div className="p-4 border rounded-lg bg-muted/50">
-                <p className="text-sm font-medium mb-2">Daily Study Target</p>
-                <p className="text-sm flex items-center">
-                  <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                  {calculateDailyStudyTime()} minutes per day
-                </p>
-                <p className="text-sm mt-1">{studyHoursPerWeek} hours per week</p>
-              </div>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="start-date">Start Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="start-date"
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !startDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "PPP") : "Select date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={setStartDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
             
-            <div className="p-4 border rounded-lg bg-muted/50">
-              <p className="text-sm font-medium mb-2">Priority Topics</p>
-              <div className="flex flex-wrap gap-2 mt-1">
-                {priorityTopics.length > 0 ? (
-                  priorityTopics.map(topic => (
-                    <Badge key={topic} variant="secondary">{topic}</Badge>
-                  ))
-                ) : (
-                  <p className="text-sm text-muted-foreground">No priority topics selected</p>
-                )}
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="exam-date">
+                Exam Date <span className="text-muted-foreground text-xs">(Optional)</span>
+              </Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="exam-date"
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !examDate && "text-muted-foreground"
+                    )}
+                  >
+                    <Trophy className="mr-2 h-4 w-4" />
+                    {examDate ? format(examDate, "PPP") : "Select date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={examDate}
+                    onSelect={setExamDate}
+                    initialFocus
+                    disabled={(date) => 
+                      date < (startDate || new Date())
+                    }
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
-            
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertTitle>Next Steps</AlertTitle>
-              <AlertDescription>
-                Switch to the Schedule tab to view your complete study schedule and track your progress.
-              </AlertDescription>
-            </Alert>
           </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="start-date">Start Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      id="start-date"
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !startDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {startDate ? format(startDate, "PPP") : "Select date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={startDate}
-                      onSelect={setStartDate}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="exam-date">Exam Date (Optional)</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      id="exam-date"
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !examDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {examDate ? format(examDate, "PPP") : "Select date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={examDate}
-                      onSelect={setExamDate}
-                      initialFocus
-                      disabled={(date) => isBefore(date, new Date())}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="study-hours">Hours to Study per Week</Label>
+            <Input
+              id="study-hours"
+              type="number"
+              min={1}
+              max={50}
+              value={studyHoursPerWeek}
+              onChange={(e) => setStudyHoursPerWeek(parseInt(e.target.value) || 10)}
+            />
+          </div>
+
+          <div className="flex items-start space-x-2 pt-2">
+            <Checkbox 
+              id="custom-minutes"
+              checked={useCustomMinutes}
+              onCheckedChange={(checked) => setUseCustomMinutes(!!checked)}
+            />
+            <div className="grid gap-1.5 leading-none">
+              <Label
+                htmlFor="custom-minutes"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Set custom daily study minutes
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Instead of evenly distributing weekly hours
+              </p>
             </div>
-            
-            {startDate && examDate && isAfter(examDate, startDate) && (
-              <Alert>
-                <Info className="h-4 w-4" />
-                <AlertDescription>
-                  You have {calculateAvailableDays()} days until your exam. We recommend at least {Math.ceil(calculateAvailableDays() / 4)} hours of study per week.
-                </AlertDescription>
-              </Alert>
-            )}
-            
+          </div>
+          
+          {useCustomMinutes && (
             <div className="space-y-2">
-              <Label htmlFor="study-hours">Study Hours Per Week</Label>
-              <div className="flex items-center gap-4">
-                <Input
-                  id="study-hours"
-                  type="number"
-                  value={studyHoursPerWeek}
-                  onChange={(e) => setStudyHoursPerWeek(parseInt(e.target.value) || 0)}
-                  min={1}
-                  max={40}
-                  className="w-24"
-                />
-                <span className="text-sm text-muted-foreground">
-                  {studyHoursPerWeek > 0 && startDate && (
-                    <>= {calculateDailyStudyTime()} minutes per day</>
-                  )}
-                </span>
-              </div>
+              <Label htmlFor="daily-minutes">Minutes to Study per Day</Label>
+              <Input
+                id="daily-minutes"
+                type="number"
+                min={10}
+                max={480}
+                value={dailyStudyMinutes}
+                onChange={(e) => setDailyStudyMinutes(parseInt(e.target.value) || 30)}
+              />
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="difficulty">Study Plan Difficulty</Label>
-              <Select value={difficulty} onValueChange={(val) => setDifficulty(val as 'easy' | 'medium' | 'hard')}>
-                <SelectTrigger id="difficulty">
-                  <SelectValue placeholder="Select difficulty" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="easy">Easy - More breaks, shorter sessions</SelectItem>
-                  <SelectItem value="medium">Medium - Balanced approach</SelectItem>
-                  <SelectItem value="hard">Hard - Intensive study schedule</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Priority Topics</Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 border rounded-md">
-                {availableTopics.map(topic => (
-                  <div key={topic} className="flex items-center space-x-2">
-                    <Button
-                      variant={priorityTopics.includes(topic) ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => toggleTopic(topic)}
-                      className="w-full justify-start text-left"
-                    >
-                      {priorityTopics.includes(topic) && (
-                        <Check className="mr-2 h-4 w-4" />
-                      )}
-                      {topic}
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
-      </CardContent>
-      <CardFooter className="flex justify-between">
-        {planCreated ? (
-          <div className="flex gap-2 w-full">
-            <Button 
-              variant="outline" 
-              className="flex-1"
-              onClick={() => setPlanCreated(false)}
+          )}
+          
+          <div className="space-y-2">
+            <Label htmlFor="difficulty">Study Plan Difficulty</Label>
+            <Select 
+              value={difficulty} 
+              onValueChange={(value) => setDifficulty(value as 'easy' | 'medium' | 'hard')}
             >
-              Modify Plan
-            </Button>
+              <SelectTrigger id="difficulty">
+                <SelectValue placeholder="Select difficulty" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="easy">
+                  <div className="flex items-center">
+                    <span>Easy</span>
+                    <Badge variant="outline" className="ml-2">
+                      Beginner-friendly
+                    </Badge>
+                  </div>
+                </SelectItem>
+                <SelectItem value="medium">
+                  <div className="flex items-center">
+                    <span>Medium</span>
+                    <Badge variant="outline" className="ml-2">
+                      Balanced
+                    </Badge>
+                  </div>
+                </SelectItem>
+                <SelectItem value="hard">
+                  <div className="flex items-center">
+                    <span>Hard</span>
+                    <Badge variant="outline" className="ml-2">
+                      Intensive
+                    </Badge>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        ) : (
-          <Button 
-            onClick={handleCreatePlan} 
-            disabled={!startDate || (examDate && isBefore(examDate, startDate)) || isLoading}
-            className="w-full"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating Plan...
-              </>
-            ) : (
-              "Create Study Plan"
-            )}
-          </Button>
-        )}
+          
+          <div className="space-y-2">
+            <Label>
+              Priority Topics <span className="text-muted-foreground text-xs">(Select all that apply)</span>
+            </Label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 pt-1">
+              {topics.map((topic) => (
+                <div key={topic.value} className="flex items-center space-x-2">
+                  <Checkbox 
+                    id={topic.value}
+                    checked={selectedTopics.includes(topic.value)}
+                    onCheckedChange={() => handleTopicToggle(topic.value)}
+                  />
+                  <Label 
+                    htmlFor={topic.value}
+                    className="text-sm cursor-pointer"
+                  >
+                    {topic.label}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+        </form>
+      </CardContent>
+      <CardFooter>
+        <Button 
+          onClick={handleSubmit} 
+          className="w-full"
+          disabled={isLoading || !startDate}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Generating Plan...
+            </>
+          ) : (
+            <>
+              <Brain className="mr-2 h-4 w-4" />
+              Generate Study Plan
+            </>
+          )}
+        </Button>
       </CardFooter>
     </Card>
   );

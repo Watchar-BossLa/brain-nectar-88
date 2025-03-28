@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 interface FlashcardListHeaderProps {
   onAddNew: () => void;
@@ -9,10 +9,10 @@ interface FlashcardListHeaderProps {
 
 const FlashcardListHeader: React.FC<FlashcardListHeaderProps> = ({ onAddNew }) => {
   return (
-    <div className="flex justify-between items-center mb-6">
-      <h2 className="text-2xl font-bold">My Flashcards</h2>
-      <Button onClick={onAddNew}>
-        <PlusCircle className="mr-2 h-4 w-4" />
+    <div className="flex justify-between items-center mb-4">
+      <h3 className="text-lg font-semibold">Your Flashcards</h3>
+      <Button size="sm" onClick={onAddNew}>
+        <Plus className="h-4 w-4 mr-1" />
         Add New
       </Button>
     </div>

@@ -3,31 +3,68 @@ import React from 'react';
 
 const HelpContent: React.FC = () => {
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <h3 className="text-lg font-medium">LaTeX Formula Examples</h3>
+    <div className="space-y-6">
+      <section className="space-y-2">
+        <h3 className="text-lg font-medium">Basic Text Flashcards</h3>
         <p className="text-sm text-muted-foreground">
-          Use double dollar signs for inline formulas: <code>{`$$E = mc^2$$`}</code>
+          Basic text flashcards are perfect for simple question and answer pairs.
+          You can use line breaks to structure your content.
         </p>
+        <pre className="p-3 text-xs bg-muted rounded-md overflow-x-auto">
+          <code>
+            {`Front: What is the accounting equation?\n\nBack: Assets = Liabilities + Equity`}
+          </code>
+        </pre>
+      </section>
+      
+      <section className="space-y-2">
+        <h3 className="text-lg font-medium">Formula Flashcards with LaTeX</h3>
         <p className="text-sm text-muted-foreground">
-          Use triple dollar signs for block display: <code>{`$$$\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}$$$`}</code>
+          Use LaTeX to create beautifully formatted mathematical formulas. Here are some examples:
         </p>
-        
-        <h3 className="text-lg font-medium mt-4">Common Accounting Formulas</h3>
-        <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
-          <li><code>{`Current Ratio = $$\\frac{Current Assets}{Current Liabilities}$$`}</code></li>
-          <li><code>{`Debt-to-Equity Ratio = $$\\frac{Total Debt}{Total Equity}$$`}</code></li>
-          <li><code>{`Return on Assets = $$\\frac{Net Income}{Total Assets}$$`}</code></li>
-          <li><code>{`Gross Profit Margin = $$\\frac{Gross Profit}{Revenue} \\times 100\\%$$`}</code></li>
-        </ul>
-        
-        <h3 className="text-lg font-medium mt-4">Financial Statement Types</h3>
-        <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
-          <li><strong>Balance Sheet</strong>: Shows assets, liabilities, and equity at a specific point in time</li>
-          <li><strong>Income Statement</strong>: Shows revenues, expenses, and profit over a period</li>
-          <li><strong>Cash Flow Statement</strong>: Shows cash inflows and outflows over a period</li>
-          <li><strong>Financial Ratios</strong>: Shows key performance indicators for financial analysis</li>
-        </ul>
+        <div className="space-y-2 text-xs">
+          <div className="p-2 bg-muted rounded-md">
+            <p className="font-medium mb-1">Simple fraction:</p>
+            <code>ROA = \frac{Net Income}{Total Assets}</code>
+          </div>
+          
+          <div className="p-2 bg-muted rounded-md">
+            <p className="font-medium mb-1">Summation:</p>
+            <code>\sum_{i=1}^{n} X_i</code>
+          </div>
+          
+          <div className="p-2 bg-muted rounded-md">
+            <p className="font-medium mb-1">Present value formula:</p>
+            <code>PV = \frac{FV}{(1+r)^n}</code>
+          </div>
+        </div>
+      </section>
+      
+      <section className="space-y-2">
+        <h3 className="text-lg font-medium">Financial Statement Flashcards</h3>
+        <p className="text-sm text-muted-foreground">
+          Create flashcards with structured financial information. Use line breaks to format your statements clearly.
+        </p>
+        <pre className="p-3 text-xs bg-muted rounded-md overflow-x-auto">
+          <code>
+{`Assets:
+- Cash: $10,000
+- Accounts Receivable: $5,000
+
+Liabilities:
+- Accounts Payable: $3,000
+
+Equity:
+- Common Stock: $12,000`}
+          </code>
+        </pre>
+      </section>
+      
+      <div className="mt-4 pt-4 border-t">
+        <p className="text-sm text-muted-foreground">
+          Remember: Good flashcards use the principle of active recall by asking specific questions
+          that test your understanding rather than simple memorization.
+        </p>
       </div>
     </div>
   );

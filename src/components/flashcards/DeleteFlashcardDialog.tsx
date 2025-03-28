@@ -9,7 +9,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 
 interface DeleteFlashcardDialogProps {
   isOpen: boolean;
@@ -20,20 +20,22 @@ interface DeleteFlashcardDialogProps {
 const DeleteFlashcardDialog: React.FC<DeleteFlashcardDialogProps> = ({
   isOpen,
   onOpenChange,
-  onConfirm
+  onConfirm,
 }) => {
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+          <AlertDialogTitle>Delete Flashcard</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete this flashcard. This action cannot be undone.
+            Are you sure you want to delete this flashcard? This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>Delete</AlertDialogAction>
+          <AlertDialogAction onClick={onConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            Delete
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
