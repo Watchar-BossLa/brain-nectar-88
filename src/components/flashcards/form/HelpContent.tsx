@@ -12,7 +12,7 @@ const HelpContent: React.FC = () => {
         </p>
         <pre className="p-3 text-xs bg-muted rounded-md overflow-x-auto">
           <code>
-            {`Front: What is the accounting equation?\n\nBack: Assets = Liabilities + Equity`}
+            {"Front: What is the accounting equation?\n\nBack: Assets = Liabilities + Equity"}
           </code>
         </pre>
       </section>
@@ -25,17 +25,17 @@ const HelpContent: React.FC = () => {
         <div className="space-y-2 text-xs">
           <div className="p-2 bg-muted rounded-md">
             <p className="font-medium mb-1">Simple fraction:</p>
-            <code>ROA = \frac{Net Income}{Total Assets}</code>
+            <code>ROA = \frac{"{"}Net Income{"}"}{"{"}\frac{"{"}Total Assets{"}"}</code>
           </div>
           
           <div className="p-2 bg-muted rounded-md">
             <p className="font-medium mb-1">Summation:</p>
-            <code>\sum_{i=1}^{n} X_i</code>
+            <code>\sum_{"{"}{"}i=1{"}"}^{"{"}{"}n{"}"} X_i</code>
           </div>
           
           <div className="p-2 bg-muted rounded-md">
             <p className="font-medium mb-1">Present value formula:</p>
-            <code>PV = \frac{FV}{(1+r)^n}</code>
+            <code>PV = \frac{"{"}FV{"}"}{"{"}{"}(1+r)^n{"}"}</code>
           </div>
         </div>
       </section>
