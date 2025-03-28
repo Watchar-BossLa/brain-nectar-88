@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BrainCircuit } from 'lucide-react';
+import { BrainCircuit, Loader2 } from 'lucide-react';
 
 interface QuizSetupCardProps {
   allTopics: string[];
@@ -17,6 +17,8 @@ interface QuizSetupCardProps {
   currentDifficulty: 1 | 2 | 3;
   setCurrentDifficulty: (difficulty: 1 | 2 | 3) => void;
   startQuiz: () => void;
+  isProcessing?: boolean;
+  processingText?: string;
 }
 
 const QuizSetupCard: React.FC<QuizSetupCardProps> = ({ 
@@ -30,7 +32,9 @@ const QuizSetupCard: React.FC<QuizSetupCardProps> = ({
   setQuizLength, 
   currentDifficulty, 
   setCurrentDifficulty, 
-  startQuiz 
+  startQuiz,
+  isProcessing = false,
+  processingText = "Processing..."
 }) => {
   // Helper to capitalize first letter of string
   const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
@@ -124,7 +128,20 @@ const QuizSetupCard: React.FC<QuizSetupCardProps> = ({
         </div>
       </CardContent>
       <CardFooter>
-        <Button onClick={startQuiz} className="w-full">Start Quiz</Button>
+        <Button 
+          onClick={startQuiz} 
+          className="w-full" 
+          disabled={isProcessing}
+        >
+          {isProcessing ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              {processingText}
+            </>
+          ) : (
+            "Start Quiz"
+          )}
+        </Button>
       </CardFooter>
     </Card>
   );
