@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -31,6 +30,10 @@ const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({ onSuccess
   const [contentType, setContentType] = useState<'text' | 'formula' | 'financial'>('text');
   const [financialType, setFinancialType] = useState<FinancialStatementType>('balance-sheet');
   const { toast } = useToast();
+
+  const handleFinancialTypeChange = (value: FinancialStatementType) => {
+    setFinancialType(value);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,7 +113,7 @@ const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({ onSuccess
             backContent={backContent}
             setBackContent={setBackContent}
             financialType={financialType}
-            setFinancialType={setFinancialType}
+            setFinancialType={handleFinancialTypeChange}
           />
         );
       

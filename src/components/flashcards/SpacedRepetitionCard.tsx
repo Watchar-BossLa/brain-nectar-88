@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,7 @@ import 'katex/dist/katex.min.css';
 import { calculateRetention } from '@/services/spacedRepetition/algorithm';
 import { MemoryRetentionIndicator } from './components/MemoryRetentionIndicator';
 import { DifficultyRatingButtons } from './components/DifficultyRatingButtons';
-import { AnimatedFlashcardContent } from './components/FlashcardContent';
+import { AnimatedFlashcardContent } from './components/AnimatedFlashcardContent';
 
 interface SpacedRepetitionCardProps {
   flashcard: Flashcard;

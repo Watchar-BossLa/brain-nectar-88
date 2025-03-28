@@ -4,13 +4,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 
+type FinancialStatementType = 'balance-sheet' | 'income-statement' | 'cash-flow' | 'ratio';
+
 interface FinancialContentInputProps {
   frontContent: string;
   setFrontContent: (value: string) => void;
   backContent: string;
   setBackContent: (value: string) => void;
-  financialType: string;
-  setFinancialType: (value: string) => void;
+  financialType: FinancialStatementType;
+  setFinancialType: (value: FinancialStatementType) => void;
 }
 
 const FinancialContentInput: React.FC<FinancialContentInputProps> = ({
@@ -21,11 +23,15 @@ const FinancialContentInput: React.FC<FinancialContentInputProps> = ({
   financialType,
   setFinancialType
 }) => {
+  const handleFinancialTypeChange = (value: string) => {
+    setFinancialType(value as FinancialStatementType);
+  };
+
   return (
     <>
       <div className="space-y-2">
         <Label htmlFor="financial-type">Financial Statement Type</Label>
-        <Select value={financialType} onValueChange={setFinancialType}>
+        <Select value={financialType} onValueChange={handleFinancialTypeChange}>
           <SelectTrigger id="financial-type">
             <SelectValue placeholder="Select type" />
           </SelectTrigger>
