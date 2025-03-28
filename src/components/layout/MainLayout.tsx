@@ -10,7 +10,8 @@ import {
   Home,
   User,
   Award,
-  LogOut
+  LogOut,
+  Brain
 } from 'lucide-react';
 import { useAuth } from '@/context/auth';
 import { Button } from '@/components/ui/button';
@@ -79,8 +80,9 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               { icon: <Home size={18} />, label: 'Dashboard', path: '/' },
               { icon: <BookOpen size={18} />, label: 'My Courses', path: '/courses' },
               { icon: <Award size={18} />, label: 'Qualifications', path: '/qualifications' },
-              { icon: <GraduationCap size={18} />, label: 'Assessments', path: '/assessments' },
-              { icon: <BarChart2 size={18} />, label: 'Progress', path: '/progress' },
+              { icon: <GraduationCap size={18} />, label: 'Assessments', path: '/assessment' },
+              { icon: <BarChart2 size={18} />, label: 'Learning Path', path: '/learning-path' },
+              { icon: <Brain size={18} />, label: 'Cognitive Profile', path: '/cognitive-profile' },
               { icon: <User size={18} />, label: 'Profile', path: '/profile' },
               { icon: <Settings size={18} />, label: 'Settings', path: '/settings' },
             ].map((item, index) => (

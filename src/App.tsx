@@ -14,6 +14,7 @@ import Settings from './pages/Settings';
 import StudyPlannerPage from './pages/StudyPlannerPage';
 import AgentDashboard from './pages/AgentDashboard';
 import LearningPath from './pages/LearningPath';
+import CognitiveProfile from './pages/CognitiveProfile';
 import { useEffect } from 'react';
 import Index from './pages/Index';
 
@@ -36,6 +37,7 @@ function App() {
             <Route path="/flashcards" element={<FlashcardsPage />} />
             <Route path="/study-planner" element={<StudyPlannerPage />} />
             <Route path="/learning-path" element={<LearningPath />} />
+            <Route path="/cognitive-profile" element={<CognitiveProfile />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/agent-dashboard" element={<AgentDashboard />} />
           </Routes>
