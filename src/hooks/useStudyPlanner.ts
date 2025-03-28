@@ -37,11 +37,7 @@ export function useStudyPlanner() {
       const userId = 'user-123';
       
       // Call the scheduling agent to generate an optimized schedule
-      const response = await schedulingAgent.processTask({
-        taskType: 'SCHEDULE_OPTIMIZATION',
-        userId,
-        data: options
-      });
+      const response = await schedulingAgent.optimizeSchedule(userId, options);
       
       if (response.status === 'success') {
         setStudyPlan(response.schedule);
@@ -142,11 +138,7 @@ export function useStudyPlanner() {
     setIsLoading(true);
     
     try {
-      const response = await schedulingAgent.processTask({
-        taskType: 'FLASHCARD_OPTIMIZATION',
-        userId,
-        data: options
-      });
+      const response = await schedulingAgent.optimizeFlashcards(userId, options);
       
       if (response.status === 'success') {
         return { success: true, data: response.flashcardSchedule };

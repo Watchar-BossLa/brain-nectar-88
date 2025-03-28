@@ -20,10 +20,6 @@ export class SchedulingAgent extends BaseAgent {
         return this.optimizeSchedule(task.userId, task.data);
       case 'FLASHCARD_OPTIMIZATION':
         return this.optimizeFlashcards(task.userId, task.data);
-      case 'SPACED_REPETITION_SCHEDULE':
-        return this.createSpacedRepetitionSchedule(task.userId, task.data);
-      case 'EXAM_PREPARATION_PLAN':
-        return this.createExamPrepPlan(task.userId, task.data);
       default:
         console.warn(`Scheduling Agent received unknown task type: ${task.taskType}`);
         return { status: 'error', message: 'Unknown task type' };
@@ -33,14 +29,9 @@ export class SchedulingAgent extends BaseAgent {
   receiveMessage(message: AgentMessage): void {
     console.log(`Scheduling Agent received message: ${message.type}`);
     // Handle messages from other agents
-    if (message.type === 'LEARNING_PATH_UPDATE') {
-      console.log('Learning path updated, scheduling agent notified');
-    } else if (message.type === 'COGNITIVE_PROFILE_UPDATE') {
-      console.log('Cognitive profile updated, scheduling agent notified');
-    }
   }
   
-  private async optimizeSchedule(userId: string, data: any): Promise<any> {
+  async optimizeSchedule(userId: string, data: any): Promise<any> {
     console.log(`Optimizing schedule for user ${userId}`, data);
     
     // Extract parameters from data
@@ -165,7 +156,7 @@ export class SchedulingAgent extends BaseAgent {
     return result;
   }
   
-  private async optimizeFlashcards(userId: string, data: any): Promise<any> {
+  async optimizeFlashcards(userId: string, data: any): Promise<any> {
     console.log(`Optimizing flashcards for user ${userId}`);
     
     // Get flashcard review history and calculate optimal intervals
@@ -185,7 +176,7 @@ export class SchedulingAgent extends BaseAgent {
     };
   }
   
-  private async createSpacedRepetitionSchedule(userId: string, data: any): Promise<any> {
+  async createSpacedRepetitionSchedule(userId: string, data: any): Promise<any> {
     console.log(`Creating spaced repetition schedule for user ${userId}`);
     
     // Generate a schedule optimized for spaced repetition learning
@@ -209,7 +200,7 @@ export class SchedulingAgent extends BaseAgent {
     };
   }
   
-  private async createExamPrepPlan(userId: string, data: any): Promise<any> {
+  async createExamPrepPlan(userId: string, data: any): Promise<any> {
     console.log(`Creating exam preparation plan for user ${userId}`);
     
     const examDate = data.examDate;

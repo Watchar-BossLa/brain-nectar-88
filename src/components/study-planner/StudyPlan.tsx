@@ -126,7 +126,7 @@ const StudyPlan: React.FC<StudyPlanProps> = ({
       <CardContent className="space-y-6">
         {planCreated ? (
           <div className="space-y-4">
-            <Alert variant="success" className="bg-green-50 border-green-500">
+            <Alert>
               <CheckCircle className="h-5 w-5 text-green-500" />
               <AlertTitle>Study Plan Created!</AlertTitle>
               <AlertDescription>
