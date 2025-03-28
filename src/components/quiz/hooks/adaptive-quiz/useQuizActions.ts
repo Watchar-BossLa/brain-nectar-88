@@ -26,7 +26,8 @@ export function useQuizActions(
     currentIndex,
     selectedAnswer,
     isAnswerSubmitted,
-    answeredQuestions
+    answeredQuestions,
+    setUserConfidence
   } = quizState;
   
   const [startTime, setStartTime] = useState<number | null>(null);
@@ -167,8 +168,8 @@ export function useQuizActions(
 
   // Set user confidence level
   const setConfidence = useCallback((level: number) => {
-    quizState.setUserConfidence(level);
-  }, [quizState]);
+    setUserConfidence(level);
+  }, [setUserConfidence]);
 
   return {
     startQuiz,

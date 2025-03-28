@@ -32,6 +32,7 @@ const AdaptiveQuizPlatform = () => {
     toggleTopic,
     currentDifficulty: initialDifficulty,
     setCurrentDifficulty: setInitialDifficulty,
+    getFilteredQuestions
   } = quizHook;
   
   // Use the assessment agent hook
@@ -45,23 +46,22 @@ const AdaptiveQuizPlatform = () => {
   const [filteredQuestions, setFilteredQuestions] = useState(quizQuestions);
   useEffect(() => {
     // Get filtered questions from the quiz hook instance
-    const filteredQuestionsData = quizHook.getFilteredQuestions();
+    const filteredQuestionsData = getFilteredQuestions();
     setFilteredQuestions(filteredQuestionsData);
     setIsLoading(false);
-  }, [selectedTopics, selectedSubject, quizHook]);
+  }, [selectedTopics, selectedSubject, getFilteredQuestions]);
 
   // Use the adaptive quiz hook with filtered questions
+  const adaptiveQuiz = useAdaptiveQuiz(filteredQuestions, initialDifficulty, quizLength);
   const {
     activeQuiz,
     currentQuestion,
     currentIndex,
     selectedAnswer,
-    setSelectedAnswer,
     isAnswerSubmitted,
     isCorrect,
     quizResults,
     currentDifficulty,
-    setCurrentDifficulty,
     answeredQuestions,
     userConfidence,
     startQuiz,
@@ -71,7 +71,9 @@ const AdaptiveQuizPlatform = () => {
     skipQuestion,
     restartQuiz,
     setConfidence,
-  } = useAdaptiveQuiz(filteredQuestions, initialDifficulty, quizLength);
+    setSelectedAnswer,
+    setCurrentDifficulty
+  } = adaptiveQuiz;
   
   // Handler for AI-generated quiz
   const handleAIQuizGeneration = async () => {

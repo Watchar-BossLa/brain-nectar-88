@@ -3,12 +3,13 @@ import { useEffect } from 'react';
 import { QuizQuestion } from '../../types';
 import { useQuizState } from './useQuizState';
 import { useQuizActions } from './useQuizActions';
+import { AdaptiveQuizState, AdaptiveQuizActions } from './types';
 
 export function useAdaptiveQuiz(
   availableQuestions: QuizQuestion[], 
   initialDifficulty: 1 | 2 | 3 = 2, 
   maxQuestions: number = 10
-) {
+): AdaptiveQuizState & AdaptiveQuizActions {
   // Initialize state
   const quizState = useQuizState(initialDifficulty);
   
@@ -18,10 +19,21 @@ export function useAdaptiveQuiz(
   // Return combined state and actions
   return {
     // State
-    ...quizState,
+    activeQuiz: quizState.activeQuiz,
+    currentQuestion: quizState.currentQuestion,
+    currentIndex: quizState.currentIndex,
+    selectedAnswer: quizState.selectedAnswer,
+    isAnswerSubmitted: quizState.isAnswerSubmitted,
+    isCorrect: quizState.isCorrect,
+    quizResults: quizState.quizResults,
+    currentDifficulty: quizState.currentDifficulty,
+    answeredQuestions: quizState.answeredQuestions,
+    userConfidence: quizState.userConfidence,
     
     // Actions
     ...quizActions,
+    setSelectedAnswer: quizState.setSelectedAnswer,
+    setCurrentDifficulty: quizState.setCurrentDifficulty
   };
 }
 

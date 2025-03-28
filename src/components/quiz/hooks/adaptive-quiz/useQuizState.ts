@@ -1,9 +1,9 @@
 
 import { useState } from 'react';
 import { QuizQuestion, AnsweredQuestion, QuizResults } from '../../types';
-import { AdaptiveQuizState } from './types';
+import { AdaptiveQuizStateWithSetters } from './types';
 
-export function useQuizState(initialDifficulty: 1 | 2 | 3 = 2): AdaptiveQuizState {
+export function useQuizState(initialDifficulty: 1 | 2 | 3 = 2): AdaptiveQuizStateWithSetters {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState<QuizQuestion | null>(null);
