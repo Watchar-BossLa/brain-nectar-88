@@ -1,7 +1,5 @@
-
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
-import { ToastAction } from "@/components/ui/toast";
 import { QuizQuestion, AnsweredQuestion, QuizResults } from '../../types';
 import { AdaptiveQuizState, QuizStateWithSetters } from './types';
 
@@ -77,8 +75,8 @@ export const useQuizLifecycle = (
         title: "Correct!",
         description: "Great job! Your answer is correct.",
         action: {
-          altText: "Next question",
-          children: "Next"
+          children: "Next",
+          onClick: () => console.log("Next question")
         }
       });
       state.setCorrectStreak(state.correctStreak + 1);
@@ -161,7 +159,6 @@ export const useQuizLifecycle = (
     
     // Create results summary
     const results: QuizResults = {
-      totalQuestions,
       questionsAttempted: totalQuestions,
       correctAnswers,
       incorrectAnswers: totalQuestions - correctAnswers,

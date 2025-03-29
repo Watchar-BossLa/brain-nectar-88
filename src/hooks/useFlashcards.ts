@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { spacedRepetitionService } from '@/services/flashcards/spacedRepetitionService';
@@ -209,7 +210,8 @@ export async function calculateFlashcardRetention(userId: string, options = {}) 
     console.error('Error calculating flashcard retention:', error);
     return {
       success: false,
-      error: 'Failed to calculate retention metrics'
+      error: 'Failed to calculate retention metrics',
+      data: null  // Add missing data property with null value
     };
   }
 }
