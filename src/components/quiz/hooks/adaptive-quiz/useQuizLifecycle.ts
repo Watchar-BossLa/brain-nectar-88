@@ -76,8 +76,9 @@ export const useQuizLifecycle = (
         title: "Correct!",
         description: "Great job! Your answer is correct.",
         action: {
-          label: "Next",
-          altText: "Go to next question"
+          // Remove the label property as it's not allowed
+          // Just use children directly for the button text
+          children: "Next"
         }
       });
       state.setCorrectStreak(state.correctStreak + 1);

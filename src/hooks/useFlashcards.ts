@@ -153,12 +153,11 @@ export const useFlashcards = () => {
   const recordReview = async (flashcardId: string, difficulty: number) => {
     try {
       const success = await spacedRepetitionService.recordReview(
+        flashcardId,
         {
-          flashcardId,
           difficulty,
           reviewedAt: new Date().toISOString()
-        }, 
-        {}
+        }
       );
       
       if (success) {
