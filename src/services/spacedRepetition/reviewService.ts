@@ -44,7 +44,8 @@ export const updateFlashcardAfterReview = async (
     // Calculate new mastery level
     const masteryLevel = calculateMasteryLevel(
       flashcard.mastery_level || 0, 
-      retention
+      retention,
+      difficultyRating // Pass the third argument (difficulty rating)
     );
     
     // Calculate next review date

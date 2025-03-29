@@ -88,12 +88,17 @@ export class LearningPathAgent extends BaseAgent {
     // Get retention data for all flashcards
     const retentionData = await calculateFlashcardRetention(userId);
     
+    // Extract priority cards - ensuring we have an array to work with
+    const cardRetention = Array.isArray(retentionData.cardRetention) 
+      ? retentionData.cardRetention 
+      : [];
+      
     // Calculate optimal review schedule based on retention data
     const recommendations = {
-      overallRetention: Math.round(retentionData.overallRetention * 100), // as percentage
-      priorityCards: retentionData.cardRetention.slice(0, 5).map(card => card.id), // lowest retention cards
+      overallRetention: Math.round((retentionData.overallRetention || 0) * 100), // as percentage
+      priorityCards: cardRetention.slice(0, 5).map(card => card.id), // lowest retention cards
       optimalReviewTime: this.getOptimalReviewTime(),
-      suggestedBatchSize: this.calculateOptimalBatchSize(retentionData.cardRetention.length)
+      suggestedBatchSize: this.calculateOptimalBatchSize(cardRetention.length)
     };
     
     return {
