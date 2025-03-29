@@ -56,7 +56,10 @@ export const useQuizLifecycle = (
       toast({
         title: "Correct!",
         description: "Great job! Your answer is correct.",
-        action: <ToastAction altText="Next question">Next</ToastAction>,
+        action: {
+          altText: "Next question",
+          children: "Next"
+        }
       });
       state.setCorrectStreak(state.correctStreak + 1);
       state.setIncorrectStreak(0);
