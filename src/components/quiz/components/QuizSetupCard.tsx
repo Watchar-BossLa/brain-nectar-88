@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BrainCircuit, Loader2 } from 'lucide-react';
+import { useAssessmentGeneration } from '../hooks/useAssessmentGeneration';
 
 interface QuizSetupCardProps {
   allTopics: string[];
@@ -36,6 +36,19 @@ const QuizSetupCard: React.FC<QuizSetupCardProps> = ({
   isProcessing = false,
   processingText = "Processing..."
 }) => {
+  const { generateQuestions, isGenerating } = useAssessmentGeneration();
+  
+  const handleStartQuiz = async () => {
+    const questions = await generateQuestions(selectedTopics, {
+      difficulty: currentDifficulty,
+      questionCount: quizLength
+    });
+    
+    if (questions) {
+      startQuiz();
+    }
+  };
+  
   // Helper to capitalize first letter of string
   const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
   
@@ -129,14 +142,14 @@ const QuizSetupCard: React.FC<QuizSetupCardProps> = ({
       </CardContent>
       <CardFooter>
         <Button 
-          onClick={startQuiz} 
+          onClick={handleStartQuiz} 
           className="w-full" 
-          disabled={isProcessing}
+          disabled={isGenerating || isProcessing}
         >
-          {isProcessing ? (
+          {isGenerating || isProcessing ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              {processingText}
+              {isGenerating ? "Generating Questions..." : processingText}
             </>
           ) : (
             "Start Quiz"
