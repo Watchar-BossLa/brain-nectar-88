@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Session, User } from '@supabase/supabase-js';
+import { AuthSession as Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { PLATFORM_OWNER } from './constants';

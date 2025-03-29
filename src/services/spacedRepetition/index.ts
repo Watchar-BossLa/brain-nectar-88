@@ -27,9 +27,9 @@ import {
   getFlashcardLearningStats
 } from './reviewService';
 
-import { 
-  type FlashcardRetentionResult,
-  type FlashcardLearningStats
+import type { 
+  FlashcardRetentionResult,
+  FlashcardLearningStats
 } from './reviewTypes';
 
 export {

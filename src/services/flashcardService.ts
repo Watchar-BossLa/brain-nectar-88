@@ -20,7 +20,8 @@ export { calculateNextReviewDate };
 export const getUserFlashcards = async () => {
   try {
     // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data } = await supabase.auth.getSession();
+    const user = data.session?.user;
     
     if (!user) {
       console.error('No authenticated user found');
@@ -38,7 +39,8 @@ export const getUserFlashcards = async () => {
 export const getDueFlashcards = async (topicId?: string) => {
   try {
     // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data } = await supabase.auth.getSession();
+    const user = data.session?.user;
     
     if (!user) {
       console.error('No authenticated user found');
@@ -85,7 +87,8 @@ export const getSpacedRepDueFlashcards = async (userId: string) => {
 export const createFlashcard = async (frontContent: string, backContent: string, topicId?: string) => {
   try {
     // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data } = await supabase.auth.getSession();
+    const user = data.session?.user;
     
     if (!user) {
       console.error('No authenticated user found');

@@ -170,14 +170,16 @@ export const useFlashcardsPage = (): UseFlashcardsReturn => {
       }
       
       // Get user ID from current session
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user?.id) {
+      const { data } = await supabase.auth.getSession();
+      const user = data.session?.user;
+      
+      if (!user?.id) {
         throw new Error('User not authenticated');
       }
       
       // Prepare data for insert
       const newFlashcard = {
-        user_id: session.user.id,
+        user_id: user.id,
         front_content: flashcard.front || flashcard.front_content,
         back_content: flashcard.back || flashcard.back_content,
         topic_id: flashcard.topicId || flashcard.topic_id || null,
@@ -188,7 +190,7 @@ export const useFlashcardsPage = (): UseFlashcardsReturn => {
         repetition_count: 0
       };
       
-      const { data, error: insertError } = await supabase
+      const { data: insertData, error: insertError } = await supabase
         .from('flashcards')
         .insert(newFlashcard)
         .select();

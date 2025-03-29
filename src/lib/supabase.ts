@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Session, User } from '@supabase/supabase-js';
+import { AuthSession as Session, User } from '@supabase/supabase-js';
 
 // Auth helpers
 export const signUp = async (email: string, password: string) => {
@@ -25,8 +25,8 @@ export const signOut = async () => {
 };
 
 export const getCurrentUser = async () => {
-  const { data, error } = await supabase.auth.getUser();
-  return { user: data.user, error };
+  const { data, error } = await supabase.auth.getSession();
+  return { user: data.session?.user || null, error };
 };
 
 export const getCurrentSession = async () => {
