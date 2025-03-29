@@ -75,7 +75,6 @@ export const useQuizLifecycle = (
         title: "Correct!",
         description: "Great job! Your answer is correct.",
         action: {
-          children: "Next",
           onClick: () => console.log("Next question")
         }
       });

@@ -20,7 +20,7 @@ export const useRetentionStats = (
       try {
         const result = await calculateFlashcardRetention(user.id);
         setRetentionStats({
-          overall: Math.round((result.data?.retentionRate || 0.75) * 100),
+          overall: Math.round((result.data?.overallRetention || 0.75) * 100),
           improved: Math.round(Math.random() * 15) + 5 // Placeholder - would calculate actual improvement
         });
       } catch (err) {

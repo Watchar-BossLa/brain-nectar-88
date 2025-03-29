@@ -87,17 +87,19 @@ export class LearningPathAgent extends BaseAgent {
     // Get retention data for all flashcards
     const retentionData = await calculateFlashcardRetention(userId);
     
-    // Extract priority cards - ensuring we have an array to work with
-    const cardRetention = Array.isArray(retentionData.cardRetention) 
-      ? retentionData.cardRetention 
-      : [];
+    // Using data.cardRetention safely with nullish coalescing
+    const cardRetentionData = retentionData.data?.cardRetention || {};
+    const cardRetentionArray = Object.keys(cardRetentionData).map(id => ({
+      id,
+      ...cardRetentionData[id]
+    }));
       
     // Calculate optimal review schedule based on retention data
     const recommendations = {
-      overallRetention: Math.round((retentionData.overallRetention || 0) * 100), // as percentage
-      priorityCards: cardRetention.slice(0, 5).map(card => card.id), // lowest retention cards
+      overallRetention: Math.round((retentionData.data?.overallRetention || 0) * 100), // as percentage
+      priorityCards: cardRetentionArray.slice(0, 5).map(card => card.id), // lowest retention cards
       optimalReviewTime: this.getOptimalReviewTime(),
-      suggestedBatchSize: this.calculateOptimalBatchSize(cardRetention.length)
+      suggestedBatchSize: this.calculateOptimalBatchSize(cardRetentionArray.length)
     };
     
     return {
@@ -136,16 +138,16 @@ export const analyzeRetentionPatterns = async (userId: string) => {
       return [];
     }
     
-    // Use the new data structure
-    const retentionRate = retention.data.retentionRate || 0.75;
+    // Use the overallRetention property from data object
+    const overallRetention = retention.data?.overallRetention || 0.75;
     
     // Return recommendations based on retention rate
-    if (retentionRate < 0.6) {
+    if (overallRetention < 0.6) {
       return [
         'Your retention is below average. Consider shorter, more frequent review sessions.',
         'Focus on understanding concepts before memorizing details.'
       ];
-    } else if (retentionRate < 0.8) {
+    } else if (overallRetention < 0.8) {
       return [
         'Your retention is good, but could be improved.',
         'Try using more varied practice techniques like active recall.'

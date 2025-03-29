@@ -1,12 +1,8 @@
 
-export * from './useQuizState';
-export * from './useQuizActions';
-export * from './useQuizNavigation'; 
-export * from './useQuizLifecycle';
-export * from './useQuestionSelection';
-export * from './useDifficultyAdjustment';
-export * from './useAnswerHandling';
-export * from './usePerformanceHistory';
-export * from './useSessionHistory';
-export * from './useAdaptiveQuiz';
-export * from './types';
+// Export all adaptive quiz hooks and utilities
+export { useAdaptiveQuiz } from './useAdaptiveQuiz';
+export { useQuizState } from './useQuizState';
+export { useQuizActions } from './useQuizActions';
+export { useQuizLifecycle } from './useQuizLifecycle';
+export { usePerformanceHistory } from './usePerformanceHistory';
+export { type AdaptiveQuizState, type AdaptiveQuizActions, type QuizStateWithSetters } from './types';
