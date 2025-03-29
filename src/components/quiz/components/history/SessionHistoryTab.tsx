@@ -7,7 +7,8 @@ import { BarChart3, Trash2 } from 'lucide-react';
 import { 
   NoSessionsMessage, 
   SessionTabContent,
-  DeleteConfirmDialog
+  DeleteConfirmDialog,
+  ExportMenu
 } from './components';
 
 const SessionHistoryTab: React.FC<{
@@ -55,15 +56,18 @@ const SessionHistoryTab: React.FC<{
           </p>
         </div>
         
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="text-destructive" 
-          onClick={handleClearHistory}
-        >
-          <Trash2 className="h-4 w-4 mr-2" />
-          Clear History
-        </Button>
+        <div className="flex gap-2">
+          <ExportMenu sessions={sessions} />
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="text-destructive" 
+            onClick={handleClearHistory}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Clear History
+          </Button>
+        </div>
       </div>
       
       <Tabs defaultValue="all">
