@@ -29,6 +29,9 @@ export function useAdaptiveQuiz(
     currentDifficulty: quizState.currentDifficulty,
     answeredQuestions: quizState.answeredQuestions,
     userConfidence: quizState.userConfidence,
+    correctStreak: quizState.correctStreak,
+    incorrectStreak: quizState.incorrectStreak,
+    topicMastery: quizState.topicMastery,
     
     // Actions
     ...quizActions,

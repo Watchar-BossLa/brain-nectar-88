@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Brain, TrendingUp } from 'lucide-react';
 
+// Update the component to use the correct props
 const ActiveQuiz: React.FC<ActiveQuizProps> = ({ 
   quiz, 
   filteredQuestions, 
@@ -24,7 +25,7 @@ const ActiveQuiz: React.FC<ActiveQuizProps> = ({
     const currentTopic = quiz.currentQuestion?.topic;
     
     // If there's a current topic, show its mastery
-    if (currentTopic && quiz.topicMastery[currentTopic] !== undefined) {
+    if (currentTopic && quiz.topicMastery && quiz.topicMastery[currentTopic] !== undefined) {
       const topicMastery = quiz.topicMastery[currentTopic] * 100; // Convert to percentage
       
       return (
@@ -99,8 +100,8 @@ const ActiveQuiz: React.FC<ActiveQuizProps> = ({
         </div>
       )}
       
-      {getStreakElement()}
-      {getTopicMasteryElement()}
+      {quiz.correctStreak || quiz.incorrectStreak ? getStreakElement() : null}
+      {quiz.topicMastery ? getTopicMasteryElement() : null}
     </motion.div>
   );
 };

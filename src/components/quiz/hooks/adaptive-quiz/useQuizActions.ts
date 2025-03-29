@@ -1,7 +1,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { QuizQuestion } from '../../types';
-import { calculateQuizResults, evaluateAnswer } from '../quizUtils';
+import { calculateQuizResults } from '../quizUtils';
 import { useToast } from '@/components/ui/use-toast';
 import { QuizStateWithSetters } from './types';
 import { useDifficultyAdjustment } from './useDifficultyAdjustment';
@@ -35,8 +35,7 @@ export function useQuizActions(
     availableQuestions, 
     maxQuestions, 
     selectNextQuestion,
-    startQuiz,
-    endQuiz
+    startQuiz
   );
   const { recordPerformance, calculateMetrics } = usePerformanceHistory();
 
@@ -64,9 +63,9 @@ export function useQuizActions(
         isCorrect: !!isCorrect,
         userAnswer: quizState.selectedAnswer,
         timeTaken: startTime ? Date.now() - startTime : 0,
-        confidenceLevel: quizState.userConfidence,
         topic: quizState.currentQuestion.topic,
-        difficulty: quizState.currentQuestion.difficulty
+        difficulty: quizState.currentQuestion.difficulty,
+        confidenceLevel: quizState.userConfidence
       });
     }
     

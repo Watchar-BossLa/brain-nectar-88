@@ -9,7 +9,8 @@ export function useQuizNavigation(
   availableQuestions: QuizQuestion[],
   maxQuestions: number,
   selectNextQuestion: () => QuizQuestion | null,
-  startQuiz: () => void
+  startQuiz: () => void,
+  endQuiz?: () => void
 ) {
   const {
     currentQuestion,
@@ -32,6 +33,7 @@ export function useQuizNavigation(
       const results = calculateQuizResults(answeredQuestions, availableQuestions);
       setQuizResults(results);
       setActiveQuiz(false);
+      if (endQuiz) endQuiz();
       return true;
     }
     
@@ -48,6 +50,7 @@ export function useQuizNavigation(
       const results = calculateQuizResults(answeredQuestions, availableQuestions);
       setQuizResults(results);
       setActiveQuiz(false);
+      if (endQuiz) endQuiz();
       return true;
     }
   }, [
@@ -62,7 +65,8 @@ export function useQuizNavigation(
     setCurrentIndex, 
     setSelectedAnswer, 
     setIsAnswerSubmitted, 
-    setIsCorrect
+    setIsCorrect,
+    endQuiz
   ]);
 
   // Skip current question

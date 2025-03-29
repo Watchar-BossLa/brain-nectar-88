@@ -75,12 +75,12 @@ export function useQuizLifecycle(
     
     // Calculate results
     if (answeredQuestions.length > 0) {
-      const results = calculateQuizResults(answeredQuestions);
+      const results = calculateQuizResults(answeredQuestions, availableQuestions);
       setQuizResults(results);
       
       // Update topic mastery based on results
       if (results.performanceByTopic) {
-        setTopicMastery(prev => {
+        setTopicMastery((prev: Record<string, number>) => {
           const newMastery = { ...prev };
           
           Object.entries(results.performanceByTopic).forEach(([topic, { correct, total }]) => {
@@ -97,7 +97,7 @@ export function useQuizLifecycle(
         });
       }
     }
-  }, [answeredQuestions, setActiveQuiz, setQuizResults, setTopicMastery]);
+  }, [answeredQuestions, setActiveQuiz, setQuizResults, setTopicMastery, availableQuestions]);
 
   return {
     startQuiz,
