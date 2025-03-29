@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -57,10 +58,10 @@ const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({
     setIsSubmitting(true);
 
     try {
-      const { error } = await updateFlashcardAfterReview(flashcard.id, difficulty);
+      const { data, error } = await updateFlashcardAfterReview(flashcard.id, difficulty);
       
       if (error) {
-        throw new Error(error.message);
+        throw error;
       }
       
       // Update stats if callback is provided

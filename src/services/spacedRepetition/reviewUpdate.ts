@@ -41,19 +41,11 @@ export const updateFlashcardAfterReview = async (
     // Calculate next review schedule
     const repeatCount = flashcard.repetition_count || 0;
     const easeFactor = flashcard.easiness_factor || INITIAL_EASINESS_FACTOR;
-    const previousInterval = repeatCount > 0 ? 
-      Math.ceil((new Date().getTime() - new Date(flashcard.created_at).getTime()) / (1000 * 60 * 60 * 24)) : 1;
     
     // Default to target retention of 0.85 if not specified
     const actualRetention = flashcard.last_retention || 0.85;
     
-    const schedule = calculateNextReviewSchedule(
-      repeatCount,
-      easeFactor,
-      difficulty,
-      previousInterval,
-      actualRetention
-    );
+    const schedule = calculateNextReviewSchedule(easeFactor, repeatCount);
     
     // Create review record
     const { error: reviewError } = await supabase
@@ -62,10 +54,9 @@ export const updateFlashcardAfterReview = async (
         flashcard_id: flashcardId,
         difficulty_rating: difficulty,
         reviewed_at: new Date().toISOString(),
-        retention_estimate: schedule.estimatedRetention,
+        retention_estimate: schedule.estimatedRetention || 0.85,
         user_id: flashcard.user_id // Make sure to include the user_id
-      })
-      .single();
+      });
       
     if (reviewError) {
       console.warn('Error recording flashcard review:', reviewError);
@@ -73,16 +64,19 @@ export const updateFlashcardAfterReview = async (
     }
     
     // Update flashcard with new schedule
+    const nextReviewDate = schedule.nextReviewDate || new Date();
+    nextReviewDate.setDate(new Date().getDate() + schedule.interval);
+    
     const { data, error: updateError } = await supabase
       .from('flashcards')
       .update({
         repetition_count: repeatCount + 1,
         easiness_factor: schedule.easinessFactor,
         difficulty: difficulty,
-        next_review_date: schedule.nextReviewDate.toISOString(),
+        next_review_date: nextReviewDate.toISOString(),
         last_reviewed_at: new Date().toISOString(),
-        last_retention: schedule.estimatedRetention,
-        mastery_level: schedule.masteryLevel
+        last_retention: schedule.estimatedRetention || 0.85,
+        mastery_level: schedule.masteryLevel || 0
       })
       .eq('id', flashcardId)
       .select()

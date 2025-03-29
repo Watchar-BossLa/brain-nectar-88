@@ -14,6 +14,9 @@ export interface RepetitionSchedule {
   interval: number;  // in days
   repetition: number;
   easinessFactor: number;
+  nextReviewDate?: Date;
+  estimatedRetention?: number;
+  masteryLevel?: number;
 }
 
 /**
@@ -56,10 +59,16 @@ export const calculateNextReviewSchedule = (
     interval = Math.round(previousInterval * easinessFactor);
   }
   
+  const nextReviewDate = new Date();
+  nextReviewDate.setDate(nextReviewDate.getDate() + interval);
+  
   return {
     interval,
     repetition: repetition + 1,
-    easinessFactor
+    easinessFactor,
+    nextReviewDate,
+    estimatedRetention: 0.9, // Default value, should be calculated in actual usage
+    masteryLevel: Math.min(1.0, (repetition + 1) * 0.1) // Simple calculation for mastery level
   };
 };
 
