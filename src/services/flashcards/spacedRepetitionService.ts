@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { 
   calculateNextReviewDate, 
@@ -17,14 +16,19 @@ export class SpacedRepetitionService {
    * Record a flashcard review and update the next review date
    * 
    * @param flashcardId The ID of the reviewed flashcard
-   * @param difficultyRating The user's difficulty rating (1-5)
+   * @param difficultyRating The user's difficulty rating (1-5) or an object containing the rating
    * @returns The updated flashcard or null if error
    */
   public async recordReview(
     flashcardId: string, 
-    difficultyRating: number
+    difficultyRating: number | { difficulty: number; reviewedAt: string }
   ): Promise<any | null> {
     try {
+      // Extract difficulty from the parameter, which can be a number or an object
+      const difficulty = typeof difficultyRating === 'number' 
+        ? difficultyRating 
+        : difficultyRating.difficulty;
+
       // Get current flashcard data
       const { data: flashcard, error } = await supabase
         .from('flashcards')
@@ -46,14 +50,14 @@ export class SpacedRepetitionService {
       // Update easiness factor based on difficulty rating
       const easinessFactor = updateEasinessFactor(
         flashcard.easiness_factor || INITIAL_EASINESS_FACTOR,
-        6 - difficultyRating // Convert 1-5 difficulty to 5-1 quality (SM-2 uses 0-5 quality)
+        6 - difficulty // Convert 1-5 difficulty to 5-1 quality (SM-2 uses 0-5 quality)
       );
       
       // Calculate mastery level
       const masteryLevel = calculateMasteryLevel(
         flashcard.mastery_level || 0,
         retention,
-        difficultyRating
+        difficulty
       );
       
       // Calculate next review date
@@ -66,7 +70,7 @@ export class SpacedRepetitionService {
       const { data, error: updateError } = await supabase
         .from('flashcards')
         .update({
-          difficulty: difficultyRating,
+          difficulty: difficulty,
           easiness_factor: easinessFactor,
           last_retention: retention,
           mastery_level: masteryLevel,
@@ -89,7 +93,7 @@ export class SpacedRepetitionService {
         .insert({
           user_id: flashcard.user_id,
           flashcard_id: flashcardId,
-          difficulty_rating: difficultyRating,
+          difficulty_rating: difficulty,
           retention_estimate: retention
         });
         

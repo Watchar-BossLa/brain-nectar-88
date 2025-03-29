@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { QuizQuestion, AnsweredQuestion, QuizResults } from '../../types';
@@ -75,11 +74,6 @@ export const useQuizLifecycle = (
       toast({
         title: "Correct!",
         description: "Great job! Your answer is correct.",
-        action: {
-          // Remove the label property as it's not allowed
-          // Just use children directly for the button text
-          children: "Next"
-        }
       });
       state.setCorrectStreak(state.correctStreak + 1);
       state.setIncorrectStreak(0);
