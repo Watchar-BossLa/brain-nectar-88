@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from './context/auth';
 import { ThemeProvider } from './context/theme';
+import { SolanaProvider } from './context/blockchain';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -19,6 +20,7 @@ import { useEffect } from 'react';
 import Index from './pages/Index';
 import Quiz from './pages/Quiz';
 import AdaptiveQuiz from './pages/AdaptiveQuiz';
+import Blockchain from './pages/Blockchain';
 
 function App() {
   useEffect(() => {
@@ -29,23 +31,26 @@ function App() {
     <Router>
       <ThemeProvider defaultTheme="light" storageKey="study-bee-theme">
         <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/courses" element={<Courses />} />
-            <Route path="/assessment" element={<Assessment />} />
-            <Route path="/qualifications" element={<Qualifications />} />
-            <Route path="/flashcards" element={<FlashcardsPage />} />
-            <Route path="/study-planner" element={<StudyPlannerPage />} />
-            <Route path="/learning-path" element={<LearningPath />} />
-            <Route path="/cognitive-profile" element={<CognitiveProfile />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/agent-dashboard" element={<AgentDashboard />} />
-            <Route path="/quiz" element={<Quiz />} />
-            <Route path="/adaptive-quiz" element={<AdaptiveQuiz />} />
-          </Routes>
-          <Toaster />
+          <SolanaProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/courses" element={<Courses />} />
+              <Route path="/assessment" element={<Assessment />} />
+              <Route path="/qualifications" element={<Qualifications />} />
+              <Route path="/flashcards" element={<FlashcardsPage />} />
+              <Route path="/study-planner" element={<StudyPlannerPage />} />
+              <Route path="/learning-path" element={<LearningPath />} />
+              <Route path="/cognitive-profile" element={<CognitiveProfile />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/agent-dashboard" element={<AgentDashboard />} />
+              <Route path="/quiz" element={<Quiz />} />
+              <Route path="/adaptive-quiz" element={<AdaptiveQuiz />} />
+              <Route path="/blockchain" element={<Blockchain />} />
+            </Routes>
+            <Toaster />
+          </SolanaProvider>
         </AuthProvider>
       </ThemeProvider>
     </Router>
