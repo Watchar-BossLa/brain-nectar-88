@@ -1,121 +1,176 @@
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { CheckCircle, BookOpen, Clock, Award } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { LearningPath, LearningPathModule } from '@/hooks/useLearningPath';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, Clock, ArrowRight, Calendar, BookOpen } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface LearningPathVisualizationProps {
-  learningPath: LearningPath | null;
+  learningPath: any;
   loading: boolean;
 }
 
-const LearningPathVisualization: React.FC<LearningPathVisualizationProps> = ({
-  learningPath,
-  loading
+const LearningPathVisualization: React.FC<LearningPathVisualizationProps> = ({ 
+  learningPath, 
+  loading 
 }) => {
-  // Calculate total progress statistics
-  const stats = useMemo(() => {
-    if (!learningPath || !learningPath.modules) {
-      return { 
-        totalTopics: 0, 
-        completedTopics: 0, 
-        completedModules: 0, 
-        totalModules: 0, 
-        overallProgress: 0 
-      };
-    }
-
-    const totalTopics = learningPath.modules.reduce((acc, module) => acc + module.topics.length, 0);
-    const completedTopics = learningPath.modules.reduce((acc, module) => 
-      acc + module.topics.filter(topic => topic.status === 'completed').length, 0);
-    const completedModules = learningPath.modules.filter(m => m.status === 'completed').length;
-    const totalModules = learningPath.modules.length;
-    const overallProgress = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
-
-    return { totalTopics, completedTopics, completedModules, totalModules, overallProgress };
-  }, [learningPath]);
-
   if (loading) {
-    return (
-      <div className="space-y-6">
-        <Card className="animate-pulse">
-          <CardHeader>
-            <div className="h-6 w-48 bg-muted rounded-md"></div>
-          </CardHeader>
-          <CardContent>
-            <div className="h-4 w-full bg-muted rounded-md mb-6"></div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="h-24 w-full bg-muted rounded-md"></div>
-              <div className="h-24 w-full bg-muted rounded-md"></div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <VisualizationSkeleton />;
   }
 
   if (!learningPath || !learningPath.modules || learningPath.modules.length === 0) {
     return (
       <Card>
         <CardContent className="py-10 text-center">
-          <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-          <h3 className="text-lg font-medium mb-2">No Learning Path Available</h3>
-          <p className="text-muted-foreground mb-4">
-            Select a qualification to generate your personalized learning path
-          </p>
+          <p className="mb-4">No learning path available to visualize.</p>
+          <Button>Select a qualification</Button>
         </CardContent>
       </Card>
     );
   }
 
+  // Calculate overall progress
+  const totalTopics = learningPath.modules.reduce((acc: number, module: any) => acc + module.topics.length, 0);
+  const completedTopics = learningPath.modules.reduce((acc: number, module: any) => 
+    acc + module.topics.filter((topic: any) => topic.status === 'completed').length, 0);
+  const overallProgress = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <Card>
         <CardHeader>
           <CardTitle>Learning Path Visualization</CardTitle>
+          <CardDescription>
+            Interactive view of your qualification journey and progress
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="mb-6">
-            <div className="flex justify-between mb-1">
-              <span className="text-sm text-muted-foreground">Overall Progress</span>
-              <span className="text-sm font-medium">{stats.completedTopics}/{stats.totalTopics} topics completed</span>
+          {/* Overall Progress Display */}
+          <div className="mb-8 p-4 border rounded-lg bg-card">
+            <h3 className="text-lg font-medium mb-2">Overall Qualification Progress</h3>
+            <div className="flex justify-between mb-2">
+              <span className="text-sm text-muted-foreground">Progress</span>
+              <span className="text-sm font-medium">{completedTopics}/{totalTopics} topics completed</span>
             </div>
-            <Progress value={stats.overallProgress} className="h-2" />
+            <Progress value={overallProgress} className="h-3 mb-4" />
+            
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+              <div className="flex items-center gap-3 p-3 bg-background rounded-md border">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <CheckCircle className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Completed Modules</p>
+                  <p className="font-medium">
+                    {learningPath.modules.filter((m: any) => m.status === 'completed').length}/{learningPath.modules.length}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 bg-background rounded-md border">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Clock className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Estimated Time Remaining</p>
+                  <p className="font-medium">
+                    {Math.round((totalTopics - completedTopics) * 0.5)} hours
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 bg-background rounded-md border">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Calendar className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Target Completion</p>
+                  <p className="font-medium">
+                    {new Date(Date.now() + (totalTopics - completedTopics) * 0.5 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
+          
+          {/* Timeline Visualization */}
+          <div className="mt-8 relative">
+            <h3 className="text-lg font-medium mb-6">Learning Journey Timeline</h3>
+            <div className="absolute left-4 top-12 bottom-0 w-0.5 bg-border"></div>
+            
+            {learningPath.modules.map((module: any, index: number) => {
+              // Calculate module progress
+              const moduleProgress = module.topics.length > 0 
+                ? Math.round((module.topics.filter((t: any) => t.status === 'completed').length / module.topics.length) * 100) 
+                : 0;
+                
+              // Determine status color
+              let statusColor = "bg-muted";
+              if (module.status === 'completed') statusColor = "bg-green-500";
+              else if (module.status === 'in_progress') statusColor = "bg-blue-500";
+              else if (index === 0 || learningPath.modules[index-1]?.status === 'completed') statusColor = "bg-amber-500";
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="flex items-center gap-3 p-4 border rounded-md">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <CheckCircle className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Completed Modules</p>
-                <p className="text-xl font-bold">
-                  {stats.completedModules}/{stats.totalModules}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-4 border rounded-md">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <Clock className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Estimated Time Remaining</p>
-                <p className="text-xl font-bold">
-                  {Math.round((stats.totalTopics - stats.completedTopics) * 0.5)} hours
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Path Timeline Visualization */}
-          <div className="mt-8 space-y-8 relative before:absolute before:inset-y-0 before:left-4 before:w-0.5 before:bg-border">
-            {learningPath.modules.map((module, index) => (
-              <ModuleVisualizationItem key={module.id} module={module} index={index} />
-            ))}
+              return (
+                <motion.div 
+                  key={module.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="ml-10 mb-8 relative"
+                >
+                  {/* Timeline node */}
+                  <div className={`absolute -left-14 top-4 w-8 h-8 rounded-full border-4 border-background ${statusColor} flex items-center justify-center z-10`}>
+                    {module.status === 'completed' ? (
+                      <CheckCircle className="h-4 w-4 text-white" />
+                    ) : (
+                      <span className="text-xs text-white font-bold">{index + 1}</span>
+                    )}
+                  </div>
+                  
+                  {/* Module card */}
+                  <Card className={`border-l-4 ${module.status === 'completed' ? 'border-l-green-500' : module.status === 'in_progress' ? 'border-l-blue-500' : 'border-l-muted'}`}>
+                    <CardHeader className="pb-3">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="text-base">{module.title}</CardTitle>
+                          <CardDescription>{module.topics.length} topics</CardDescription>
+                        </div>
+                        <Badge variant={module.status === 'completed' ? 'default' : 'secondary'}>
+                          {module.status === 'completed' ? 'Completed' : module.status === 'in_progress' ? 'In Progress' : 'Upcoming'}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="mb-3">
+                        <div className="flex justify-between mb-1 text-xs">
+                          <span>{moduleProgress}% complete</span>
+                          <span>{module.topics.filter((t: any) => t.status === 'completed').length}/{module.topics.length} topics</span>
+                        </div>
+                        <Progress value={moduleProgress} className="h-2" />
+                      </div>
+                      
+                      <div className="flex mt-4 justify-between items-center">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <BookOpen className="h-4 w-4" />
+                          <span>{module.topics.length * 0.5} hours estimated</span>
+                        </div>
+                        <Button variant="outline" size="sm" className="text-xs">
+                          {module.status === 'completed' ? 'Review' : 'Start Learning'}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Show connector to next module if not the last one */}
+                  {index < learningPath.modules.length - 1 && (
+                    <div className="flex justify-center my-3 -ml-10">
+                      <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
@@ -123,89 +178,22 @@ const LearningPathVisualization: React.FC<LearningPathVisualizationProps> = ({
   );
 };
 
-interface ModuleVisualizationItemProps {
-  module: LearningPathModule;
-  index: number;
-}
-
-const ModuleVisualizationItem: React.FC<ModuleVisualizationItemProps> = ({ module, index }) => {
-  // Calculate module progress
-  const topicsCount = module.topics.length;
-  const completedTopics = module.topics.filter(t => t.status === 'completed').length;
-  const progress = topicsCount > 0 ? Math.round((completedTopics / topicsCount) * 100) : 0;
-  
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'bg-green-500 text-white';
-      case 'in_progress': return 'bg-blue-500 text-white';
-      default: return 'bg-gray-200 text-gray-800';
-    }
-  };
-
+const VisualizationSkeleton = () => {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-      className="relative pl-10"
-    >
-      <div className={`absolute left-0 top-1 h-8 w-8 rounded-full flex items-center justify-center ${getStatusColor(module.status)}`}>
-        {module.status === 'completed' ? (
-          <CheckCircle className="h-4 w-4" />
-        ) : module.status === 'in_progress' ? (
-          <BookOpen className="h-4 w-4" />
-        ) : (
-          <span className="text-sm">{index + 1}</span>
-        )}
-      </div>
-
-      <div className="border rounded-md overflow-hidden">
-        <div className="p-4">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="font-medium">{module.title}</h3>
-            <Badge className={`${module.status === 'completed' ? 'bg-green-100 text-green-800' : 
-                               module.status === 'in_progress' ? 'bg-blue-100 text-blue-800' : 
-                               'bg-gray-100 text-gray-800'}`}>
-              {module.status === 'completed' ? 'Completed' : 
-               module.status === 'in_progress' ? 'In Progress' : 
-               'Not Started'}
-            </Badge>
-          </div>
-          
-          <div className="flex items-center gap-2 mb-4">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">{topicsCount * 30} min</span>
-          </div>
-
-          <div className="mb-4">
-            <div className="flex justify-between mb-1">
-              <span className="text-xs text-muted-foreground">Progress</span>
-              <span className="text-xs">{completedTopics}/{topicsCount}</span>
-            </div>
-            <Progress value={progress} className="h-1.5" />
-          </div>
-          
-          <div className="grid grid-cols-2 gap-2">
-            {module.topics.slice(0, 4).map((topic) => (
-              <div 
-                key={topic.id}
-                className={`text-xs px-2 py-1 rounded-sm 
-                  ${topic.status === 'completed' ? 'bg-green-50 text-green-700' : 
-                   topic.status === 'in_progress' ? 'bg-blue-50 text-blue-700' : 
-                   'bg-gray-50 text-gray-700'}`}
-              >
-                {topic.title.length > 20 ? `${topic.title.substring(0, 20)}...` : topic.title}
-              </div>
-            ))}
-            {module.topics.length > 4 && (
-              <div className="text-xs px-2 py-1 bg-gray-50 rounded-sm text-muted-foreground">
-                +{module.topics.length - 4} more topics
-              </div>
-            )}
-          </div>
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-6 w-64 mb-2" />
+        <Skeleton className="h-4 w-48" />
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="h-20 w-full mb-6" />
+        <div className="space-y-6">
+          {[1, 2, 3].map(i => (
+            <Skeleton key={i} className="h-32 w-full" />
+          ))}
         </div>
-      </div>
-    </motion.div>
+      </CardContent>
+    </Card>
   );
 };
 
