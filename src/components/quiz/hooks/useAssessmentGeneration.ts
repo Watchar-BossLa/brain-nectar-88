@@ -36,13 +36,13 @@ export function useAssessmentGeneration() {
         previousPerformance: options?.previousPerformance || []
       });
 
-      if (result?.status === 'success' && result.assessment?.questions) {
+      if (result?.status === 'success' && result.data?.assessment?.questions) {
         toast({
           title: 'Questions Generated',
-          description: `${result.assessment.questions.length} questions have been prepared for your assessment.`,
+          description: `${result.data.assessment.questions.length} questions have been prepared for your assessment.`,
         });
         
-        return result.assessment.questions;
+        return result.data.assessment.questions;
       }
       
       throw new Error('Failed to generate questions');
@@ -64,4 +64,3 @@ export function useAssessmentGeneration() {
     isGenerating
   };
 }
-
