@@ -37,8 +37,8 @@ export interface AnsweredQuestion {
   isCorrect: boolean;
   userAnswer: string;
   timeTaken: number;
-  confidenceLevel?: number;
-  topic?: string;
+  confidenceLevel?: number; // Added this property
+  topic?: string; // Added this property
   difficulty?: number;
 }
 

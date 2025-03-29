@@ -63,9 +63,9 @@ export function useQuizActions(
         isCorrect: !!isCorrect,
         userAnswer: quizState.selectedAnswer,
         timeTaken: startTime ? Date.now() - startTime : 0,
+        confidenceLevel: quizState.userConfidence,
         topic: quizState.currentQuestion.topic,
-        difficulty: quizState.currentQuestion.difficulty,
-        confidenceLevel: quizState.userConfidence
+        difficulty: quizState.currentQuestion.difficulty
       });
     }
     

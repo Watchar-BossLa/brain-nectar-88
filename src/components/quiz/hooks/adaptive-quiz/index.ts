@@ -34,7 +34,14 @@ export function useAdaptiveQuiz(
     topicMastery: quizState.topicMastery,
     
     // Actions
-    ...quizActions,
+    startQuiz: quizActions.startQuiz,
+    submitAnswer: quizActions.submitAnswer,
+    nextQuestion: quizActions.nextQuestion,
+    previousQuestion: quizActions.previousQuestion,
+    skipQuestion: quizActions.skipQuestion,
+    restartQuiz: quizActions.restartQuiz,
+    setConfidence: quizActions.setConfidence,
+    getPerformanceMetrics: quizActions.getPerformanceMetrics,
     setSelectedAnswer: quizState.setSelectedAnswer,
   };
 }

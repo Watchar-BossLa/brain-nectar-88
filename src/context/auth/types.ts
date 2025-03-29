@@ -16,6 +16,11 @@ export interface AuthUser {
   aud: string;
 }
 
+export interface PlatformOwnerType {
+  email: string;
+  [key: string]: string;
+}
+
 export interface AuthContextType {
   session: Session | null;
   user: AuthUser | null;

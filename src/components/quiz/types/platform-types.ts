@@ -1,5 +1,24 @@
 
-import { QuizQuestion } from '../types';
+import { QuizQuestion, QuizResults, AnsweredQuestion } from '../types';
+
+export interface ActiveQuizProps {
+  quiz: {
+    currentQuestion: QuizQuestion;
+    currentIndex: number;
+    selectedAnswer: string;
+    setSelectedAnswer: (answer: string) => void;
+    isAnswerSubmitted: boolean;
+    isCorrect: boolean | null;
+    submitAnswer: () => void;
+    nextQuestion: () => void;
+    previousQuestion: () => void;
+    skipQuestion: () => void;
+  };
+  filteredQuestions: QuizQuestion[];
+  questionCount: number;
+  userConfidence: number;
+  handleConfidenceChange: (value: number) => void;
+}
 
 export interface QuizSettingsProps {
   topics: string[];
@@ -20,37 +39,4 @@ export interface QuizSettingsProps {
 export interface QuizWelcomeProps {
   setShowSettings: (show: boolean) => void;
   handleStartQuiz: () => void;
-}
-
-export interface FormulasTabProps {
-  // Props for the formulas tab
-}
-
-export interface AnalyticsTabProps {
-  answeredQuestions: any[];
-  setActiveTab: (tab: string) => void;
-}
-
-export interface QuizResultsProps {
-  quizResults: any;
-  restartQuiz: () => void;
-}
-
-export interface ActiveQuizProps {
-  quiz: {
-    currentQuestion: QuizQuestion;
-    currentIndex: number;
-    selectedAnswer: string;
-    setSelectedAnswer: (answer: string) => void;
-    isAnswerSubmitted: boolean;
-    isCorrect: boolean | null;
-    submitAnswer: () => void;
-    nextQuestion: () => void;
-    previousQuestion: () => void;
-    skipQuestion: () => void;
-  };
-  filteredQuestions: QuizQuestion[];
-  questionCount: number;
-  userConfidence: number;
-  handleConfidenceChange: (value: number) => void;
 }
