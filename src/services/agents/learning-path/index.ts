@@ -1,7 +1,7 @@
 
 import { AgentMessage, AgentTask, TaskType, MessageType } from '../types';
 import { BaseAgent } from '../baseAgent';
-import { calculateFlashcardRetention } from '@/services/spacedRepetition/reviewService';
+import { calculateFlashcardRetention } from '@/services/spacedRepetition';
 import { spacedRepetitionService } from '@/services/flashcards/spacedRepetitionService';
 
 /**
@@ -86,14 +86,14 @@ export class LearningPathAgent extends BaseAgent {
     console.log(`Optimizing flashcard sequence for user ${userId}`);
     
     // Get retention data for all flashcards
-    const { overallRetention, cardRetention } = await calculateFlashcardRetention(userId);
+    const retentionData = await calculateFlashcardRetention(userId);
     
     // Calculate optimal review schedule based on retention data
     const recommendations = {
-      overallRetention: Math.round(overallRetention * 100), // as percentage
-      priorityCards: cardRetention.slice(0, 5).map(card => card.id), // lowest retention cards
+      overallRetention: Math.round(retentionData.overallRetention * 100), // as percentage
+      priorityCards: retentionData.cardRetention.slice(0, 5).map(card => card.id), // lowest retention cards
       optimalReviewTime: this.getOptimalReviewTime(),
-      suggestedBatchSize: this.calculateOptimalBatchSize(cardRetention.length)
+      suggestedBatchSize: this.calculateOptimalBatchSize(retentionData.cardRetention.length)
     };
     
     return {

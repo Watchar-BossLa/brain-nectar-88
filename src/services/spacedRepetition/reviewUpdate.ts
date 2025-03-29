@@ -64,7 +64,7 @@ export const updateFlashcardAfterReview = async (
     }
     
     // Update flashcard with new schedule
-    const nextReviewDate = schedule.nextReviewDate || new Date();
+    const nextReviewDate = new Date();
     nextReviewDate.setDate(new Date().getDate() + schedule.interval);
     
     const { data, error: updateError } = await supabase
