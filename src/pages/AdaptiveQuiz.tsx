@@ -4,7 +4,8 @@ import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import AdaptiveQuizPlatform from '@/components/quiz/AdaptiveQuizPlatform';
 import { motion } from 'framer-motion';
-import { BookOpen, Brain, ChevronRight } from 'lucide-react';
+import { BookOpen, Brain, ChevronRight, LineChart, Award, BarChart } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const AdaptiveQuiz = () => {
   return (
@@ -22,7 +23,7 @@ const AdaptiveQuiz = () => {
                 Adaptive Quiz Platform
               </h1>
               <p className="text-muted-foreground mt-2">
-                Our intelligent system adjusts question difficulty based on your performance
+                Our intelligent system adapts to your knowledge level in real-time
               </p>
             </div>
             <div className="flex gap-2">
@@ -40,10 +41,72 @@ const AdaptiveQuiz = () => {
           </div>
         </motion.div>
 
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Brain className="h-5 w-5 text-primary" />
+                  Intelligent Adaptation
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Questions adjust in real-time based on your performance and confidence level
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <LineChart className="h-5 w-5 text-primary" />
+                  Performance Analysis
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Detailed insights into your strengths and areas for improvement
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <BarChart className="h-5 w-5 text-primary" />
+                  Topic Mastery Tracking
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  See your mastery level across different accounting concepts
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
         >
           <AdaptiveQuizPlatform />
         </motion.div>

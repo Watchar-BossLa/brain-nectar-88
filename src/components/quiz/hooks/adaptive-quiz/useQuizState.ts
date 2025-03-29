@@ -1,43 +1,70 @@
 
 import { useState } from 'react';
-import { QuizQuestion, QuizResults, AnsweredQuestion } from '../../types';
+import { QuizQuestion, QuizResults } from '../../types';
 import { QuizStateWithSetters } from './types';
 
-export function useQuizState(initialDifficulty: 1 | 2 | 3): QuizStateWithSetters {
-  const [activeQuiz, setActiveQuiz] = useState(false);
+export function useQuizState(initialDifficulty: 1 | 2 | 3 = 2): QuizStateWithSetters {
+  // Quiz status
+  const [activeQuiz, setActiveQuiz] = useState<boolean>(false);
+  
+  // Current question state
   const [currentQuestion, setCurrentQuestion] = useState<QuizQuestion | null>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState('');
-  const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<string>('');
+  const [isAnswerSubmitted, setIsAnswerSubmitted] = useState<boolean>(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  
+  // Question and results tracking
+  const [questionPool, setQuestionPool] = useState<QuizQuestion[]>([]);
+  const [answeredQuestions, setAnsweredQuestions] = useState<any[]>([]);
   const [quizResults, setQuizResults] = useState<QuizResults | null>(null);
-  const [answeredQuestions, setAnsweredQuestions] = useState<AnsweredQuestion[]>([]);
+  
+  // Adaptive parameters
   const [currentDifficulty, setCurrentDifficulty] = useState<1 | 2 | 3>(initialDifficulty);
-  const [userConfidence, setUserConfidence] = useState<number>(0.5); // Default medium confidence
+  const [userConfidence, setUserConfidence] = useState<number>(0.5); // 0 to 1
+  
+  // Performance tracking
+  const [correctStreak, setCorrectStreak] = useState<number>(0);
+  const [incorrectStreak, setIncorrectStreak] = useState<number>(0);
+  const [topicMastery, setTopicMastery] = useState<Record<string, number>>({});
 
   return {
-    // State
+    // Quiz status
     activeQuiz,
-    currentQuestion,
-    currentIndex,
-    selectedAnswer,
-    isAnswerSubmitted,
-    isCorrect,
-    quizResults,
-    currentDifficulty,
-    answeredQuestions,
-    userConfidence,
-    
-    // Setters
     setActiveQuiz,
+    
+    // Current question state
+    currentQuestion,
     setCurrentQuestion,
+    currentIndex,
     setCurrentIndex,
+    selectedAnswer,
     setSelectedAnswer,
+    isAnswerSubmitted,
     setIsAnswerSubmitted,
+    isCorrect,
     setIsCorrect,
-    setQuizResults,
+    
+    // Question and results tracking
+    questionPool,
+    setQuestionPool,
+    answeredQuestions,
     setAnsweredQuestions,
+    quizResults,
+    setQuizResults,
+    
+    // Adaptive parameters
+    currentDifficulty,
     setCurrentDifficulty,
-    setUserConfidence
+    userConfidence,
+    setUserConfidence,
+    
+    // Performance tracking
+    correctStreak,
+    setCorrectStreak,
+    incorrectStreak,
+    setIncorrectStreak,
+    topicMastery,
+    setTopicMastery
   };
 }

@@ -1,8 +1,14 @@
 
 import React from 'react';
-import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/label';
-import { ShieldQuestion, Lightbulb, Brain } from 'lucide-react';
+import { Slider } from "@/components/ui/slider";
+import { Progress } from "@/components/ui/progress";
+import { 
+  Brain, 
+  ThumbsDown, 
+  ThumbsUp,
+  HelpCircle,
+  CheckCircle
+} from 'lucide-react';
 
 interface ConfidenceSliderProps {
   value: number;
@@ -12,49 +18,53 @@ interface ConfidenceSliderProps {
 
 const ConfidenceSlider: React.FC<ConfidenceSliderProps> = ({ 
   value, 
-  onChange, 
-  disabled = false 
+  onChange,
+  disabled = false
 }) => {
-  const handleValueChange = (values: number[]) => {
-    onChange(values[0]);
+  // Get confidence level text
+  const getConfidenceText = () => {
+    if (value <= 0.25) return "Not confident at all";
+    if (value <= 0.5) return "Somewhat uncertain";
+    if (value <= 0.75) return "Fairly confident";
+    return "Very confident";
+  };
+  
+  // Get confidence icon
+  const ConfidenceIcon = () => {
+    if (value <= 0.25) return <HelpCircle className="h-5 w-5 text-red-400" />;
+    if (value <= 0.5) return <Brain className="h-5 w-5 text-amber-400" />;
+    if (value <= 0.75) return <ThumbsUp className="h-5 w-5 text-blue-400" />;
+    return <CheckCircle className="h-5 w-5 text-green-400" />;
   };
   
   return (
-    <div className="space-y-4 my-4">
+    <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <Label htmlFor="confidence" className="text-sm font-medium">
-          How confident are you in your answer?
-        </Label>
-        <div className="bg-muted px-2 py-1 rounded text-xs font-medium">
-          {value <= 0.33 ? 'Not Sure' : value <= 0.66 ? 'Somewhat Sure' : 'Very Sure'}
+        <div className="text-sm font-medium">How confident are you?</div>
+        <div className="flex items-center gap-1.5 text-sm">
+          <ConfidenceIcon />
+          <span>{getConfidenceText()}</span>
         </div>
       </div>
       
-      <div className="relative pt-5 pb-1">
-        <Slider
-          id="confidence"
-          disabled={disabled}
-          defaultValue={[0.5]}
-          value={[value]}
-          max={1}
-          step={0.01}
-          onValueChange={handleValueChange}
-          className="my-4"
-        />
-        
-        <div className="absolute top-0 left-0 flex justify-between w-full">
-          <div className="flex flex-col items-center">
-            <ShieldQuestion className="h-4 w-4 text-red-500" />
-            <span className="text-xs text-muted-foreground">Unsure</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <Lightbulb className="h-4 w-4 text-amber-500" />
-            <span className="text-xs text-muted-foreground">Maybe</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <Brain className="h-4 w-4 text-green-500" />
-            <span className="text-xs text-muted-foreground">Confident</span>
-          </div>
+      <Slider
+        value={[value * 100]}
+        min={0}
+        max={100}
+        step={25}
+        onValueChange={values => onChange(values[0] / 100)}
+        disabled={disabled}
+        className="w-full"
+      />
+      
+      <div className="flex justify-between text-xs text-muted-foreground pt-1">
+        <div className="flex items-center gap-1">
+          <ThumbsDown className="h-3 w-3" />
+          <span>Not confident</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <ThumbsUp className="h-3 w-3" />
+          <span>Very confident</span>
         </div>
       </div>
     </div>

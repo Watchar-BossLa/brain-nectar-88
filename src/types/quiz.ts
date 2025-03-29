@@ -38,6 +38,8 @@ export interface AnsweredQuestion {
   userAnswer: string;
   timeTaken: number;
   confidenceLevel?: number;
+  topic?: string;
+  difficulty?: number;
 }
 
 export interface QuizResults {

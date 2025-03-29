@@ -1,58 +1,73 @@
 
 import { useCallback } from 'react';
-import { evaluateAnswer } from '../quizUtils';
 import { QuizStateWithSetters } from './types';
+import { evaluateAnswer } from '../quizUtils';
 
 export function useAnswerHandling(
   quizState: QuizStateWithSetters,
   startTime: number | null,
-  setStartTime: React.Dispatch<React.SetStateAction<number | null>>,
+  setStartTime: (time: number | null) => void,
   updateDifficulty: (isCorrect: boolean) => void
 ) {
   const {
     currentQuestion,
-    isAnswerSubmitted,
     selectedAnswer,
-    setIsCorrect,
     setIsAnswerSubmitted,
+    setIsCorrect,
+    userConfidence,
     answeredQuestions,
-    setAnsweredQuestions,
+    setAnsweredQuestions
   } = quizState;
 
-  // Submit answer
   const submitAnswer = useCallback(() => {
-    if (!currentQuestion || isAnswerSubmitted) return;
+    if (!currentQuestion || !selectedAnswer) return false;
     
-    const timeTaken = startTime ? (Date.now() - startTime) : 0;
+    // Calculate time taken to answer
+    const endTime = Date.now();
+    const questionStartTime = startTime || endTime;
+    const timeTaken = endTime - questionStartTime;
     
-    const correct = evaluateAnswer(currentQuestion, selectedAnswer);
-    setIsCorrect(correct);
+    // Reset timer for next question
+    setStartTime(null);
+    
+    // Determine if answer is correct
+    const isCorrect = evaluateAnswer(currentQuestion, selectedAnswer);
+    
+    // Update state
+    setIsCorrect(isCorrect);
     setIsAnswerSubmitted(true);
     
+    // Record answered question with detailed metrics
     const answeredQuestion = {
       id: currentQuestion.id,
-      isCorrect: correct,
+      isCorrect,
       userAnswer: selectedAnswer,
       timeTaken,
+      confidenceLevel: userConfidence,
+      topic: currentQuestion.topic,
+      difficulty: currentQuestion.difficulty
     };
     
     setAnsweredQuestions([...answeredQuestions, answeredQuestion]);
-    updateDifficulty(correct);
-    setStartTime(Date.now());
     
-    return correct;
+    // Update difficulty based on performance
+    updateDifficulty(isCorrect);
+    
+    return isCorrect;
   }, [
-    currentQuestion, 
-    isAnswerSubmitted, 
-    selectedAnswer, 
-    startTime, 
-    updateDifficulty, 
-    setIsCorrect, 
-    setIsAnswerSubmitted, 
-    answeredQuestions, 
+    currentQuestion,
+    selectedAnswer,
+    startTime,
+    setStartTime,
+    setIsCorrect,
+    setIsAnswerSubmitted,
+    userConfidence,
+    answeredQuestions,
     setAnsweredQuestions,
-    setStartTime
+    updateDifficulty
   ]);
 
-  return { submitAnswer };
+  return {
+    submitAnswer
+  };
 }
