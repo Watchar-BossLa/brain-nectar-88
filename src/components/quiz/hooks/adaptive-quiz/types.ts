@@ -48,4 +48,5 @@ export interface AdaptiveQuizActions {
   skipQuestion: () => void;
   submitAnswer: () => void;
   setConfidence: (value: number) => void;
+  setSelectedAnswer: (answer: string) => void;
 }

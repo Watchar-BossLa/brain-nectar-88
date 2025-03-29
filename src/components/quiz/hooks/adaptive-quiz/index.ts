@@ -33,7 +33,6 @@ export function useAdaptiveQuiz(
     // Actions
     ...quizActions,
     setSelectedAnswer: quizState.setSelectedAnswer,
-    setCurrentDifficulty: quizState.setCurrentDifficulty
   };
 }
 
