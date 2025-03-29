@@ -1,125 +1,46 @@
 
-import { calculateRetention } from '@/services/spacedRepetition/algorithm';
+import { UserProgress } from '@/types/supabase';
 
 /**
- * Calculate mastery level for topics based on user progress and flashcards
- * 
- * @param userProgress User progress data
- * @param topics List of topics
- * @returns Map of topic IDs to mastery percentages
+ * Calculate mastery level for each topic based on user progress
  */
-export const calculateTopicMastery = (userProgress: any[], topics: any[]) => {
-  const topicMasteryMap: Record<string, number> = {};
+export const calculateTopicMastery = (
+  userProgress: UserProgress[],
+  topics: any[]
+): Record<string, number> => {
+  const result: Record<string, number> = {};
   
-  // Initialize all topics with 0 mastery
+  // Initial setup - all topics start at 0 mastery
   topics.forEach(topic => {
-    topicMasteryMap[topic.id] = 0;
+    result[topic.id] = 0;
   });
   
-  // Calculate mastery based on user progress
-  userProgress.forEach(progress => {
-    const contentId = progress.content_id;
-    const content = progress.content;
+  // Process user progress data
+  if (userProgress && userProgress.length > 0) {
+    // Group progress by topic
+    const progressByTopic: Record<string, UserProgress[]> = {};
     
-    if (!content || !content.topic_id) return;
+    userProgress.forEach(progress => {
+      if (progress.content && progress.content.topic_id) {
+        const topicId = progress.content.topic_id;
+        if (!progressByTopic[topicId]) {
+          progressByTopic[topicId] = [];
+        }
+        progressByTopic[topicId].push(progress);
+      }
+    });
     
-    const topicId = content.topic_id;
-    const progressPercentage = progress.progress_percentage || 0;
-    
-    // Only update if the progress is higher than current mastery
-    if (progressPercentage > (topicMasteryMap[topicId] || 0)) {
-      topicMasteryMap[topicId] = progressPercentage;
-    }
-  });
+    // Calculate mastery for each topic with progress
+    Object.entries(progressByTopic).forEach(([topicId, progressItems]) => {
+      // Mastery is based on average completion percentage and completion status
+      const avgCompletion = progressItems.reduce((sum, item) => sum + item.progress_percentage, 0) / progressItems.length;
+      const completedItems = progressItems.filter(item => item.status === 'completed').length;
+      const completionRatio = progressItems.length > 0 ? completedItems / progressItems.length : 0;
+      
+      // Weighted score: 60% from completion percentage, 40% from completion status
+      result[topicId] = Math.round(avgCompletion * 0.6 + completionRatio * 100 * 0.4);
+    });
+  }
   
-  return topicMasteryMap;
-};
-
-/**
- * Calculate mastery level for topics based on flashcard performance
- * 
- * @param flashcards User's flashcards
- * @param topics List of topics
- * @returns Map of topic IDs to mastery percentages
- */
-export const calculateFlashcardMastery = (flashcards: any[], topics: any[]) => {
-  const topicMasteryMap: Record<string, number> = {};
-  const topicFlashcardCounts: Record<string, number> = {};
-  
-  // Initialize all topics with 0 mastery
-  topics.forEach(topic => {
-    topicMasteryMap[topic.id] = 0;
-    topicFlashcardCounts[topic.id] = 0;
-  });
-  
-  // Group flashcards by topic and calculate retention
-  flashcards.forEach(flashcard => {
-    if (!flashcard.topic_id) return;
-    
-    const topicId = flashcard.topic_id;
-    if (!topicMasteryMap.hasOwnProperty(topicId)) return;
-    
-    // Calculate retention for this flashcard
-    const now = new Date();
-    const nextReviewDate = new Date(flashcard.next_review_date);
-    const daysSinceReview = Math.max(0, (now.getTime() - nextReviewDate.getTime()) / (1000 * 60 * 60 * 24));
-    const memoryStrength = flashcard.repetition_count * (flashcard.easiness_factor || 2.5);
-    const retention = calculateRetention(daysSinceReview, memoryStrength);
-    
-    // Add to topic mastery
-    topicMasteryMap[topicId] += retention * 100; // Convert to percentage
-    topicFlashcardCounts[topicId]++;
-  });
-  
-  // Calculate average mastery for each topic
-  Object.keys(topicMasteryMap).forEach(topicId => {
-    if (topicFlashcardCounts[topicId] > 0) {
-      topicMasteryMap[topicId] = Math.round(topicMasteryMap[topicId] / topicFlashcardCounts[topicId]);
-    }
-  });
-  
-  return topicMasteryMap;
-};
-
-/**
- * Calculate combined mastery level based on content progress and flashcard performance
- * 
- * @param userProgress User progress data
- * @param flashcards User's flashcards
- * @param topics List of topics
- * @returns Map of topic IDs to mastery percentages
- */
-export const calculateCombinedMastery = (userProgress: any[], flashcards: any[], topics: any[]) => {
-  const progressMastery = calculateTopicMastery(userProgress, topics);
-  const flashcardMastery = calculateFlashcardMastery(flashcards, topics);
-  const combinedMastery: Record<string, number> = {};
-  
-  // Calculate weighted average of both mastery types
-  topics.forEach(topic => {
-    const topicId = topic.id;
-    const progressWeight = 0.7; // 70% weight to content progress
-    const flashcardWeight = 0.3; // 30% weight to flashcard mastery
-    
-    const hasProgress = progressMastery[topicId] > 0;
-    const hasFlashcards = flashcardMastery[topicId] > 0;
-    
-    if (hasProgress && hasFlashcards) {
-      // If we have both types of data, use weighted average
-      combinedMastery[topicId] = Math.round(
-        progressMastery[topicId] * progressWeight + 
-        flashcardMastery[topicId] * flashcardWeight
-      );
-    } else if (hasProgress) {
-      // If we only have progress data
-      combinedMastery[topicId] = progressMastery[topicId];
-    } else if (hasFlashcards) {
-      // If we only have flashcard data
-      combinedMastery[topicId] = flashcardMastery[topicId];
-    } else {
-      // If we have no data
-      combinedMastery[topicId] = 0;
-    }
-  });
-  
-  return combinedMastery;
+  return result;
 };

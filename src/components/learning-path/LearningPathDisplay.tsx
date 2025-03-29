@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -10,10 +10,13 @@ import { ChevronDown, ChevronRight, CheckCircle, BookOpen, Clock } from 'lucide-
 import { Skeleton } from '@/components/ui/skeleton';
 import LearningModule from '@/components/ui/learning-module';
 import { TopicItemProps } from '@/components/ui/learning-module/topic-item';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import LearningPathVisualization from './LearningPathVisualization';
 
 const LearningPathDisplay = () => {
   const { currentPath, loading, error, refreshPath } = useLearningPath();
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
+  const [activeView, setActiveView] = useState<'list' | 'visualization'>('list');
 
   const toggleModule = (moduleId: string) => {
     setExpandedModules(prev => ({
@@ -61,75 +64,91 @@ const LearningPathDisplay = () => {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Learning Journey</CardTitle>
-          <CardDescription>Track your progress through the qualification</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-6">
-            <div className="flex justify-between mb-1">
-              <span className="text-sm text-muted-foreground">Overall Progress</span>
-              <span className="text-sm font-medium">{completedTopics}/{totalTopics} topics completed</span>
-            </div>
-            <Progress value={overallProgress} className="h-2" />
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-            <div className="flex items-center gap-3 p-4 border rounded-md">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <CheckCircle className="h-5 w-5 text-primary" />
+      <Tabs defaultValue="list" onValueChange={(value) => setActiveView(value as 'list' | 'visualization')}>
+        <TabsList className="mb-4">
+          <TabsTrigger value="list">List View</TabsTrigger>
+          <TabsTrigger value="visualization">Visual Path</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="list">
+          <Card>
+            <CardHeader>
+              <CardTitle>Your Learning Journey</CardTitle>
+              <CardDescription>Track your progress through the qualification</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-6">
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm text-muted-foreground">Overall Progress</span>
+                  <span className="text-sm font-medium">{completedTopics}/{totalTopics} topics completed</span>
+                </div>
+                <Progress value={overallProgress} className="h-2" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Completed Modules</p>
-                <p className="text-xl font-bold">
-                  {currentPath.modules.filter(m => m.status === 'completed').length}/{currentPath.modules.length}
-                </p>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <div className="flex items-center gap-3 p-4 border rounded-md">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <CheckCircle className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Completed Modules</p>
+                    <p className="text-xl font-bold">
+                      {currentPath.modules.filter(m => m.status === 'completed').length}/{currentPath.modules.length}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-4 border rounded-md">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Clock className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Estimated Time Remaining</p>
+                    <p className="text-xl font-bold">
+                      {Math.round((totalTopics - completedTopics) * 0.5)} hours
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-3 p-4 border rounded-md">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <Clock className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Estimated Time Remaining</p>
-                <p className="text-xl font-bold">
-                  {Math.round((totalTopics - completedTopics) * 0.5)} hours
-                </p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
 
-      <div className="space-y-4">
-        {currentPath.modules.map((module, index) => {
-          // Convert module topics to the format expected by LearningModule
-          const topicItems: TopicItemProps[] = module.topics.map(topic => ({
-            id: topic.id,
-            title: topic.title,
-            duration: '30 min',
-            isCompleted: topic.status === 'completed'
-          }));
-          
-          // Calculate module progress
-          const moduleProgress = module.topics.length > 0 
-            ? Math.round((module.topics.filter(t => t.status === 'completed').length / module.topics.length) * 100) 
-            : 0;
-            
-          return (
-            <LearningModule
-              key={module.id}
-              id={module.id}
-              title={module.title}
-              topics={topicItems}
-              progress={moduleProgress}
-              totalDuration={`${module.topics.length * 0.5} hours`}
-              isActive={index === 0 || module.status === 'in_progress'}
-            />
-          );
-        })}
-      </div>
+          <div className="space-y-4 mt-6">
+            {currentPath.modules.map((module, index) => {
+              // Convert module topics to the format expected by LearningModule
+              const topicItems: TopicItemProps[] = module.topics.map(topic => ({
+                id: topic.id,
+                title: topic.title,
+                duration: '30 min',
+                isCompleted: topic.status === 'completed'
+              }));
+              
+              // Calculate module progress
+              const moduleProgress = module.topics.length > 0 
+                ? Math.round((module.topics.filter(t => t.status === 'completed').length / module.topics.length) * 100) 
+                : 0;
+                
+              return (
+                <LearningModule
+                  key={module.id}
+                  id={module.id}
+                  title={module.title}
+                  topics={topicItems}
+                  progress={moduleProgress}
+                  totalDuration={`${module.topics.length * 0.5} hours`}
+                  isActive={index === 0 || module.status === 'in_progress'}
+                />
+              );
+            })}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="visualization">
+          <LearningPathVisualization 
+            learningPath={currentPath}
+            loading={loading}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

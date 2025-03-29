@@ -1,126 +1,168 @@
 
-import { useCallback } from 'react';
-import { QuizQuestion } from '../../types';
-import { QuizStateWithSetters } from './types';
-import { ToastAction } from '@/components/ui/toast';
+import { useState } from 'react';
+import { useToast } from '@/components/ui/use-toast';
+import { ToastAction } from "@/components/ui/toast";
+import { QuizQuestion, AnsweredQuestion, QuizResults } from '../../types';
+import { AdaptiveQuizState, QuizStateWithSetters } from './types';
 
-export function useQuizLifecycle(
-  quizState: QuizStateWithSetters,
-  availableQuestions: QuizQuestion[],
-  selectNextQuestion: () => number,
-  toast: any,
-  setStartTime: (time: number | null) => void
-) {
-  // Start a new quiz
-  const startQuiz = useCallback(() => {
-    if (availableQuestions.length === 0) {
+/**
+ * Hook that manages the quiz lifecycle
+ */
+export const useQuizLifecycle = (
+  state: QuizStateWithSetters,
+  questions: QuizQuestion[]
+): {
+  submitAnswer: () => boolean;
+  nextQuestion: () => boolean;
+  previousQuestion: () => void;
+  skipQuestion: () => boolean;
+  endQuiz: () => void;
+} => {
+  const { toast } = useToast();
+  const [visitedQuestions, setVisitedQuestions] = useState<number[]>([0]);
+
+  const submitAnswer = (): boolean => {
+    const { currentQuestion, selectedAnswer } = state;
+
+    if (!currentQuestion) return false;
+    if (!selectedAnswer) {
       toast({
-        title: "No questions available",
-        description: "Please select different topics or add more questions.",
+        title: "Please select an answer",
+        description: "You need to select an answer before submitting",
         variant: "destructive",
       });
-      return;
+      return false;
     }
 
-    // Reset all state
-    quizState.setActiveQuiz(true);
-    quizState.setCurrentIndex(0);
-    quizState.setAnsweredQuestions([]);
-    quizState.setQuizResults(null);
-    quizState.setSelectedAnswer("");
-    quizState.setIsAnswerSubmitted(false);
-    quizState.setIsCorrect(null);
-    quizState.setCorrectStreak(0);
-    quizState.setIncorrectStreak(0);
+    // Check if answer is correct
+    const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
     
-    // Initialize with empty topic mastery object
-    const initialTopicMastery: Record<string, number> = {};
-    availableQuestions.forEach(q => {
-      if (q.topic && !initialTopicMastery[q.topic]) {
-        initialTopicMastery[q.topic] = 0.5; // Start at 50% mastery
-      }
-    });
-    quizState.setTopicMastery(initialTopicMastery);
+    // Create answered question record
+    const answeredQuestion: AnsweredQuestion = {
+      question: currentQuestion,
+      selectedAnswer,
+      isCorrect,
+      confidence: state.userConfidence,
+      difficulty: state.currentDifficulty
+    };
 
-    // Set first question
-    const firstQuestionIndex = selectNextQuestion();
-    if (firstQuestionIndex >= 0) {
-      quizState.setCurrentQuestion(availableQuestions[firstQuestionIndex]);
-      quizState.setCurrentIndex(firstQuestionIndex);
-      
-      // Set timer for question start time
-      setStartTime(Date.now());
-      
-      // Show quiz start toast
+    // Update state
+    state.setIsAnswerSubmitted(true);
+    state.setIsCorrect(isCorrect);
+    state.setAnsweredQuestions([...state.answeredQuestions, answeredQuestion]);
+
+    // Show toast based on answer correctness
+    if (isCorrect) {
       toast({
-        title: "Quiz started",
-        description: `Difficulty: ${getDifficultyLabel(quizState.currentDifficulty)}`,
-        action: <ToastAction altText="OK">OK</ToastAction>,
+        title: "Correct!",
+        description: "Great job! Your answer is correct.",
+        action: (
+          <ToastAction altText="Next question">Next</ToastAction>
+        ),
       });
+      state.setCorrectStreak(state.correctStreak + 1);
+      state.setIncorrectStreak(0);
     } else {
       toast({
-        title: "Error starting quiz",
-        description: "Could not select first question.",
+        title: "Incorrect",
+        description: `The correct answer was: ${currentQuestion.correctAnswer}`,
         variant: "destructive",
       });
+      state.setIncorrectStreak(state.incorrectStreak + 1);
+      state.setCorrectStreak(0);
     }
-  }, [availableQuestions, quizState, selectNextQuestion, toast, setStartTime]);
-  
-  // Helper function to get difficulty label
-  const getDifficultyLabel = (difficulty: number) => {
-    if (difficulty === 1) return 'Easy';
-    if (difficulty === 2) return 'Medium';
-    return 'Hard';
+
+    return true;
   };
 
-  // End the quiz and calculate results
-  const endQuiz = useCallback(() => {
-    const results = {
-      questionsAttempted: quizState.answeredQuestions.length,
-      correctAnswers: quizState.answeredQuestions.filter(q => q.isCorrect).length,
-      incorrectAnswers: quizState.answeredQuestions.filter(q => !q.isCorrect).length,
-      skippedQuestions: 0,
-      performanceByTopic: {} as Record<string, { correct: number; total: number }>,
-      performanceByDifficulty: {} as Record<string, { correct: number; total: number }>,
-      timeSpent: 0,
-      averageConfidence: 0,
-      masteryLevel: 0
-    };
-    
-    // Reset active quiz state
-    quizState.setActiveQuiz(false);
-    quizState.setQuizResults(results);
-    quizState.setCurrentQuestion(null);
-    quizState.setSelectedAnswer("");
-    quizState.setIsAnswerSubmitted(false);
-    quizState.setIsCorrect(null);
-    
-    // Clear timer
-    setStartTime(null);
-    
-    // After quiz ends, update topic mastery in state
-    const topicMastery = { ...quizState.topicMastery };
-    
-    // Update mastery for topics based on performance
-    quizState.answeredQuestions.forEach(q => {
-      const question = availableQuestions.find(aq => aq.id === q.id);
-      if (question && question.topic) {
-        const topic = question.topic;
-        // Initialize topic if not present
-        if (topicMastery[topic] === undefined) {
-          topicMastery[topic] = 0.5; // Start at 50% mastery
-        }
-        
-        // Adjust mastery based on answer correctness
-        const adjustmentFactor = q.isCorrect ? 0.1 : -0.05;
-        topicMastery[topic] = Math.min(Math.max(topicMastery[topic] + adjustmentFactor, 0), 1);
+  const nextQuestion = (): boolean => {
+    // Handle case where there are no questions
+    if (questions.length === 0) return false;
+
+    // Check if the quiz should end
+    if (state.currentIndex >= questions.length - 1) {
+      endQuiz();
+      return false;
+    }
+
+    // Set up the next question
+    const nextIndex = state.currentIndex + 1;
+    state.setCurrentIndex(nextIndex);
+    state.setCurrentQuestion(questions[nextIndex]);
+    state.setSelectedAnswer('');
+    state.setIsAnswerSubmitted(false);
+    state.setIsCorrect(null);
+
+    // Track that we've visited this question
+    if (!visitedQuestions.includes(nextIndex)) {
+      setVisitedQuestions([...visitedQuestions, nextIndex]);
+    }
+
+    return true;
+  };
+
+  const previousQuestion = (): void => {
+    if (state.currentIndex > 0) {
+      const prevIndex = state.currentIndex - 1;
+      state.setCurrentIndex(prevIndex);
+      state.setCurrentQuestion(questions[prevIndex]);
+      
+      // Find if the question was already answered
+      const answered = state.answeredQuestions.find(
+        aq => aq.question.id === questions[prevIndex].id
+      );
+      
+      if (answered) {
+        state.setSelectedAnswer(answered.selectedAnswer);
+        state.setIsAnswerSubmitted(true);
+        state.setIsCorrect(answered.isCorrect);
+      } else {
+        state.setSelectedAnswer('');
+        state.setIsAnswerSubmitted(false);
+        state.setIsCorrect(null);
       }
+    }
+  };
+
+  const skipQuestion = (): boolean => {
+    toast({
+      title: "Question Skipped",
+      description: "You can come back to this question later."
     });
     
-    // Update topic mastery
-    quizState.setTopicMastery(topicMastery);
-    
-  }, [quizState, availableQuestions, setStartTime]);
+    return nextQuestion();
+  };
 
-  return { startQuiz, endQuiz };
-}
+  const endQuiz = (): void => {
+    const totalQuestions = state.answeredQuestions.length;
+    const correctAnswers = state.answeredQuestions.filter(q => q.isCorrect).length;
+    const score = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+    
+    // Create results summary
+    const results: QuizResults = {
+      totalQuestions,
+      correctAnswers,
+      score,
+      timeTaken: 0, // Would be calculated from actual time tracking
+      answers: state.answeredQuestions,
+      difficulty: state.currentDifficulty
+    };
+    
+    // Set results and end active quiz
+    state.setQuizResults(results);
+    state.setActiveQuiz(false);
+    
+    toast({
+      title: "Quiz Completed!",
+      description: `Your score: ${score}% (${correctAnswers}/${totalQuestions})`,
+    });
+  };
+
+  return {
+    submitAnswer,
+    nextQuestion,
+    previousQuestion,
+    skipQuestion,
+    endQuiz
+  };
+};
