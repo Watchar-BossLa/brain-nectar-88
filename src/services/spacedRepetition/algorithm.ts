@@ -38,6 +38,7 @@ export const calculateNextReviewDate = (
 
 /**
  * Calculate the next review schedule for a flashcard
+ * Implementation of the SuperMemo SM-2 algorithm with some modifications
  * 
  * @param easinessFactor The easiness factor (between 1.3 and 2.5)
  * @param repetition The number of times the card has been reviewed
@@ -49,26 +50,36 @@ export const calculateNextReviewSchedule = (
 ): RepetitionSchedule => {
   let interval: number;
   
+  // Standard SM-2 algorithm intervals
   if (repetition === 0) {
     interval = 1; // First review after 1 day
   } else if (repetition === 1) {
     interval = 3; // Second review after 3 days
+  } else if (repetition === 2) {
+    interval = 7; // Third review after 7 days
   } else {
     // For subsequent reviews, use the formula: previousInterval * easinessFactor
+    // with a maximum practical limit to avoid too long intervals
     const previousInterval = calculateNextReviewSchedule(easinessFactor, repetition - 1).interval;
-    interval = Math.round(previousInterval * easinessFactor);
+    interval = Math.min(Math.round(previousInterval * easinessFactor), 365); // Cap at 365 days
   }
   
   const nextReviewDate = new Date();
   nextReviewDate.setDate(nextReviewDate.getDate() + interval);
+  
+  // Calculate estimated retention based on the interval and repetition count
+  const estimatedRetention = calculateEstimatedRetention(interval, repetition);
+  
+  // Calculate mastery level based on repetition count and retention
+  const masteryLevel = Math.min(1.0, repetition * 0.1 + estimatedRetention * 0.2);
   
   return {
     interval,
     repetition: repetition + 1,
     easinessFactor,
     nextReviewDate,
-    estimatedRetention: 0.9, // Default value, should be calculated in actual usage
-    masteryLevel: Math.min(1.0, (repetition + 1) * 0.1) // Simple calculation for mastery level
+    estimatedRetention,
+    masteryLevel
   };
 };
 
@@ -80,6 +91,7 @@ export const calculateNextReviewSchedule = (
  * @returns The updated easiness factor
  */
 export const updateEasinessFactor = (currentEF: number, quality: number): number => {
+  // SM-2 algorithm formula for updating the easiness factor
   const newEF = currentEF + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
   return Math.max(MIN_EASINESS_FACTOR, newEF);
 };
@@ -99,7 +111,7 @@ export const calculateRetention = (difficulty: number, easinessFactor: number): 
   const normalizedEF = (easinessFactor - MIN_EASINESS_FACTOR) / (INITIAL_EASINESS_FACTOR - MIN_EASINESS_FACTOR);
   
   // Calculate retention based on difficulty and easiness factor
-  // This is a simplified model that can be adjusted
+  // This is a simplified model that combines difficulty rating and easiness factor
   const rawRetention = 0.5 + (normalizedDifficulty * 0.3) + (normalizedEF * 0.2);
   
   // Ensure retention is between 0.1 and 1.0
@@ -131,4 +143,26 @@ export const calculateMasteryLevel = (
   
   // Ensure mastery is between 0 and 1
   return Math.min(1.0, Math.max(0, newMastery));
+};
+
+/**
+ * Calculate estimated retention based on interval and repetition count
+ * Uses the forgetting curve formula: R = e^(-t/S), where:
+ * - R is retention (0-1)
+ * - t is time in days
+ * - S is strength of memory (increases with repetition)
+ * 
+ * @param interval Days until next review
+ * @param repetition Number of successful reviews
+ * @returns Estimated retention (0-1) at review time
+ */
+export const calculateEstimatedRetention = (interval: number, repetition: number): number => {
+  // Memory strength increases with each successful review
+  const memoryStrength = 1 + repetition * 0.7;
+  
+  // Apply forgetting curve formula
+  const retention = Math.exp(-interval / (memoryStrength * 10));
+  
+  // Ensure retention is between 0.1 and 0.95
+  return Math.min(0.95, Math.max(0.1, retention));
 };
