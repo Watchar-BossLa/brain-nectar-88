@@ -17,6 +17,8 @@ import LearningPath from './pages/LearningPath';
 import CognitiveProfile from './pages/CognitiveProfile';
 import { useEffect } from 'react';
 import Index from './pages/Index';
+import Quiz from './pages/Quiz';
+import AdaptiveQuiz from './pages/AdaptiveQuiz';
 
 function App() {
   useEffect(() => {
@@ -40,6 +42,8 @@ function App() {
             <Route path="/cognitive-profile" element={<CognitiveProfile />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/agent-dashboard" element={<AgentDashboard />} />
+            <Route path="/quiz" element={<Quiz />} />
+            <Route path="/adaptive-quiz" element={<AdaptiveQuiz />} />
           </Routes>
           <Toaster />
         </AuthProvider>

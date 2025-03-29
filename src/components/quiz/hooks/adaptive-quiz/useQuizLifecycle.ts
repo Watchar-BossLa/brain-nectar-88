@@ -1,14 +1,14 @@
 
 import { useCallback } from 'react';
 import { QuizQuestion } from '../../types';
-import { Toast } from '@/components/ui/use-toast';
+import { useToast, toast } from '@/components/ui/use-toast';
 import { QuizStateWithSetters } from './types';
 
 export function useQuizLifecycle(
   quizState: QuizStateWithSetters,
   availableQuestions: QuizQuestion[],
   selectNextQuestion: () => QuizQuestion | null,
-  toast: { toast: Toast },
+  toast: ReturnType<typeof useToast>,
   setStartTime: React.Dispatch<React.SetStateAction<number | null>>
 ) {
   const {

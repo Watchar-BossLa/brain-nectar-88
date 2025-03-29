@@ -22,6 +22,7 @@ export function useQuizNavigation(
     setIsCorrect,
     setQuizResults,
     setActiveQuiz,
+    setAnsweredQuestions
   } = quizState;
 
   // Move to next question

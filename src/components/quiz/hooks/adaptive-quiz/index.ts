@@ -37,3 +37,4 @@ export function useAdaptiveQuiz(
 }
 
 export * from './types';
+export { useSessionHistory } from './useSessionHistory';

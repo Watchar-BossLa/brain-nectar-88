@@ -15,7 +15,7 @@ export function useQuizActions(
   availableQuestions: QuizQuestion[],
   maxQuestions: number
 ) {
-  const { toast } = useToast();
+  const toast = useToast();
   const [startTime, setStartTime] = useState<number | null>(null);
   
   // Get specialized hooks
@@ -41,7 +41,7 @@ export function useQuizActions(
   // Set user confidence level
   const setConfidence = useCallback((level: number) => {
     quizState.setUserConfidence(level);
-  }, [quizState.setUserConfidence]);
+  }, [quizState]);
 
   return {
     startQuiz,

@@ -4,9 +4,9 @@ import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAdaptiveQuiz } from './hooks/adaptive-quiz';
+import { useAdaptiveQuiz, useSessionHistory } from './hooks/adaptive-quiz';
 import { useToast } from '@/components/ui/use-toast';
-import { Brain, Dices, Settings } from 'lucide-react';
+import { Brain, Dices, Settings, History } from 'lucide-react';
 
 // Import mockQuestions from a data file or service
 import { mockQuestions, topics, subjects } from './data/mockQuizData';
@@ -18,6 +18,8 @@ import FormulasTab from './components/platform/FormulasTab';
 import AnalyticsTab from './components/platform/AnalyticsTab';
 import ActiveQuiz from './components/platform/ActiveQuiz';
 import QuizResults from './components/QuizResults';
+import SessionHistoryTab from './components/history/SessionHistoryTab';
+import SessionDetail from './components/history/SessionDetail';
 
 const AdaptiveQuizPlatform: React.FC = () => {
   const { toast } = useToast();
@@ -29,8 +31,23 @@ const AdaptiveQuizPlatform: React.FC = () => {
   const [activeTab, setActiveTab] = useState("quiz");
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>(["accounting", "finance"]);
   const [filteredQuestions, setFilteredQuestions] = useState(mockQuestions);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   
   const quiz = useAdaptiveQuiz(filteredQuestions, initialDifficulty, questionCount);
+  const { saveSession } = useSessionHistory();
+  
+  // Save session when quiz is completed
+  useEffect(() => {
+    if (quiz.quizResults && quiz.answeredQuestions.length > 0) {
+      saveSession(
+        quiz.quizResults,
+        quiz.answeredQuestions,
+        selectedTopics,
+        initialDifficulty,
+        questionCount
+      );
+    }
+  }, [quiz.quizResults]);
   
   // Filter questions based on selected topics and subjects
   useEffect(() => {
@@ -104,6 +121,14 @@ const AdaptiveQuizPlatform: React.FC = () => {
     setUserConfidence(value);
     quiz.setConfidence(value);
   };
+
+  const handleViewSession = (sessionId: string) => {
+    setSelectedSessionId(sessionId);
+  };
+  
+  const handleBackFromSessionDetail = () => {
+    setSelectedSessionId(null);
+  };
   
   return (
     <div className="space-y-6">
@@ -111,11 +136,12 @@ const AdaptiveQuizPlatform: React.FC = () => {
         <div className="flex justify-between items-center mb-4">
           <TabsList>
             <TabsTrigger value="quiz">Quiz</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
             <TabsTrigger value="formulas">Key Formulas</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
           
-          {!quiz.activeQuiz && !quiz.quizResults && (
+          {activeTab === "quiz" && !quiz.activeQuiz && !quiz.quizResults && (
             <div className="flex items-center gap-2">
               <Button 
                 variant={showSettings ? "secondary" : "outline"} 
@@ -213,6 +239,17 @@ const AdaptiveQuizPlatform: React.FC = () => {
                 onRestart={quiz.restartQuiz}
               />
             </motion.div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="history">
+          {selectedSessionId ? (
+            <SessionDetail 
+              sessionId={selectedSessionId} 
+              onBack={handleBackFromSessionDetail} 
+            />
+          ) : (
+            <SessionHistoryTab onViewSession={handleViewSession} />
           )}
         </TabsContent>
         
