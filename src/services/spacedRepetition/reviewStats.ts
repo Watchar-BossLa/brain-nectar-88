@@ -1,212 +1,330 @@
+// Function to get review statistics for a user
+// This tracks spaced repetition performance and retention metrics
 
-import { supabase } from '@/integrations/supabase/client';
-import { FlashcardRetentionResult, FlashcardLearningStats } from './reviewTypes';
+import { getLocalStorage, setLocalStorage } from '@/lib/storage';
+import { v4 as uuidv4 } from 'uuid';
 
-/**
- * Calculate flashcard retention for a user
- * 
- * @param userId The user ID
- * @returns Object containing overall retention and card-specific retention
- */
-export const calculateFlashcardRetention = async (
-  userId: string
-): Promise<{ success: boolean; data: any; error?: string }> => {
+// Types for review statistics
+interface ReviewData {
+  id: string;
+  cardId: string;
+  timestamp: number;
+  performance: 1 | 2 | 3 | 4 | 5; // 1=forgot, 5=perfect recall
+  timeTaken: number; // milliseconds
+  nextReviewDate: number;
+}
+
+interface CardStats {
+  cardId: string;
+  totalReviews: number;
+  averagePerformance: number;
+  lastReviewDate: number;
+  nextReviewDate: number;
+  interval: number; // days
+  easeFactor: number;
+}
+
+interface UserReviewStats {
+  userId: string;
+  totalReviews: number;
+  cardsReviewed: number;
+  averagePerformance: number;
+  reviewHistory: ReviewData[];
+  cardStats: Record<string, CardStats>;
+  lastUpdated: number;
+}
+
+// Get review statistics for a user
+export function getReviewStats(userId: string): {
+  success: boolean;
+  data: any;
+  error?: string;
+} {
   try {
-    // Simulate database call and calculation
-    // In a real implementation, this would fetch data from the database
+    const storageKey = `user_review_stats_${userId}`;
+    const stats = getLocalStorage<UserReviewStats>(storageKey);
     
-    // For demo purposes, just return sample data
-    const sampleData = {
-      totalFlashcards: 120,
-      reviewedLast7Days: 45,
-      masteryLevels: {
-        low: 30,
-        medium: 55,
-        high: 35
-      },
-      reviewAccuracy: 0.72,
-      needsReview: 24,
-      retentionRate: 0.83, // 83% retention
-      projectedRetention: 0.91, // Projected if continuing current study pattern
-    };
+    if (!stats) {
+      // Initialize empty stats if none exist
+      const emptyStats: UserReviewStats = {
+        userId,
+        totalReviews: 0,
+        cardsReviewed: 0,
+        averagePerformance: 0,
+        reviewHistory: [],
+        cardStats: {},
+        lastUpdated: Date.now()
+      };
+      
+      setLocalStorage(storageKey, emptyStats);
+      return {
+        success: true,
+        data: emptyStats
+      };
+    }
     
     return {
       success: true,
-      data: sampleData
+      data: stats
     };
   } catch (error) {
-    console.error('Error calculating flashcard retention:', error);
+    console.error("Failed to get review stats:", error);
     return {
       success: false,
-      error: 'Failed to calculate retention metrics'
+      data: null,
+      error: error instanceof Error ? error.message : "Unknown error"
     };
   }
-};
+}
 
-/**
- * Get comprehensive flashcard learning statistics
- * 
- * @param userId The user ID
- * @returns Comprehensive statistics about the user's flashcard learning
- */
-export const getFlashcardLearningStats = async (
-  userId: string
-): Promise<FlashcardLearningStats> => {
+// Record a new review session
+export function recordReview(
+  userId: string,
+  cardId: string,
+  performance: 1 | 2 | 3 | 4 | 5,
+  timeTaken: number
+): {
+  success: boolean;
+  data: any;
+  error?: string;
+} {
   try {
-    // Get all flashcards for the user
-    const { data: flashcards, error: flashcardsError } = await supabase
-      .from('flashcards')
-      .select('*')
-      .eq('user_id', userId);
-      
-    if (flashcardsError) {
-      console.error('Error fetching flashcards for stats:', flashcardsError);
-      return getDefaultStats();
+    const storageKey = `user_review_stats_${userId}`;
+    const stats = getLocalStorage<UserReviewStats>(storageKey);
+    
+    if (!stats) {
+      return {
+        success: false,
+        data: null,
+        error: "User stats not found"
+      };
     }
     
-    // Get due cards (cards due for review today or earlier)
-    const now = new Date().toISOString();
-    const dueCards = flashcards?.filter(card => card.next_review_date && card.next_review_date <= now) || [];
+    // Calculate next review date based on spaced repetition algorithm
+    const cardStats = stats.cardStats[cardId] || {
+      cardId,
+      totalReviews: 0,
+      averagePerformance: 0,
+      lastReviewDate: 0,
+      nextReviewDate: 0,
+      interval: 1, // Start with 1 day interval
+      easeFactor: 2.5 // Initial ease factor
+    };
     
-    // Count mastered cards (mastery level >= 0.8)
-    const masteredCards = flashcards?.filter(card => (card.mastery_level || 0) >= 0.8).length || 0;
+    // SM-2 algorithm for spaced repetition
+    let newInterval = cardStats.interval;
+    let newEaseFactor = cardStats.easeFactor;
     
-    // Calculate average difficulty
-    const totalDifficulty = flashcards?.reduce((sum, card) => sum + (card.difficulty || 3), 0) || 0;
-    const averageDifficulty = flashcards && flashcards.length > 0 
-      ? totalDifficulty / flashcards.length 
-      : 3;
-    
-    // Get reviews for last 7 days
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    
-    const { data: recentReviews, error: reviewsError } = await supabase
-      .from('flashcard_reviews')
-      .select('*')
-      .eq('user_id', userId)
-      .gte('reviewed_at', sevenDaysAgo.toISOString());
+    if (performance >= 3) {
+      // Correct response
+      if (cardStats.totalReviews === 0) {
+        newInterval = 1; // First correct review: 1 day
+      } else if (cardStats.totalReviews === 1) {
+        newInterval = 6; // Second correct review: 6 days
+      } else {
+        newInterval = Math.round(cardStats.interval * cardStats.easeFactor);
+      }
       
-    if (reviewsError) {
-      console.error('Error fetching review history:', reviewsError);
+      // Update ease factor based on performance
+      newEaseFactor = cardStats.easeFactor + (0.1 - (5 - performance) * (0.08 + (5 - performance) * 0.02));
+    } else {
+      // Incorrect response, reset interval
+      newInterval = 1;
+      // Slightly reduce ease factor
+      newEaseFactor = Math.max(1.3, cardStats.easeFactor - 0.2);
     }
     
-    // Count reviews by day (last 7 days)
-    const reviewsByDay: number[] = Array(7).fill(0);
-    const today = new Date();
+    // Ensure ease factor stays within reasonable bounds
+    newEaseFactor = Math.max(1.3, Math.min(2.5, newEaseFactor));
     
-    recentReviews?.forEach(review => {
-      const reviewDate = new Date(review.reviewed_at);
-      const dayDiff = Math.floor((today.getTime() - reviewDate.getTime()) / (1000 * 60 * 60 * 24));
-      if (dayDiff >= 0 && dayDiff < 7) {
-        reviewsByDay[dayDiff]++;
+    // Calculate next review date
+    const now = Date.now();
+    const nextReviewDate = now + newInterval * 24 * 60 * 60 * 1000;
+    
+    // Create review record
+    const reviewData: ReviewData = {
+      id: uuidv4(),
+      cardId,
+      timestamp: now,
+      performance,
+      timeTaken,
+      nextReviewDate
+    };
+    
+    // Update card stats
+    const updatedCardStats: CardStats = {
+      ...cardStats,
+      totalReviews: cardStats.totalReviews + 1,
+      averagePerformance: (cardStats.averagePerformance * cardStats.totalReviews + performance) / (cardStats.totalReviews + 1),
+      lastReviewDate: now,
+      nextReviewDate,
+      interval: newInterval,
+      easeFactor: newEaseFactor
+    };
+    
+    // Update user stats
+    const updatedStats: UserReviewStats = {
+      ...stats,
+      totalReviews: stats.totalReviews + 1,
+      cardsReviewed: Object.keys(stats.cardStats).includes(cardId) 
+        ? stats.cardsReviewed 
+        : stats.cardsReviewed + 1,
+      averagePerformance: (stats.averagePerformance * stats.totalReviews + performance) / (stats.totalReviews + 1),
+      reviewHistory: [...stats.reviewHistory, reviewData],
+      cardStats: {
+        ...stats.cardStats,
+        [cardId]: updatedCardStats
+      },
+      lastUpdated: now
+    };
+    
+    // Save updated stats
+    setLocalStorage(storageKey, updatedStats);
+    
+    return {
+      success: true,
+      data: {
+        reviewData,
+        cardStats: updatedCardStats,
+        nextReviewDate
+      }
+    };
+  } catch (error) {
+    console.error("Failed to record review:", error);
+    return {
+      success: false,
+      data: null,
+      error: error instanceof Error ? error.message : "Unknown error"
+    };
+  }
+}
+
+// Get cards due for review
+export function getDueCards(userId: string): {
+  success: boolean;
+  data: any;
+  error?: string;
+} {
+  try {
+    const stats = getReviewStats(userId);
+    
+    if (!stats.success || !stats.data) {
+      return {
+        success: false,
+        data: null,
+        error: "Failed to get user stats"
+      };
+    }
+    
+    const now = Date.now();
+    const dueCards = Object.values(stats.data.cardStats)
+      .filter((card: CardStats) => card.nextReviewDate <= now)
+      .map((card: CardStats) => card.cardId);
+    
+    return {
+      success: true,
+      data: {
+        dueCards,
+        count: dueCards.length
+      }
+    };
+  } catch (error) {
+    console.error("Failed to get due cards:", error);
+    return {
+      success: false,
+      data: null,
+      error: error instanceof Error ? error.message : "Unknown error"
+    };
+  }
+}
+
+// Calculate retention metrics
+export function calculateRetentionMetrics(userId: string): {
+  success: boolean;
+  data: any;
+  error?: string;
+} {
+  try {
+    const stats = getReviewStats(userId);
+    
+    if (!stats.success || !stats.data) {
+      return {
+        success: false,
+        data: null,
+        error: "Failed to get user stats"
+      };
+    }
+    
+    const reviewHistory = stats.data.reviewHistory;
+    
+    if (reviewHistory.length === 0) {
+      return {
+        success: true,
+        data: {
+          overallRetention: 0,
+          retentionByDay: {},
+          cardRetention: {}
+        }
+      };
+    }
+    
+    // Calculate overall retention rate (performance >= 3 is considered "remembered")
+    const rememberedCount = reviewHistory.filter(r => r.performance >= 3).length;
+    const overallRetention = rememberedCount / reviewHistory.length;
+    
+    // Calculate retention by day of week
+    const retentionByDay: Record<string, { total: number, remembered: number }> = {
+      "0": { total: 0, remembered: 0 }, // Sunday
+      "1": { total: 0, remembered: 0 },
+      "2": { total: 0, remembered: 0 },
+      "3": { total: 0, remembered: 0 },
+      "4": { total: 0, remembered: 0 },
+      "5": { total: 0, remembered: 0 },
+      "6": { total: 0, remembered: 0 }  // Saturday
+    };
+    
+    reviewHistory.forEach(review => {
+      const day = new Date(review.timestamp).getDay().toString();
+      retentionByDay[day].total++;
+      if (review.performance >= 3) {
+        retentionByDay[day].remembered++;
       }
     });
     
-    // Get reviews for today and yesterday specifically
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    // Calculate retention by card
+    const cardRetention: Record<string, { total: number, remembered: number, rate: number }> = {};
     
-    const yesterdayStart = new Date(todayStart);
-    yesterdayStart.setDate(yesterdayStart.getDate() - 1);
-    
-    const reviewsToday = recentReviews?.filter(
-      review => new Date(review.reviewed_at) >= todayStart
-    ).length || 0;
-    
-    const reviewsYesterday = recentReviews?.filter(
-      review => {
-        const reviewDate = new Date(review.reviewed_at);
-        return reviewDate >= yesterdayStart && reviewDate < todayStart;
+    reviewHistory.forEach(review => {
+      if (!cardRetention[review.cardId]) {
+        cardRetention[review.cardId] = { total: 0, remembered: 0, rate: 0 };
       }
-    ).length || 0;
-    
-    // Calculate study streak
-    let streakDays = 0;
-    let currentDate = new Date();
-    let hasReviewsOnDate = false;
-    
-    do {
-      const dateString = currentDate.toISOString().split('T')[0];
-      hasReviewsOnDate = recentReviews?.some(review => 
-        review.reviewed_at.startsWith(dateString)
-      ) || false;
       
-      if (hasReviewsOnDate) {
-        streakDays++;
-        currentDate.setDate(currentDate.getDate() - 1);
+      cardRetention[review.cardId].total++;
+      if (review.performance >= 3) {
+        cardRetention[review.cardId].remembered++;
       }
-    } while (hasReviewsOnDate);
+    });
     
-    // Calculate average retention
-    const totalRetention = flashcards?.reduce((sum, card) => sum + (card.last_retention || 0.5), 0) || 0;
-    const averageRetention = flashcards && flashcards.length > 0 
-      ? totalRetention / flashcards.length 
-      : 0;
+    // Calculate retention rate for each card
+    Object.keys(cardRetention).forEach(cardId => {
+      const card = cardRetention[cardId];
+      card.rate = card.remembered / card.total;
+    });
     
     return {
-      totalCards: flashcards?.length || 0,
-      masteredCards,
-      averageDifficulty,
-      learningCards: (flashcards?.length || 0) - masteredCards,
-      retentionRate: averageRetention,
-      reviewsLast7Days: reviewsByDay.reverse(), // Reverse to get oldest to newest
-      reviewsToday,
-      reviewsYesterday,
-      streakDays,
-      averageRetention,
-      nextDueCards: dueCards.length
+      success: true,
+      data: {
+        overallRetention,
+        retentionByDay,
+        cardRetention
+      }
     };
   } catch (error) {
-    console.error('Error fetching flashcard learning stats:', error);
-    return getDefaultStats();
+    console.error("Failed to calculate retention metrics:", error);
+    return {
+      success: false,
+      data: null,
+      error: error instanceof Error ? error.message : "Unknown error"
+    };
   }
-};
-
-/**
- * Get default stats object with zeroed values
- */
-const getDefaultStats = (): FlashcardLearningStats => ({
-  totalCards: 0,
-  masteredCards: 0,
-  averageDifficulty: 3,
-  learningCards: 0,
-  retentionRate: 0,
-  reviewsLast7Days: [0, 0, 0, 0, 0, 0, 0],
-  reviewsToday: 0,
-  reviewsYesterday: 0,
-  streakDays: 0,
-  averageRetention: 0,
-  nextDueCards: 0
-});
-
-export function calculateAverageRetention(retentions: number[]): number {
-  if (!retentions || retentions.length === 0) {
-    return 0.85; // Default retention if no data
-  }
-  
-  // Filter out any undefined values and convert to numbers
-  const validRetentions = retentions
-    .filter(r => r !== undefined && r !== null)
-    .map(r => Number(r));
-  
-  if (validRetentions.length === 0) {
-    return 0.85; // Default retention if no valid data
-  }
-  
-  // Calculate average
-  const sum = validRetentions.reduce((total, current) => total + current, 0);
-  return sum / validRetentions.length;
-}
-
-export function calculateOverallRetention(userId: string): number {
-  // This would normally fetch from a database
-  // For now, return a sample value to fix the type issue
-  return 0.75; // 75% overall retention
-}
-
-export async function getRetentionTrend(userId: string): Promise<number> {
-  // This would normally calculate a trend from historical data
-  // For now, return a sample value to fix the type issue
-  return 0.05; // 5% improvement trend
 }

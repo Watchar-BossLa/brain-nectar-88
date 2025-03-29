@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { AnsweredQuestion } from '../../types';
 
@@ -32,13 +33,17 @@ export function usePerformanceHistory() {
     const correctCount = history.filter(q => q.isCorrect).length;
     const accuracy = correctCount / history.length;
     
-    const confidenceSum = history.reduce((sum, q) => sum + (q.confidenceLevel || 0.5), 0);
+    // Get confidence levels safely
+    const confidenceSum = history.reduce((sum, q) => {
+      const confidenceValue = q.confidenceLevel || q.confidence || 0.5;
+      return sum + confidenceValue;
+    }, 0);
     const averageConfidence = confidenceSum / history.length;
     
     // Confidence accuracy measures how well confidence predicts correctness
     let confidenceAccuracy = 0;
     history.forEach(q => {
-      const expectedOutcome = q.confidenceLevel || 0.5; // Expected probability of being correct
+      const expectedOutcome = q.confidenceLevel || q.confidence || 0.5; // Expected probability of being correct
       const actualOutcome = q.isCorrect ? 1 : 0;
       confidenceAccuracy += 1 - Math.abs(expectedOutcome - actualOutcome);
     });
@@ -50,7 +55,8 @@ export function usePerformanceHistory() {
     // Performance by topic
     const topicPerformance: Record<string, { correct: number; total: number }> = {};
     history.forEach(q => {
-      const topic = q.topic || 'unknown';
+      // Get topic safely
+      const topic = q.topic || (q.question ? q.question.topic : 'unknown');
       if (!topicPerformance[topic]) {
         topicPerformance[topic] = { correct: 0, total: 0 };
       }

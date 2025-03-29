@@ -17,9 +17,25 @@ export const useQuizLifecycle = (
   previousQuestion: () => void;
   skipQuestion: () => boolean;
   endQuiz: () => void;
+  startQuiz?: () => void;
 } => {
   const { toast } = useToast();
   const [visitedQuestions, setVisitedQuestions] = useState<number[]>([0]);
+
+  // Add startQuiz function for clarity
+  const startQuiz = () => {
+    if (questions.length > 0) {
+      state.setActiveQuiz(true);
+      state.setCurrentQuestion(questions[0]);
+      state.setCurrentIndex(0);
+      state.setAnsweredQuestions([]);
+      state.setQuizResults(null);
+      state.setSelectedAnswer('');
+      state.setIsAnswerSubmitted(false);
+      state.setIsCorrect(null);
+      setVisitedQuestions([0]);
+    }
+  };
 
   const submitAnswer = (): boolean => {
     const { currentQuestion, selectedAnswer } = state;
@@ -39,11 +55,15 @@ export const useQuizLifecycle = (
     
     // Create answered question record
     const answeredQuestion: AnsweredQuestion = {
-      question: currentQuestion,
-      selectedAnswer,
+      id: currentQuestion.id,
       isCorrect,
+      selectedAnswer,
+      userAnswer: selectedAnswer,
       confidence: state.userConfidence,
-      difficulty: state.currentDifficulty
+      confidenceLevel: state.userConfidence,
+      difficulty: state.currentDifficulty,
+      topic: currentQuestion.topic,
+      timeTaken: 0 // Would be calculated from actual time tracking
     };
 
     // Update state
@@ -110,11 +130,11 @@ export const useQuizLifecycle = (
       
       // Find if the question was already answered
       const answered = state.answeredQuestions.find(
-        aq => aq.question.id === questions[prevIndex].id
+        aq => aq.id === questions[prevIndex].id
       );
       
       if (answered) {
-        state.setSelectedAnswer(answered.selectedAnswer);
+        state.setSelectedAnswer(answered.selectedAnswer || answered.userAnswer || '');
         state.setIsAnswerSubmitted(true);
         state.setIsCorrect(answered.isCorrect);
       } else {
@@ -142,9 +162,14 @@ export const useQuizLifecycle = (
     // Create results summary
     const results: QuizResults = {
       totalQuestions,
+      questionsAttempted: totalQuestions,
       correctAnswers,
+      incorrectAnswers: totalQuestions - correctAnswers,
+      skippedQuestions: 0,
+      performanceByTopic: {},
+      performanceByDifficulty: {},
+      timeSpent: 0, // Would be calculated from actual time tracking
       score,
-      timeTaken: 0, // Would be calculated from actual time tracking
       answers: state.answeredQuestions,
       difficulty: state.currentDifficulty
     };
@@ -160,6 +185,7 @@ export const useQuizLifecycle = (
   };
 
   return {
+    startQuiz,
     submitAnswer,
     nextQuestion,
     previousQuestion,

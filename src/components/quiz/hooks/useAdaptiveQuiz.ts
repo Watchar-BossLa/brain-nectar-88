@@ -1,4 +1,3 @@
 
-// This file now acts as a re-export for backward compatibility
-import { useAdaptiveQuiz } from './adaptive-quiz';
+import { useAdaptiveQuiz } from './adaptive-quiz/useAdaptiveQuiz';
 export { useAdaptiveQuiz };

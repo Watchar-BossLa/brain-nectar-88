@@ -8,3 +8,5 @@ export * from './useDifficultyAdjustment';
 export * from './useAnswerHandling';
 export * from './usePerformanceHistory';
 export * from './useSessionHistory';
+export * from './useAdaptiveQuiz';
+export * from './types';

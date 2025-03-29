@@ -15,6 +15,7 @@ export interface AdaptiveQuizState {
   correctStreak: number;
   incorrectStreak: number;
   topicMastery: Record<string, number>;
+  questionPool?: QuizQuestion[];
 }
 
 export interface AdaptiveQuizActions {
@@ -42,4 +43,6 @@ export interface QuizStateWithSetters extends AdaptiveQuizState {
   setCorrectStreak: (streak: number) => void;
   setIncorrectStreak: (streak: number) => void;
   setTopicMastery: (mastery: Record<string, number>) => void;
+  questionPool?: QuizQuestion[];
+  setQuestionPool?: (questions: QuizQuestion[]) => void;
 }

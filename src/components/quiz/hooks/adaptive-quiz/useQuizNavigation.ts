@@ -9,8 +9,7 @@ export function useQuizNavigation(
   availableQuestions: QuizQuestion[],
   maxQuestions: number,
   selectNextQuestion: () => QuizQuestion | null,
-  startQuiz: () => void,
-  endQuiz?: () => void
+  startQuiz?: () => void
 ) {
   const {
     currentQuestion,
@@ -33,7 +32,6 @@ export function useQuizNavigation(
       const results = calculateQuizResults(answeredQuestions, availableQuestions);
       setQuizResults(results);
       setActiveQuiz(false);
-      if (endQuiz) endQuiz();
       return true;
     }
     
@@ -50,7 +48,6 @@ export function useQuizNavigation(
       const results = calculateQuizResults(answeredQuestions, availableQuestions);
       setQuizResults(results);
       setActiveQuiz(false);
-      if (endQuiz) endQuiz();
       return true;
     }
   }, [
@@ -65,8 +62,7 @@ export function useQuizNavigation(
     setCurrentIndex, 
     setSelectedAnswer, 
     setIsAnswerSubmitted, 
-    setIsCorrect,
-    endQuiz
+    setIsCorrect
   ]);
 
   // Skip current question
@@ -95,7 +91,7 @@ export function useQuizNavigation(
     if (prevQuestion) {
       setCurrentQuestion(prevQuestion);
       setCurrentIndex(currentIndex - 1);
-      setSelectedAnswer(prevAnswered.userAnswer);
+      setSelectedAnswer(prevAnswered.userAnswer || prevAnswered.selectedAnswer || '');
       setIsAnswerSubmitted(true);
       setIsCorrect(prevAnswered.isCorrect);
     }
@@ -112,8 +108,30 @@ export function useQuizNavigation(
 
   // Restart quiz
   const restartQuiz = useCallback(() => {
-    startQuiz();
-  }, [startQuiz]);
+    if (startQuiz) {
+      startQuiz();
+    } else if (availableQuestions.length > 0) {
+      setActiveQuiz(true);
+      setCurrentQuestion(availableQuestions[0]);
+      setCurrentIndex(0);
+      setAnsweredQuestions([]);
+      setQuizResults(null);
+      setSelectedAnswer('');
+      setIsAnswerSubmitted(false);
+      setIsCorrect(null);
+    }
+  }, [
+    startQuiz, 
+    availableQuestions, 
+    setActiveQuiz, 
+    setCurrentQuestion, 
+    setCurrentIndex, 
+    setAnsweredQuestions, 
+    setQuizResults, 
+    setSelectedAnswer, 
+    setIsAnswerSubmitted, 
+    setIsCorrect
+  ]);
 
   return {
     nextQuestion,

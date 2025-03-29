@@ -1,5 +1,6 @@
 
 import { QuizQuestion, QuizResults, AnsweredQuestion } from '../types';
+import { Dispatch, SetStateAction } from 'react';
 
 export interface ActiveQuizProps {
   quiz: {
@@ -39,4 +40,13 @@ export interface QuizSettingsProps {
 export interface QuizWelcomeProps {
   setShowSettings: (show: boolean) => void;
   handleStartQuiz: () => void;
+}
+
+export interface AnalyticsTabProps {
+  answeredQuestions: any[];
+  setActiveTab: (tab: string) => void;
+}
+
+export interface FormulasTabProps {
+  // Add any props needed for the FormulasTab component
 }

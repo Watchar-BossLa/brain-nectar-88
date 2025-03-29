@@ -22,20 +22,29 @@ export function useQuizActions(
   // Get specialized hooks
   const { updateDifficulty, correctStreak, incorrectStreak } = useDifficultyAdjustment(quizState);
   const { initializeQuestionPool, selectNextQuestion } = useQuestionSelection(quizState);
-  const { startQuiz, endQuiz } = useQuizLifecycle(
-    quizState, 
-    availableQuestions, 
-    selectNextQuestion, 
-    toast, 
-    setStartTime
-  );
+  
+  // Create our own startQuiz function
+  const startQuiz = useCallback(() => {
+    if (availableQuestions.length > 0) {
+      quizState.setActiveQuiz(true);
+      quizState.setCurrentQuestion(availableQuestions[0]);
+      quizState.setCurrentIndex(0);
+      quizState.setAnsweredQuestions([]);
+      quizState.setQuizResults(null);
+      quizState.setSelectedAnswer('');
+      quizState.setIsAnswerSubmitted(false);
+      quizState.setIsCorrect(null);
+      setStartTime(Date.now());
+    }
+  }, [availableQuestions, quizState]);
+
+  // Get the remainder of the lifecycle hooks
   const { submitAnswer } = useAnswerHandling(quizState, startTime, setStartTime, updateDifficulty);
   const { nextQuestion, previousQuestion, skipQuestion, restartQuiz } = useQuizNavigation(
     quizState, 
     availableQuestions, 
     maxQuestions, 
-    selectNextQuestion,
-    startQuiz
+    selectNextQuestion
   );
   const { recordPerformance, calculateMetrics } = usePerformanceHistory();
 
@@ -77,6 +86,35 @@ export function useQuizActions(
     quizState.setUserConfidence(level);
   }, [quizState]);
 
+  const endQuiz = useCallback(() => {
+    const totalQuestions = quizState.answeredQuestions.length;
+    const correctAnswers = quizState.answeredQuestions.filter(q => q.isCorrect).length;
+    const score = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+    
+    // Create results summary
+    const results = {
+      questionsAttempted: totalQuestions,
+      correctAnswers,
+      incorrectAnswers: totalQuestions - correctAnswers,
+      skippedQuestions: 0,
+      performanceByTopic: {},
+      performanceByDifficulty: {},
+      timeSpent: 0,
+      score,
+      totalQuestions,
+      answers: quizState.answeredQuestions,
+      difficulty: quizState.currentDifficulty
+    };
+    
+    quizState.setQuizResults(results);
+    quizState.setActiveQuiz(false);
+    
+    toast({
+      title: "Quiz Completed!",
+      description: `Your score: ${score}% (${correctAnswers}/${totalQuestions})`,
+    });
+  }, [quizState, toast]);
+
   return {
     startQuiz,
     submitAnswer: enhancedSubmitAnswer,
@@ -84,6 +122,7 @@ export function useQuizActions(
     previousQuestion,
     skipQuestion,
     restartQuiz,
+    endQuiz,
     setConfidence,
     getPerformanceMetrics: calculateMetrics
   };
