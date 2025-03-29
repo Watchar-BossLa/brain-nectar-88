@@ -26,3 +26,26 @@ export interface QuizStateWithSetters {
   setCurrentDifficulty: React.Dispatch<React.SetStateAction<1 | 2 | 3>>;
   setUserConfidence: React.Dispatch<React.SetStateAction<number>>;
 }
+
+export interface AdaptiveQuizState {
+  activeQuiz: boolean;
+  currentQuestion: QuizQuestion | null;
+  currentIndex: number;
+  selectedAnswer: string;
+  isAnswerSubmitted: boolean;
+  isCorrect: boolean | null;
+  quizResults: QuizResults | null;
+  currentDifficulty: 1 | 2 | 3;
+  answeredQuestions: AnsweredQuestion[];
+  userConfidence: number;
+}
+
+export interface AdaptiveQuizActions {
+  startQuiz: () => void;
+  restartQuiz: () => void;
+  nextQuestion: () => void;
+  previousQuestion: () => void;
+  skipQuestion: () => void;
+  submitAnswer: () => void;
+  setConfidence: (value: number) => void;
+}
