@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { QuizQuestion, AnsweredQuestion, QuizResults } from '../../types';
@@ -75,7 +76,8 @@ export const useQuizLifecycle = (
         title: "Correct!",
         description: "Great job! Your answer is correct.",
         action: {
-          onClick: () => console.log("Next question")
+          label: "Next",
+          altText: "Go to next question"
         }
       });
       state.setCorrectStreak(state.correctStreak + 1);

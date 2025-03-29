@@ -1,9 +1,9 @@
 
 import { useState } from 'react';
-import { QuizQuestion, QuizResults } from '../../types';
-import { useQuizState } from './useQuizState';
-import { useQuizActions } from './useQuizActions';
-import { AdaptiveQuizState, AdaptiveQuizActions } from './types';
+import { QuizQuestion, QuizResults } from '../types';
+import { useQuizState } from './adaptive-quiz/useQuizState';
+import { useQuizActions } from './adaptive-quiz/useQuizActions';
+import { AdaptiveQuizState, AdaptiveQuizActions } from './adaptive-quiz/types';
 
 /**
  * Main hook for the adaptive quiz functionality
