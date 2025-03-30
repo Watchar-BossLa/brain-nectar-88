@@ -1,4 +1,3 @@
-
 import { AgentMessage, AgentTask, AgentType, SystemState } from '../types';
 import { createAgentRegistry } from './agentRegistry';
 import { TaskProcessor } from './taskProcessor';
