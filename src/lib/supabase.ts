@@ -1,6 +1,5 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Session } from '@supabase/supabase-js';
 import { AuthUser } from '@/context/auth/types';
 
 // Auth helpers

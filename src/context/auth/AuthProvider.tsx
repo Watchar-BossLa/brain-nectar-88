@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { PLATFORM_OWNER } from './constants';
@@ -9,7 +8,7 @@ import { useAuthService } from './authService';
 import { AuthUser } from './types';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<any | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);

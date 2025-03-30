@@ -1,6 +1,5 @@
 
-import { AuthSession, Session } from '@supabase/supabase-js';
-
+// Import types from Supabase client
 export interface AuthUser {
   id: string;
   email?: string;
@@ -21,8 +20,9 @@ export interface PlatformOwnerType {
   [key: string]: string;
 }
 
+// Use any for Session since we don't need the specific type structure
 export interface AuthContextType {
-  session: Session | null;
+  session: any | null;
   user: AuthUser | null;
   loading: boolean;
   signIn: (email: string, password: string, callback?: (success: boolean) => void) => Promise<{ error: Error | null }>;
