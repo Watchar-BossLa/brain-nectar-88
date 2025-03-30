@@ -1,4 +1,7 @@
+
 import { AgentType } from '../types';
+import { AgentInitializer } from './AgentInitializer';
+import { TaskManager } from './TaskManager';
 
 /**
  * MultiAgentSystem handles the coordination and management of all Study Bee agents
@@ -49,25 +52,25 @@ export class MultiAgentSystem {
       console.log('Initializing multi-agent system for user:', userId);
       
       // Initialize MCP (Master Control Program) first
-      await system.initializeMCP();
+      await AgentInitializer.initializeMCP();
       
       // Initialize individual agents
       await Promise.all([
-        system.initializeCognitiveProfileAgent(),
-        system.initializeLearningPathAgent(),
-        system.initializeContentAdaptationAgent(),
-        system.initializeAssessmentAgent(),
-        system.initializeEngagementAgent(),
-        system.initializeFeedbackAgent(),
-        system.initializeUIUXAgent(),
-        system.initializeSchedulingAgent()
+        AgentInitializer.initializeCognitiveProfileAgent().then(() => system.agentStatus.set('COGNITIVE_PROFILE', true)),
+        AgentInitializer.initializeLearningPathAgent().then(() => system.agentStatus.set('LEARNING_PATH', true)),
+        AgentInitializer.initializeContentAdaptationAgent().then(() => system.agentStatus.set('CONTENT_ADAPTATION', true)),
+        AgentInitializer.initializeAssessmentAgent().then(() => system.agentStatus.set('ASSESSMENT', true)),
+        AgentInitializer.initializeEngagementAgent().then(() => system.agentStatus.set('ENGAGEMENT', true)),
+        AgentInitializer.initializeFeedbackAgent().then(() => system.agentStatus.set('FEEDBACK', true)),
+        AgentInitializer.initializeUIUXAgent().then(() => system.agentStatus.set('UI_UX', true)),
+        AgentInitializer.initializeSchedulingAgent().then(() => system.agentStatus.set('SCHEDULING', true)),
       ]);
       
       system.systemInitialized = true;
       console.log('Multi-agent system initialized successfully');
       
       // Start the agent tasks after initialization
-      system.startAgentTasks();
+      TaskManager.startAgentTasks(system.userId);
       
     } catch (error) {
       console.error('Error initializing multi-agent system:', error);
@@ -94,118 +97,5 @@ export class MultiAgentSystem {
    */
   public getCurrentUserId(): string | null {
     return this.userId;
-  }
-
-  // Agent initialization methods
-  private async initializeMCP(): Promise<void> {
-    console.log('Initializing MCP...');
-    await this.simulateInitialization('MCP', 500);
-    console.log('MCP initialized');
-  }
-  
-  private async initializeCognitiveProfileAgent(): Promise<void> {
-    console.log('Initializing Cognitive Profile Agent...');
-    await this.simulateInitialization('COGNITIVE_PROFILE', 700);
-    this.agentStatus.set('COGNITIVE_PROFILE', true);
-    console.log('Cognitive Profile Agent initialized');
-  }
-  
-  private async initializeLearningPathAgent(): Promise<void> {
-    console.log('Initializing Learning Path Agent...');
-    await this.simulateInitialization('LEARNING_PATH', 600);
-    this.agentStatus.set('LEARNING_PATH', true);
-    console.log('Learning Path Agent initialized');
-  }
-  
-  private async initializeContentAdaptationAgent(): Promise<void> {
-    console.log('Initializing Content Adaptation Agent...');
-    await this.simulateInitialization('CONTENT_ADAPTATION', 800);
-    this.agentStatus.set('CONTENT_ADAPTATION', true);
-    console.log('Content Adaptation Agent initialized');
-  }
-  
-  private async initializeAssessmentAgent(): Promise<void> {
-    console.log('Initializing Assessment Agent...');
-    await this.simulateInitialization('ASSESSMENT', 550);
-    this.agentStatus.set('ASSESSMENT', true);
-    console.log('Assessment Agent initialized');
-  }
-  
-  private async initializeEngagementAgent(): Promise<void> {
-    console.log('Initializing Engagement Agent...');
-    await this.simulateInitialization('ENGAGEMENT', 650);
-    this.agentStatus.set('ENGAGEMENT', true);
-    console.log('Engagement Agent initialized');
-  }
-  
-  private async initializeFeedbackAgent(): Promise<void> {
-    console.log('Initializing Feedback Agent...');
-    await this.simulateInitialization('FEEDBACK', 600);
-    this.agentStatus.set('FEEDBACK', true);
-    console.log('Feedback Agent initialized');
-  }
-  
-  private async initializeUIUXAgent(): Promise<void> {
-    console.log('Initializing UI/UX Agent...');
-    await this.simulateInitialization('UI_UX', 550);
-    this.agentStatus.set('UI_UX', true);
-    console.log('UI/UX Agent initialized');
-  }
-  
-  private async initializeSchedulingAgent(): Promise<void> {
-    console.log('Initializing Scheduling Agent...');
-    await this.simulateInitialization('SCHEDULING', 750);
-    this.agentStatus.set('SCHEDULING', true);
-    console.log('Scheduling Agent initialized');
-  }
-  
-  /**
-   * Simulate agent initialization with a delay
-   * @param agentName The name of the agent being initialized
-   * @param delay The delay in milliseconds
-   */
-  private async simulateInitialization(agentName: string, delay: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, delay));
-  }
-  
-  // Agent task management methods
-  private startAgentTasks(): void {
-    if (!this.userId) return;
-    
-    console.log('Starting agent tasks...');
-    
-    // Schedule regular cognitive profile updates
-    this.scheduleCognitiveProfileUpdates();
-    
-    // Schedule learning path optimization
-    this.scheduleLearningPathOptimization();
-    
-    // Initialize content adaptation mechanisms
-    this.initializeContentAdaptation();
-    
-    // Set up engagement monitoring
-    this.setupEngagementMonitoring();
-    
-    console.log('Agent tasks started');
-  }
-  
-  private scheduleCognitiveProfileUpdates(): void {
-    // In a real implementation, this would set up periodic profile updates
-    console.log('Scheduled cognitive profile updates');
-  }
-  
-  private scheduleLearningPathOptimization(): void {
-    // In a real implementation, this would optimize learning paths based on user activity
-    console.log('Scheduled learning path optimization');
-  }
-  
-  private initializeContentAdaptation(): void {
-    // In a real implementation, this would set up content adaptation rules
-    console.log('Initialized content adaptation');
-  }
-  
-  private setupEngagementMonitoring(): void {
-    // In a real implementation, this would monitor user engagement
-    console.log('Set up engagement monitoring');
   }
 }
