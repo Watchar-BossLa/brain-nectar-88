@@ -1,31 +1,21 @@
 
-import { QuizQuestion, QuizResults, AnsweredQuestion } from '../types';
-import { Dispatch, SetStateAction } from 'react';
+import { AnsweredQuestion } from '../types';
 
-export interface ActiveQuizProps {
-  quiz: {
-    currentQuestion: QuizQuestion;
-    currentIndex: number;
-    selectedAnswer: string;
-    setSelectedAnswer: (answer: string) => void;
-    isAnswerSubmitted: boolean;
-    isCorrect: boolean | null;
-    submitAnswer: () => void;
-    nextQuestion: () => void;
-    previousQuestion: () => void;
-    skipQuestion: () => void;
-  };
-  filteredQuestions: QuizQuestion[];
-  questionCount: number;
-  userConfidence: number;
-  handleConfidenceChange: (value: number) => void;
+export interface AnalyticsTabProps {
+  answeredQuestions: AnsweredQuestion[];
+  setActiveTab: (tab: string) => void;
+}
+
+export interface QuizWelcomeProps {
+  setShowSettings: (show: boolean) => void;
+  handleStartQuiz: () => void;
 }
 
 export interface QuizSettingsProps {
   topics: string[];
   selectedTopics: string[];
   handleTopicChange: (topic: string) => void;
-  subjects: string[];
+  subjects: any[];
   selectedSubjects: string[];
   handleSubjectChange: (subject: string) => void;
   questionCount: number;
@@ -37,16 +27,10 @@ export interface QuizSettingsProps {
   handleStartQuiz: () => void;
 }
 
-export interface QuizWelcomeProps {
-  setShowSettings: (show: boolean) => void;
-  handleStartQuiz: () => void;
-}
-
-export interface AnalyticsTabProps {
-  answeredQuestions: any[];
-  setActiveTab: (tab: string) => void;
-}
-
-export interface FormulasTabProps {
-  // Add any props needed for the FormulasTab component
+export interface ActiveQuizProps {
+  quiz: any;
+  filteredQuestions: any[];
+  questionCount: number;
+  userConfidence: number;
+  handleConfidenceChange: (value: number) => void;
 }

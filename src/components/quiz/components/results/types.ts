@@ -1,8 +1,8 @@
 
-import { QuizResults as QuizResultsType } from "@/types/quiz";
+import { AnsweredQuestion, QuizResults } from '@/types/quiz';
 
 export interface QuizResultsProps {
-  results: QuizResultsType;
+  results: QuizResults;
   onRestart: () => void;
   onReview?: () => void;
 }
@@ -10,21 +10,6 @@ export interface QuizResultsProps {
 export interface ScoreDataItem {
   name: string;
   value: number;
-  color: string;
-}
-
-export interface TopicPerformanceItem {
-  topic: string;
-  percentage: number;
-  correct: number;
-  total: number;
-}
-
-export interface DifficultyDataItem {
-  name: string;
-  value: number;
-  correct: number;
-  total: number;
   color: string;
 }
 
