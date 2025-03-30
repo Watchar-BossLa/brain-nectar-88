@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useMultiAgentSystem } from '@/hooks/useMultiAgentSystem';
 import { useToast } from '@/components/ui/use-toast';
 import { QuizQuestion } from '@/types/quiz';
+import { AssessmentService } from '@/services/agents/assessment/assessmentService';
 
 export function useAssessmentGeneration() {
   const { submitTask, TaskTypes } = useMultiAgentSystem();
@@ -29,14 +30,18 @@ export function useAssessmentGeneration() {
     try {
       setIsGenerating(true);
       
-      const result = await submitTask(TaskTypes.ASSESSMENT_GENERATION, {
+      // Instead of relying on the submitTask to return the assessment data directly,
+      // we'll use the AssessmentService to generate the questions
+      const userId = 'current-user'; // In a real implementation, get this from auth context
+      
+      const result = await AssessmentService.generateAssessment(userId, {
         topics,
         difficulty: options?.difficulty || 2,
         questionCount: options?.questionCount || 10,
         previousPerformance: options?.previousPerformance || []
       });
 
-      if (result?.status === 'success' && result.data?.assessment?.questions) {
+      if (result.status === 'success' && result.data?.assessment?.questions) {
         toast({
           title: 'Questions Generated',
           description: `${result.data.assessment.questions.length} questions have been prepared for your assessment.`,
