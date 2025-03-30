@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ResponsiveContainer, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { AnsweredQuestion } from '../../types';
 
 interface ConfidencePoint {
   confidence: number;
@@ -10,12 +11,54 @@ interface ConfidencePoint {
   topic?: string;
 }
 
-interface ConfidenceAccuracyChartProps {
-  data: ConfidencePoint[];
+export interface ConfidenceAccuracyChartProps {
+  data?: ConfidencePoint[];
+  answeredQuestions?: AnsweredQuestion[];
 }
 
-const ConfidenceAccuracyChart: React.FC<ConfidenceAccuracyChartProps> = ({ data }) => {
-  if (!data || data.length === 0) {
+const ConfidenceAccuracyChart: React.FC<ConfidenceAccuracyChartProps> = ({ data: providedData, answeredQuestions = [] }) => {
+  // Calculate data from answered questions if not provided directly
+  const chartData = useMemo(() => {
+    if (providedData && providedData.length > 0) return providedData;
+    
+    // Process answeredQuestions to create confidence vs accuracy data
+    const confidenceMap: Record<string, { correct: number, total: number, topic?: string }> = {};
+    
+    answeredQuestions.forEach(q => {
+      if (!q.confidenceLevel) return;
+      
+      // Round confidence to the nearest 10 to group similar values
+      const confidenceKey = `${Math.round(q.confidenceLevel * 10) * 10}`;
+      
+      if (!confidenceMap[confidenceKey]) {
+        confidenceMap[confidenceKey] = { 
+          correct: 0, 
+          total: 0, 
+          topic: q.topic 
+        };
+      }
+      
+      confidenceMap[confidenceKey].total++;
+      if (q.isCorrect) {
+        confidenceMap[confidenceKey].correct++;
+      }
+    });
+    
+    // Convert to chart data format
+    return Object.entries(confidenceMap).map(([confidence, data]) => {
+      const confidenceValue = parseInt(confidence);
+      const accuracy = data.total > 0 ? (data.correct / data.total) * 100 : 0;
+      
+      return {
+        confidence: confidenceValue,
+        accuracy: Math.round(accuracy),
+        count: data.total,
+        topic: data.topic || 'Unknown'
+      };
+    });
+  }, [providedData, answeredQuestions]);
+
+  if (!chartData || chartData.length === 0) {
     return (
       <Card>
         <CardHeader>
@@ -77,8 +120,8 @@ const ConfidenceAccuracyChart: React.FC<ConfidenceAccuracyChartProps> = ({ data 
                   return null;
                 }}
               />
-              <Scatter name="Confidence vs Accuracy" data={data} fill="#8884d8">
-                {data.map((entry, index) => (
+              <Scatter name="Confidence vs Accuracy" data={chartData} fill="#8884d8">
+                {chartData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={COLORS[index % COLORS.length]}

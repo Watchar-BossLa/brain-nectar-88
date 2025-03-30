@@ -1,3 +1,4 @@
+
 import type { Session } from '@supabase/supabase-js';
 
 export type Profile = {
@@ -156,7 +157,22 @@ export type StudyPlan = {
   updated_at: string;
 };
 
+export interface AuthUser {
+  id: string;
+  email?: string;
+  app_metadata: {
+    provider?: string;
+    [key: string]: any;
+  };
+  user_metadata: {
+    avatar_url?: string;
+    full_name?: string;
+    [key: string]: any;
+  };
+  aud: string;
+}
+
 export type AuthState = {
   session: Session | null;
-  user: User | null;
+  user: AuthUser | null;
 };

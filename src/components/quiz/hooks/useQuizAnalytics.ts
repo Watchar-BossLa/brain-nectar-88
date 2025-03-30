@@ -31,7 +31,7 @@ export function useQuizAnalytics(answeredQuestions: AnsweredQuestion[]) {
   const sessionHistory = useSessionHistory();
   
   // Add loading state for session history
-  const [sessionLoading, setSessionLoading] = useState(false);
+  const [isLoading, setSessionLoading] = useState(false);
   
   // Topic performance analysis
   const topicPerformance = useMemo(() => {
@@ -112,7 +112,7 @@ export function useQuizAnalytics(answeredQuestions: AnsweredQuestion[]) {
   }, [answeredQuestions]);
   
   // We need to check if the sessions property exists
-  const historicalSessions = useMemo(() => {
+  const sessions = useMemo(() => {
     return sessionHistory && sessionHistory.sessions ? sessionHistory.sessions : [];
   }, [sessionHistory]);
   
@@ -121,7 +121,7 @@ export function useQuizAnalytics(answeredQuestions: AnsweredQuestion[]) {
     difficultyPerformance,
     selectedTimeRange,
     setSelectedTimeRange,
-    isLoading: sessionLoading,
-    sessions: historicalSessions
+    isLoading,
+    sessions
   };
 }

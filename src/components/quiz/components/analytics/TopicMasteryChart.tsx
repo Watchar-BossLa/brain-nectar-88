@@ -1,20 +1,45 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-interface TopicMasteryData {
+export interface TopicMasteryData {
   topic: string;
   mastery: number;
   fullMark: number;
 }
 
+interface RawTopicData {
+  topic: string;
+  correct: number;
+  incorrect: number;
+  total: number;
+  accuracy: number;
+}
+
 interface TopicMasteryChartProps {
-  data: TopicMasteryData[];
+  data: TopicMasteryData[] | RawTopicData[];
 }
 
 const TopicMasteryChart: React.FC<TopicMasteryChartProps> = ({ data }) => {
-  if (!data || data.length === 0) {
+  // Convert data format if needed
+  const chartData = useMemo(() => {
+    if (!data || data.length === 0) return [];
+    
+    // Check if data is already in the right format
+    if ('mastery' in data[0]) {
+      return data as TopicMasteryData[];
+    }
+    
+    // Convert from the raw format
+    return (data as RawTopicData[]).map(item => ({
+      topic: item.topic,
+      mastery: item.accuracy, // Using accuracy as mastery percentage
+      fullMark: 100 // Maximum value is 100%
+    }));
+  }, [data]);
+
+  if (!chartData || chartData.length === 0) {
     return (
       <Card>
         <CardHeader>
@@ -35,7 +60,7 @@ const TopicMasteryChart: React.FC<TopicMasteryChartProps> = ({ data }) => {
       <CardContent>
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
-            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
+            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
               <PolarGrid />
               <PolarAngleAxis dataKey="topic" />
               <PolarRadiusAxis angle={30} domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
