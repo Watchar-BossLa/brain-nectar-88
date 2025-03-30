@@ -12,14 +12,18 @@ interface ConfidencePoint {
 }
 
 export interface ConfidenceAccuracyChartProps {
-  data?: ConfidencePoint[];
-  answeredQuestions?: AnsweredQuestion[];
+  data?: ConfidencePoint[] | AnsweredQuestion[];
 }
 
-const ConfidenceAccuracyChart: React.FC<ConfidenceAccuracyChartProps> = ({ data: providedData, answeredQuestions = [] }) => {
-  // Calculate data from answered questions if not provided directly
+const ConfidenceAccuracyChart: React.FC<ConfidenceAccuracyChartProps> = ({ data = [] }) => {
+  // Calculate data from answered questions if needed
   const chartData = useMemo(() => {
-    if (providedData && providedData.length > 0) return providedData;
+    // Check if data is already in the right format
+    if (data.length > 0 && 'confidence' in data[0]) {
+      return data as ConfidencePoint[];
+    }
+    
+    const answeredQuestions = data as AnsweredQuestion[];
     
     // Process answeredQuestions to create confidence vs accuracy data
     const confidenceMap: Record<string, { correct: number, total: number, topic?: string }> = {};
@@ -56,7 +60,7 @@ const ConfidenceAccuracyChart: React.FC<ConfidenceAccuracyChartProps> = ({ data:
         topic: data.topic || 'Unknown'
       };
     });
-  }, [providedData, answeredQuestions]);
+  }, [data]);
 
   if (!chartData || chartData.length === 0) {
     return (

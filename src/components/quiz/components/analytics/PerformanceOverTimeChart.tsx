@@ -12,18 +12,18 @@ interface PerformancePoint {
 }
 
 export interface PerformanceOverTimeChartProps {
-  data?: PerformancePoint[];
-  answeredQuestions?: AnsweredQuestion[];
+  data?: PerformancePoint[] | AnsweredQuestion[];
 }
 
-const PerformanceOverTimeChart: React.FC<PerformanceOverTimeChartProps> = ({ 
-  data: providedData,
-  answeredQuestions = []
-}) => {
+const PerformanceOverTimeChart: React.FC<PerformanceOverTimeChartProps> = ({ data = [] }) => {
   // Calculate performance data from answered questions if not provided
   const chartData = useMemo(() => {
-    if (providedData && providedData.length > 0) return providedData;
+    // Check if data is already in the right format
+    if (data.length > 0 && 'date' in data[0]) {
+      return data as PerformancePoint[];
+    }
     
+    const answeredQuestions = data as AnsweredQuestion[];
     const questionsByDate: Record<string, { correct: number, total: number, difficulty: number[] }> = {};
     
     answeredQuestions.forEach(q => {
@@ -62,7 +62,7 @@ const PerformanceOverTimeChart: React.FC<PerformanceOverTimeChartProps> = ({
         };
       })
       .sort((a, b) => a.date.localeCompare(b.date));
-  }, [providedData, answeredQuestions]);
+  }, [data]);
 
   if (!chartData || chartData.length === 0) {
     return (

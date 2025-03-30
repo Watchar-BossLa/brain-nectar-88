@@ -15,7 +15,6 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ answeredQuestions, setActiv
     selectedTimeRange,
     setSelectedTimeRange,
     isLoading,
-    // Access sessions directly instead of through analyticsData
     sessions
   } = useQuizAnalytics(answeredQuestions);
 
@@ -39,8 +38,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ answeredQuestions, setActiv
         </div>
 
         <AnalyticsSummary 
-          answeredQuestions={answeredQuestions}
-          sessionData={sessions || []} 
+          sessionData={sessions} 
         />
       </div>
 
@@ -84,7 +82,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ answeredQuestions, setActiv
               </CardHeader>
             </Card>
           ) : (
-            <ConfidenceAccuracyChart answeredQuestions={answeredQuestions} />
+            <ConfidenceAccuracyChart data={answeredQuestions} />
           )}
         </TabsContent>
 
@@ -96,7 +94,7 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ answeredQuestions, setActiv
               </CardHeader>
             </Card>
           ) : (
-            <PerformanceOverTimeChart answeredQuestions={answeredQuestions} />
+            <PerformanceOverTimeChart data={answeredQuestions} />
           )}
         </TabsContent>
       </Tabs>

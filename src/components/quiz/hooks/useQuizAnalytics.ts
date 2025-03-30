@@ -1,7 +1,7 @@
-
 import { useState, useMemo } from 'react';
 import { AnsweredQuestion } from '../types';
 import { useSessionHistory } from './adaptive-quiz';
+import { QuizSession as QuizSessionType } from '@/types/quiz-session';
 
 interface TopicPerformance {
   topic: string;
@@ -31,7 +31,7 @@ export function useQuizAnalytics(answeredQuestions: AnsweredQuestion[]) {
   const sessionHistory = useSessionHistory();
   
   // Add loading state for session history
-  const [isLoading, setSessionLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   // Topic performance analysis
   const topicPerformance = useMemo(() => {
@@ -111,9 +111,22 @@ export function useQuizAnalytics(answeredQuestions: AnsweredQuestion[]) {
     });
   }, [answeredQuestions]);
   
-  // We need to check if the sessions property exists
-  const sessions = useMemo(() => {
-    return sessionHistory && sessionHistory.sessions ? sessionHistory.sessions : [];
+  // Transform the sessions to match expected type
+  const transformedSessions = useMemo(() => {
+    return sessionHistory && sessionHistory.sessions 
+      ? sessionHistory.sessions.map((session): QuizSessionType => {
+          // Ensure userAnswer is not optional by providing a default empty string
+          const transformedAnsweredQuestions = session.answeredQuestions.map(q => ({
+            ...q,
+            userAnswer: q.userAnswer || ''
+          }));
+          
+          return {
+            ...session,
+            answeredQuestions: transformedAnsweredQuestions as any
+          };
+        })
+      : [];
   }, [sessionHistory]);
   
   return {
@@ -122,6 +135,6 @@ export function useQuizAnalytics(answeredQuestions: AnsweredQuestion[]) {
     selectedTimeRange,
     setSelectedTimeRange,
     isLoading,
-    sessions
+    sessions: transformedSessions
   };
 }
