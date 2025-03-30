@@ -1,5 +1,4 @@
-
-import { AgentStatus } from '../types';
+import { AgentType } from '../types';
 
 /**
  * MultiAgentSystem handles the coordination and management of all Study Bee agents
