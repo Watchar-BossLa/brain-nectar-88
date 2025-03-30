@@ -1,10 +1,12 @@
+
 import { AgentMessage, AgentTask, AgentType, SystemState } from '../types';
 import { createAgentRegistry } from './agentRegistry';
 import { TaskProcessor } from './taskProcessor';
 import { SystemStateManager } from './systemState';
 import { CommunicationManager } from './communication';
 import { UserContextManager } from './userContext';
-import { initializeLLMSystem, modelOrchestration, performanceMonitoring } from '../../llm';
+import { SystemMonitoring } from './systemMonitoring';
+import { LLMIntegration } from './llmIntegration';
 
 /**
  * Master Control Program (MCP)
@@ -19,8 +21,8 @@ export class MasterControlProgram {
   private systemStateManager: SystemStateManager;
   private communicationManager: CommunicationManager;
   private userContextManager: UserContextManager;
-  private llmSystemInitialized = false;
-  private llmOrchestrationEnabled = true;
+  private systemMonitoring: SystemMonitoring;
+  private llmIntegration: LLMIntegration;
 
   private constructor() {
     this.taskProcessor = new TaskProcessor();
@@ -32,11 +34,15 @@ export class MasterControlProgram {
     this.communicationManager = new CommunicationManager();
     this.userContextManager = new UserContextManager(this.communicationManager);
     
+    // Initialize monitoring and LLM integration
+    this.systemMonitoring = new SystemMonitoring(this.systemStateManager);
+    this.llmIntegration = new LLMIntegration(this.systemStateManager, this.systemMonitoring);
+    
     // Initialize the LLM orchestration system
     this.initializeLLMSystem();
     
     // Set up interval for monitoring the system
-    this.setupSystemMonitoring();
+    this.systemMonitoring.setupSystemMonitoring();
     
     console.log('MCP initialized with agents:', registeredAgents);
   }
@@ -45,64 +51,7 @@ export class MasterControlProgram {
    * Initialize the LLM orchestration system
    */
   private async initializeLLMSystem(): Promise<void> {
-    try {
-      const llmSystem = await initializeLLMSystem();
-      this.llmSystemInitialized = true;
-      
-      // Update global state to indicate LLM system is available
-      this.systemStateManager.setGlobalVariable('llmSystemAvailable', true);
-      this.systemStateManager.setGlobalVariable('llmSystemModels', modelOrchestration.getAllModels().map(m => m.id));
-      this.systemStateManager.setGlobalVariable('llmOrchestrationEnabled', this.llmOrchestrationEnabled);
-      
-      console.log('LLM orchestration system initialized successfully');
-    } catch (error) {
-      console.error('Error initializing LLM system:', error);
-      this.systemStateManager.setGlobalVariable('llmSystemAvailable', false);
-      this.systemStateManager.setGlobalVariable('llmOrchestrationEnabled', false);
-    }
-  }
-
-  /**
-   * Set up periodic system monitoring
-   */
-  private setupSystemMonitoring(): void {
-    // Update system stats every 30 seconds
-    setInterval(() => {
-      // Check if LLM system is healthy
-      const llmSystemHealth = this.checkLLMSystemHealth();
-      this.systemStateManager.setGlobalVariable('llmSystemHealth', llmSystemHealth);
-      
-      // Update agent statistics
-      this.updateAgentStatistics();
-      
-      // Update performance metrics
-      if (this.llmSystemInitialized) {
-        const recentExecutions = performanceMonitoring.getRecentExecutions(10);
-        this.systemStateManager.setGlobalVariable('recentLLMExecutions', recentExecutions.length);
-      }
-    }, 30000);  // 30 seconds
-  }
-
-  /**
-   * Check the health of the LLM system
-   */
-  private checkLLMSystemHealth(): 'healthy' | 'degraded' | 'offline' {
-    if (!this.llmSystemInitialized) {
-      return 'offline';
-    }
-    
-    // In a real implementation, we would perform actual health checks
-    // For now, just return healthy if initialized
-    return 'healthy';
-  }
-
-  /**
-   * Update agent statistics in the system state
-   */
-  private updateAgentStatistics(): void {
-    // In a real implementation, we would collect detailed agent statistics
-    // For now, just update some basic metrics
-    this.systemStateManager.updateMetrics(true);
+    await this.llmIntegration.initializeLLMSystem();
   }
 
   /**
@@ -121,7 +70,7 @@ export class MasterControlProgram {
   public async submitTask(task: AgentTask): Promise<void> {
     try {
       await this.taskProcessor.submitTask(task);
-      this.systemStateManager.updateMetrics(true);
+      this.systemMonitoring.updateAgentStatistics();
     } catch (error) {
       console.error('Error submitting task:', error);
       this.systemStateManager.updateMetrics(false);
@@ -139,8 +88,8 @@ export class MasterControlProgram {
       ...state,
       globalVariables: {
         ...state.globalVariables,
-        llmSystemAvailable: this.llmSystemInitialized,
-        llmOrchestrationEnabled: this.llmOrchestrationEnabled
+        llmSystemAvailable: this.systemMonitoring.isLLMSystemInitialized(),
+        llmOrchestrationEnabled: this.llmIntegration.isLLMOrchestrationEnabled()
       }
     };
   }
@@ -161,7 +110,7 @@ export class MasterControlProgram {
     );
     
     // Ensure LLM system is initialized
-    if (!this.llmSystemInitialized) {
+    if (!this.systemMonitoring.isLLMSystemInitialized()) {
       await this.initializeLLMSystem();
     }
     
@@ -179,15 +128,14 @@ export class MasterControlProgram {
     });
     
     // Log the initialization
-    console.log(`MCP initialized for user ${userId} with LLM orchestration ${this.llmOrchestrationEnabled ? 'enabled' : 'disabled'}`);
+    console.log(`MCP initialized for user ${userId} with LLM orchestration ${this.llmIntegration.isLLMOrchestrationEnabled() ? 'enabled' : 'disabled'}`);
   }
   
   /**
    * Enable or disable LLM orchestration
    */
   public setLLMOrchestrationEnabled(enabled: boolean): void {
-    this.llmOrchestrationEnabled = enabled;
-    this.systemStateManager.setGlobalVariable('llmOrchestrationEnabled', enabled);
+    this.llmIntegration.setLLMOrchestrationEnabled(enabled);
     this.taskProcessor.setLLMOrchestrationEnabled(enabled);
     
     // Broadcast a system message about the change
@@ -205,29 +153,14 @@ export class MasterControlProgram {
    * Check if LLM orchestration is enabled
    */
   public isLLMOrchestrationEnabled(): boolean {
-    return this.llmOrchestrationEnabled;
+    return this.llmIntegration.isLLMOrchestrationEnabled();
   }
   
   /**
    * Get performance metrics for the LLM system
    */
   public getLLMPerformanceMetrics(): Record<string, any> {
-    if (!this.llmSystemInitialized) {
-      return {};
-    }
-    
-    // Get metrics for all models
-    const metrics: Record<string, any> = {};
-    const models = modelOrchestration.getAllModels();
-    
-    for (const model of models) {
-      const modelPerformance = performanceMonitoring.getModelPerformance(model.id);
-      if (modelPerformance) {
-        metrics[model.id] = modelPerformance;
-      }
-    }
-    
-    return metrics;
+    return this.systemMonitoring.getLLMPerformanceMetrics();
   }
 }
 
