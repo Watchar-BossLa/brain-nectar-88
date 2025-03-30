@@ -46,10 +46,10 @@ const DifficultyCategoryChart: React.FC<DifficultyCategoryChartProps> = ({ data 
               <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" tickFormatter={(value) => `${value}%`} />
               <Tooltip formatter={(value, name, props) => {
                 if (name === 'accuracy') return [`${value}%`, 'Accuracy'];
-                // Safely handle name formatting regardless of type
-                const formattedName = typeof name === 'string' 
+                // Safe handling for the name formatting
+                const formattedName = (typeof name === 'string') 
                   ? name.charAt(0).toUpperCase() + name.slice(1) 
-                  : name;
+                  : String(name);
                 return [value, formattedName];
               }} />
               <Legend />

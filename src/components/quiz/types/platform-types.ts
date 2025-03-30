@@ -35,7 +35,7 @@ export interface ActiveQuizProps {
   handleConfidenceChange: (value: number) => void;
 }
 
-// Add the missing FormulasTabProps type
+// Add the FormulasTabProps type
 export interface FormulasTabProps {
   setActiveTab?: (tab: string) => void;
 }

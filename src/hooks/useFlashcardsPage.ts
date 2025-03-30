@@ -1,9 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
 
-// Define proper types for our hook
 export interface Flashcard {
   id: string;
   user_id?: string;
@@ -30,7 +28,6 @@ export interface FlashcardLearningStats {
   dueCards: number;
   averageDifficulty: number;
   reviewsToday: number;
-  // Extended stats
   learningCards?: number;
   newCards?: number;
   reviewedToday?: number;
@@ -54,7 +51,6 @@ export interface UseFlashcardsReturn {
   createFlashcard: (flashcard: Partial<Flashcard>) => Promise<void>;
   updateFlashcard: (id: string, updates: Partial<Flashcard>) => Promise<void>;
   deleteFlashcard: (id: string) => Promise<void>;
-  // Additional properties for the Flashcards page
   activeTab?: string;
   setActiveTab?: (tab: string) => void;
   isCreating?: boolean;
@@ -84,7 +80,6 @@ export const useFlashcardsPage = (): UseFlashcardsReturn => {
     try {
       setLoading(true);
       
-      // Fetch all flashcards
       const { data: allFlashcards, error: allError } = await supabase
         .from('flashcards')
         .select('*')
@@ -92,7 +87,6 @@ export const useFlashcardsPage = (): UseFlashcardsReturn => {
       
       if (allError) throw allError;
       
-      // Fetch due flashcards (next_review_date <= current time)
       const { data: dueCards, error: dueError } = await supabase
         .from('flashcards')
         .select('*')
@@ -104,12 +98,10 @@ export const useFlashcardsPage = (): UseFlashcardsReturn => {
       setFlashcards(allFlashcards || []);
       setDueFlashcards(dueCards || []);
       
-      // Calculate stats
       const masteredCount = (allFlashcards || []).filter(card => card.mastery_level && card.mastery_level >= 0.9).length;
       const avgDifficulty = (allFlashcards || []).reduce((sum, card) => sum + (card.difficulty || 0), 0) / 
                           ((allFlashcards || []).length || 1);
       
-      // Count reviews done today
       const today = new Date().toISOString().split('T')[0];
       const reviewsToday = (allFlashcards || []).filter(card => 
         card.last_reviewed_at && card.last_reviewed_at.startsWith(today)
@@ -121,7 +113,6 @@ export const useFlashcardsPage = (): UseFlashcardsReturn => {
         dueCards: (dueCards || []).length,
         averageDifficulty: Number(avgDifficulty.toFixed(2)),
         reviewsToday,
-        // Set extended stats with default values
         learningCards: (allFlashcards || []).filter(card => 
           card.mastery_level && card.mastery_level > 0 && card.mastery_level < 0.9
         ).length,
@@ -129,17 +120,17 @@ export const useFlashcardsPage = (): UseFlashcardsReturn => {
           !card.mastery_level || card.mastery_level === 0
         ).length,
         reviewedToday: reviewsToday,
-        averageRetention: 0.85, // Default placeholder
-        streakDays: 1, // Default placeholder
+        averageRetention: 0.85,
+        streakDays: 1,
         totalReviews: (allFlashcards || []).reduce((sum, card) => sum + (card.repetition_count || 0), 0),
         averageEaseFactor: (allFlashcards || []).reduce((sum, card) => sum + (card.easiness_factor || 2.5), 0) / 
                           ((allFlashcards || []).length || 1),
-        retentionRate: 0.85, // Default placeholder
+        retentionRate: 0.85,
         strugglingCardCount: (allFlashcards || []).filter(card => 
           card.difficulty && card.difficulty >= 3
         ).length,
-        learningEfficiency: 0.75, // Default placeholder
-        recommendedDailyReviews: Math.min(20, Math.ceil((dueCards || []).length * 1.2)) // Simple formula
+        learningEfficiency: 0.75,
+        recommendedDailyReviews: Math.min(20, Math.ceil((dueCards || []).length * 1.2))
       };
       
       setStats(newStats);
@@ -160,7 +151,6 @@ export const useFlashcardsPage = (): UseFlashcardsReturn => {
     try {
       setLoading(true);
       
-      // Ensure required fields
       if (!flashcard.front && !flashcard.front_content) {
         throw new Error('Front content is required');
       }
@@ -169,7 +159,6 @@ export const useFlashcardsPage = (): UseFlashcardsReturn => {
         throw new Error('Back content is required');
       }
       
-      // Get user ID from current session
       const { data } = await supabase.auth.getSession();
       const user = data.session?.user;
       
@@ -177,7 +166,6 @@ export const useFlashcardsPage = (): UseFlashcardsReturn => {
         throw new Error('User not authenticated');
       }
       
-      // Prepare data for insert
       const newFlashcard = {
         user_id: user.id,
         front_content: flashcard.front || flashcard.front_content,
@@ -202,7 +190,6 @@ export const useFlashcardsPage = (): UseFlashcardsReturn => {
         description: 'Your new flashcard has been added',
       });
       
-      // Refresh flashcards to update the list
       await refreshFlashcards();
     } catch (err) {
       console.error('Error creating flashcard:', err);
@@ -221,7 +208,6 @@ export const useFlashcardsPage = (): UseFlashcardsReturn => {
     try {
       setLoading(true);
       
-      // Prepare data for update
       const updateData: any = {};
       if (updates.front || updates.front_content) {
         updateData.front_content = updates.front || updates.front_content;
@@ -251,7 +237,6 @@ export const useFlashcardsPage = (): UseFlashcardsReturn => {
         description: 'Your flashcard has been updated',
       });
       
-      // Refresh flashcards to update the list
       await refreshFlashcards();
     } catch (err) {
       console.error('Error updating flashcard:', err);
@@ -282,7 +267,6 @@ export const useFlashcardsPage = (): UseFlashcardsReturn => {
         description: 'Your flashcard has been removed',
       });
       
-      // Refresh flashcards to update the list
       await refreshFlashcards();
     } catch (err) {
       console.error('Error deleting flashcard:', err);

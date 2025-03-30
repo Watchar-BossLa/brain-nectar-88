@@ -19,7 +19,7 @@ export { calculateNextReviewDate };
 // Get all flashcards for the current user
 export const getUserFlashcards = async () => {
   try {
-    // Get current user
+    // Get current user with updated syntax
     const { data } = await supabase.auth.getSession();
     const user = data.session?.user;
     
@@ -38,7 +38,7 @@ export const getUserFlashcards = async () => {
 // Get flashcards due for review
 export const getDueFlashcards = async (topicId?: string) => {
   try {
-    // Get current user
+    // Get current user with updated syntax
     const { data } = await supabase.auth.getSession();
     const user = data.session?.user;
     
@@ -86,7 +86,7 @@ export const getSpacedRepDueFlashcards = async (userId: string) => {
 // Create a new flashcard
 export const createFlashcard = async (frontContent: string, backContent: string, topicId?: string) => {
   try {
-    // Get current user
+    // Get current user with updated syntax
     const { data } = await supabase.auth.getSession();
     const user = data.session?.user;
     

@@ -6,9 +6,10 @@ import { PLATFORM_OWNER } from './constants';
 import { AuthContext } from './AuthContext';
 import { useAuthService } from './authService';
 import { AuthUser } from './types';
+import type { Session } from '@supabase/supabase-js';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<any | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);

@@ -17,9 +17,9 @@ export function TestTabContent({ handleTestTask }: TestTabContentProps) {
   const testSpacedRepetition = async () => {
     setIsTestingSpacedRep(true);
     try {
-      // Get current user - using updated Supabase syntax
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user;
+      // Get current user with updated Supabase syntax
+      const { data } = await supabase.auth.getSession();
+      const user = data?.session?.user;
       
       if (!user) {
         throw new Error('User not authenticated');

@@ -2,7 +2,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-// Remove the useNavigate import and direct usage in hooks
 export function useAuthService() {
   const { toast } = useToast();
 
