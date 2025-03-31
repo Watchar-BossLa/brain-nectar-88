@@ -1,13 +1,21 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, Calculator, Clock, FileText, FlaskConical, GraduationCap, LayoutDashboard, Lightbulb, Presentation, Sparkles } from 'lucide-react';
+import HomeNavigation from '@/components/layout/HomeNavigation';
 
 export default function Index() {
   return (
     <MainLayout>
+      <div className="sticky top-0 z-30 w-full bg-background/95 backdrop-blur-sm border-b">
+        <div className="container py-2">
+          <HomeNavigation />
+        </div>
+      </div>
+      
       <div className="container py-10">
         <div className="text-center mb-10">
           <h1 className="text-4xl font-bold mb-3">Welcome to Study Bee</h1>

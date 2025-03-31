@@ -3,6 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/auth';
 import QuizBasedLearningPath from '@/components/learning/QuizBasedLearningPath';
+import HomeNavigation from '@/components/layout/HomeNavigation';
 
 // Import your existing components
 import StudyProgress from './StudyProgress';
@@ -29,6 +30,11 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="p-6 space-y-6">
+      {/* Navigation */}
+      <div className="mb-6">
+        <HomeNavigation />
+      </div>
+    
       {/* Welcome message */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
