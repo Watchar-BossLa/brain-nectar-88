@@ -1,77 +1,62 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { INITIAL_EASINESS_FACTOR } from './algorithm';
 
 /**
  * Create a new flashcard
- * 
- * @param userId User ID
- * @param frontContent Front side content
- * @param backContent Back side content
+ * @param frontContent Front content of the card
+ * @param backContent Back content of the card
  * @param topicId Optional topic ID
- * @returns Object with data or error
  */
 export const createFlashcard = async (
-  userId: string,
   frontContent: string,
   backContent: string,
-  topicId?: string
+  topicId?: string | null
 ) => {
   try {
-    const now = new Date().toISOString();
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    // Get current user
+    const { data } = await supabase.auth.getSession();
+    const userId = data.session?.user?.id;
     
-    const { data, error } = await supabase
+    if (!userId) {
+      return { data: null, error: new Error('User not authenticated') };
+    }
+
+    // Create the flashcard
+    const { data: flashcard, error } = await supabase
       .from('flashcards')
       .insert({
         user_id: userId,
         front_content: frontContent,
         back_content: backContent,
-        topic_id: topicId,
-        next_review_date: tomorrow.toISOString(),
+        topic_id: topicId || null,
+        difficulty: 0,
         repetition_count: 0,
-        difficulty: 3, // Medium difficulty by default
         mastery_level: 0,
-        easiness_factor: 2.5, // Default easiness factor
-        created_at: now,
-        updated_at: now
+        easiness_factor: INITIAL_EASINESS_FACTOR,
+        next_review_date: new Date().toISOString()
       })
-      .select()
-      .single();
+      .select();
       
-    if (error) {
-      return { data: null, error };
-    }
-    
-    return { data, error: null };
+    return { data: flashcard, error };
   } catch (error) {
-    console.error('Error creating flashcard:', error);
     return { data: null, error };
   }
 };
 
 /**
  * Delete a flashcard
- * 
- * @param flashcardId The ID of the flashcard to delete
- * @returns Object with data or error
+ * @param flashcardId ID of the flashcard to delete
  */
 export const deleteFlashcard = async (flashcardId: string) => {
   try {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('flashcards')
       .delete()
-      .eq('id', flashcardId)
-      .select()
-      .single();
+      .eq('id', flashcardId);
       
-    if (error) {
-      return { data: null, error };
-    }
-    
-    return { data, error: null };
+    return { data: null, error };
   } catch (error) {
-    console.error('Error deleting flashcard:', error);
     return { data: null, error };
   }
 };

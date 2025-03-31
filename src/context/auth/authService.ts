@@ -7,7 +7,10 @@ export function useAuthService() {
 
   const signIn = async (email: string, password: string, callback?: (success: boolean) => void) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       
       if (error) {
         console.error('Sign in error:', error.message);
@@ -62,7 +65,7 @@ export function useAuthService() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo,
+          redirectTo
         }
       });
       
@@ -92,8 +95,8 @@ export function useAuthService() {
 
   const signUp = async (email: string, password: string, callback?: (success: boolean) => void) => {
     try {
-      const { data, error } = await supabase.auth.signUp({ 
-        email, 
+      const { data, error } = await supabase.auth.signUp({
+        email,
         password,
         options: {
           emailRedirectTo: window.location.origin

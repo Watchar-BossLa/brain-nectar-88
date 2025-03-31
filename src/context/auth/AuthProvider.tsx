@@ -6,7 +6,7 @@ import { PLATFORM_OWNERS } from './constants';
 import { AuthContext } from './AuthContext';
 import { useAuthService } from './authService';
 import { AuthUser } from './types';
-import type { Session, User } from '@supabase/supabase-js';
+import { Session, User } from '@/types/supabase-types';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         console.log('Auth state changed:', event, currentSession?.user?.email);
-        setSession(currentSession);
+        setSession(currentSession as Session | null);
         setUser(currentSession?.user as AuthUser ?? null);
         
         // Check if the current user is a platform administrator
@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (data.session) {
           console.log('Initial session restored for:', data.session.user?.email);
-          setSession(data.session);
+          setSession(data.session as Session);
           setUser(data.session.user as AuthUser);
           
           // Check if the current user is a platform administrator

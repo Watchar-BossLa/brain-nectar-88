@@ -28,7 +28,7 @@ export function TestTabContent({ handleTestTask }: TestTabContentProps) {
       
       // Create a valid flashcard object for testing
       const testFlashcard: FlashcardLearningStats = {
-        flashcardId: 'test-id',
+        flashcard_id: 'test-id',
         userId: user.id,
         easinessFactor: 2.5,
         interval: 1,

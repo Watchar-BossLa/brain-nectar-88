@@ -1,174 +1,156 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth';
-import { useToast } from '@/components/ui/use-toast';
-import { agentOrchestrator } from '@/services/agents/orchestration/agentOrchestrator';
+import { masterControlProgram } from '@/services/agents/mcp/MasterControlProgram';
+import {
+  orchestrateContentReview,
+  orchestrateFlashcardGeneration,
+  orchestrateLearningPath,
+  orchestrateQuizGeneration,
+  orchestrateStudyPlan,
+  orchestrateTutoring,
+  initializeAgents
+} from '@/services/agents/orchestration/agentOrchestrator';
 
-/**
- * Hook for using the agent orchestration system in components
- */
-export function useAgentOrchestration() {
+export const useAgentOrchestration = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const [isPending, setIsPending] = useState<Record<string, boolean>>({});
-  const [results, setResults] = useState<Record<string, any>>({});
-  
-  /**
-   * Generate an adaptive learning path
-   */
-  const generateLearningPath = async (
-    qualificationId: string,
-    options?: {
-      priorityTopics?: string[];
-      timeConstraint?: number;
-      complexityPreference?: 'basic' | 'standard' | 'advanced';
+  const [initialized, setInitialized] = useState(false);
+  const [taskStatus, setTaskStatus] = useState<Record<string, string>>({});
+  const [isEnabled, setIsEnabled] = useState(false);
+
+  // Initialize orchestration system
+  useEffect(() => {
+    if (!initialized && user) {
+      const success = initializeAgents();
+      if (success) {
+        setInitialized(true);
+        const enabled = masterControlProgram.isLLMOrchestrationEnabled();
+        setIsEnabled(enabled);
+      }
     }
-  ) => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to generate a learning path.",
-        variant: "destructive"
-      });
-      return null;
-    }
+  }, [user, initialized]);
+
+  // Generate flashcards based on learning content
+  const generateFlashcards = async (content: string, count: number = 5) => {
+    if (!user || !initialized) return null;
     
     try {
-      setIsPending(prev => ({ ...prev, learningPath: true }));
-      
-      const result = await agentOrchestrator.generateAdaptiveLearningPath(
-        user.id,
-        qualificationId,
-        options
+      const taskId = await orchestrateFlashcardGeneration(
+        user.id, 
+        ['auto'], 
+        count,
+        { sourceContent: content }
       );
       
-      setResults(prev => ({ ...prev, learningPath: result }));
+      if (taskId) {
+        setTaskStatus(prev => ({
+          ...prev,
+          [taskId]: 'pending'
+        }));
+      }
       
-      toast({
-        title: "Learning Path Generation Started",
-        description: "Your personalized learning path is being created.",
-      });
-      
-      return result;
+      return taskId;
     } catch (error) {
-      console.error("Error generating learning path:", error);
-      toast({
-        title: "Generation Failed",
-        description: "Failed to generate your learning path. Please try again.",
-        variant: "destructive"
-      });
+      console.error('Error generating flashcards:', error);
       return null;
-    } finally {
-      setIsPending(prev => ({ ...prev, learningPath: false }));
     }
   };
-  
-  /**
-   * Create an adaptive assessment
-   */
-  const createAdaptiveAssessment = async (
-    topicIds: string[],
-    options?: {
-      initialDifficulty?: number;
-      adaptationRate?: number;
-      questionCount?: number;
-      timeLimit?: number;
-    }
-  ) => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to create an assessment.",
-        variant: "destructive"
-      });
-      return null;
-    }
+
+  // Generate personalized learning path
+  const generateLearningPath = async () => {
+    if (!user || !initialized) return null;
     
     try {
-      setIsPending(prev => ({ ...prev, assessment: true }));
+      const taskId = await orchestrateLearningPath(user.id);
       
-      const result = await agentOrchestrator.createAdaptiveAssessment(
-        user.id,
-        topicIds,
-        options
-      );
+      if (taskId) {
+        setTaskStatus(prev => ({
+          ...prev,
+          [taskId]: 'pending'
+        }));
+      }
       
-      setResults(prev => ({ ...prev, assessment: result }));
-      
-      toast({
-        title: "Assessment Generation Started",
-        description: "Your adaptive assessment is being created.",
-      });
-      
-      return result;
+      return taskId;
     } catch (error) {
-      console.error("Error creating assessment:", error);
-      toast({
-        title: "Assessment Failed",
-        description: "Failed to create your assessment. Please try again.",
-        variant: "destructive"
-      });
+      console.error('Error generating learning path:', error);
       return null;
-    } finally {
-      setIsPending(prev => ({ ...prev, assessment: false }));
     }
   };
-  
-  /**
-   * Optimize study schedule
-   */
-  const optimizeStudySchedule = async (
-    options?: {
-      dailyAvailableTime?: number;
-      priorityTopics?: string[];
-      startDate?: string;
-      endDate?: string;
-      goalDate?: string;
-    }
-  ) => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to optimize your study schedule.",
-        variant: "destructive"
-      });
-      return null;
-    }
+
+  // Generate a study plan
+  const generateStudyPlan = async (goalId: string, daysToGoal: number) => {
+    if (!user || !initialized) return null;
     
     try {
-      setIsPending(prev => ({ ...prev, schedule: true }));
-      
-      const result = await agentOrchestrator.optimizeStudySchedule(
+      const taskId = await orchestrateStudyPlan(
         user.id,
-        options
+        goalId,
+        daysToGoal
       );
       
-      setResults(prev => ({ ...prev, schedule: result }));
+      if (taskId) {
+        setTaskStatus(prev => ({
+          ...prev,
+          [taskId]: 'pending'
+        }));
+      }
       
-      toast({
-        title: "Schedule Optimization Started",
-        description: "Your optimized study schedule is being created.",
-      });
-      
-      return result;
+      return taskId;
     } catch (error) {
-      console.error("Error optimizing schedule:", error);
-      toast({
-        title: "Optimization Failed",
-        description: "Failed to optimize your schedule. Please try again.",
-        variant: "destructive"
-      });
+      console.error('Error generating study plan:', error);
       return null;
-    } finally {
-      setIsPending(prev => ({ ...prev, schedule: false }));
     }
   };
-  
+
+  // Check task status
+  const checkTaskStatus = async (taskId: string) => {
+    if (!taskId) return null;
+    
+    try {
+      const status = await masterControlProgram.getTaskStatus(taskId);
+      
+      if (status) {
+        setTaskStatus(prev => ({
+          ...prev,
+          [taskId]: status
+        }));
+      }
+      
+      return status;
+    } catch (error) {
+      console.error('Error checking task status:', error);
+      return null;
+    }
+  };
+
+  // Get task result
+  const getTaskResult = async (taskId: string) => {
+    if (!taskId) return null;
+    
+    try {
+      return await masterControlProgram.getTaskResult(taskId);
+    } catch (error) {
+      console.error('Error getting task result:', error);
+      return null;
+    }
+  };
+
+  // Toggle agent system
+  const toggleAgentSystem = (enable?: boolean) => {
+    const newValue = enable !== undefined ? enable : !isEnabled;
+    masterControlProgram.setLLMOrchestrationEnabled(newValue);
+    setIsEnabled(newValue);
+  };
+
   return {
-    isPending,
-    results,
+    initialized,
+    isEnabled,
+    generateFlashcards,
     generateLearningPath,
-    createAdaptiveAssessment,
-    optimizeStudySchedule
+    generateStudyPlan,
+    checkTaskStatus,
+    getTaskResult,
+    toggleAgentSystem,
+    taskStatus
   };
-}
+};

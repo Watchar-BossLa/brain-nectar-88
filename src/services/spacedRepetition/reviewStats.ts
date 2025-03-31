@@ -1,20 +1,17 @@
 
-import { Flashcard } from '@/hooks/flashcards/types';
+import { Flashcard } from '@/types/supabase';
 import { FlashcardLearningStats } from './reviewTypes';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Calculates the retention rate for a flashcard based on its learning history
+ * Calculate flashcard retention based on card's learning history
+ * @param flashcard Flashcard or learning stats
+ * @returns Retention rate (0-100%)
  */
 export const calculateFlashcardRetention = (flashcard: Flashcard | FlashcardLearningStats): number => {
-  // Get the easiness factor, handling both object types
-  const easinessFactor = 'easiness_factor' in flashcard 
-    ? flashcard.easiness_factor 
-    : (flashcard as any).easinessFactor || 2.5;
-    
-  // Get the repetition count, handling both object types
-  const repetitions = 'repetitions' in flashcard 
-    ? flashcard.repetitions 
-    : (flashcard as any).repetition_count || 0;
+  // Simple retention calculation based on easiness factor and repetitions
+  const easinessFactor = flashcard.easiness_factor || 2.5;
+  const repetitions = flashcard.repetition_count || 0;
   
   // Retention formula: base retention adjusted by easiness and repetitions
   // Range: 0-100%
@@ -26,19 +23,88 @@ export const calculateFlashcardRetention = (flashcard: Flashcard | FlashcardLear
 };
 
 /**
- * Get learning statistics for a user's flashcards
+ * Get flashcard learning statistics for a user
+ * @param userId User ID
+ * @returns Learning statistics
  */
-export const getFlashcardLearningStats = async (userId: string): Promise<FlashcardLearningStats> => {
-  // Placeholder implementation - replace with actual implementation
-  return {
-    user_id: userId,
-    flashcard_id: '',
-    easiness_factor: 2.5,
-    interval: 0,
-    repetitions: 0,
-    last_reviewed_at: new Date().toISOString(),
-    next_review_at: new Date().toISOString(),
-    review_count: 0,
-    totalCards: 0
-  };
+export const getFlashcardLearningStats = async (userId: string) => {
+  try {
+    // Get all flashcards for user
+    const { data: flashcards, error } = await supabase
+      .from('flashcards')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (error) {
+      throw error;
+    }
+
+    if (!flashcards || flashcards.length === 0) {
+      return {
+        totalCards: 0,
+        masteredCards: 0,
+        averageRetention: 0,
+        dueCards: 0,
+        retentionByCategory: {}
+      };
+    }
+
+    // Calculate statistics
+    const totalCards = flashcards.length;
+    const masteredCards = flashcards.filter(card => (card.mastery_level || 0) >= 0.8).length;
+    
+    // Calculate cards due today
+    const now = new Date();
+    const dueCards = flashcards.filter(card => {
+      if (!card.next_review_date) return false;
+      const reviewDate = new Date(card.next_review_date);
+      return reviewDate <= now;
+    }).length;
+
+    // Calculate average retention
+    let totalRetention = 0;
+    flashcards.forEach(card => {
+      totalRetention += calculateFlashcardRetention(card);
+    });
+    const averageRetention = totalCards > 0 ? totalRetention / totalCards : 0;
+
+    // Group by topics for category breakdown
+    const retentionByCategory: Record<string, { count: number; retention: number }> = {};
+    flashcards.forEach(card => {
+      const topicId = card.topic_id || 'uncategorized';
+      const retention = calculateFlashcardRetention(card);
+      
+      if (!retentionByCategory[topicId]) {
+        retentionByCategory[topicId] = { count: 0, retention: 0 };
+      }
+      
+      retentionByCategory[topicId].count++;
+      retentionByCategory[topicId].retention += retention;
+    });
+
+    // Calculate averages for each category
+    Object.keys(retentionByCategory).forEach(topicId => {
+      const category = retentionByCategory[topicId];
+      if (category.count > 0) {
+        category.retention = category.retention / category.count;
+      }
+    });
+
+    return {
+      totalCards,
+      masteredCards,
+      averageRetention,
+      dueCards,
+      retentionByCategory
+    };
+  } catch (error) {
+    console.error('Error getting flashcard learning stats:', error);
+    return {
+      totalCards: 0,
+      masteredCards: 0,
+      averageRetention: 0,
+      dueCards: 0,
+      retentionByCategory: {}
+    };
+  }
 };

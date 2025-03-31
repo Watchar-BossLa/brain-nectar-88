@@ -1,28 +1,14 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  calculateNextReviewSchedule, 
-  INITIAL_EASINESS_FACTOR 
-} from './algorithm';
+import { INITIAL_EASINESS_FACTOR, MIN_EASINESS_FACTOR } from './algorithm';
 
 /**
- * Update a flashcard after review based on the difficulty rating
- * Implements the enhanced SM-2 algorithm with adaptive learning
- * 
- * @param flashcardId The ID of the flashcard to update
- * @param difficulty Difficulty rating (1-5, where 5 is most difficult)
- * @returns Object with data (success) or error
+ * Update flashcard after review
+ * @param flashcardId ID of the flashcard being reviewed
+ * @param difficulty The difficulty rating (0-5 scale, 0 = hardest, 5 = easiest)
  */
-export const updateFlashcardAfterReview = async (
-  flashcardId: string, 
-  difficulty: number
-): Promise<{ data?: any; error?: Error }> => {
+export const updateFlashcardAfterReview = async (flashcardId: string, difficulty: number) => {
   try {
-    // Validate input
-    if (difficulty < 1 || difficulty > 5) {
-      return { error: new Error('Difficulty must be between 1 and 5') };
-    }
-    
     // Get current flashcard data
     const { data: flashcard, error: fetchError } = await supabase
       .from('flashcards')
@@ -31,64 +17,59 @@ export const updateFlashcardAfterReview = async (
       .single();
       
     if (fetchError) {
-      return { error: fetchError };
+      return { data: null, error: fetchError };
     }
     
     if (!flashcard) {
-      return { error: new Error('Flashcard not found') };
+      return { data: null, error: new Error('Flashcard not found') };
     }
     
-    // Calculate next review schedule
-    const repeatCount = flashcard.repetition_count || 0;
-    const easeFactor = flashcard.easiness_factor || INITIAL_EASINESS_FACTOR;
+    // Calculate new spaced repetition values
+    const easinessFactor = Math.max(MIN_EASINESS_FACTOR, 
+      (flashcard.easiness_factor || INITIAL_EASINESS_FACTOR) + 
+      (0.1 - (5 - difficulty) * (0.08 + (5 - difficulty) * 0.02)));
     
-    // Default to target retention of 0.85 if not specified
-    const actualRetention = flashcard.last_retention || 0.85;
-    
-    const schedule = calculateNextReviewSchedule(easeFactor, repeatCount);
-    
-    // Create review record
-    const { error: reviewError } = await supabase
-      .from('flashcard_reviews')
-      .insert({
-        flashcard_id: flashcardId,
-        difficulty_rating: difficulty,
-        reviewed_at: new Date().toISOString(),
-        retention_estimate: schedule.estimatedRetention || 0.85,
-        user_id: flashcard.user_id // Make sure to include the user_id
-      });
-      
-    if (reviewError) {
-      console.warn('Error recording flashcard review:', reviewError);
-      // Continue anyway - the main flashcard update is more important
+    let repetitions = (flashcard.repetition_count || 0);
+    if (difficulty < 3) {
+      repetitions = 0;
+    } else {
+      repetitions += 1;
     }
     
-    // Update flashcard with new schedule
+    // Calculate next review interval
+    let interval: number;
+    if (repetitions <= 1) {
+      interval = 1;
+    } else if (repetitions === 2) {
+      interval = 6;
+    } else {
+      interval = Math.round((flashcard.repetition_count || repetitions) * easinessFactor);
+    }
+    
+    // Calculate next review date
     const nextReviewDate = new Date();
-    nextReviewDate.setDate(new Date().getDate() + schedule.interval);
+    nextReviewDate.setDate(nextReviewDate.getDate() + interval);
     
-    const { data, error: updateError } = await supabase
+    // Calculate mastery level - simple formula based on repetitions
+    const masteryLevel = Math.min(1.0, (repetitions / 10) + (easinessFactor - 1.3) / 2.5 * 0.5);
+    
+    // Update the flashcard
+    const { data, error } = await supabase
       .from('flashcards')
       .update({
-        repetition_count: repeatCount + 1,
-        easiness_factor: schedule.easinessFactor,
-        difficulty: difficulty,
-        next_review_date: nextReviewDate.toISOString(),
+        easiness_factor: easinessFactor,
+        repetition_count: repetitions,
+        interval: interval,
         last_reviewed_at: new Date().toISOString(),
-        last_retention: schedule.estimatedRetention || 0.85,
-        mastery_level: schedule.masteryLevel || 0
+        next_review_date: nextReviewDate.toISOString(),
+        mastery_level: masteryLevel,
+        difficulty: difficulty
       })
       .eq('id', flashcardId)
-      .select()
-      .single();
+      .select();
       
-    if (updateError) {
-      return { error: updateError };
-    }
-    
-    return { data };
+    return { data, error };
   } catch (error) {
-    console.error('Error updating flashcard after review:', error);
-    return { error: error instanceof Error ? error : new Error('Unknown error updating flashcard') };
+    return { data: null, error };
   }
 };

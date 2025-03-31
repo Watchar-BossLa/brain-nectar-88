@@ -3,13 +3,18 @@ import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { BaseAgent } from '../mcp/BaseAgent';
 import { Task, TaskCategory } from '../types/taskTypes';
+import { AgentMessage } from '../mcp/BaseAgent';
 
 // Implement BaseAgent interface
 export class LearningPathAgent implements BaseAgent {
   id: string;
+  name: string;
+  type: string;
   
   constructor() {
     this.id = `learning-path-agent-${uuidv4().substring(0, 8)}`;
+    this.name = "Learning Path Agent";
+    this.type = TaskCategory.LEARNING_PATH;
     console.log(`LearningPathAgent initialized with ID: ${this.id}`);
   }
   
@@ -46,7 +51,7 @@ export class LearningPathAgent implements BaseAgent {
     }
   }
   
-  receiveMessage(message: any): void {
+  receiveMessage(message: AgentMessage): void {
     console.log(`LearningPathAgent ${this.id} received message from ${message.sender}`);
   }
   
@@ -64,6 +69,7 @@ export class LearningPathAgent implements BaseAgent {
       }
       
       // For now, we'll just mock some learning preferences and knowledge areas
+      // In a real implementation, these would be retrieved from the database
       const learningPreferences = {
         learningStyle: 'visual',
         preferredTimeOfDay: 'evening',

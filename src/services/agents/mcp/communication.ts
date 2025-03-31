@@ -2,7 +2,6 @@
 import { BaseAgent, AgentMessage } from './BaseAgent';
 import { v4 as uuidv4 } from 'uuid';
 import { agentRegistry } from './agentRegistry';
-import { TaskCategory } from '../types/taskTypes';
 
 /**
  * Send a message to a specific agent
@@ -92,3 +91,17 @@ export const forwardMessage = (
   targetAgent.receiveMessage(forwardedMessage);
   return true;
 };
+
+export class CommunicationManager {
+  sendMessage(targetId: string, content: string, senderId: string): boolean {
+    return sendMessageToAgent(targetId, content, senderId);
+  }
+  
+  broadcast(type: string, content: string, senderId: string): number {
+    return broadcastMessageByType(type, content, senderId);
+  }
+  
+  forward(message: AgentMessage, newReceiverId: string, context?: string): boolean {
+    return forwardMessage(message, newReceiverId, context);
+  }
+}

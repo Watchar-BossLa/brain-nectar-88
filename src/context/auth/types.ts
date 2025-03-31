@@ -1,5 +1,5 @@
 
-import type { Session, User } from '@supabase/supabase-js';
+import { Session, User } from '@/types/supabase-types';
 
 // Define AuthUser interface
 export interface AuthUser extends User {

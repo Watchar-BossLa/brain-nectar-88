@@ -1,5 +1,5 @@
 
-import type { Session } from '@supabase/supabase-js';
+import { Session } from './supabase-types';
 
 export type Profile = {
   id: string;
