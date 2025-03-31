@@ -1,192 +1,93 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { AuthContextType, AuthUser, PlatformOwnerType } from './types';
-import { useToast } from '@/components/ui/use-toast';
-import { authService } from './authService';
-import { 
-  supabase, 
-  getCurrentSession, 
-  getCurrentUser, 
-  signIn, 
-  signUp, 
-  signInWithGoogle, 
-  signOut, 
-  onAuthStateChange,
-  Session,
-  User
+import React, { createContext, useState, useEffect, useContext } from 'react';
+import { supabase } from '@/lib/supabase';
+import { User, Session } from '@supabase/supabase-js';
+import * as authService from './authService';
+import { platformOwner } from '@/constants';
+import {
+  getSession,
+  getCurrentUser,
+  onAuthStateChange
 } from '@/lib/supabaseAuth';
 
-// Create auth context
+export type AuthContextType = {
+  user: User | null;
+  session: Session | null;
+  isAdmin: boolean;
+  loading: boolean;
+  signIn: typeof authService.signIn;
+  signUp: typeof authService.signUp;
+  signOut: typeof authService.signOut;
+  signInWithOAuth: typeof authService.signInWithOAuth;
+  platformOwner: typeof platformOwner;
+};
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<AuthUser | null>(null);
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isPlatformOwner, setIsPlatformOwner] = useState(false);
-  const { toast } = useToast();
-
-  // Placeholder platform owner data
-  const platformOwner: PlatformOwnerType = {
-    name: 'Study Bee',
-    email: 'admin@studybee.io'
-  };
-  
-  const platformOwners: PlatformOwnerType[] = [
-    { name: 'Study Bee Admin', email: 'admin@studybee.io' },
-    { name: 'Support Team', email: 'support@studybee.io' }
-  ];
 
   useEffect(() => {
-    const loadSession = async () => {
-      setLoading(true);
+    // Get initial session
+    const initializeAuth = async () => {
       try {
-        // Get session data
-        const { session: currentSession } = await getCurrentSession();
+        setLoading(true);
         
-        if (currentSession) {
-          setSession(currentSession);
-          setUser(currentSession.user as AuthUser);
-          
-          // Check admin status
-          const { data: adminData } = await supabase
-            .from('admins')
-            .select('*')
-            .eq('user_id', currentSession.user.id)
-            .single();
-            
-          setIsAdmin(!!adminData);
-          setIsPlatformOwner(currentSession.user.email === platformOwner.email);
-        } else {
-          setSession(null);
-          setUser(null);
-          setIsAdmin(false);
-          setIsPlatformOwner(false);
+        // Get current session
+        const { data } = await getSession();
+        const session = data?.session;
+        
+        if (session) {
+          setSession(session);
+          setUser(session.user);
         }
       } catch (error) {
-        console.error('Error loading session:', error);
+        console.error('Error initializing auth:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadSession();
-
-    // Listen for auth changes
-    const subscription = onAuthStateChange((event, newSession) => {
-      setSession(newSession);
-      setUser(newSession?.user as AuthUser || null);
-      setIsPlatformOwner(newSession?.user?.email === platformOwner.email);
-      
-      if (event === 'SIGNED_IN') {
-        toast({
-          title: 'Signed in',
-          description: 'You have successfully signed in.'
-        });
-      }
-      
-      if (event === 'SIGNED_OUT') {
-        toast({
-          title: 'Signed out',
-          description: 'You have been signed out.'
-        });
-      }
+    // Initialize auth
+    initializeAuth();
+    
+    // Set up auth listener
+    const { data: authListener } = onAuthStateChange((event: string, session: Session | null) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
     });
-
+    
+    // Clean up auth listener on unmount
     return () => {
-      subscription?.unsubscribe();
+      if (authListener && typeof authListener.unsubscribe === 'function') {
+        authListener.unsubscribe();
+      }
     };
-  }, [toast, platformOwner.email]);
-
-  // Auth methods
-  const handleSignIn = async (email: string, password: string, callback?: (success: boolean) => void) => {
-    const { error } = await signIn(email, password);
-    
-    if (error) {
-      toast({
-        title: 'Sign In Failed',
-        description: error.message,
-        variant: 'destructive'
-      });
-    }
-    
-    if (callback) {
-      callback(!error);
-    }
-    
-    return { error };
-  };
-
-  const handleSignUp = async (email: string, password: string, callback?: (success: boolean) => void) => {
-    const { error } = await signUp(email, password);
-    
-    if (error) {
-      toast({
-        title: 'Sign Up Failed',
-        description: error.message,
-        variant: 'destructive'
-      });
-    } else {
-      toast({
-        title: 'Sign Up Successful',
-        description: 'Check your email for the confirmation link.',
-      });
-    }
-    
-    if (callback) {
-      callback(!error);
-    }
-    
-    return { error };
-  };
-
-  const handleSignInWithGoogle = async (callback?: () => void) => {
-    const { error } = await signInWithGoogle();
-    
-    if (error) {
-      toast({
-        title: 'Google Sign In Failed',
-        description: error.message,
-        variant: 'destructive'
-      });
-    }
-    
-    if (callback && !error) {
-      callback();
-    }
-    
-    return { error };
-  };
-
-  const handleSignOut = async (callback?: () => void) => {
-    await signOut();
-    
-    setUser(null);
-    setSession(null);
-    setIsAdmin(false);
-    setIsPlatformOwner(false);
-    
-    if (callback) {
-      callback();
-    }
-  };
+  }, []);
+  
+  // Check if user is admin
+  const isAdmin = user?.email === platformOwner.email;
 
   const value = {
-    session,
     user,
+    session,
     loading,
-    signIn: handleSignIn,
-    signUp: handleSignUp,
-    signInWithGoogle: handleSignInWithGoogle,
-    signOut: handleSignOut,
-    platformOwner,
-    platformOwners,
     isAdmin,
-    isPlatformOwner
+    signIn: authService.signIn,
+    signUp: authService.signUp,
+    signOut: authService.signOut,
+    signInWithOAuth: authService.signInWithOAuth,
+    platformOwner
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {

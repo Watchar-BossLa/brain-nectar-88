@@ -1,91 +1,84 @@
 
 import React from 'react';
-import { Calculator } from 'lucide-react';
-import { InlineMath, BlockMath } from 'react-katex';
-import { FinancialStatementTable } from '../financial/FinancialStatementTable';
+import { Card, CardContent } from '@/components/ui/card';
+import LatexRendererWrapper from '@/components/math/LatexRendererWrapper';
+import { InlineMath, BlockMath } from '@/lib/katex-imports';
+import { Badge } from '@/components/ui/badge';
 
-/**
- * Enhanced content renderer that supports:
- * - LaTeX formulas (inline $$formula$$ and block $$$formula$$$)
- * - Financial statement visualization tokens [fin:balance-sheet], [fin:income-statement], etc.
- */
-export const renderContent = (content: string): React.ReactNode => {
-  if (!content) return <span className="text-muted-foreground">No content available</span>;
-  
-  // Replace financial visualization tokens
-  if (content.includes('[fin:')) {
-    const finMatch = content.match(/\[fin:(balance-sheet|income-statement|cash-flow|ratio)\]/);
-    if (finMatch) {
-      const statementType = finMatch[1];
+interface ContentRendererProps {
+  content: string;
+  contentType: 'text' | 'math' | 'code' | 'financial';
+  className?: string;
+}
+
+const ContentRenderer: React.FC<ContentRendererProps> = ({
+  content,
+  contentType,
+  className = ''
+}) => {
+  // For text content that might contain basic markdown-like formatting
+  if (contentType === 'text') {
+    return (
+      <div className={`prose dark:prose-invert max-w-none ${className}`}>
+        {content.split('\n').map((line, i) => (
+          <p key={i}>{line}</p>
+        ))}
+      </div>
+    );
+  }
+
+  // For mathematical formulas and equations
+  if (contentType === 'math') {
+    return (
+      <LatexRendererWrapper>
+        <BlockMath math={content} />
+      </LatexRendererWrapper>
+    );
+  }
+
+  // For code snippets
+  if (contentType === 'code') {
+    return (
+      <pre className={`p-4 bg-muted rounded-md overflow-auto ${className}`}>
+        <code>{content}</code>
+      </pre>
+    );
+  }
+
+  // For financial statements or tabular data
+  if (contentType === 'financial') {
+    try {
+      const data = JSON.parse(content);
       return (
-        <div className="flex flex-col items-center">
-          <div className="text-center mb-4">{content.replace(finMatch[0], '')}</div>
-          <div className="w-full max-w-md p-4 border rounded-lg bg-muted/30">
-            <div className="flex items-center justify-center gap-2 text-primary mb-2">
-              <Calculator size={18} />
-              <span className="font-medium">{formatStatementType(statementType)}</span>
+        <Card className={className}>
+          <CardContent className="p-4">
+            <div className="text-center mb-2">
+              <Badge variant="outline">{data.type || 'Financial Data'}</Badge>
             </div>
-            <div className="text-sm">
-              <FinancialStatementTable type={statementType} />
-            </div>
-            <div className="text-xs text-center mt-2 text-muted-foreground">
-              Interactive version available in Financial Tools
-            </div>
-          </div>
+            <table className="w-full border-collapse">
+              <tbody>
+                {Object.entries(data.items || {}).map(([key, value]: [string, any]) => (
+                  <tr key={key} className="border-b">
+                    <td className="py-2 px-1 text-left">{key}</td>
+                    <td className="py-2 px-1 text-right">{value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
+      );
+    } catch (e) {
+      return (
+        <div className={`text-destructive ${className}`}>
+          Invalid financial data format
         </div>
       );
     }
   }
 
-  // Handle mixed content with LaTeX
-  // Check if content has LaTeX formulas
-  if (!content.includes('$$') && !content.includes('$$$')) return content;
-  
-  // First, handle block math with $$$formula$$$ 
-  const parts: React.ReactNode[] = [];
-  const blockSplit = content.split(/(\\?\$\$\$[^$]*\$\$\$)/g);
-  
-  blockSplit.forEach((part, index) => {
-    if (part.startsWith('$$$') && part.endsWith('$$$')) {
-      const formula = part.slice(3, -3);
-      try {
-        parts.push(
-          <div key={`block-${index}`} className="py-2 flex justify-center">
-            <BlockMath math={formula} />
-          </div>
-        );
-      } catch (error) {
-        console.error('LaTeX rendering error:', error);
-        parts.push(<span key={`block-${index}`} className="text-red-500">{part}</span>);
-      }
-    } else if (part) {
-      // Process inline math in this part
-      const inlineParts = part.split(/(\\?\$\$[^$]*\$\$)/g);
-      inlineParts.forEach((inlinePart, inlineIndex) => {
-        if (inlinePart.startsWith('$$') && inlinePart.endsWith('$$')) {
-          const formula = inlinePart.slice(2, -2);
-          try {
-            parts.push(<InlineMath key={`${index}-inline-${inlineIndex}`} math={formula} />);
-          } catch (error) {
-            console.error('LaTeX rendering error:', error);
-            parts.push(<span key={`${index}-inline-${inlineIndex}`} className="text-red-500">{inlinePart}</span>);
-          }
-        } else if (inlinePart) {
-          parts.push(<span key={`${index}-inline-${inlineIndex}`}>{inlinePart}</span>);
-        }
-      });
-    }
-  });
-  
-  return <>{parts}</>;
+  // Fallback for unknown content types
+  return <div className={className}>{content}</div>;
 };
 
-export const formatStatementType = (type: string): string => {
-  switch (type) {
-    case 'balance-sheet': return 'Balance Sheet';
-    case 'income-statement': return 'Income Statement';
-    case 'cash-flow': return 'Cash Flow Statement';
-    case 'ratio': return 'Financial Ratios';
-    default: return type;
-  }
-};
+export default ContentRenderer;

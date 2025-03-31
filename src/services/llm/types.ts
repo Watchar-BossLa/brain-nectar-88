@@ -10,7 +10,11 @@ export enum TaskCategory {
   TRANSLATION = 'TRANSLATION',
   CHAT = 'CHAT',
   CODE_GENERATION = 'CODE_GENERATION',
-  CUSTOM = 'CUSTOM'
+  CUSTOM = 'CUSTOM',
+  // Adding missing categories
+  TEXT_GENERATION = 'TEXT_GENERATION',
+  REASONING = 'REASONING',
+  CONTENT_CREATION = 'CONTENT_CREATION'
 }
 
 // Task complexity levels
@@ -31,4 +35,51 @@ export interface ModelExecutionResult {
     total: number;
   };
   executionTime: number;
+}
+
+// Additional types needed by the system
+export interface ModelExecutionInput {
+  prompt: string;
+  modelId?: string;
+  parameters?: ModelParameters;
+}
+
+export interface ModelParameters {
+  temperature?: number;
+  maxTokens?: number;
+  topP?: number;
+  frequencyPenalty?: number;
+  presencePenalty?: number;
+}
+
+export interface ModelProviderConfig {
+  id: string;
+  name: string;
+  apiKey?: string;
+  baseUrl?: string;
+  models: ModelType[];
+}
+
+export interface ModelType {
+  id: string;
+  name: string;
+  provider: string;
+  contextSize: number;
+  capabilities: TaskCategory[];
+}
+
+export interface ModelEvaluation {
+  modelId: string;
+  accuracy: number;
+  latency: number;
+  costEfficiency: number;
+  resourceEfficiency: number;
+}
+
+export interface ExecutionMetrics {
+  modelId: string;
+  taskCategory: TaskCategory;
+  executionTime: number;
+  tokenCount: number;
+  success: boolean;
 }

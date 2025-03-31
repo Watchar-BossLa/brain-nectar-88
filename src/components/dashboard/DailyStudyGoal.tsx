@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '@/lib/motion-imports';
 import { Progress } from '@/components/ui/progress';
 
 const DailyStudyGoal = () => {

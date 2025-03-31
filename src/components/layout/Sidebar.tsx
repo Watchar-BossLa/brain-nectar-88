@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/auth';
 import {
@@ -23,6 +23,7 @@ interface SidebarProps {
 
 export function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) {
   const { user, isAdmin } = useAuth();
+  const location = useLocation();
 
   const navigationItems = [
     {
@@ -111,24 +112,31 @@ export function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) {
 
         <nav className="flex-1 overflow-y-auto py-4">
           <ul className="space-y-1 px-2">
-            {navigationItems.map((item) => (
-              <li key={item.name}>
-                <NavLink
-                  to={item.href}
-                  className={({ isActive }) => `
-                    flex items-center hover:bg-accent hover:text-accent-foreground rounded-md transition-all
-                    ${isSidebarOpen ? 'py-2 px-3 justify-start' : 'p-3 justify-center'}
-                    ${isActive ? 'bg-accent text-accent-foreground' : ''}
-                  `}
-                  end={item.href === '/'}
-                >
-                  <item.icon className="h-5 w-5" />
-                  <span className={`ml-2 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 w-0'} transition-all duration-300`}>
-                    {item.name}
-                  </span>
-                </NavLink>
-              </li>
-            ))}
+            {navigationItems.map((item) => {
+              // Check if this is the active route
+              const isActive = 
+                (item.href === '/' && location.pathname === '/') ||
+                (item.href !== '/' && location.pathname.startsWith(item.href));
+                
+              return (
+                <li key={item.name}>
+                  <NavLink
+                    to={item.href}
+                    className={({ isActive: navActive }) => `
+                      flex items-center hover:bg-accent hover:text-accent-foreground rounded-md transition-all
+                      ${isSidebarOpen ? 'py-2 px-3 justify-start' : 'p-3 justify-center'}
+                      ${navActive || isActive ? 'bg-accent text-accent-foreground' : ''}
+                    `}
+                    end={item.href === '/'}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span className={`ml-2 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 w-0'} transition-all duration-300`}>
+                      {item.name}
+                    </span>
+                  </NavLink>
+                </li>
+              );
+            })}
           </ul>
         </nav>
       </div>
