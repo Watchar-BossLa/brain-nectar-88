@@ -13,7 +13,7 @@ export const calculateFlashcardRetention = (
   currentDate: Date = new Date()
 ): number => {
   // If the flashcard has never been reviewed, return a low baseline retention
-  if (!('last_reviewed_at' in flashcard) || !flashcard.last_reviewed_at) {
+  if (!flashcard.last_reviewed_at) {
     return 0.3; // 30% baseline retention for new cards
   }
 
@@ -25,7 +25,7 @@ export const calculateFlashcardRetention = (
   // - R is retention
   // - t is time since last review (in days)
   // - S is stability factor (influenced by easiness_factor)
-  const stabilityFactor = ('easiness_factor' in flashcard) && flashcard.easiness_factor 
+  const stabilityFactor = flashcard.easiness_factor 
     ? flashcard.easiness_factor * 1.5 
     : 2.5;
   

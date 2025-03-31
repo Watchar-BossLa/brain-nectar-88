@@ -14,6 +14,16 @@ export interface Flashcard {
   last_reviewed_at?: string;
   next_review_at?: string;
   review_count?: number;
+  // Additional fields for front-end compatibility
+  front_content?: string;
+  back_content?: string;
+  topic_id?: string;
+  topicId?: string;
+  difficulty?: number;
+  mastery_level?: number;
+  repetition_count?: number;
+  next_review_date?: string;
+  last_retention?: number;
 }
 
 export interface FlashcardLearningStats {
@@ -25,6 +35,7 @@ export interface FlashcardLearningStats {
   last_reviewed_at: string;
   next_review_at: string;
   review_count: number;
+  totalCards?: number;
 }
 
 export interface FlashcardDeck {

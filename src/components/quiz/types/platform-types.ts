@@ -36,3 +36,26 @@ export interface FormulasTabProps {
   subject?: string;
   topics?: string[];
 }
+
+export interface ActiveQuizProps {
+  question: any;
+  questionIndex: number;
+  totalQuestions: number;
+  handleSubmitAnswer: (answer: string) => void;
+}
+
+export interface CameraCaptureProps {
+  onImageCaptured: (imageData: string) => void;
+  onVideoCaptured?: (videoBlob: Blob) => void;
+  allowVideo?: boolean;
+  onClose?: () => void;
+}
+
+export interface AITutorAssistantProps {
+  mediaSource?: string;
+  mediaType: 'image' | 'video' | 'text';
+  subject?: string;
+  question?: string;
+  isOpen: boolean;
+  onClose: () => void;
+}

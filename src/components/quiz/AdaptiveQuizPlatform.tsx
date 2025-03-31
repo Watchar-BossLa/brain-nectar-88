@@ -5,11 +5,13 @@ import { useQuizState } from './hooks/adaptive-quiz/useQuizState';
 import { useQuizActions } from './hooks/adaptive-quiz/useQuizActions';
 import { useTopicSelection } from './hooks/quiz/useTopicSelection';
 import QuizSettings from './components/platform/QuizSettings';
-import QuizQuestion from './components/QuizQuestion';
+import QuizQuestion from './components/platform/QuizQuestion';
 import QuizResults from './components/platform/QuizResults';
 import { Button } from '@/components/ui/button';
-import { Settings, PlayCircle } from 'lucide-react';
+import { Settings, PlayCircle, Camera } from 'lucide-react';
 import { quizQuestions } from './data/quizQuestions';
+import CameraCapture from './components/media/CameraCapture';
+import AITutorAssistant from './components/ai-tutor/AITutorAssistant';
 
 interface AdaptiveQuizPlatformProps {
   initialSubject?: string;
@@ -23,6 +25,9 @@ const AdaptiveQuizPlatform: React.FC<AdaptiveQuizPlatformProps> = ({
   const [userAnswers, setUserAnswers] = useState<string[]>([]);
   const [quizStatus, setQuizStatus] = useState<'setup' | 'in-progress' | 'completed'>('setup');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [showCamera, setShowCamera] = useState(false);
+  const [showAITutor, setShowAITutor] = useState(false);
+  const [capturedImage, setCapturedImage] = useState<string | undefined>(undefined);
   
   // Set up custom state and actions
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
@@ -110,16 +115,41 @@ const AdaptiveQuizPlatform: React.FC<AdaptiveQuizPlatformProps> = ({
     setShowSettings(!showSettings);
   };
 
+  const handleCameraCapture = () => {
+    setShowCamera(true);
+  };
+
+  const handleImageCaptured = (imageData: string) => {
+    setCapturedImage(imageData);
+    setShowCamera(false);
+    setShowAITutor(true);
+  };
+
+  const handleCloseCamera = () => {
+    setShowCamera(false);
+  };
+
+  const handleCloseAITutor = () => {
+    setShowAITutor(false);
+    setCapturedImage(undefined);
+  };
+
   return (
     <Card className="p-4 md:p-6">
       {quizStatus === 'setup' && (
         <>
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-semibold">Quiz Setup</h2>
-            <Button variant="outline" size="sm" onClick={handleToggleSettings}>
-              {showSettings ? <PlayCircle className="h-4 w-4 mr-1" /> : <Settings className="h-4 w-4 mr-1" />}
-              {showSettings ? 'Quick Start' : 'Show Settings'}
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleCameraCapture}>
+                <Camera className="h-4 w-4 mr-1" />
+                Scan Question
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleToggleSettings}>
+                {showSettings ? <PlayCircle className="h-4 w-4 mr-1" /> : <Settings className="h-4 w-4 mr-1" />}
+                {showSettings ? 'Quick Start' : 'Show Settings'}
+              </Button>
+            </div>
           </div>
 
           {showSettings ? (
@@ -133,7 +163,7 @@ const AdaptiveQuizPlatform: React.FC<AdaptiveQuizPlatformProps> = ({
               questionCount={questionCount}
               handleQuestionCountChange={(value) => setQuestionCount(Number(value))}
               initialDifficulty={currentDifficulty}
-              handleDifficultyChange={(value) => setCurrentDifficulty(value as 1 | 2 | 3)}
+              handleDifficultyChange={(value) => setCurrentDifficulty(Number(value) as 1 | 2 | 3)}
               showSettings={showSettings}
               setShowSettings={setShowSettings}
               handleStartQuiz={handleStartQuiz}
@@ -172,6 +202,23 @@ const AdaptiveQuizPlatform: React.FC<AdaptiveQuizPlatformProps> = ({
           questions={questions}
           answers={userAnswers}
           onRestart={restartQuiz}
+        />
+      )}
+
+      {showCamera && (
+        <CameraCapture 
+          onImageCaptured={handleImageCaptured}
+          onClose={handleCloseCamera}
+        />
+      )}
+
+      {showAITutor && (
+        <AITutorAssistant
+          mediaSource={capturedImage}
+          mediaType="image"
+          subject={selectedSubject}
+          isOpen={showAITutor}
+          onClose={handleCloseAITutor}
         />
       )}
     </Card>

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
-import { Flashcard } from '@/hooks/useFlashcardsPage';
+import { Flashcard } from './types';
 
 export const useFlashcardsMutation = (onSuccess: () => void) => {
   const { toast } = useToast();
@@ -83,8 +83,8 @@ export const useFlashcardsMutation = (onSuccess: () => void) => {
       if (updates.topicId || updates.topic_id) {
         updateData.topic_id = updates.topicId || updates.topic_id;
       }
-      if (updates.next_review_date) {
-        updateData.next_review_date = updates.next_review_date;
+      if (updates.next_review_date || updates.next_review_at) {
+        updateData.next_review_date = updates.next_review_date || updates.next_review_at;
       }
       
       const { error: updateError } = await supabase
