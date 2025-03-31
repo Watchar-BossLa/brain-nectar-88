@@ -30,12 +30,9 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ userId })
     loadReviews();
   }, [userId]);
 
-  const handleRate = (difficulty: string | number) => {
-    // Convert string to number if needed
-    const difficultyValue = typeof difficulty === 'string' ? parseInt(difficulty, 10) : difficulty;
-    
+  const handleRate = (difficulty: number) => {
     // Handle flashcard rating logic here
-    console.log(`Rated flashcard as ${difficultyValue}`);
+    console.log(`Rated flashcard as ${difficulty}`);
     
     handleNext();
   };
@@ -83,6 +80,7 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ userId })
         flashcard={currentCard}
         onRate={handleRate} 
         onFlip={() => {}}
+        onNext={handleNext}
       />
     </div>
   );

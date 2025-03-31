@@ -41,11 +41,11 @@ const FlashcardView: React.FC<FlashcardViewProps> = ({
         <div className="text-center text-lg">
           {isFlipped ? (
             <div className="animate-fadeIn">
-              {flashcard.back_content || flashcard.back}
+              {flashcard.back_content || ''}
             </div>
           ) : (
             <div>
-              {flashcard.front_content || flashcard.front}
+              {flashcard.front_content || ''}
             </div>
           )}
         </div>

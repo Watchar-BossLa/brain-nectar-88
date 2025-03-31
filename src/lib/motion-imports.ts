@@ -1,32 +1,50 @@
 
-// Re-export all motion components from our framer-motion-stub
-// This allows component files to import from this central file
-import { 
-  motion, 
-  AnimatePresence, 
-  useAnimation, 
-  useMotionValue, 
-  useTransform, 
-  useScroll, 
-  useSpring, 
-  useInView, 
-  useDragControls, 
-  useVelocity 
-} from '@/lib/framer-motion-stub';
+// Stub for framer-motion
+// This allows us to use motion components without actually importing framer-motion
+// which is helpful for development and testing without the full library
 
-// Export all from the stub
-export {
-  motion,
-  AnimatePresence,
-  useAnimation,
-  useMotionValue,
-  useTransform,
-  useScroll,
-  useSpring,
-  useInView,
-  useDragControls,
-  useVelocity
+// Basic component types
+export const motion = {
+  div: 'div',
+  span: 'span',
+  button: 'button',
+  a: 'a',
+  ul: 'ul',
+  li: 'li',
+  p: 'p',
+  h1: 'h1',
+  h2: 'h2',
+  h3: 'h3',
+  h4: 'h4',
+  h5: 'h5',
+  h6: 'h6',
+  img: 'img',
+  svg: 'svg',
+  path: 'path',
+  circle: 'circle',
+  rect: 'rect'
 };
 
-// Export convenience type for component props
-export type MotionProps = React.ComponentProps<typeof motion.div>;
+// Basic animation utility
+export const AnimatePresence = ({ children }: { children: React.ReactNode }) => {
+  return <>{children}</>;
+};
+
+// Animation hooks
+export const useAnimation = () => ({
+  start: () => Promise.resolve(),
+  stop: () => {},
+  set: () => {}
+});
+
+export const useMotionValue = (initialValue: number) => ({
+  get: () => initialValue,
+  set: () => {},
+  onChange: () => () => {}
+});
+
+export const useTransform = (
+  value: any,
+  inputRange: number[],
+  outputRange: number[]
+) => outputRange[0];

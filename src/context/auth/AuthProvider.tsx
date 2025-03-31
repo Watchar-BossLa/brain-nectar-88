@@ -61,12 +61,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Clean up auth listener on unmount
     return () => {
-      if (authListener) {
-        // Call unsubscribe if it exists
-        if (typeof authListener.unsubscribe === 'function') {
-          authListener.unsubscribe();
-        }
-        // No need to access .subscription.unsubscribe
+      if (authListener && typeof authListener.subscription?.unsubscribe === 'function') {
+        authListener.subscription.unsubscribe();
       }
     };
   }, []);

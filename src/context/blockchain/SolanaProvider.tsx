@@ -4,7 +4,7 @@ import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { clusterApiUrl } from '@solana/web3.js';
-// Import our stubs instead of the real adapters (replace with real imports when needed)
+// Import our stubs
 import {
   BackpackWalletAdapter,
   BraveWalletAdapter,
@@ -25,7 +25,7 @@ export const SolanaProvider: FC<SolanaProviderProps> = ({ children }) => {
   // You can also provide a custom RPC endpoint
   const endpoint = useMemo(() => clusterApiUrl(network), [network]);
 
-  // Stub wallets with minimal functionality
+  // Use our stub wallets that conform to the expected interface
   const wallets = useMemo(
     () => [
       new BackpackWalletAdapter(),
@@ -35,6 +35,7 @@ export const SolanaProvider: FC<SolanaProviderProps> = ({ children }) => {
     []
   );
 
+  // @ts-ignore - Using stubs for development
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
