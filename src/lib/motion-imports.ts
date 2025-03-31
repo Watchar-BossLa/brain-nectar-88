@@ -3,6 +3,8 @@
 // This allows us to use motion components without actually importing framer-motion
 // which is helpful for development and testing without the full library
 
+import React from 'react';
+
 // Basic component types
 export const motion = {
   div: 'div',
@@ -40,7 +42,7 @@ export const useAnimation = () => ({
 export const useMotionValue = (initialValue: number) => ({
   get: () => initialValue,
   set: () => {},
-  onChange: () => () => {}
+  onChange: () => (() => {})
 });
 
 export const useTransform = (
