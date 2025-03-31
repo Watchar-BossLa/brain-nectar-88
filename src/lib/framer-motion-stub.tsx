@@ -1,41 +1,15 @@
 
 import React from 'react';
 
-// Create stub components to mimic Framer Motion functionality
-// This allows the app to compile without framer-motion dependency
-
-type MotionComponentProps = {
-  initial?: any;
-  animate?: any;
-  exit?: any;
-  transition?: any;
-  variants?: any;
-  whileHover?: any;
-  whileTap?: any;
-  whileFocus?: any;
-  whileDrag?: any;
-  whileInView?: any;
-  viewport?: any;
-  drag?: boolean | 'x' | 'y';
-  dragConstraints?: any;
-  onAnimationComplete?: () => void;
-  onDragStart?: () => void;
-  onDragEnd?: () => void;
-  onClick?: () => void;
-  children?: React.ReactNode;
-  className?: string;
-  style?: React.CSSProperties;
-  [key: string]: any;
+// Basic stub for motion components
+const createMotionComponent = (tag: keyof JSX.IntrinsicElements) => {
+  return React.forwardRef((props: any, ref) => {
+    const { initial, animate, exit, transition, ...rest } = props;
+    return React.createElement(tag, { ...rest, ref });
+  });
 };
 
-// Create a factory function for motion components
-const createMotionComponent = (Component: string) => 
-  React.forwardRef<HTMLElement, MotionComponentProps>(
-    ({ children, ...props }, ref) => 
-      React.createElement(Component, { ref, ...props }, children)
-  );
-
-// Create the motion object with all HTML elements
+// Create motion components for common HTML elements
 export const motion = {
   div: createMotionComponent('div'),
   span: createMotionComponent('span'),
@@ -48,43 +22,36 @@ export const motion = {
   h2: createMotionComponent('h2'),
   h3: createMotionComponent('h3'),
   h4: createMotionComponent('h4'),
-  h5: createMotionComponent('h5'),
-  h6: createMotionComponent('h6'),
-  article: createMotionComponent('article'),
-  section: createMotionComponent('section'),
-  nav: createMotionComponent('nav'),
-  aside: createMotionComponent('aside'),
   header: createMotionComponent('header'),
   footer: createMotionComponent('footer'),
+  section: createMotionComponent('section'),
+  article: createMotionComponent('article'),
+  aside: createMotionComponent('aside'),
+  nav: createMotionComponent('nav'),
   main: createMotionComponent('main'),
   form: createMotionComponent('form'),
   input: createMotionComponent('input'),
   textarea: createMotionComponent('textarea'),
   select: createMotionComponent('select'),
   option: createMotionComponent('option'),
+  img: createMotionComponent('img'),
   svg: createMotionComponent('svg'),
   path: createMotionComponent('path'),
   circle: createMotionComponent('circle'),
-  rect: createMotionComponent('rect'),
-  img: createMotionComponent('img'),
-  video: createMotionComponent('video'),
-  iframe: createMotionComponent('iframe')
 };
 
-// AnimatePresence component stub
-export const AnimatePresence: React.FC<{
-  children?: React.ReactNode;
-  mode?: 'sync' | 'wait' | 'popLayout';
+// Stub for AnimatePresence
+export const AnimatePresence: React.FC<{ 
+  children: React.ReactNode;
   initial?: boolean;
+  mode?: 'sync' | 'wait' | 'popLayout';
   onExitComplete?: () => void;
-}> = ({ children }) => {
-  return <>{children}</>;
-};
+}> = ({ children }) => <>{children}</>;
 
-// Hooks stubs
+// Stubs for animation hooks
 export const useAnimation = () => ({
   start: () => Promise.resolve(),
-  stop: () => Promise.resolve(),
+  stop: () => {},
   set: () => {},
 });
 
@@ -94,12 +61,34 @@ export const useMotionValue = (initial: number) => ({
   onChange: () => () => {},
 });
 
-export const useTransform = () => 0;
-export const useScroll = () => ({
-  scrollY: { get: () => 0, onChange: () => () => {} },
-  scrollYProgress: { get: () => 0, onChange: () => () => {} },
+export const useTransform = <T, U>(
+  value: { get: () => T },
+  inputRange: T[],
+  outputRange: U[]
+) => ({
+  get: () => outputRange[0],
+  set: () => {},
 });
-export const useSpring = () => 0;
-export const useInView = () => false;
-export const useDragControls = () => ({});
-export const useVelocity = () => 0;
+
+export const useScroll = () => ({
+  scrollX: { get: () => 0, set: () => {} },
+  scrollY: { get: () => 0, set: () => {} },
+  scrollXProgress: { get: () => 0, set: () => {} },
+  scrollYProgress: { get: () => 0, set: () => {} },
+});
+
+export const useSpring = (initialValue: number) => ({
+  get: () => initialValue,
+  set: () => {},
+});
+
+export const useInView = (ref: React.RefObject<Element>) => false;
+
+export const useDragControls = () => ({
+  start: () => {},
+});
+
+export const useVelocity = (value: { get: () => number }) => ({
+  get: () => 0,
+  set: () => {},
+});

@@ -1,6 +1,5 @@
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { supabase } from '@/lib/supabase';
 import { User, Session } from '@supabase/supabase-js';
 import * as authService from './authService';
 import { platformOwner } from '@/constants';
@@ -62,8 +61,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Clean up auth listener on unmount
     return () => {
-      if (authListener && typeof authListener.unsubscribe === 'function') {
-        authListener.unsubscribe();
+      if (authListener) {
+        // Call unsubscribe if it exists
+        if (typeof authListener.unsubscribe === 'function') {
+          authListener.unsubscribe();
+        }
+        // No need to access .subscription.unsubscribe
       }
     };
   }, []);

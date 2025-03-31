@@ -18,8 +18,8 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ userId })
     const loadReviews = async () => {
       try {
         setLoading(true);
-        const result = await getDueFlashcards(userId);
-        setFlashcards(result || []);
+        const flashcardsData = await getDueFlashcards(userId);
+        setFlashcards(flashcardsData || []);
       } catch (error) {
         console.error('Error loading flashcards for review:', error);
       } finally {
@@ -29,6 +29,16 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ userId })
 
     loadReviews();
   }, [userId]);
+
+  const handleRate = (difficulty: string | number) => {
+    // Convert string to number if needed
+    const difficultyValue = typeof difficulty === 'string' ? parseInt(difficulty, 10) : difficulty;
+    
+    // Handle flashcard rating logic here
+    console.log(`Rated flashcard as ${difficultyValue}`);
+    
+    handleNext();
+  };
 
   const handleNext = () => {
     if (currentIndex < flashcards.length - 1) {
@@ -71,7 +81,8 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ userId })
       
       <FlashcardView 
         flashcard={currentCard}
-        onNext={handleNext}
+        onRate={handleRate} 
+        onFlip={() => {}}
       />
     </div>
   );

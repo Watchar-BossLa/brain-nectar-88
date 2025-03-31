@@ -1,175 +1,188 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import { Send, Loader2 } from 'lucide-react';
-import { AgentType, TaskPriority, TaskStatus, TaskType } from '@/services/agents/types/agentTypes';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Loader2, Send, X, Image, MessageSquare } from "lucide-react";
+import { Avatar } from "@/components/ui/avatar";
 
-interface Message {
-  id: string;
-  content: string;
-  isUser: boolean;
-  timestamp: Date;
+export interface AITutorAssistantProps {
+  mediaSource?: string;
+  mediaType?: "image" | "text";
+  subject?: string;
+  question?: string;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-interface AITutorAssistantProps {
-  questionContent?: string;
-  userAnswer?: string;
-  correctAnswer?: string;
-  subject?: string;
-  topic?: string;
-  difficulty?: number;
+interface Message {
+  role: "user" | "assistant";
+  content: string;
 }
 
 const AITutorAssistant: React.FC<AITutorAssistantProps> = ({
-  questionContent = '',
-  userAnswer = '',
-  correctAnswer = '',
-  subject = 'Accounting',
-  topic = 'Financial Statements',
-  difficulty = 2
+  mediaSource,
+  mediaType = "text",
+  subject = "accounting",
+  question = "",
+  isOpen,
+  onClose
 }) => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      content: 'Hello! I\'m your AI tutor. How can I help you understand this topic better?',
-      isUser: false,
-      timestamp: new Date()
-    }
-  ]);
-  
-  const [newMessage, setNewMessage] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  
+
+  // Add initial assistant message when component loads
+  React.useEffect(() => {
+    if (question) {
+      const initialMessages: Message[] = [
+        {
+          role: "assistant",
+          content: `Hello! I'm your AI study assistant for ${subject}. How can I help you understand this question better?`
+        }
+      ];
+      setMessages(initialMessages);
+    }
+  }, [question, subject]);
+
   const handleSendMessage = async () => {
-    if (!newMessage.trim()) return;
-    
-    // Add user message
+    if (!inputMessage.trim()) return;
+
+    // Add user message to chat
     const userMessage: Message = {
-      id: `user-${Date.now()}`,
-      content: newMessage,
-      isUser: true,
-      timestamp: new Date()
+      role: "user",
+      content: inputMessage
     };
-    
-    setMessages(prev => [...prev, userMessage]);
-    setNewMessage('');
+    setMessages([...messages, userMessage]);
+    setInputMessage("");
     setIsLoading(true);
-    
+
     try {
-      // Create a simulated AI tutoring task
-      const tutorTask = {
-        id: `task-${Date.now()}`,
-        type: TaskType.TUTORING,
-        data: {
-          userMessage: newMessage,
-          questionContent,
-          userAnswer,
-          correctAnswer,
-          subject,
-          topic,
-        },
-        priority: TaskPriority.MEDIUM,
-        agentType: AgentType.TUTORING,
-        createdAt: new Date().toISOString(),
-        status: TaskStatus.PENDING
-      };
-      
-      // Simulate API delay
+      // Simulate AI response
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Generate AI response based on the context
-      let aiResponse = 'I understand you\'re asking about ';
-      
-      if (newMessage.toLowerCase().includes('wrong')) {
-        aiResponse += `why your answer was incorrect. The key difference between your answer "${userAnswer}" and the correct answer "${correctAnswer}" is that...`;
-      } else if (newMessage.toLowerCase().includes('hint')) {
-        aiResponse += `this ${topic} question. Here's a hint without giving away the answer: Focus on the relationship between assets and liabilities in this context.`;
+      // Generate simple response based on the question
+      let response = `I understand your question about ${subject}. `;
+      if (question) {
+        response += `Regarding "${question}", here's what I can explain: this involves key concepts in ${subject} that relate to accounting principles. Would you like me to break this down step by step?`;
       } else {
-        aiResponse += `${topic}. This is an important concept in ${subject}. Let me explain it in a way that might help your understanding...`;
+        response += `I can help you understand concepts in ${subject}. What specific part are you struggling with?`;
       }
       
-      // Add AI response
       const aiMessage: Message = {
-        id: `ai-${Date.now()}`,
-        content: aiResponse,
-        isUser: false,
-        timestamp: new Date()
+        role: "assistant",
+        content: response
       };
       
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
-      console.error('Error in AI tutoring:', error);
-      
-      // Add error message
+      console.error("Error getting AI response:", error);
       const errorMessage: Message = {
-        id: `error-${Date.now()}`,
-        content: 'Sorry, I encountered an error while processing your request. Please try again.',
-        isUser: false,
-        timestamp: new Date()
+        role: "assistant",
+        content: "I'm sorry, I encountered an error while generating a response. Please try again."
       };
-      
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
-  
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle className="text-center">AI Tutor</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4 h-[350px] overflow-y-auto p-4 border rounded-md mb-4">
-          {messages.map(message => (
-            <div
-              key={message.id}
-              className={`p-3 rounded-lg ${
-                message.isUser 
-                  ? 'bg-primary text-primary-foreground ml-auto' 
-                  : 'bg-muted'
-              } max-w-[80%] ${message.isUser ? 'ml-auto' : 'mr-auto'}`}
+    <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
+      <DialogContent className="sm:max-w-[500px] max-h-[80vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            AI Study Assistant
+          </DialogTitle>
+        </DialogHeader>
+        
+        {mediaSource && mediaType === "image" && (
+          <div className="bg-muted/20 rounded-md p-2 mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Image className="h-4 w-4" />
+              <span className="text-sm font-medium">Image attached</span>
+            </div>
+            <div className="relative rounded-md overflow-hidden h-[200px]">
+              <img 
+                src={mediaSource} 
+                alt="Captured content" 
+                className="w-full h-full object-contain bg-black/5"
+              />
+            </div>
+          </div>
+        )}
+        
+        <div className="flex-1 overflow-y-auto mb-4 space-y-4 max-h-[300px] min-h-[200px]">
+          {messages.map((msg, index) => (
+            <div 
+              key={index}
+              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <p>{message.content}</p>
-              <p className="text-xs opacity-70 mt-1">
-                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </p>
+              <div 
+                className={`flex gap-3 max-w-[80%] ${
+                  msg.role === 'user' ? 'flex-row-reverse' : ''
+                }`}
+              >
+                <Avatar className={`h-8 w-8 ${
+                  msg.role === 'assistant' 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'bg-muted'
+                }`}>
+                  {msg.role === 'assistant' ? 'AI' : 'ME'}
+                </Avatar>
+                <div 
+                  className={`rounded-lg px-4 py-2 ${
+                    msg.role === 'assistant' 
+                      ? 'bg-muted' 
+                      : 'bg-primary text-primary-foreground'
+                  }`}
+                >
+                  {msg.content}
+                </div>
+              </div>
             </div>
           ))}
+          
           {isLoading && (
-            <div className="p-3 rounded-lg bg-muted max-w-[80%] mr-auto flex items-center">
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              <p>Thinking...</p>
+            <div className="flex justify-start">
+              <div className="flex gap-3 max-w-[80%]">
+                <Avatar className="h-8 w-8 bg-primary text-primary-foreground">
+                  AI
+                </Avatar>
+                <div className="rounded-lg px-4 py-2 bg-muted flex items-center">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                </div>
+              </div>
             </div>
           )}
         </div>
-      </CardContent>
-      <CardFooter>
-        <div className="w-full flex space-x-2">
-          <Textarea
+        
+        <div className="flex gap-2">
+          <Textarea 
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="Ask a question about this topic..."
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            className="flex-1"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage();
-              }
-            }}
+            className="resize-none min-h-[60px]"
           />
           <Button 
             onClick={handleSendMessage} 
-            disabled={isLoading || !newMessage.trim()}
-            size="icon"
+            size="icon" 
+            disabled={isLoading || !inputMessage.trim()}
           >
             <Send className="h-4 w-4" />
           </Button>
         </div>
-      </CardFooter>
-    </Card>
+      </DialogContent>
+    </Dialog>
   );
 };
 

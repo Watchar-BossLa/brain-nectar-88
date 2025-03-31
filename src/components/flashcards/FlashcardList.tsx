@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { getUserFlashcards, deleteFlashcard } from '@/services/spacedRepetition';
-import { Flashcard } from '@/types/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,6 +9,7 @@ import FlashcardListHeader from './FlashcardListHeader';
 import EmptyFlashcardState from './EmptyFlashcardState';
 import FlashcardGrid from './FlashcardGrid';
 import DeleteFlashcardDialog from './DeleteFlashcardDialog';
+import { Flashcard } from '@/types/supabase'; // Use consistent Flashcard type
 
 interface FlashcardListProps {
   onAddNew: () => void;
@@ -33,7 +33,7 @@ const FlashcardList: React.FC<FlashcardListProps> = ({
 
   const fetchFlashcards = async () => {
     if (propFlashcards) {
-      setFlashcards(propFlashcards);
+      setFlashcards(propFlashcards as any as Flashcard[]);
       setLoading(false);
       return;
     }
@@ -44,8 +44,10 @@ const FlashcardList: React.FC<FlashcardListProps> = ({
         throw new Error('User not authenticated');
       }
       
-      const data = await getUserFlashcards(user.id);
-      setFlashcards(data || []);
+      const cardsData = await getUserFlashcards(user.id);
+      if (cardsData) {
+        setFlashcards(cardsData as any as Flashcard[]);
+      }
     } catch (error) {
       console.error('Error fetching flashcards:', error);
       toast({
@@ -60,7 +62,7 @@ const FlashcardList: React.FC<FlashcardListProps> = ({
 
   useEffect(() => {
     if (propFlashcards) {
-      setFlashcards(propFlashcards);
+      setFlashcards(propFlashcards as any as Flashcard[]);
       setLoading(false);
     } else if (user) {
       fetchFlashcards();
@@ -76,9 +78,9 @@ const FlashcardList: React.FC<FlashcardListProps> = ({
     if (!flashcardToDelete) return;
     
     try {
-      const result = await deleteFlashcard(flashcardToDelete);
+      const success = await deleteFlashcard(flashcardToDelete);
       
-      if (!result) {
+      if (!success) {
         throw new Error('Failed to delete flashcard');
       }
       

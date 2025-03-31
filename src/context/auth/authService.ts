@@ -1,12 +1,18 @@
 
 import { supabase } from '@/lib/supabase';
-import { Provider } from '@supabase/supabase-js';
 import { 
   signInWithPassword, 
   signUp as supabaseSignUp,
   signInWithOAuth as supabaseSignInWithOAuth,
-  signOut as supabaseSignOut
+  signOut as supabaseSignOut 
 } from '@/lib/supabaseAuth';
+
+// Define the Provider type to match what's used in supabaseAuth
+type Provider = 'apple' | 'azure' | 'bitbucket' | 'discord' | 
+               'facebook' | 'github' | 'gitlab' | 'google' | 
+               'keycloak' | 'linkedin' | 'notion' | 'slack' | 
+               'spotify' | 'twitch' | 'twitter' | 'workos' |
+               'zoom';
 
 /**
  * Signs in a user with email and password
@@ -43,7 +49,7 @@ export const signIn = async (email: string, password: string) => {
  */
 export const signInWithOAuth = async (provider: Provider) => {
   try {
-    const { data, error } = await supabaseSignInWithOAuth(provider, {
+    const { data, error } = await supabaseSignInWithOAuth(provider as any, {
       redirectTo: `${window.location.origin}/auth/callback`
     });
     

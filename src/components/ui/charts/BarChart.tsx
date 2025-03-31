@@ -8,7 +8,6 @@ interface BarChartProps {
   xAxisKey?: string;
   colors?: string[];
   height?: number;
-  stacked?: boolean;
 }
 
 export const BarChart: React.FC<BarChartProps> = ({ 
@@ -16,8 +15,7 @@ export const BarChart: React.FC<BarChartProps> = ({
   dataKeys, 
   xAxisKey = "name",
   colors = ["#2563eb", "#16a34a", "#dc2626", "#9333ea", "#f59e0b"], 
-  height = 300,
-  stacked = false
+  height = 300 
 }) => {
   return (
     <ResponsiveContainer width="100%" height={height}>
@@ -40,7 +38,6 @@ export const BarChart: React.FC<BarChartProps> = ({
             key={key}
             dataKey={key} 
             fill={colors[index % colors.length]} 
-            stackId={stacked ? "stack" : undefined} 
           />
         ))}
       </RechartsBarChart>
