@@ -9,6 +9,7 @@ import QuizQuestion from './components/QuizQuestion';
 import QuizResults from './components/platform/QuizResults';
 import { Button } from '@/components/ui/button';
 import { Settings, PlayCircle } from 'lucide-react';
+import { quizQuestions } from './data/quizQuestions';
 
 interface AdaptiveQuizPlatformProps {
   initialSubject?: string;
@@ -18,37 +19,88 @@ const AdaptiveQuizPlatform: React.FC<AdaptiveQuizPlatformProps> = ({
   initialSubject = 'accounting'
 }) => {
   const [showSettings, setShowSettings] = useState(true);
-  const quizState = useQuizState();
-  const quizActions = useQuizActions(quizState);
+  const [questions, setQuestions] = useState(quizQuestions);
+  const [userAnswers, setUserAnswers] = useState<string[]>([]);
+  const [quizStatus, setQuizStatus] = useState<'setup' | 'in-progress' | 'completed'>('setup');
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   
-  const {
-    selectedTopics,
-    setSelectedTopics,
-    selectedSubject,
-    setSelectedSubject,
-    questionCount,
-    setQuestionCount,
-    currentDifficulty,
-    setCurrentDifficulty,
-    quizStatus
-  } = quizState;
-  
-  const {
-    startQuiz,
-    submitAnswer,
-    restartQuiz,
-    nextQuestion
-  } = quizActions;
+  // Set up custom state and actions
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [selectedSubject, setSelectedSubject] = useState<string>(initialSubject);
+  const [questionCount, setQuestionCount] = useState(5);
+  const [currentDifficulty, setCurrentDifficulty] = useState<1 | 2 | 3>(2);
   
   // Initialize with the prop value
   useEffect(() => {
     if (initialSubject) {
       setSelectedSubject(initialSubject);
     }
-  }, [initialSubject, setSelectedSubject]);
+  }, [initialSubject]);
   
-  const { allTopics, allSubjects, toggleTopic, getFilteredQuestions } = useTopicSelection(quizState);
-
+  const allTopics = [...new Set(quizQuestions
+    .filter(q => !selectedSubject || q.subject === selectedSubject || (!q.subject && selectedSubject === 'accounting'))
+    .map(q => q.topic)
+  )];
+  
+  const allSubjects = [...new Set(quizQuestions.map(q => q.subject || 'accounting'))];
+  
+  const toggleTopic = (topic: string) => {
+    if (selectedTopics.includes(topic)) {
+      setSelectedTopics(selectedTopics.filter(t => t !== topic));
+    } else {
+      setSelectedTopics([...selectedTopics, topic]);
+    }
+  };
+  
+  const getFilteredQuestions = () => {
+    return quizQuestions.filter(q => {
+      // Filter by subject
+      const subjectMatch = !selectedSubject || q.subject === selectedSubject || (!q.subject && selectedSubject === 'accounting');
+      
+      // Filter by topics if any are selected
+      const topicMatch = selectedTopics.length === 0 || selectedTopics.includes(q.topic);
+      
+      return subjectMatch && topicMatch;
+    });
+  };
+  
+  const startQuiz = () => {
+    const filteredQuestions = getFilteredQuestions();
+    // Shuffle and limit to question count
+    const shuffled = [...filteredQuestions].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, questionCount);
+    
+    setQuestions(selected);
+    setUserAnswers([]);
+    setCurrentQuestionIndex(0);
+    setQuizStatus('in-progress');
+    setShowSettings(false);
+  };
+  
+  const submitAnswer = (answer: string) => {
+    const newAnswers = [...userAnswers];
+    newAnswers[currentQuestionIndex] = answer;
+    setUserAnswers(newAnswers);
+    
+    // Move to next question or end quiz
+    if (currentQuestionIndex < questions.length - 1) {
+      setTimeout(() => {
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+      }, 1000); // Give time to show the result
+    } else {
+      setTimeout(() => {
+        setQuizStatus('completed');
+      }, 1000);
+    }
+  };
+  
+  const restartQuiz = () => {
+    setQuizStatus('setup');
+    setCurrentQuestionIndex(0);
+    setUserAnswers([]);
+    setShowSettings(true);
+  };
+  
   const handleStartQuiz = () => {
     startQuiz();
     setShowSettings(false);
@@ -81,7 +133,7 @@ const AdaptiveQuizPlatform: React.FC<AdaptiveQuizPlatformProps> = ({
               questionCount={questionCount}
               handleQuestionCountChange={(value) => setQuestionCount(Number(value))}
               initialDifficulty={currentDifficulty}
-              handleDifficultyChange={(value) => setCurrentDifficulty(Number(value))}
+              handleDifficultyChange={(value) => setCurrentDifficulty(value as 1 | 2 | 3)}
               showSettings={showSettings}
               setShowSettings={setShowSettings}
               handleStartQuiz={handleStartQuiz}
@@ -105,20 +157,20 @@ const AdaptiveQuizPlatform: React.FC<AdaptiveQuizPlatformProps> = ({
         </>
       )}
 
-      {quizStatus === 'in-progress' && (
+      {quizStatus === 'in-progress' && questions[currentQuestionIndex] && (
         <QuizQuestion
-          key={quizState.currentQuestionIndex}
-          question={quizState.questions[quizState.currentQuestionIndex]}
+          key={currentQuestionIndex}
+          question={questions[currentQuestionIndex]}
           onSubmit={submitAnswer}
-          questionNumber={quizState.currentQuestionIndex + 1}
-          totalQuestions={quizState.questions.length}
+          questionNumber={currentQuestionIndex + 1}
+          totalQuestions={questions.length}
         />
       )}
 
       {quizStatus === 'completed' && (
         <QuizResults
-          questions={quizState.questions}
-          answers={quizState.userAnswers}
+          questions={questions}
+          answers={userAnswers}
           onRestart={restartQuiz}
         />
       )}

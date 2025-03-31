@@ -1,9 +1,18 @@
 
-import { AnsweredQuestion } from '../types';
-
-export interface AnalyticsTabProps {
-  answeredQuestions: AnsweredQuestion[];
-  setActiveTab: (tab: string) => void;
+export interface QuizSettingsProps {
+  topics: string[];
+  selectedTopics: string[];
+  handleTopicChange: (topic: string) => void;
+  subjects: string[];
+  selectedSubjects: string[];
+  handleSubjectChange: (subject: string) => void;
+  questionCount: number;
+  handleQuestionCountChange: (value: string) => void;
+  initialDifficulty: number;
+  handleDifficultyChange: (value: string) => void;
+  showSettings?: boolean;
+  setShowSettings?: (show: boolean) => void;
+  handleStartQuiz?: () => void;
 }
 
 export interface QuizWelcomeProps {
@@ -11,31 +20,19 @@ export interface QuizWelcomeProps {
   handleStartQuiz: () => void;
 }
 
-export interface QuizSettingsProps {
-  topics: string[];
-  selectedTopics: string[];
-  handleTopicChange: (topic: string) => void;
-  subjects: any[];
-  selectedSubjects: string[];
-  handleSubjectChange: (subject: string) => void;
-  questionCount: number;
-  handleQuestionCountChange: (value: string) => void;
-  initialDifficulty: 1 | 2 | 3;
-  handleDifficultyChange: (value: string) => void;
-  showSettings: boolean;
-  setShowSettings: (show: boolean) => void;
-  handleStartQuiz: () => void;
+export interface QuizAnalyticsProps {
+  sessionId?: string;
+  userId?: string;
+  quizResults?: any;
 }
 
-export interface ActiveQuizProps {
-  quiz: any;
-  filteredQuestions: any[];
-  questionCount: number;
-  userConfidence: number;
-  handleConfidenceChange: (value: number) => void;
+export interface SocialTabProps {
+  userId?: string;
+  sessionId?: string;
+  quizResults?: any;
 }
 
-// Add the FormulasTabProps type
 export interface FormulasTabProps {
-  setActiveTab?: (tab: string) => void;
+  subject?: string;
+  topics?: string[];
 }
