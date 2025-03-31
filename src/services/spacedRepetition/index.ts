@@ -71,3 +71,6 @@ export {
   type FlashcardRetentionResult,
   type FlashcardLearningStats
 };
+
+// Also re-export from flashcardService for backward compatibility
+export * from '../flashcardService';

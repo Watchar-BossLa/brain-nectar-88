@@ -31,4 +31,9 @@ export interface FlashcardLearningStats {
   averageRetention?: number;
   nextDueCards?: number;
   topic?: string; // Adding this field to fix compatibility issues
+  id?: string; // Add for compatibility
+  difficulty?: number; // Add for compatibility
+  mastery_level?: number; // Add for compatibility
+  easiness_factor?: number; // Ensure both naming conventions are available
+  repetition_count?: number; // Add for compatibility
 }

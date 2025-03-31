@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -10,19 +11,13 @@ import { format } from 'date-fns';
 import { ScoreDataItem } from '../results/types';
 import { PerformanceChart } from '../results/PerformanceChart';
 
-const badgeVariants = {
-  correct: "bg-green-100 text-green-800",
-  incorrect: "bg-red-100 text-red-800",
-  skipped: "bg-gray-100 text-gray-800",
-};
-
 const SessionDetail = () => {
   const { sessionId } = useParams();
   
-  const { data: session, isLoading, isError } = useQuery(
-    ['quizSession', sessionId],
-    () => getQuizSession(sessionId || '')
-  );
+  const { data: session, isLoading, isError } = useQuery({
+    queryKey: ['quizSession', sessionId],
+    queryFn: () => getQuizSession(sessionId || '')
+  });
   
   if (isLoading) {
     return (
@@ -48,7 +43,7 @@ const SessionDetail = () => {
   const sessionScore = session.score || 0;
   const averageScore = 75; // Replace with actual average score if available
   
-  const performanceData = [
+  const performanceData: ScoreDataItem[] = [
     { name: 'Your Score', score: sessionScore, average: 0, color: '#10b981' },
     { name: 'Average', score: 0, average: averageScore, color: '#6366f1' }
   ];
@@ -99,12 +94,12 @@ const SessionDetail = () => {
         <h4 className="text-sm font-medium mb-2">Question Breakdown</h4>
         <ScrollArea className="h-[400px]">
           <div className="space-y-2">
-            {session.quiz_answered_questions?.map((answer) => (
+            {session.quiz_answered_questions?.map((answer: any) => (
               <Card key={answer.id} className="border">
                 <CardContent className="space-y-2">
                   <div className="flex justify-between">
                     <h5 className="font-medium">{answer.question?.question_text}</h5>
-                    <Badge variant={answer.is_correct ? 'correct' : 'incorrect'}>
+                    <Badge variant={answer.is_correct ? "success" : "destructive"}>
                       {answer.is_correct ? 'Correct' : 'Incorrect'}
                     </Badge>
                   </div>

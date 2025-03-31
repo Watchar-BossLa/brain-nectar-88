@@ -22,9 +22,9 @@ export interface QuestionFeedback {
   timestamp: string;
   userId?: string;
   questionText?: string;
-  feedbackType?: string; 
-  feedbackText?: string;
-  createdAt?: string;
+  feedbackType?: string;  // Added this property
+  feedbackText?: string;  // Added this property
+  createdAt?: string;     // Added this property
 }
 
 export interface ScoreDataItem {

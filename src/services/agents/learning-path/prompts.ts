@@ -15,3 +15,9 @@ Based on the user's recent quiz performance and study progress, update their lea
 3. Adapt to the user's learning pace
 4. Maintain a balance between new content and review material
 `;
+
+// Export as an object for ease of importing
+export const LearningPathPrompts = {
+  GENERATION: LEARNING_PATH_GENERATION_PROMPT,
+  UPDATE: PATH_UPDATE_PROMPT
+};

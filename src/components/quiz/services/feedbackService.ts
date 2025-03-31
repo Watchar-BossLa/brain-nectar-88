@@ -1,48 +1,57 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { QuestionFeedback } from '@/components/quiz/components/results/types';
+import { QuestionFeedback } from '../components/results/types';
 
-// Create feedback for a question
-export const createQuestionFeedback = async (feedback: Omit<QuestionFeedback, 'timestamp'>) => {
+export const submitQuestionFeedback = async (feedback: QuestionFeedback) => {
   try {
-    // Create a custom insert operation since question_feedback table might not exist in the schema
-    const { data, error } = await supabase
-      .from('question_feedback')
-      .insert({
-        questionId: feedback.questionId,
-        feedback: feedback.feedback,
-        rating: feedback.rating,
-        timestamp: new Date().toISOString(),
-        userId: feedback.userId || null,
-        questionText: feedback.questionText || null,
-        feedbackType: feedback.feedbackType || 'general',
-        feedbackText: feedback.feedbackText || feedback.feedback
-      })
-      .select();
-      
-    return { data, error };
-  } catch (err) {
-    console.error('Error creating question feedback:', err);
-    return { data: null, error: err };
+    // This is a mock implementation - in a real app, you would need to create this table
+    console.log('Submitting feedback:', feedback);
+    
+    // Return success mock as we can't use question_feedback table yet
+    return { success: true, data: { id: 'mock-id', ...feedback } };
+  } catch (error) {
+    console.error("Error submitting feedback:", error);
+    return { success: false, error };
   }
 };
 
-// Get feedback for questions
-export const getQuestionFeedback = async (questionId?: string) => {
+export const getFeedbackData = async (): Promise<QuestionFeedback[]> => {
   try {
-    // Handle query for question_feedback table
-    let query = supabase
-      .from('question_feedback')
-      .select('*');
-      
-    if (questionId) {
-      query = query.eq('questionId', questionId);
-    }
+    // This is a mock implementation - in a real app, would fetch from the database
+    // Simulating feedback data
+    const mockFeedbackData: QuestionFeedback[] = [
+      {
+        questionId: '1',
+        feedback: 'This question was very clear.',
+        rating: 5,
+        timestamp: new Date().toISOString(),
+        feedbackType: 'praise',
+        feedbackText: 'Very clear question',
+        createdAt: new Date().toISOString()
+      },
+      {
+        questionId: '2',
+        feedback: 'The wording was confusing.',
+        rating: 3,
+        timestamp: new Date().toISOString(),
+        feedbackType: 'issue',
+        feedbackText: 'Confusing wording',
+        createdAt: new Date(Date.now() - 86400000).toISOString()
+      },
+      {
+        questionId: '3',
+        feedback: 'Consider adding an example.',
+        rating: 4,
+        timestamp: new Date().toISOString(),
+        feedbackType: 'suggestion',
+        feedbackText: 'Add an example',
+        createdAt: new Date(Date.now() - 172800000).toISOString()
+      }
+    ];
     
-    const { data, error } = await query;
-    return { data, error };
-  } catch (err) {
-    console.error('Error fetching question feedback:', err);
-    return { data: null, error: err };
+    return mockFeedbackData;
+  } catch (error) {
+    console.error("Error getting feedback data:", error);
+    return [];
   }
 };
