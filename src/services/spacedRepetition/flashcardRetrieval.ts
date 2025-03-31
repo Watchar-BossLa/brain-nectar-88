@@ -1,42 +1,24 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { queryFlashcardLearningStats } from '@/lib/database-stub';
+import { Flashcard } from '@/hooks/flashcards/types';
 
 /**
- * Get all flashcards due for review for a specific user
- * @param userId The ID of the user
- * @returns Array of flashcards due for review
+ * Get all flashcards for a user
  */
-export const getDueFlashcards = async (userId: string) => {
+export const getUserFlashcards = async (userId?: string): Promise<Flashcard[]> => {
   try {
-    const now = new Date().toISOString();
-    
-    // Get flashcards due for review
-    const { data: flashcards, error } = await supabase
-      .from('flashcards')
-      .select('*')
-      .eq('user_id', userId)
-      .lte('next_review_date', now)
-      .order('next_review_date', { ascending: true });
+    // If userId not provided, get from session
+    if (!userId) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      userId = sessionData.session?.user?.id;
       
-    if (error) throw error;
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
+    }
     
-    return flashcards || [];
-  } catch (error) {
-    console.error('Error getting due flashcards:', error);
-    return [];
-  }
-};
-
-/**
- * Get all flashcards for a specific user
- * @param userId The ID of the user
- * @returns Array of all user's flashcards
- */
-export const getUserFlashcards = async (userId: string) => {
-  try {
-    // Get all flashcards for this user
-    const { data: flashcards, error } = await supabase
+    // Get flashcards
+    const { data, error } = await supabase
       .from('flashcards')
       .select('*')
       .eq('user_id', userId)
@@ -44,102 +26,113 @@ export const getUserFlashcards = async (userId: string) => {
       
     if (error) throw error;
     
-    return flashcards || [];
+    return data || [];
   } catch (error) {
-    console.error('Error getting user flashcards:', error);
+    console.error('Error fetching flashcards:', error);
     return [];
   }
 };
 
 /**
- * Get flashcards for a specific topic
- * @param userId The ID of the user
- * @param topicId The ID of the topic
- * @returns Array of flashcards for the specified topic
+ * Get flashcards due for review
  */
-export const getFlashcardsByTopic = async (userId: string, topicId: string) => {
+export const getDueFlashcards = async (userId?: string, topicId?: string): Promise<Flashcard[]> => {
   try {
-    // Get flashcards for this topic
-    const { data: flashcards, error } = await supabase
-      .from('flashcards')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('topic_id', topicId)
-      .order('created_at', { ascending: false });
+    // If userId not provided, get from session
+    if (!userId) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      userId = sessionData.session?.user?.id;
       
-    if (error) throw error;
-    
-    return flashcards || [];
-  } catch (error) {
-    console.error('Error getting flashcards by topic:', error);
-    return [];
-  }
-};
-
-/**
- * Get flashcards that the user is struggling with
- * @param userId The ID of the user
- * @param limit The maximum number of flashcards to return
- * @returns Array of struggled flashcards
- */
-export const getStrugglingFlashcards = async (userId: string, limit = 10) => {
-  try {
-    // Flashcards with low mastery level or high repetition count
-    const { data: flashcards, error } = await supabase
-      .from('flashcards')
-      .select('*')
-      .eq('user_id', userId)
-      .lt('mastery_level', 0.5)
-      .gt('repetition_count', 2)
-      .order('mastery_level', { ascending: true })
-      .limit(limit);
-      
-    if (error) throw error;
-    
-    return flashcards || [];
-  } catch (error) {
-    console.error('Error getting struggling flashcards:', error);
-    return [];
-  }
-};
-
-/**
- * Get flashcards that the user has mastered
- * @param userId The ID of the user
- * @param limit The maximum number of flashcards to return
- * @returns Array of mastered flashcards
- */
-export const getMasteredFlashcards = async (userId: string, limit = 10) => {
-  try {
-    // Get learning stats for all flashcards
-    const { data: stats } = await queryFlashcardLearningStats(userId);
-    
-    if (!stats || stats.length === 0) {
-      return [];
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
     }
     
-    // Filter for mastered cards (high easiness factor and repetition count)
-    const masteredIds = stats
-      .filter(stat => stat.easiness_factor >= 2.5 && stat.repetitions >= 3)
-      .map(stat => stat.flashcard_id);
-    
-    if (masteredIds.length === 0) {
-      return [];
-    }
-    
-    // Get the actual flashcards
-    const { data: flashcards, error } = await supabase
+    // Build query
+    let query = supabase
       .from('flashcards')
       .select('*')
       .eq('user_id', userId)
-      .in('id', masteredIds)
-      .limit(limit);
+      .lte('next_review_date', new Date().toISOString());
+      
+    // Filter by topic if provided
+    if (topicId) {
+      query = query.eq('topic_id', topicId);
+    }
+    
+    // Execute query
+    const { data, error } = await query.order('next_review_date');
+    
+    if (error) throw error;
+    
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching due flashcards:', error);
+    return [];
+  }
+};
+
+/**
+ * Get flashcards by topic
+ */
+export const getFlashcardsByTopic = async (
+  userId: string,
+  topicId: string
+): Promise<Flashcard[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('flashcards')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('topic_id', topicId);
       
     if (error) throw error;
     
-    return flashcards || [];
+    return data || [];
   } catch (error) {
-    console.error('Error getting mastered flashcards:', error);
+    console.error('Error fetching flashcards by topic:', error);
+    return [];
+  }
+};
+
+/**
+ * Get struggling flashcards (low mastery, frequently wrong)
+ */
+export const getStrugglingFlashcards = async (userId: string): Promise<Flashcard[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('flashcards')
+      .select('*')
+      .eq('user_id', userId)
+      .lt('mastery_level', 0.3)
+      .order('mastery_level');
+      
+    if (error) throw error;
+    
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching struggling flashcards:', error);
+    return [];
+  }
+};
+
+/**
+ * Get mastered flashcards (high mastery)
+ */
+export const getMasteredFlashcards = async (userId: string): Promise<Flashcard[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('flashcards')
+      .select('*')
+      .eq('user_id', userId)
+      .gte('mastery_level', 0.8)
+      .order('mastery_level', { ascending: false });
+      
+    if (error) throw error;
+    
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching mastered flashcards:', error);
     return [];
   }
 };

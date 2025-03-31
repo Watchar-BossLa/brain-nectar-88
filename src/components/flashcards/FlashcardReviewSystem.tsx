@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import FlashcardView from './review-page/FlashcardView';
-import { getFlashcardReviews } from '@/services/flashcardService';
+import { getDueFlashcards } from '@/services/spacedRepetition';
 
 interface FlashcardReviewSystemProps {
   userId: string;
@@ -18,8 +18,8 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ userId })
     const loadReviews = async () => {
       try {
         setLoading(true);
-        const flashcardsData = await getFlashcardReviews(userId);
-        setFlashcards(flashcardsData || []);
+        const result = await getDueFlashcards(userId);
+        setFlashcards(result || []);
       } catch (error) {
         console.error('Error loading flashcards for review:', error);
       } finally {
@@ -29,16 +29,6 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ userId })
 
     loadReviews();
   }, [userId]);
-
-  const handleRate = (difficulty: string | number) => {
-    // Convert string to number if needed
-    const difficultyValue = typeof difficulty === 'string' ? parseInt(difficulty, 10) : difficulty;
-    
-    // Handle flashcard rating logic here
-    console.log(`Rated flashcard as ${difficultyValue}`);
-    
-    handleNext();
-  };
 
   const handleNext = () => {
     if (currentIndex < flashcards.length - 1) {
@@ -80,9 +70,8 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ userId })
       </div>
       
       <FlashcardView 
-        flashcard={currentCard} 
-        onRate={handleRate}
-        onNext={handleNext} 
+        flashcard={currentCard}
+        onNext={handleNext}
       />
     </div>
   );

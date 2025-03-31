@@ -1,143 +1,125 @@
 
-import { supabase } from '@/lib/supabase';
-import { v4 as uuidv4 } from 'uuid';
-import { getSession } from '@/lib/supabaseAuth';
-
-// Types
-export interface CreateFlashcardInput {
-  question: string;
-  answer: string;
-  topic: string;
-  category?: string;
-  difficulty?: number;
-  content_type?: string;
-  user_id?: string;
-}
+import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Create a new flashcard
+ * Create a new flashcard in the database
  */
-export async function createFlashcard(data: CreateFlashcardInput) {
+export const createFlashcard = async (
+  frontContentOrUserId: string, 
+  backContent: string, 
+  topicIdOrNull?: string | null
+) => {
   try {
-    // Get current user session
-    const { data: sessionData } = await getSession();
+    // Get current user with updated syntax
+    const { data: sessionData } = await supabase.auth.getSession();
+    const session = sessionData.session;
+    let userId: string;
+    let frontContent: string;
     
-    if (!sessionData?.session?.user?.id && !data.user_id) {
+    // Handle different function signatures
+    if (session && session.user && session.user.id === frontContentOrUserId) {
+      // If first argument is userId (old signature)
+      userId = frontContentOrUserId;
+      frontContent = backContent;
+      backContent = topicIdOrNull as string;
+      topicIdOrNull = null;
+    } else {
+      // If first argument is frontContent (new signature)
+      userId = session?.user?.id || '';
+      frontContent = frontContentOrUserId;
+    }
+    
+    if (!userId) {
       throw new Error('User not authenticated');
     }
-    
-    const userId = data.user_id || sessionData?.session?.user?.id;
-    
-    // Insert flashcard
-    const { data: flashcard, error } = await supabase
+
+    // Create the flashcard
+    const response = await supabase
       .from('flashcards')
       .insert({
-        id: uuidv4(),
+        front_content: frontContent,
+        back_content: backContent,
+        topic_id: topicIdOrNull || null,
         user_id: userId,
-        question: data.question,
-        answer: data.answer,
-        topic: data.topic,
-        category: data.category || 'General',
-        difficulty: data.difficulty || 0.5,
-        content_type: data.content_type || 'text',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .select()
-      .single();
-    
-    if (error) {
-      throw error;
-    }
-    
-    // Create initial learning stats
-    const { error: statsError } = await supabase
-      .from('flashcard_learning_stats')
-      .insert({
-        flashcard_id: flashcard.id,
-        user_id: userId,
-        easiness_factor: 2.5, // Initial easiness factor (SM-2 algorithm)
+        difficulty: 0,
         repetition_count: 0,
-        interval_days: 0,
-        last_review_date: new Date().toISOString(),
-        next_review_date: new Date().toISOString(), // Due immediately for first review
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      });
-    
-    if (statsError) {
-      console.error('Error creating flashcard learning stats:', statsError);
-    }
-    
-    return flashcard;
+        mastery_level: 0,
+        easiness_factor: 2.5,
+        next_review_date: new Date().toISOString()
+      })
+      .select();
+      
+    // Return the created flashcard
+    return response.data?.[0] || null;
   } catch (error) {
     console.error('Error creating flashcard:', error);
     throw error;
   }
-}
+};
 
 /**
- * Delete a flashcard
+ * Delete a flashcard from the database
  */
-export async function deleteFlashcard(id: string) {
+export const deleteFlashcard = async (flashcardId: string): Promise<boolean> => {
   try {
-    // First delete related learning stats (to avoid foreign key constraint errors)
-    const { error: statsError } = await supabase
-      .from('flashcard_learning_stats')
-      .delete()
-      .match({ flashcard_id: id });
+    // Check if user is authenticated
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData.session?.user?.id;
     
-    if (statsError) {
-      console.error('Error deleting flashcard learning stats:', statsError);
+    if (!userId) {
+      throw new Error('User not authenticated');
     }
     
-    // Delete related reviews
-    const { error: reviewsError } = await supabase
-      .from('flashcard_reviews')
-      .delete()
-      .match({ flashcard_id: id });
-    
-    if (reviewsError) {
-      console.error('Error deleting flashcard reviews:', reviewsError);
-    }
-    
-    // Delete the flashcard itself
+    // Delete the flashcard
     const { error } = await supabase
       .from('flashcards')
       .delete()
-      .match({ id });
-    
-    if (error) {
-      throw error;
-    }
+      .eq('id', flashcardId)
+      .eq('user_id', userId);
+      
+    if (error) throw error;
     
     return true;
   } catch (error) {
     console.error('Error deleting flashcard:', error);
-    throw error;
+    return false;
   }
-}
+};
 
 /**
- * Update a flashcard
+ * Update a flashcard in the database
  */
-export async function updateFlashcard(id: string, data: Partial<CreateFlashcardInput>) {
+export const updateFlashcard = async (
+  flashcardId: string, 
+  updates: { 
+    front_content?: string; 
+    back_content?: string;
+    topic_id?: string;
+    difficulty?: number;
+  }
+): Promise<any> => {
   try {
-    const { error } = await supabase
-      .from('flashcards')
-      .update({
-        ...data,
-        updated_at: new Date().toISOString()
-      })
-      .match({ id });
+    // Check if user is authenticated
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData.session?.user?.id;
     
-    if (error) {
-      throw error;
+    if (!userId) {
+      throw new Error('User not authenticated');
     }
     
-    return true;
+    // Update the flashcard
+    const { data, error } = await supabase
+      .from('flashcards')
+      .update(updates)
+      .eq('id', flashcardId)
+      .eq('user_id', userId)
+      .select();
+      
+    if (error) throw error;
+    
+    return data?.[0] || null;
   } catch (error) {
     console.error('Error updating flashcard:', error);
-    throw error;
+    return null;
   }
-}
+};

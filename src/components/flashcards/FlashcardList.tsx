@@ -5,7 +5,7 @@ import { Flashcard } from '@/types/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/auth';
 import FlashcardListHeader from './FlashcardListHeader';
 import EmptyFlashcardState from './EmptyFlashcardState';
 import FlashcardGrid from './FlashcardGrid';
@@ -44,10 +44,7 @@ const FlashcardList: React.FC<FlashcardListProps> = ({
         throw new Error('User not authenticated');
       }
       
-      const { data, error } = await getUserFlashcards(user.id);
-      if (error) {
-        throw new Error(error.message);
-      }
+      const data = await getUserFlashcards(user.id);
       setFlashcards(data || []);
     } catch (error) {
       console.error('Error fetching flashcards:', error);
@@ -79,9 +76,10 @@ const FlashcardList: React.FC<FlashcardListProps> = ({
     if (!flashcardToDelete) return;
     
     try {
-      const { error } = await deleteFlashcard(flashcardToDelete);
-      if (error) {
-        throw new Error(error.message);
+      const result = await deleteFlashcard(flashcardToDelete);
+      
+      if (!result) {
+        throw new Error('Failed to delete flashcard');
       }
       
       setFlashcards(flashcards.filter(card => card.id !== flashcardToDelete));
