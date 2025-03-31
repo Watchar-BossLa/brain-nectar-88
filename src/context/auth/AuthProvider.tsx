@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { PLATFORM_OWNER } from './constants';
+import { PLATFORM_OWNERS } from './constants';
 import { AuthContext } from './AuthContext';
 import { useAuthService } from './authService';
 import { AuthUser } from './types';
@@ -13,6 +13,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isPlatformOwner, setIsPlatformOwner] = useState(false);
   const { toast } = useToast();
   const authService = useAuthService();
 
@@ -24,11 +25,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(currentSession);
         setUser(currentSession?.user as AuthUser ?? null);
         
-        // Check if the current user is the platform administrator
-        if (currentSession?.user?.email === PLATFORM_OWNER.email) {
-          setIsAdmin(true);
+        // Check if the current user is a platform administrator
+        const userEmail = currentSession?.user?.email;
+        
+        if (userEmail) {
+          // Check if user is a platform owner
+          const isOwner = PLATFORM_OWNERS.some(owner => owner.email === userEmail);
+          setIsPlatformOwner(isOwner);
+          
+          if (isOwner) {
+            setIsAdmin(true);
+          } else {
+            // Check if the user is in the admins table
+            checkIfUserIsAdmin(currentSession.user.id);
+          }
         } else {
           setIsAdmin(false);
+          setIsPlatformOwner(false);
         }
         
         setLoading(false);
@@ -56,9 +69,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSession(data.session);
           setUser(data.session.user as AuthUser);
           
-          // Check if the current user is the platform administrator
-          if (data.session.user.email === PLATFORM_OWNER.email) {
-            setIsAdmin(true);
+          // Check if the current user is a platform administrator
+          const userEmail = data.session.user.email;
+          
+          if (userEmail) {
+            // Check if user is a platform owner
+            const isOwner = PLATFORM_OWNERS.some(owner => owner.email === userEmail);
+            setIsPlatformOwner(isOwner);
+            
+            if (isOwner) {
+              setIsAdmin(true);
+            } else {
+              // Check if the user is in the admins table
+              checkIfUserIsAdmin(data.session.user.id);
+            }
           }
         }
       } catch (error) {
@@ -70,6 +94,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
       } finally {
         setLoading(false);
+      }
+    };
+
+    // Check if a user is an admin by querying the admins table
+    const checkIfUserIsAdmin = async (userId: string) => {
+      try {
+        const { data, error } = await supabase
+          .from('admins')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+          
+        if (error) {
+          console.error('Error checking admin status:', error);
+          setIsAdmin(false);
+          return;
+        }
+        
+        setIsAdmin(!!data);
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
       }
     };
 
@@ -98,8 +144,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signUp: wrappedAuthMethods.signUp,
         signInWithGoogle: wrappedAuthMethods.signInWithGoogle,
         signOut: wrappedAuthMethods.signOut,
-        platformOwner: PLATFORM_OWNER,
+        platformOwner: PLATFORM_OWNERS[0], // For backward compatibility
+        platformOwners: PLATFORM_OWNERS,
         isAdmin,
+        isPlatformOwner,
       }}
     >
       {children}

@@ -19,6 +19,7 @@ export interface AuthUser {
 
 export interface PlatformOwnerType {
   email: string;
+  name: string;
   [key: string]: string;
 }
 
@@ -30,9 +31,8 @@ export interface AuthContextType {
   signUp: (email: string, password: string, callback?: (success: boolean) => void) => Promise<{ error: Error | null }>;
   signInWithGoogle: (callback?: () => void) => Promise<{ error: Error | null }>;
   signOut: (callback?: () => void) => Promise<void>;
-  platformOwner: {
-    email: string;
-    [key: string]: string;
-  };
+  platformOwner: PlatformOwnerType; // For backward compatibility
+  platformOwners?: PlatformOwnerType[]; // All platform owners
   isAdmin: boolean;
+  isPlatformOwner?: boolean;
 }
