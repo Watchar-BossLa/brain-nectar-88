@@ -1,59 +1,73 @@
 
 import { useState, useEffect } from 'react';
-import { useFlashcardRetrieval } from './useFlashcardRetrieval';
-import { useFlashcardStats } from './useFlashcardStats';
-import { useFlashcardMutation } from './useFlashcardMutation';
-import { useFlashcardReview } from './useFlashcardReview';
+import { useFlashcardsRetrieval } from './useFlashcardsRetrieval';
+import { useFlashcardsStats } from './useFlashcardsStats';
+import { useFlashcardsMutation } from './useFlashcardsMutation';
+import { Flashcard, FlashcardLearningStats } from './types';
 
-/**
- * Main flashcards hook that combines the functionality of the smaller hooks
- */
-export const useFlashcards = () => {
+export interface UseFlashcardsPageReturn {
+  flashcards: Flashcard[];
+  dueFlashcards: Flashcard[];
+  stats: FlashcardLearningStats;
+  loading: boolean;
+  error: Error | null;
+  refreshFlashcards: () => Promise<void>;
+  createFlashcard: (flashcard: Partial<Flashcard>) => Promise<void>;
+  updateFlashcard: (id: string, updates: Partial<Flashcard>) => Promise<void>;
+  deleteFlashcard: (id: string) => Promise<void>;
+  activeTab?: string;
+  setActiveTab?: (tab: string) => void;
+  isCreating?: boolean;
+  setIsCreating?: (creating: boolean) => void;
+  isLoading?: boolean;
+  handleCreateFlashcard?: () => void;
+  handleFlashcardCreated?: () => void;
+  handleStartReview?: () => void;
+  handleUpdateStats?: () => void;
+}
+
+// Combined hook that uses all the smaller hooks
+export const useFlashcardsPage = (): UseFlashcardsPageReturn => {
   const {
     flashcards,
     dueFlashcards,
-    isLoading,
-    fetchFlashcards,
-    fetchDueFlashcards
-  } = useFlashcardRetrieval();
+    loading,
+    error,
+    refreshFlashcards
+  } = useFlashcardsRetrieval();
   
-  const {
-    stats,
-    fetchStats
-  } = useFlashcardStats();
+  const { stats, calculateStats } = useFlashcardsStats(flashcards, dueFlashcards);
   
   const {
     createFlashcard,
+    updateFlashcard,
     deleteFlashcard,
-    updateFlashcard
-  } = useFlashcardMutation(() => {
-    fetchFlashcards();
-    fetchDueFlashcards();
-    fetchStats();
+    loading: mutationLoading
+  } = useFlashcardsMutation(async () => {
+    await refreshFlashcards();
+    calculateStats();
   });
   
-  const {
-    recordReview
-  } = useFlashcardReview(() => {
-    fetchStats();
-    fetchDueFlashcards();
-  });
+  // Calculate stats when flashcards or dueFlashcards change
+  useEffect(() => {
+    calculateStats();
+  }, [flashcards, dueFlashcards]);
 
-  // Combine and re-export everything for backward compatibility
   return {
     flashcards,
     dueFlashcards,
     stats,
-    isLoading,
-    fetchFlashcards,
-    fetchDueFlashcards,
-    fetchStats,
+    loading: loading || mutationLoading,
+    error,
+    refreshFlashcards: async () => {
+      await refreshFlashcards();
+      calculateStats();
+    },
     createFlashcard,
-    deleteFlashcard,
     updateFlashcard,
-    recordReview
+    deleteFlashcard
   };
 };
 
-// Re-export the retention calculation function as is for backward compatibility
-export { calculateFlashcardRetention } from '@/hooks/useFlashcards';
+// Re-export the types
+export * from './types';
