@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTheme } from '@/context/theme';
@@ -10,7 +10,7 @@ import UserProfileCard from '@/components/profile/UserProfileCard';
 
 const Settings = () => {
   const { theme, setMode, toggleHighContrast } = useTheme();
-  const [activeTab, setActiveTab] = React.useState("profile");
+  const [activeTab, setActiveTab] = useState("profile");
 
   return (
     <MainLayout>

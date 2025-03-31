@@ -29,13 +29,10 @@ type MotionComponentProps = {
 };
 
 // Create a factory function for motion components
-const createMotionComponent = (Component: any) => 
+const createMotionComponent = (Component: string) => 
   React.forwardRef<HTMLElement, MotionComponentProps>(
-    ({ children, ...props }, ref) => (
-      <Component ref={ref} {...props}>
-        {children}
-      </Component>
-    )
+    ({ children, ...props }, ref) => 
+      React.createElement(Component, { ref, ...props }, children)
   );
 
 // Create the motion object with all HTML elements
