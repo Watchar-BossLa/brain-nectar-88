@@ -1,4 +1,3 @@
-
 // Define advanced question types
 export type QuizQuestion = {
   id: string;
@@ -54,6 +53,7 @@ export interface QuizResults {
   confidenceAccuracy?: number; // Correlation between confidence and correctness
   recommendedTopics?: string[]; // Topics that need more work
   masteryLevel?: number; // Overall mastery level (0-1)
+  score?: number; // Add the score property to match usage in quizSessionService.ts
 }
 
 // Quiz settings types

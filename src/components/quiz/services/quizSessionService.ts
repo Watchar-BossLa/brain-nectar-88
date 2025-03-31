@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { QuizResults } from '@/types/quiz';
 import { AnsweredQuestion } from '@/components/quiz/types';
@@ -244,7 +245,7 @@ export const fetchQuizSessionDetails = async (sessionId: string): Promise<QuizSe
       performanceByTopic: typedPerformanceByTopic,
       performanceByDifficulty: {}, // We'll reconstruct this from answered questions
       timeSpent: sessionData.time_spent,
-      score: sessionData.score_percentage
+      score: sessionData.score_percentage // Using score_percentage as score
     };
 
     // Reconstruct performance by difficulty
