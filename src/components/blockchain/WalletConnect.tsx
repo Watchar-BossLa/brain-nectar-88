@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useSolana } from '@/context/SolanaContext';
+import { useSolana } from '@/context/blockchain/useSolana';
 import { Button } from '@/components/ui/button';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';

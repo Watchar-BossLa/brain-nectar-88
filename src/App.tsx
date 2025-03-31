@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from './context/auth';
 import { ThemeProvider } from './context/theme';
-import { SolanaProvider } from './context/blockchain';
+import { SolanaContextProvider } from './context/blockchain/SolanaContextProvider';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -31,7 +31,7 @@ function App() {
     <Router>
       <ThemeProvider defaultTheme="light" storageKey="study-bee-theme">
         <AuthProvider>
-          <SolanaProvider>
+          <SolanaContextProvider>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
@@ -50,7 +50,7 @@ function App() {
               <Route path="/blockchain" element={<Blockchain />} />
             </Routes>
             <Toaster />
-          </SolanaProvider>
+          </SolanaContextProvider>
         </AuthProvider>
       </ThemeProvider>
     </Router>
