@@ -1,5 +1,5 @@
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { QuizStateWithSetters } from './types';
 
@@ -9,12 +9,19 @@ export function useDifficultyAdjustment(state: QuizStateWithSetters) {
     currentDifficulty, 
     setCurrentDifficulty,
     userConfidence,
-    answeredQuestions
+    answeredQuestions,
+    questionPool
   } = state;
   
   // Track streaks for more dynamic difficulty adjustment
   const [correctStreak, setCorrectStreak] = useState(0);
   const [incorrectStreak, setIncorrectStreak] = useState(0);
+  
+  // Add adaptive thresholds that adjust based on user's overall performance
+  const [adaptiveThresholds, setAdaptiveThresholds] = useState({
+    increaseDifficulty: 0.7, // Default: Increase difficulty when accuracy is above 70%
+    decreaseDifficulty: 0.4, // Default: Decrease difficulty when accuracy is below 40%
+  });
   
   // Calculate recent performance (last 5 questions)
   const getRecentPerformance = useCallback(() => {
@@ -24,6 +31,64 @@ export function useDifficultyAdjustment(state: QuizStateWithSetters) {
     const correctCount = recentQuestions.filter(q => q.isCorrect).length;
     return correctCount / recentQuestions.length;
   }, [answeredQuestions]);
+  
+  // Calculate overall performance (all questions)
+  const getOverallPerformance = useCallback(() => {
+    if (answeredQuestions.length === 0) return 0.5; // Default to medium
+    
+    const correctCount = answeredQuestions.filter(q => q.isCorrect).length;
+    return correctCount / answeredQuestions.length;
+  }, [answeredQuestions]);
+  
+  // Track performance by difficulty level
+  const getPerformanceByDifficulty = useCallback(() => {
+    const performance = {
+      1: { correct: 0, total: 0 },
+      2: { correct: 0, total: 0 },
+      3: { correct: 0, total: 0 }
+    };
+    
+    answeredQuestions.forEach(q => {
+      if (q.difficulty) {
+        const diff = q.difficulty as 1 | 2 | 3;
+        performance[diff].total += 1;
+        if (q.isCorrect) {
+          performance[diff].correct += 1;
+        }
+      }
+    });
+    
+    return performance;
+  }, [answeredQuestions]);
+
+  // Adjust thresholds based on overall performance
+  useEffect(() => {
+    if (answeredQuestions.length >= 10) {
+      const overallAccuracy = getOverallPerformance();
+      
+      // For high performers, make it harder to increase difficulty
+      if (overallAccuracy > 0.8) {
+        setAdaptiveThresholds({
+          increaseDifficulty: 0.8, // Need 80% accuracy to increase difficulty
+          decreaseDifficulty: 0.3, // More lenient on decreasing
+        });
+      } 
+      // For struggling users, make it easier to decrease difficulty
+      else if (overallAccuracy < 0.5) {
+        setAdaptiveThresholds({
+          increaseDifficulty: 0.65, // Easier to increase difficulty
+          decreaseDifficulty: 0.45, // Higher threshold to decrease (avoid oscillation)
+        });
+      }
+      // Reset to defaults for average performers
+      else {
+        setAdaptiveThresholds({
+          increaseDifficulty: 0.7,
+          decreaseDifficulty: 0.4,
+        });
+      }
+    }
+  }, [answeredQuestions.length, getOverallPerformance]);
 
   // Adjust difficulty based on user performance and confidence
   const updateDifficulty = useCallback((isCorrect: boolean) => {
@@ -36,76 +101,100 @@ export function useDifficultyAdjustment(state: QuizStateWithSetters) {
       setCorrectStreak(0);
     }
     
-    // Calculate base adjustment amount
+    // Calculate base adjustment factors
     // Higher confidence = larger adjustments
     const confidenceFactor = userConfidence || 0.5;
-    let baseAdjustment = 0;
     
-    // If correct answer
+    // Get recent performance metrics
+    const recentPerformance = getRecentPerformance();
+    const performanceByDifficulty = getPerformanceByDifficulty();
+    
+    // Calculate performance at current difficulty level
+    const currentLevelPerformance = performanceByDifficulty[currentDifficulty];
+    const currentLevelAccuracy = currentLevelPerformance.total > 0 
+      ? currentLevelPerformance.correct / currentLevelPerformance.total 
+      : 0.5;
+      
+    // DECISION: INCREASE DIFFICULTY
     if (isCorrect) {
-      // Calculate adjustment based on confidence and streaks
-      // Higher confidence + correct = larger increase in difficulty
-      baseAdjustment = 0.5 + (confidenceFactor * 0.5);
+      // Check if we should increase difficulty based on multiple factors:
+      // 1. Recent performance is good
+      // 2. Currently on a correct streak
+      // 3. Current difficulty level performance is good
+      const shouldIncreaseDifficulty = 
+        (recentPerformance >= adaptiveThresholds.increaseDifficulty && correctStreak >= 3) || 
+        (correctStreak >= 5) || 
+        (currentLevelAccuracy >= 0.85 && currentLevelPerformance.total >= 5);
       
-      // Boost adjustment for streaks (max 3x for 5+ correct in a row)
-      const streakMultiplier = Math.min(1 + (correctStreak * 0.2), 3);
-      baseAdjustment *= streakMultiplier;
-      
-      // Check recent performance - only increase difficulty if generally doing well
-      const recentPerformance = getRecentPerformance();
-      if (recentPerformance >= 0.6) {
-        // Calculate new difficulty - limit to valid levels
-        const newDifficultyValue = Math.min(currentDifficulty + 1, 3);
+      // Only increase if not already at max difficulty
+      if (shouldIncreaseDifficulty && currentDifficulty < 3) {
+        // Calculate new difficulty
+        const newDifficultyValue = currentDifficulty + 1 as 1 | 2 | 3;
+        setCurrentDifficulty(newDifficultyValue);
         
-        // Only notify and change if actually increasing
-        if (newDifficultyValue > currentDifficulty) {
-          setCurrentDifficulty(newDifficultyValue as 1 | 2 | 3);
-          
-          toast({
-            title: "Difficulty increased",
-            description: correctStreak >= 3 
-              ? "Impressive streak! Questions will get more challenging."
-              : "Great job! The questions will get more challenging.",
-            duration: 3000,
-          });
-        }
+        // Notify user with relevant message
+        toast({
+          title: "Difficulty increased",
+          description: correctStreak >= 5 
+            ? "Outstanding streak! Questions will now be more challenging."
+            : "Great progress! The difficulty has been increased to match your skills.",
+          duration: 3000,
+        });
       }
     } 
-    // If incorrect answer
+    // DECISION: DECREASE DIFFICULTY
     else {
-      // Calculate adjustment based on confidence and streaks
-      // Higher confidence + incorrect = larger decrease in difficulty
-      baseAdjustment = 0.5 + (confidenceFactor * 0.5);
+      // Check if we should decrease difficulty based on:
+      // 1. Recent performance is poor
+      // 2. Currently on an incorrect streak
+      // 3. Current difficulty level performance is poor
+      const shouldDecreaseDifficulty = 
+        (recentPerformance <= adaptiveThresholds.decreaseDifficulty && incorrectStreak >= 2) || 
+        (incorrectStreak >= 4) || 
+        (currentLevelAccuracy <= 0.3 && currentLevelPerformance.total >= 4);
       
-      // Larger adjustment for streaks of incorrect answers
-      const streakMultiplier = Math.min(1 + (incorrectStreak * 0.3), 3);
-      baseAdjustment *= streakMultiplier;
-      
-      // Check if we need to decrease difficulty
-      // High confidence but incorrect answer is a strong signal for decreasing difficulty
-      // Also decrease if on an incorrect streak
-      if (confidenceFactor > 0.7 || incorrectStreak >= 2) {
-        const newDifficultyValue = Math.max(currentDifficulty - 1, 1);
+      // Only decrease if not already at min difficulty
+      if (shouldDecreaseDifficulty && currentDifficulty > 1) {
+        // Calculate new difficulty
+        const newDifficultyValue = currentDifficulty - 1 as 1 | 2 | 3;
+        setCurrentDifficulty(newDifficultyValue);
         
-        // Only notify and change if actually decreasing
-        if (newDifficultyValue < currentDifficulty) {
-          setCurrentDifficulty(newDifficultyValue as 1 | 2 | 3);
-          
-          toast({
-            title: "Difficulty adjusted",
-            description: incorrectStreak >= 3
-              ? "Questions will be adjusted to better match your current knowledge level."
-              : "The questions will be more appropriate for your level.",
-            duration: 3000,
-          });
-        }
+        // Notify user with supportive message
+        toast({
+          title: "Difficulty adjusted",
+          description: incorrectStreak >= 4
+            ? "Don't worry! We've adjusted the questions to better match your current level."
+            : "Questions will now be more appropriate for building your knowledge.",
+          duration: 3000,
+        });
       }
     }
-  }, [currentDifficulty, setCurrentDifficulty, userConfidence, correctStreak, incorrectStreak, toast, getRecentPerformance]);
+    
+    // Return useful data for any components that need it
+    return {
+      recentPerformance,
+      correctStreak,
+      incorrectStreak,
+      newDifficulty: currentDifficulty
+    };
+  }, [
+    currentDifficulty, 
+    setCurrentDifficulty, 
+    userConfidence, 
+    correctStreak, 
+    incorrectStreak, 
+    toast, 
+    getRecentPerformance,
+    getPerformanceByDifficulty,
+    adaptiveThresholds
+  ]);
 
   return { 
     updateDifficulty,
     correctStreak,
-    incorrectStreak
+    incorrectStreak,
+    getOverallPerformance,
+    getRecentPerformance,
+    getPerformanceByDifficulty
   };
 }
