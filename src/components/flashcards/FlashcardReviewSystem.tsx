@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { useFlashcardReview } from '@/hooks/useFlashcardReview';
 import { ThumbsUp, ThumbsDown, Lightbulb, Star, Trophy, MessageSquare } from 'lucide-react';
+import { useFlashcardReview } from '@/hooks/useFlashcardReview';
 import { LatexRenderer } from '@/components/math/LatexRendererWrapper';
 import FeedbackDialog from '../quiz/components/feedback/FeedbackDialog';
 import { useToast } from '@/components/ui/use-toast';
@@ -14,13 +15,27 @@ interface FlashcardReviewSystemProps {
 
 const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ onComplete }) => {
   const {
-    currentCard,
-    reviewState,
-    reviewStats,
-    showAnswer,
-    rateCard,
-    completeReview
-  } = useFlashcardReview(onComplete);
+    currentFlashcard,
+    isFlipped,
+    loading,
+    flipCard,
+    reviewFlashcard,
+    currentIndex,
+    flashcards,
+    refreshCards
+  } = useFlashcardReview();
+
+  // Derived states
+  const reviewState = isFlipped ? 'answering' : 'reviewing';
+  const reviewComplete = !loading && (!flashcards || flashcards.length === 0 || currentIndex >= flashcards.length);
+  
+  const [reviewStats, setReviewStats] = useState({
+    totalReviewed: 0,
+    easy: 0,
+    medium: 0,
+    hard: 0,
+    averageRating: 0
+  });
 
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const { toast } = useToast();
@@ -38,8 +53,36 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ onComplet
     });
   };
 
+  const showAnswer = () => flipCard();
+  
+  const rateCard = async (difficulty: number) => {
+    if (currentFlashcard) {
+      // Update review stats
+      setReviewStats(prev => {
+        const newStats = { ...prev };
+        newStats.totalReviewed++;
+        
+        if (difficulty <= 2) newStats.hard++;
+        else if (difficulty === 3) newStats.medium++;
+        else newStats.easy++;
+        
+        const totalRating = prev.averageRating * prev.totalReviewed + difficulty;
+        newStats.averageRating = totalRating / newStats.totalReviewed;
+        
+        return newStats;
+      });
+      
+      await reviewFlashcard(currentFlashcard.id, difficulty);
+    }
+  };
+
+  const completeReview = () => {
+    refreshCards();
+    if (onComplete) onComplete();
+  };
+
   // If there's no current card, show a message
-  if (!currentCard && reviewState !== 'complete') {
+  if (!currentFlashcard && !reviewComplete) {
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
@@ -56,7 +99,7 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ onComplet
   }
 
   // Show review completion screen
-  if (reviewState === 'complete') {
+  if (reviewComplete) {
     return (
       <Card>
         <CardHeader>
@@ -108,6 +151,9 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ onComplet
     return content.includes('$$') || content.includes('$');
   };
 
+  const front = currentFlashcard?.front || currentFlashcard?.front_content || '';
+  const back = currentFlashcard?.back || currentFlashcard?.back_content || '';
+
   return (
     <Card className="overflow-hidden">
       <CardHeader className="bg-muted/20">
@@ -136,10 +182,10 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ onComplet
           <div className="mb-6">
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Question</h3>
             <div className="p-4 border rounded-md bg-card">
-              {hasLatex(currentCard.front) ? (
-                <LatexRenderer latex={currentCard.front} />
+              {hasLatex(front) ? (
+                <LatexRenderer latex={front} />
               ) : (
-                <p className="text-lg">{currentCard.front}</p>
+                <p className="text-lg">{front}</p>
               )}
             </div>
           </div>
@@ -149,10 +195,10 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ onComplet
             <div className="mt-4">
               <h3 className="text-sm font-medium text-muted-foreground mb-2">Answer</h3>
               <div className="p-4 border rounded-md bg-card">
-                {hasLatex(currentCard.back) ? (
-                  <LatexRenderer latex={currentCard.back} />
+                {hasLatex(back) ? (
+                  <LatexRenderer latex={back} />
                 ) : (
-                  <p className="text-lg">{currentCard.back}</p>
+                  <p className="text-lg">{back}</p>
                 )}
               </div>
             </div>
@@ -189,10 +235,10 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ onComplet
         )}
       </CardFooter>
 
-      {currentCard && (
+      {currentFlashcard && (
         <FeedbackDialog
-          questionId={currentCard.id || 'unknown'}
-          questionText={currentCard.front}
+          questionId={currentFlashcard.id || 'unknown'}
+          questionText={front}
           isOpen={isFeedbackOpen}
           onClose={() => setIsFeedbackOpen(false)}
           onSubmitFeedback={handleSubmitFeedback}

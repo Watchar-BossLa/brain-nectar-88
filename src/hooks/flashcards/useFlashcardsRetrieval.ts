@@ -38,11 +38,11 @@ export const useFlashcardsRetrieval = () => {
         created_at: card.created_at,
         updated_at: card.updated_at,
         easiness_factor: card.easiness_factor,
-        interval: card.interval,
-        repetitions: card.repetitions,
+        interval: card.interval || 0,
+        repetitions: card.repetitions || 0,
         last_reviewed_at: card.last_reviewed_at,
         next_review_at: card.next_review_date, // Mapping between different field names
-        review_count: card.review_count,
+        review_count: card.review_count || 0,
         // Additional fields for front-end compatibility
         front_content: card.front_content,
         back_content: card.back_content,

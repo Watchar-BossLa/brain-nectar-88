@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,13 +15,27 @@ interface ReviewFlashcardsTabProps {
 
 const ReviewFlashcardsTab = ({ onComplete }: ReviewFlashcardsTabProps) => {
   const {
-    currentCard,
-    reviewState,
-    reviewStats,
-    showAnswer,
-    rateCard,
-    completeReview
-  } = useFlashcardReview(onComplete);
+    currentFlashcard,
+    isFlipped,
+    loading,
+    flipCard,
+    reviewFlashcard,
+    currentIndex,
+    flashcards,
+    refreshCards
+  } = useFlashcardReview();
+
+  // Derived states
+  const reviewState = isFlipped ? 'answering' : 'reviewing';
+  const reviewComplete = !loading && (!flashcards || flashcards.length === 0 || currentIndex >= flashcards.length);
+  
+  const [reviewStats, setReviewStats] = useState({
+    totalReviewed: 0,
+    easy: 0,
+    medium: 0,
+    hard: 0,
+    averageRating: 0
+  });
 
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const { toast } = useToast();
@@ -38,7 +53,35 @@ const ReviewFlashcardsTab = ({ onComplete }: ReviewFlashcardsTabProps) => {
     });
   };
 
-  if (!currentCard && reviewState !== 'complete') {
+  const showAnswer = () => flipCard();
+  
+  const rateCard = async (difficulty: number) => {
+    if (currentFlashcard) {
+      // Update review stats
+      setReviewStats(prev => {
+        const newStats = { ...prev };
+        newStats.totalReviewed++;
+        
+        if (difficulty <= 2) newStats.hard++;
+        else if (difficulty === 3) newStats.medium++;
+        else newStats.easy++;
+        
+        const totalRating = prev.averageRating * prev.totalReviewed + difficulty;
+        newStats.averageRating = totalRating / newStats.totalReviewed;
+        
+        return newStats;
+      });
+      
+      await reviewFlashcard(currentFlashcard.id, difficulty);
+    }
+  };
+
+  const completeReview = () => {
+    refreshCards();
+    if (onComplete) onComplete();
+  };
+
+  if (!currentFlashcard && !reviewComplete) {
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
@@ -54,7 +97,7 @@ const ReviewFlashcardsTab = ({ onComplete }: ReviewFlashcardsTabProps) => {
     );
   }
 
-  if (reviewState === 'complete') {
+  if (reviewComplete) {
     return (
       <Card>
         <CardHeader>
@@ -105,8 +148,8 @@ const ReviewFlashcardsTab = ({ onComplete }: ReviewFlashcardsTabProps) => {
     return content.includes('$$') || content.includes('$');
   };
 
-  const front = currentCard?.front_content || '';
-  const back = currentCard?.back_content || '';
+  const front = currentFlashcard?.front_content || currentFlashcard?.front || '';
+  const back = currentFlashcard?.back_content || currentFlashcard?.back || '';
 
   return (
     <Card className="overflow-hidden">
@@ -187,9 +230,9 @@ const ReviewFlashcardsTab = ({ onComplete }: ReviewFlashcardsTabProps) => {
         )}
       </CardFooter>
       
-      {currentCard && (
+      {currentFlashcard && (
         <FeedbackDialog
-          questionId={currentCard.id || 'unknown'}
+          questionId={currentFlashcard.id || 'unknown'}
           questionText={front}
           isOpen={isFeedbackOpen}
           onClose={() => setIsFeedbackOpen(false)}

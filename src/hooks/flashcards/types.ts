@@ -76,3 +76,13 @@ export interface FlashcardReviewResponse {
   time_taken: number;
   created_at?: string;
 }
+
+export type ReviewState = 'reviewing' | 'answering' | 'complete';
+
+export interface ReviewStats {
+  totalReviewed: number;
+  easy: number;
+  medium: number;
+  hard: number;
+  averageRating: number;
+}

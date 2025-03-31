@@ -10,48 +10,49 @@ import { Flashcard } from '@/types/supabase';
 
 const FlashcardReview = () => {
   const {
-    isLoading,
-    reviewCards,
-    currentCardIndex,
-    reviewStats,
-    currentCard,
-    reviewState,
-    handleFlip,
-    handleDifficultyRating,
-    handleSkip
-  } = useFlashcardReview(() => {
-    // Callback for when review is complete
-    console.log("Review completed");
-  });
+    loading,
+    flashcards,
+    currentIndex,
+    isFlipped,
+    currentFlashcard,
+    flipCard,
+    reviewFlashcard,
+    skipCard
+  } = useFlashcardReview();
+  
+  // Derived state
+  const reviewComplete = !loading && (!flashcards || flashcards.length === 0 || currentIndex >= flashcards.length);
+  const reviewStats = {
+    totalReviewed: currentIndex
+  };
 
-  if (isLoading) {
+  if (loading) {
     return <LoadingSkeleton />;
   }
 
-  if (!reviewCards || reviewCards.length === 0) {
+  if (!flashcards || flashcards.length === 0) {
     return <EmptyReviewState />;
   }
 
   const reviewsCompleted = reviewStats.totalReviewed || 0;
-  const totalToReview = reviewCards.length || 0;
-  const isFlipped = reviewState === 'answering';
+  const totalToReview = flashcards.length || 0;
 
   // Safe conversion of the currentCard to Supabase Flashcard type
-  const displayCard: Flashcard = currentCard ? {
-    id: currentCard.id,
-    user_id: currentCard.user_id || '',
-    topic_id: currentCard.topicId || currentCard.topic_id || null,
-    front_content: currentCard.front || currentCard.front_content || '',
-    back_content: currentCard.back || currentCard.back_content || '',
-    difficulty: currentCard.difficulty || 0,
-    next_review_date: currentCard.next_review_date || new Date().toISOString(),
-    repetition_count: currentCard.repetition_count || 0,
-    mastery_level: currentCard.mastery_level || 0,
-    created_at: currentCard.created_at || new Date().toISOString(),
-    updated_at: currentCard.updated_at || new Date().toISOString(),
-    easiness_factor: currentCard.easiness_factor || 2.5,
-    last_retention: currentCard.last_retention || 0,
-    last_reviewed_at: currentCard.last_reviewed_at || null
+  const displayCard: Flashcard = currentFlashcard ? {
+    id: currentFlashcard.id,
+    user_id: currentFlashcard.user_id || '',
+    topic_id: currentFlashcard.topicId || currentFlashcard.topic_id || null,
+    front_content: currentFlashcard.front || currentFlashcard.front_content || '',
+    back_content: currentFlashcard.back || currentFlashcard.back_content || '',
+    difficulty: currentFlashcard.difficulty || 0,
+    next_review_date: currentFlashcard.next_review_date || new Date().toISOString(),
+    repetition_count: currentFlashcard.repetition_count || 0,
+    mastery_level: currentFlashcard.mastery_level || 0,
+    created_at: currentFlashcard.created_at || new Date().toISOString(),
+    updated_at: currentFlashcard.updated_at || new Date().toISOString(),
+    easiness_factor: currentFlashcard.easiness_factor || 2.5,
+    last_retention: currentFlashcard.last_retention || 0,
+    last_reviewed_at: currentFlashcard.last_reviewed_at || null
   } : {} as Flashcard;
 
   return (
@@ -61,19 +62,19 @@ const FlashcardReview = () => {
         totalToReview={totalToReview} 
       />
       
-      {currentCard && (
+      {currentFlashcard && (
         <FlashcardView
           flashcard={displayCard}
           isFlipped={isFlipped}
-          onFlip={handleFlip}
+          onFlip={flipCard}
         />
       )}
       
       <RatingButtons 
         isFlipped={isFlipped}
-        onRating={handleDifficultyRating}
-        onSkip={handleSkip}
-        onRevealAnswer={handleFlip}
+        onRating={difficulty => currentFlashcard && reviewFlashcard(currentFlashcard.id, difficulty)}
+        onSkip={skipCard}
+        onRevealAnswer={flipCard}
       />
     </div>
   );

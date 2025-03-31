@@ -42,6 +42,12 @@ export interface ActiveQuizProps {
   questionIndex: number;
   totalQuestions: number;
   handleSubmitAnswer: (answer: string) => void;
+  // Adding the missing properties
+  quiz?: any;
+  filteredQuestions?: any[];
+  questionCount?: number;
+  userConfidence?: number;
+  handleConfidenceChange?: (value: number) => void;
 }
 
 export interface CameraCaptureProps {
@@ -58,4 +64,18 @@ export interface AITutorAssistantProps {
   question?: string;
   isOpen: boolean;
   onClose: () => void;
+}
+
+export interface ScoreSummaryProps {
+  score?: number;
+  correctCount?: number;
+  totalCount?: number;
+}
+
+export interface PerformanceByTopicProps {
+  topicStats?: Record<string, { total: number; correct: number }>;
+}
+
+export interface PerformanceByDifficultyProps {
+  difficultyStats?: Record<number, { total: number; correct: number }>;
 }

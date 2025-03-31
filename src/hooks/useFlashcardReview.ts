@@ -4,12 +4,32 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/auth';
 import { Flashcard } from '@/hooks/flashcards/types';
 
-export const useFlashcardReview = () => {
+export interface ReviewStats {
+  totalReviewed: number;
+  easy: number;
+  medium: number;
+  hard: number;
+  averageRating: number;
+}
+
+export type ReviewState = 'reviewing' | 'answering' | 'complete';
+
+export const useFlashcardReview = (onComplete?: () => void) => {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [reviewState, setReviewState] = useState<ReviewState>('reviewing');
+  const [reviewCards, setReviewCards] = useState<Flashcard[]>([]);
   const { user } = useAuth();
+  
+  const [reviewStats, setReviewStats] = useState<ReviewStats>({
+    totalReviewed: 0,
+    easy: 0,
+    medium: 0,
+    hard: 0,
+    averageRating: 0
+  });
   
   useEffect(() => {
     fetchDueFlashcards();
@@ -41,11 +61,11 @@ export const useFlashcardReview = () => {
         created_at: card.created_at,
         updated_at: card.updated_at,
         easiness_factor: card.easiness_factor,
-        interval: card.interval,
-        repetitions: card.repetitions,
+        interval: card.interval || 0,
+        repetitions: card.repetitions || 0,
         last_reviewed_at: card.last_reviewed_at,
         next_review_at: card.next_review_date,
-        review_count: card.review_count,
+        review_count: card.review_count || 0,
         // Additional fields for front-end compatibility
         front_content: card.front_content,
         back_content: card.back_content,
@@ -58,10 +78,12 @@ export const useFlashcardReview = () => {
       }));
 
       setFlashcards(convertedCards);
+      setReviewCards(convertedCards);
       
       // Reset the current index and flip state
       setCurrentIndex(0);
       setIsFlipped(false);
+      setReviewState('reviewing');
       
     } catch (err) {
       console.error('Error fetching due flashcards:', err);
@@ -116,14 +138,35 @@ export const useFlashcardReview = () => {
         .eq('id', flashcardId);
       
       if (error) throw error;
+
+      // Update review stats
+      setReviewStats(prev => {
+        const newStats = { ...prev };
+        newStats.totalReviewed++;
+        
+        if (difficulty <= 2) {
+          newStats.hard++;
+        } else if (difficulty === 3) {
+          newStats.medium++;
+        } else {
+          newStats.easy++;
+        }
+        
+        const totalRatings = (prev.totalReviewed * prev.averageRating) + difficulty;
+        newStats.averageRating = totalRatings / newStats.totalReviewed;
+        
+        return newStats;
+      });
       
       // Move to the next card
       if (currentIndex < flashcards.length - 1) {
         setCurrentIndex(currentIndex + 1);
         setIsFlipped(false);
+        setReviewState('reviewing');
       } else {
-        // All cards reviewed, fetch new set or show completion message
-        await fetchDueFlashcards();
+        // All cards reviewed, show completion state
+        setReviewState('complete');
+        if (onComplete) onComplete();
       }
       
     } catch (err) {
@@ -131,18 +174,55 @@ export const useFlashcardReview = () => {
     }
   };
   
+  const showAnswer = () => {
+    setIsFlipped(true);
+    setReviewState('answering');
+  };
+  
   const flipCard = () => {
     setIsFlipped(!isFlipped);
+    setReviewState(isFlipped ? 'reviewing' : 'answering');
   };
   
   const skipCard = () => {
     if (currentIndex < flashcards.length - 1) {
       setCurrentIndex(currentIndex + 1);
       setIsFlipped(false);
+      setReviewState('reviewing');
+    } else {
+      setReviewState('complete');
+      if (onComplete) onComplete();
     }
+  };
+
+  const rateCard = (difficulty: number) => {
+    const currentCard = flashcards[currentIndex];
+    if (currentCard) {
+      reviewFlashcard(currentCard.id, difficulty);
+    }
+  };
+
+  const completeReview = () => {
+    if (onComplete) onComplete();
+  };
+  
+  const handleDifficultyRating = async (difficulty: number) => {
+    const currentCard = flashcards[currentIndex];
+    if (currentCard) {
+      await reviewFlashcard(currentCard.id, difficulty);
+    }
+  };
+
+  const handleFlip = () => {
+    flipCard();
+  };
+  
+  const handleSkip = () => {
+    skipCard();
   };
   
   return {
+    // Original properties
     flashcards,
     currentFlashcard: flashcards[currentIndex],
     isFlipped,
@@ -153,6 +233,20 @@ export const useFlashcardReview = () => {
     reviewFlashcard,
     flipCard,
     skipCard,
-    refreshCards: fetchDueFlashcards
+    refreshCards: fetchDueFlashcards,
+    
+    // Additional properties needed by components
+    currentCard: flashcards[currentIndex],
+    reviewState,
+    reviewStats,
+    showAnswer,
+    rateCard,
+    completeReview,
+    reviewCards,
+    currentCardIndex: currentIndex,
+    isLoading: loading,
+    handleFlip,
+    handleDifficultyRating,
+    handleSkip
   };
 };
