@@ -1,11 +1,12 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ThumbsUp, ThumbsDown, Lightbulb, Star, Trophy } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Lightbulb, Star, Trophy, MessageSquare } from 'lucide-react';
 import { useFlashcardReview } from '@/hooks/useFlashcardReview';
 import LatexRenderer from '@/components/math/LatexRenderer';
+import FeedbackDialog from '../../quiz/components/feedback/FeedbackDialog';
+import { useToast } from '@/components/ui/use-toast';
 
 interface ReviewFlashcardsTabProps {
   onComplete: () => void;
@@ -21,7 +22,22 @@ const ReviewFlashcardsTab = ({ onComplete }: ReviewFlashcardsTabProps) => {
     completeReview
   } = useFlashcardReview(onComplete);
 
-  // If there's no current card, show a message
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmitFeedback = (feedback: {
+    questionId: string;
+    feedbackType: 'issue' | 'suggestion' | 'praise';
+    feedbackText: string;
+  }) => {
+    console.log('Flashcard feedback submitted:', feedback);
+    
+    toast({
+      title: "Feedback received",
+      description: "Thank you for helping us improve our flashcards!",
+    });
+  };
+
   if (!currentCard && reviewState !== 'complete') {
     return (
       <Card>
@@ -38,7 +54,6 @@ const ReviewFlashcardsTab = ({ onComplete }: ReviewFlashcardsTabProps) => {
     );
   }
 
-  // Show review completion screen
   if (reviewState === 'complete') {
     return (
       <Card>
@@ -86,7 +101,6 @@ const ReviewFlashcardsTab = ({ onComplete }: ReviewFlashcardsTabProps) => {
     );
   }
 
-  // Check if content contains LaTeX code
   const hasLatex = (content: string = '') => {
     return content.includes('$$') || content.includes('$');
   };
@@ -99,15 +113,25 @@ const ReviewFlashcardsTab = ({ onComplete }: ReviewFlashcardsTabProps) => {
       <CardHeader className="bg-muted/20">
         <div className="flex justify-between items-center">
           <CardTitle>Flashcard Review</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Cards reviewed: {reviewStats.totalReviewed}
-          </p>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setIsFeedbackOpen(true)}
+              className="flex items-center gap-1"
+            >
+              <MessageSquare className="h-4 w-4" />
+              Feedback
+            </Button>
+            <p className="text-sm text-muted-foreground">
+              Cards reviewed: {reviewStats.totalReviewed}
+            </p>
+          </div>
         </div>
       </CardHeader>
       
       <CardContent className="pt-6">
         <div className="min-h-[200px] flex flex-col justify-center">
-          {/* Front side or question */}
           <div className="mb-6">
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Question</h3>
             <div className="p-4 border rounded-md bg-card">
@@ -119,7 +143,6 @@ const ReviewFlashcardsTab = ({ onComplete }: ReviewFlashcardsTabProps) => {
             </div>
           </div>
           
-          {/* Back side or answer (shown only after clicking "Show Answer") */}
           {reviewState === 'answering' && (
             <div className="mt-4">
               <h3 className="text-sm font-medium text-muted-foreground mb-2">Answer</h3>
@@ -163,6 +186,16 @@ const ReviewFlashcardsTab = ({ onComplete }: ReviewFlashcardsTabProps) => {
           </div>
         )}
       </CardFooter>
+      
+      {currentCard && (
+        <FeedbackDialog
+          questionId={currentCard.id || 'unknown'}
+          questionText={front}
+          isOpen={isFeedbackOpen}
+          onClose={() => setIsFeedbackOpen(false)}
+          onSubmitFeedback={handleSubmitFeedback}
+        />
+      )}
     </Card>
   );
 };

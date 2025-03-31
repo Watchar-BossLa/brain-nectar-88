@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,8 +5,9 @@ import { Progress } from '@/components/ui/progress';
 import LatexRenderer from '../math/LatexRenderer';
 import { useToast } from '@/components/ui/use-toast';
 import { useAgentOrchestration } from '@/hooks/useAgentOrchestration';
-import { CircleDot, PenLine, CheckCircle2, XCircle, Compass, BrainCircuit } from 'lucide-react';
+import { CircleDot, PenLine, CheckCircle2, XCircle, Compass, BrainCircuit, MessageSquare } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import FeedbackDialog from './components/feedback/FeedbackDialog';
 
 interface QuizOption {
   id: string;
@@ -72,6 +72,9 @@ const AdaptiveQuiz: React.FC<AdaptiveQuizProps> = ({
   const [questionStartTime, setQuestionStartTime] = useState<Date | null>(null);
   const [conceptMastery, setConceptMastery] = useState<Record<string, number>>({});
   const [showExplanation, setShowExplanation] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [feedbackQuestionId, setFeedbackQuestionId] = useState<string>('');
+  const [feedbackQuestionText, setFeedbackQuestionText] = useState<string>('');
   
   // Enhanced adaptive algorithm parameters
   const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
@@ -488,6 +491,26 @@ const AdaptiveQuiz: React.FC<AdaptiveQuizProps> = ({
     setQuestionStartTime(new Date());
   };
   
+  const handleOpenFeedback = (questionId: string, questionText: string) => {
+    setFeedbackQuestionId(questionId);
+    setFeedbackQuestionText(questionText);
+    setIsFeedbackOpen(true);
+  };
+  
+  const handleSubmitFeedback = (feedback: {
+    questionId: string;
+    feedbackType: 'issue' | 'suggestion' | 'praise';
+    feedbackText: string;
+  }) => {
+    // In a real app, we would save this to the database
+    console.log('Adaptive quiz feedback submitted:', feedback);
+    
+    toast({
+      title: "Feedback received",
+      description: "Thank you for helping us improve our questions!",
+    });
+  };
+
   if (isLoading) {
     return (
       <Card className={className}>
@@ -662,6 +685,17 @@ const AdaptiveQuiz: React.FC<AdaptiveQuizProps> = ({
           >
             Detailed Results
           </Button>
+          <Button 
+            variant="ghost"
+            onClick={() => handleOpenFeedback(
+              'quiz-complete',
+              'Overall feedback for this quiz session'
+            )}
+            className="flex items-center gap-1"
+          >
+            <MessageSquare className="h-4 w-4" />
+            Feedback
+          </Button>
         </CardFooter>
       </Card>
     );
@@ -691,8 +725,22 @@ const AdaptiveQuiz: React.FC<AdaptiveQuizProps> = ({
               Difficulty: {currentQuestion.difficulty < 0.4 ? 'Easy' : currentQuestion.difficulty < 0.7 ? 'Medium' : 'Hard'}
             </CardDescription>
           </div>
-          <div className="bg-primary/10 p-2 rounded-full">
-            <Compass className="h-5 w-5 text-primary" />
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => handleOpenFeedback(
+                currentQuestion.id,
+                currentQuestion.question
+              )}
+              className="flex items-center gap-1"
+            >
+              <MessageSquare className="h-4 w-4" />
+              Feedback
+            </Button>
+            <div className="bg-primary/10 p-2 rounded-full">
+              <Compass className="h-5 w-5 text-primary" />
+            </div>
           </div>
         </div>
       </CardHeader>
@@ -812,6 +860,13 @@ const AdaptiveQuiz: React.FC<AdaptiveQuizProps> = ({
           </div>
         )}
       </CardContent>
+      <FeedbackDialog
+        questionId={feedbackQuestionId}
+        questionText={feedbackQuestionText}
+        isOpen={isFeedbackOpen}
+        onClose={() => setIsFeedbackOpen(false)}
+        onSubmitFeedback={handleSubmitFeedback}
+      />
     </Card>
   );
 };

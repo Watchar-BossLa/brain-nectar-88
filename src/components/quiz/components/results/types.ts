@@ -21,3 +21,11 @@ export interface PerformanceByTopicProps {
 export interface PerformanceByDifficultyProps {
   difficulties: Record<string, { correct: number; total: number }>;
 }
+
+export interface QuestionFeedback {
+  questionId: string;
+  feedbackType: 'issue' | 'suggestion' | 'praise';
+  feedbackText: string;
+  userId?: string;
+  createdAt: Date;
+}

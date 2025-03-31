@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Check, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import QuestionFeedbackButton from './feedback/QuestionFeedbackButton';
 
 interface QuestionDisplayProps {
   question: QuizQuestion;
@@ -150,14 +151,29 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-xl font-medium">{question.text}</h3>
+      <div className="flex justify-between items-start">
+        <h3 className="text-xl font-medium">{question.text}</h3>
+        <QuestionFeedbackButton 
+          questionId={question.id}
+          questionText={question.text}
+        />
+      </div>
       
       {renderQuestionInput()}
       
       {isAnswerSubmitted && (
         <Card className="mt-4 bg-muted/30">
           <CardContent className="pt-4">
-            <h4 className="font-medium mb-2">Explanation</h4>
+            <div className="flex justify-between items-start">
+              <h4 className="font-medium mb-2">Explanation</h4>
+              {isAnswerSubmitted && (
+                <QuestionFeedbackButton 
+                  questionId={question.id}
+                  questionText={question.text}
+                  variant="outline"
+                />
+              )}
+            </div>
             <p>{question.explanation}</p>
             
             {question.type === 'calculation' && renderStepByStepExplanation()}

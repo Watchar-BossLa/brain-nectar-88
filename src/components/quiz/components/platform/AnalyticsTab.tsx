@@ -1,104 +1,162 @@
-
 import React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AnalyticsSummary, TopicMasteryChart, ConfidenceAccuracyChart, PerformanceOverTimeChart } from '../analytics';
-import { AnalyticsTabProps } from '../../types/platform-types';
-import { useQuizAnalytics } from '../../hooks/useQuizAnalytics';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import DifficultyCategoryChart from '../analytics/DifficultyCategoryChart';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BarChart, LineChart, PieChart, Activity } from 'lucide-react';
+import { AnsweredQuestion } from '../../types';
+import FeedbackSummary from '../analytics/FeedbackSummary';
+
+// Create component
+interface AnalyticsTabProps {
+  answeredQuestions: AnsweredQuestion[];
+  setActiveTab: (tab: string) => void;
+}
 
 const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ answeredQuestions, setActiveTab }) => {
-  const {
-    topicPerformance,
-    difficultyPerformance,
-    selectedTimeRange,
-    setSelectedTimeRange,
-    isLoading,
-    sessions
-  } = useQuizAnalytics(answeredQuestions);
+  // Calculate overall performance
+  const totalQuestions = answeredQuestions.length;
+  const correctAnswers = answeredQuestions.filter(q => q.isCorrect).length;
+  const incorrectAnswers = totalQuestions - correctAnswers;
+
+  // Calculate performance by topic
+  const performanceByTopic: Record<string, { correct: number; total: number }> = {};
+  answeredQuestions.forEach(q => {
+    if (q.topic) {
+      if (!performanceByTopic[q.topic]) {
+        performanceByTopic[q.topic] = { correct: 0, total: 0 };
+      }
+      performanceByTopic[q.topic].total++;
+      if (q.isCorrect) {
+        performanceByTopic[q.topic].correct++;
+      }
+    }
+  });
+
+  // Calculate trends over time (simplified)
+  const calculateTrends = () => {
+    // Group questions by date (simplified: just count per question)
+    const trendData = answeredQuestions.reduce((acc: Record<string, number>, question) => {
+      const date = question.id; // Using question ID as a placeholder for date
+      acc[date] = (acc[date] || 0) + (question.isCorrect ? 1 : 0);
+      return acc;
+    }, {});
+
+    return Object.entries(trendData).map(([date, correctCount]) => ({
+      date,
+      correctCount,
+    }));
+  };
+
+  const trendsData = calculateTrends();
 
   return (
-    <div className="space-y-6">
-      {/* Performance Overview */}
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold">Performance Analytics</h3>
-          <Select value={selectedTimeRange} onValueChange={setSelectedTimeRange}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Time Range" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Time</SelectItem>
-              <SelectItem value="week">Last Week</SelectItem>
-              <SelectItem value="month">Last Month</SelectItem>
-              <SelectItem value="year">Last Year</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <AnalyticsSummary 
-          sessionData={sessions} 
-        />
-      </div>
-
-      <Tabs defaultValue="topics">
-        <TabsList className="grid grid-cols-4 mb-6">
-          <TabsTrigger value="topics">Topics</TabsTrigger>
-          <TabsTrigger value="difficulty">Difficulty</TabsTrigger>
-          <TabsTrigger value="confidence">Confidence</TabsTrigger>
-          <TabsTrigger value="trends">Trends</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="topics">
-          {isLoading ? (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="text-xl flex items-center gap-2">
+          <Activity className="h-6 w-6" />
+          Performance Analytics
+        </CardTitle>
+      </CardHeader>
+      
+      <CardContent>
+        <Tabs defaultValue="overview">
+          <TabsList className="mb-4">
+            <TabsTrigger value="overview" className="flex items-center gap-1">
+              <PieChart className="h-4 w-4" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="trends" className="flex items-center gap-1">
+              <LineChart className="h-4 w-4" />
+              Trends
+            </TabsTrigger>
+            <TabsTrigger value="breakdown" className="flex items-center gap-1">
+              <BarChart className="h-4 w-4" />
+              Breakdown
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="overview">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Overall Performance</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-around">
+                    <div>
+                      <div className="text-2xl font-bold">{correctAnswers}</div>
+                      <div className="text-sm text-muted-foreground">Correct</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold">{incorrectAnswers}</div>
+                      <div className="text-sm text-muted-foreground">Incorrect</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Topic Performance</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {Object.entries(performanceByTopic).map(([topic, data]) => (
+                    <div key={topic} className="mb-2">
+                      <div className="font-medium">{topic}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {data.correct} / {data.total} correct
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
+            
+            {/* Add the feedback summary */}
+            <div className="mt-6">
+              <FeedbackSummary />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="trends">
             <Card>
               <CardHeader>
-                <CardTitle>Loading data...</CardTitle>
+                <CardTitle>Performance Trends</CardTitle>
               </CardHeader>
+              <CardContent>
+                {trendsData.length > 0 ? (
+                  <ul>
+                    {trendsData.map((trend, index) => (
+                      <li key={index}>
+                        {trend.date}: {trend.correctCount} correct
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div>No trends available.</div>
+                )}
+              </CardContent>
             </Card>
-          ) : (
-            <TopicMasteryChart data={topicPerformance} />
-          )}
-        </TabsContent>
-
-        <TabsContent value="difficulty">
-          {isLoading ? (
+          </TabsContent>
+          
+          <TabsContent value="breakdown">
             <Card>
               <CardHeader>
-                <CardTitle>Loading data...</CardTitle>
+                <CardTitle>Detailed Breakdown</CardTitle>
               </CardHeader>
+              <CardContent>
+                <ul>
+                  {answeredQuestions.map((question) => (
+                    <li key={question.id}>
+                      Question: {question.id}, Correct: {question.isCorrect ? 'Yes' : 'No'}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
             </Card>
-          ) : (
-            <DifficultyCategoryChart data={difficultyPerformance} />
-          )}
-        </TabsContent>
-
-        <TabsContent value="confidence">
-          {isLoading ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Loading data...</CardTitle>
-              </CardHeader>
-            </Card>
-          ) : (
-            <ConfidenceAccuracyChart data={answeredQuestions} />
-          )}
-        </TabsContent>
-
-        <TabsContent value="trends">
-          {isLoading ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Loading data...</CardTitle>
-              </CardHeader>
-            </Card>
-          ) : (
-            <PerformanceOverTimeChart data={answeredQuestions} />
-          )}
-        </TabsContent>
-      </Tabs>
-    </div>
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
   );
 };
 
