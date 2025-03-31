@@ -23,6 +23,10 @@ export function Sidebar({ className }: { className?: string }) {
 
   const isActive = (path: string) => location.pathname === path;
 
+  const handleNavigate = (path: string) => {
+    navigate(path);
+  };
+
   const navItems = [
     {
       icon: Home,
@@ -87,7 +91,7 @@ export function Sidebar({ className }: { className?: string }) {
                   "w-full justify-start",
                   isActive(item.path) && "bg-primary text-primary-foreground"
                 )}
-                onClick={() => navigate(item.path)}
+                onClick={() => handleNavigate(item.path)}
               >
                 <item.icon className="mr-2 h-4 w-4" />
                 {item.label}

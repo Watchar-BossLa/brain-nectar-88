@@ -55,16 +55,19 @@ const navigationItems = [
 const HomeNavigation: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<string>(
-    navigationItems.find(item => item.path === location.pathname)?.name || navigationItems[0].name
-  );
+  
+  // Find the active tab based on the current path
+  const findActiveTab = () => {
+    const currentPath = location.pathname;
+    const currentItem = navigationItems.find(item => item.path === currentPath);
+    return currentItem ? currentItem.name : navigationItems[0].name;
+  };
+  
+  const [activeTab, setActiveTab] = useState<string>(findActiveTab());
 
   // Update active tab when location changes
   useEffect(() => {
-    const currentItem = navigationItems.find(item => item.path === location.pathname);
-    if (currentItem) {
-      setActiveTab(currentItem.name);
-    }
+    setActiveTab(findActiveTab());
   }, [location.pathname]);
 
   const handleTabChange = (value: string) => {

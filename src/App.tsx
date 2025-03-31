@@ -48,6 +48,8 @@ function App() {
               <Route path="/quiz" element={<Quiz />} />
               <Route path="/adaptive-quiz" element={<AdaptiveQuiz />} />
               <Route path="/blockchain" element={<Blockchain />} />
+              <Route path="/dashboard" element={<Index />} />
+              <Route path="/profile" element={<Settings />} />
             </Routes>
             <Toaster />
           </SolanaContextProvider>
