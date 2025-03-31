@@ -72,10 +72,11 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       >
         <div className="p-6">
           <motion.div 
-            className="flex items-center gap-3"
+            className="flex items-center gap-3 cursor-pointer"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
+            onClick={() => navigate('/')}
           >
             <div className="w-10 h-10 relative bg-transparent">
               <img 

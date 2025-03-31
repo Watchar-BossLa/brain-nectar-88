@@ -30,7 +30,7 @@ export function Sidebar({ className }: { className?: string }) {
   const navItems = [
     {
       icon: Home,
-      label: "Dashboard",
+      label: "Home",
       path: "/",
     },
     {
@@ -79,7 +79,10 @@ export function Sidebar({ className }: { className?: string }) {
     <div className={cn("pb-12 min-h-screen", className)}>
       <div className="space-y-4 py-4">
         <div className="px-4 py-2">
-          <h2 className="mb-2 px-2 text-xl font-semibold tracking-tight">
+          <h2 
+            className="mb-2 px-2 text-xl font-semibold tracking-tight cursor-pointer"
+            onClick={() => handleNavigate('/')}
+          >
             Study Bee
           </h2>
           <div className="space-y-1">

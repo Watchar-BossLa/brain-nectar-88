@@ -9,7 +9,8 @@ import {
   Brain, 
   Flame, 
   Menu,
-  X
+  X,
+  Home
 } from 'lucide-react';
 import { 
   Tabs, 
@@ -64,6 +65,7 @@ const HomeNavigation: React.FC = () => {
   };
   
   const [activeTab, setActiveTab] = useState<string>(findActiveTab());
+  const isOnHomePage = location.pathname === '/';
 
   // Update active tab when location changes
   useEffect(() => {
@@ -78,10 +80,27 @@ const HomeNavigation: React.FC = () => {
     }
   };
 
+  const handleHomeNavigation = () => {
+    navigate('/');
+  };
+
   return (
-    <>
+    <div className="flex items-center">
+      {/* Back to Home button - only shown when not on homepage */}
+      {!isOnHomePage && (
+        <Button
+          onClick={handleHomeNavigation}
+          variant="ghost"
+          size="sm"
+          className="mr-2"
+        >
+          <Home className="h-4 w-4 mr-1" />
+          Home
+        </Button>
+      )}
+      
       {/* Desktop Navigation */}
-      <div className="hidden md:block">
+      <div className="hidden md:block flex-1">
         <Tabs 
           value={activeTab} 
           onValueChange={handleTabChange} 
@@ -113,24 +132,39 @@ const HomeNavigation: React.FC = () => {
           </SheetTrigger>
           <SheetContent side="left">
             <div className="flex flex-col space-y-4 mt-6">
+              {/* Home navigation always included in mobile menu */}
+              <SheetClose asChild>
+                <Link
+                  to="/"
+                  className={`flex items-center px-4 py-2 rounded-md hover:bg-secondary ${
+                    location.pathname === "/" ? "bg-primary/10 text-primary" : ""
+                  }`}
+                >
+                  <Home className="h-4 w-4 mr-2" />
+                  Dashboard
+                </Link>
+              </SheetClose>
+              
               {navigationItems.map((item) => (
-                <SheetClose key={item.name} asChild>
-                  <Link
-                    to={item.path}
-                    className={`flex items-center px-4 py-2 rounded-md hover:bg-secondary ${
-                      location.pathname === item.path ? "bg-primary/10 text-primary" : ""
-                    }`}
-                  >
-                    {item.icon}
-                    {item.name}
-                  </Link>
-                </SheetClose>
+                item.path !== "/" && (
+                  <SheetClose key={item.name} asChild>
+                    <Link
+                      to={item.path}
+                      className={`flex items-center px-4 py-2 rounded-md hover:bg-secondary ${
+                        location.pathname === item.path ? "bg-primary/10 text-primary" : ""
+                      }`}
+                    >
+                      {item.icon}
+                      {item.name}
+                    </Link>
+                  </SheetClose>
+                )
               ))}
             </div>
           </SheetContent>
         </Sheet>
       </div>
-    </>
+    </div>
   );
 };
 
