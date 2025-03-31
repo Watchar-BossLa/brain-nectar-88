@@ -42,7 +42,6 @@ export interface ActiveQuizProps {
   questionIndex: number;
   totalQuestions: number;
   handleSubmitAnswer: (answer: string) => void;
-  // Adding the missing properties
   quiz?: any;
   filteredQuestions?: any[];
   questionCount?: number;

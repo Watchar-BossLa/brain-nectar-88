@@ -1,235 +1,138 @@
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { useLocation, useNavigate } from "react-router-dom";
-import { 
-  Home, 
-  BookOpen, 
-  Flame, 
-  GraduationCap, 
-  PenTool, 
-  Calendar, 
-  Settings, 
-  LogOut,
-  Brain,
-  Route,
-  Calculator,
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/auth';
+import {
+  BookOpen,
+  GraduationCap,
+  Calendar,
   LineChart,
-  PlusSquare,
-  BarChart2,
-  Database
-} from "lucide-react";
-import { useAuth } from "@/context/auth";
-import { 
-  Collapsible, 
-  CollapsibleContent, 
-  CollapsibleTrigger 
-} from "@/components/ui/collapsible";
-import { useState } from "react";
-import { subjects } from "@/utils/subjects";
+  Settings,
+  Home,
+  FlaskConical,
+  Brain,
+  LayoutDashboard,
+  ScrollText,
+  Users,
+} from 'lucide-react';
 
-export function Sidebar({ className }: { className?: string }) {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { signOut } = useAuth();
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    accounting: true
-  });
+interface SidebarProps {
+  isSidebarOpen: boolean;
+  toggleSidebar: () => void;
+}
 
-  const isActive = (path: string) => location.pathname === path;
+export function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) {
+  const { user, isAdmin } = useAuth();
 
-  const handleNavigate = (path: string) => {
-    navigate(path);
-  };
-
-  const toggleSection = (section: string) => {
-    setOpenSections({
-      ...openSections,
-      [section]: !openSections[section]
-    });
-  };
-
-  // Core navigation items
-  const coreNavItems = [
+  const navigationItems = [
     {
+      name: 'Home',
+      href: '/',
       icon: Home,
-      label: "Home",
-      path: "/",
     },
     {
+      name: 'Courses',
+      href: '/courses',
+      icon: BookOpen,
+    },
+    {
+      name: 'Qualifications',
+      href: '/qualifications',
       icon: GraduationCap,
-      label: "Qualifications",
-      path: "/qualifications",
     },
     {
-      icon: Route,
-      label: "Learning Path",
-      path: "/learning-path",
+      name: 'Quiz',
+      href: '/quiz',
+      icon: FlaskConical,
     },
-  ];
-
-  // Map subjects to their icons
-  const subjectIcons: Record<string, any> = {
-    accounting: Calculator,
-    finance: LineChart,
-    mathematics: PlusSquare,
-    statistics: BarChart2,
-    dataScience: Database
-  };
-
-  // Subject-specific items
-  const subjectNavItems = Object.values(subjects).map(subject => ({
-    id: subject.id,
-    label: subject.name,
-    icon: subjectIcons[subject.id] || BookOpen,
-    items: [
-      { 
-        label: "Study Materials", 
-        path: `/${subject.id}/materials` 
-      },
-      { 
-        label: "Flashcards", 
-        path: subject.id === 'accounting' ? "/flashcards" : `/${subject.id}/flashcards` 
-      },
-      { 
-        label: "Quizzes", 
-        path: "/quiz", 
-        queryParams: { subject: subject.id } 
-      },
-    ]
-  }));
-
-  // Tool items
-  const toolNavItems = [
     {
+      name: 'Adaptive Quiz',
+      href: '/adaptive-quiz',
       icon: Brain,
-      label: "AI Dashboard",
-      path: "/agent-dashboard",
     },
     {
+      name: 'Flashcards',
+      href: '/flashcards',
+      icon: ScrollText,
+    },
+    {
+      name: 'Learning Path',
+      href: '/learning-path',
+      icon: LineChart,
+    },
+    {
+      name: 'Study Planner',
+      href: '/study-planner',
+      icon: Calendar,
+    },
+    {
+      name: 'Settings',
+      href: '/settings',
       icon: Settings,
-      label: "Settings",
-      path: "/settings",
     },
   ];
+
+  // Add admin link only for admin users
+  if (isAdmin) {
+    navigationItems.push({
+      name: 'Admin Panel',
+      href: '/admin',
+      icon: LayoutDashboard,
+    });
+  }
 
   return (
-    <div className={cn("pb-12 min-h-screen", className)}>
-      <div className="space-y-4 py-4">
-        <div className="px-4 py-2">
-          <h2 
-            className="mb-2 px-2 text-xl font-semibold tracking-tight cursor-pointer"
-            onClick={() => handleNavigate('/')}
-          >
-            Study Bee
-          </h2>
-          
-          <div className="space-y-1">
-            {/* Core Navigation */}
-            {coreNavItems.map((item) => (
-              <Button
-                key={item.path}
-                variant={isActive(item.path) ? "default" : "ghost"}
-                className={cn(
-                  "w-full justify-start",
-                  isActive(item.path) && "bg-primary text-primary-foreground"
-                )}
-                onClick={() => handleNavigate(item.path)}
-              >
-                <item.icon className="mr-2 h-4 w-4" />
-                {item.label}
-              </Button>
-            ))}
-
-            {/* Divider */}
-            <div className="my-2 border-t border-border" />
-
-            {/* Subject Sections */}
-            {subjectNavItems.map((subject) => (
-              <Collapsible
-                key={subject.id}
-                open={openSections[subject.id]}
-                onOpenChange={() => toggleSection(subject.id)}
-                className="w-full"
-              >
-                <CollapsibleTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-between"
-                  >
-                    <div className="flex items-center">
-                      <subject.icon className="mr-2 h-4 w-4" />
-                      {subject.label}
-                    </div>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className={cn(
-                        "h-4 w-4 transition-transform",
-                        openSections[subject.id] ? "rotate-180" : ""
-                      )}
-                    >
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pl-6 space-y-1 pt-1">
-                  {subject.items.map((item) => (
-                    <Button
-                      key={`${subject.id}-${item.label}`}
-                      variant="ghost"
-                      size="sm"
-                      className={cn(
-                        "w-full justify-start",
-                        isActive(item.path) && "bg-primary/10 text-primary"
-                      )}
-                      onClick={() => handleNavigate(item.path)}
-                    >
-                      {item.label}
-                    </Button>
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
-            ))}
-
-            {/* Divider */}
-            <div className="my-2 border-t border-border" />
-
-            {/* Tool Navigation */}
-            {toolNavItems.map((item) => (
-              <Button
-                key={item.path}
-                variant={isActive(item.path) ? "default" : "ghost"}
-                className={cn(
-                  "w-full justify-start",
-                  isActive(item.path) && "bg-primary text-primary-foreground"
-                )}
-                onClick={() => handleNavigate(item.path)}
-              >
-                <item.icon className="mr-2 h-4 w-4" />
-                {item.label}
-              </Button>
-            ))}
+    <div className={`
+      fixed top-0 left-0 h-full z-40 transition-all duration-300 ease-in-out
+      ${isSidebarOpen ? 'w-64' : 'w-16'}
+      bg-card border-r
+    `}>
+      <div className="flex flex-col h-full">
+        <div className="flex items-center p-4">
+          <div className={`overflow-hidden transition-all duration-300 ${isSidebarOpen ? 'w-auto' : 'w-0'}`}>
+            <h2 className={`font-bold text-xl ${isSidebarOpen ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}>
+              Study Bee
+            </h2>
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleSidebar}
+            className={`${isSidebarOpen ? 'ml-auto' : 'mx-auto'}`}
+            aria-label="Toggle sidebar"
+          >
+            {isSidebarOpen ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-left"><path d="m15 18-6-6 6-6"/></svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-right"><path d="m9 18 6-6-6-6"/></svg>
+            )}
+          </Button>
         </div>
-      </div>
-      <div className="px-4 absolute bottom-4 w-full">
-        <Button
-          variant="ghost"
-          className="w-full justify-start"
-          onClick={() => signOut()}
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          Log out
-        </Button>
+
+        <nav className="flex-1 overflow-y-auto py-4">
+          <ul className="space-y-1 px-2">
+            {navigationItems.map((item) => (
+              <li key={item.name}>
+                <Link
+                  to={item.href}
+                  className={`
+                    flex items-center hover:bg-accent hover:text-accent-foreground rounded-md transition-all
+                    ${isSidebarOpen ? 'py-2 px-3 justify-start' : 'p-3 justify-center'}
+                  `}
+                >
+                  <item.icon className="h-5 w-5" />
+                  <span className={`ml-2 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 w-0'} transition-all duration-300`}>
+                    {item.name}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </div>
     </div>
   );
 }
+
+export default Sidebar;

@@ -21,6 +21,7 @@ import Index from './pages/Index';
 import Quiz from './pages/Quiz';
 import AdaptiveQuiz from './pages/AdaptiveQuiz';
 import Blockchain from './pages/Blockchain';
+import Admin from './pages/Admin';
 
 function App() {
   useEffect(() => {
@@ -52,6 +53,7 @@ function App() {
               <Route path="/blockchain" element={<Blockchain />} />
               <Route path="/dashboard" element={<Index />} />
               <Route path="/profile" element={<Settings />} />
+              <Route path="/admin" element={<Admin />} />
             </Routes>
             <Toaster />
           </SolanaContextProvider>
