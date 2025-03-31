@@ -27,6 +27,9 @@ export function useQuizState(initialDifficulty: 1 | 2 | 3 = 2): QuizStateWithSet
   const [correctStreak, setCorrectStreak] = useState<number>(0);
   const [incorrectStreak, setIncorrectStreak] = useState<number>(0);
   const [topicMastery, setTopicMastery] = useState<Record<string, number>>({});
+  
+  // Time tracking
+  const [startTime, setStartTime] = useState<number | null>(null);
 
   return {
     // Quiz status
@@ -65,6 +68,10 @@ export function useQuizState(initialDifficulty: 1 | 2 | 3 = 2): QuizStateWithSet
     incorrectStreak,
     setIncorrectStreak,
     topicMastery,
-    setTopicMastery
+    setTopicMastery,
+    
+    // Time tracking
+    startTime,
+    setStartTime
   };
 }

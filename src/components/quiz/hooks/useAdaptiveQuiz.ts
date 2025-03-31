@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { QuizQuestion, QuizResults } from '../types';
 import { useQuizState } from './adaptive-quiz/useQuizState';
 import { useQuizActions } from './adaptive-quiz/useQuizActions';
@@ -20,17 +20,39 @@ export function useAdaptiveQuiz(
   const actions = useQuizActions(quizState, availableQuestions, maxQuestions);
   
   // Create setSelectedAnswer function
-  const setSelectedAnswer = (answer: string) => {
+  const setSelectedAnswer = useCallback((answer: string) => {
     quizState.setSelectedAnswer(answer);
-  };
+  }, [quizState]);
   
   // Combine state and actions to return a unified API
   return {
-    // State
-    ...quizState,
-    // Actions
-    ...actions,
-    // Additional required methods
+    // State from quizState
+    activeQuiz: quizState.activeQuiz,
+    currentQuestion: quizState.currentQuestion,
+    currentIndex: quizState.currentIndex,
+    selectedAnswer: quizState.selectedAnswer,
+    isAnswerSubmitted: quizState.isAnswerSubmitted,
+    isCorrect: quizState.isCorrect,
+    answeredQuestions: quizState.answeredQuestions,
+    quizResults: quizState.quizResults,
+    currentDifficulty: quizState.currentDifficulty,
+    userConfidence: quizState.userConfidence,
+    correctStreak: quizState.correctStreak,
+    incorrectStreak: quizState.incorrectStreak,
+    topicMastery: quizState.topicMastery,
+    questionPool: quizState.questionPool,
+    
+    // Actions from useQuizActions
+    startQuiz: actions.startQuiz,
+    submitAnswer: () => actions.submitAnswer(quizState.selectedAnswer, quizState.userConfidence),
+    skipQuestion: actions.skipQuestion,
+    nextQuestion: actions.nextQuestion,
+    previousQuestion: actions.previousQuestion,
+    restartQuiz: actions.restartQuiz,
+    setConfidence: actions.setConfidence,
+    getPerformanceMetrics: actions.getPerformanceMetrics,
+    
+    // Additional methods
     setSelectedAnswer
   };
 }

@@ -16,6 +16,7 @@ export interface AdaptiveQuizState {
   incorrectStreak: number;
   topicMastery: Record<string, number>;
   questionPool?: QuizQuestion[];
+  startTime?: number | null;
 }
 
 export interface AdaptiveQuizActions {
@@ -45,4 +46,12 @@ export interface QuizStateWithSetters extends AdaptiveQuizState {
   setTopicMastery: (mastery: Record<string, number>) => void;
   questionPool?: QuizQuestion[];
   setQuestionPool?: (questions: QuizQuestion[]) => void;
+  startTime?: number | null;
+  setStartTime?: (time: number | null) => void;
+}
+
+export interface QuestionSelectionState {
+  initializeQuestionPool: (questions: QuizQuestion[]) => void;
+  selectNextQuestion: () => QuizQuestion | null;
+  getCurrentQuestionIndex: () => number;
 }

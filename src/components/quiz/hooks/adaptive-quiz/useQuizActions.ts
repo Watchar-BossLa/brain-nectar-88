@@ -26,7 +26,9 @@ export function useQuizActions(
     userConfidence,
     setUserConfidence,
     startTime,
-    setStartTime
+    setStartTime,
+    currentIndex,
+    setCurrentIndex
   } = quizState;
   
   const questionSelection = useQuestionSelection(quizState);
@@ -42,7 +44,7 @@ export function useQuizActions(
     
     // Start the quiz
     setActiveQuiz(true);
-    setStartTime(new Date().getTime());
+    setStartTime && setStartTime(new Date().getTime());
     setQuizResults(null);
   }, [availableQuestions, questionSelection, setActiveQuiz, setCurrentQuestion, setQuizResults, setStartTime]);
   
@@ -88,7 +90,7 @@ export function useQuizActions(
     } else {
       // Update the quiz state
       setSelectedAnswer(null);
-      setStartTime(timeNow);
+      setStartTime && setStartTime(timeNow);
       
       // Adjust difficulty based on performance if needed
       const recommendedDifficulty = performanceHistory.getRecommendedDifficulty(currentDifficulty);
@@ -100,10 +102,10 @@ export function useQuizActions(
       const nextQuestion = questionSelection.selectNextQuestion();
       setCurrentQuestion(nextQuestion);
     }
-  }, [currentQuestion, answeredQuestions, startTime, currentDifficulty, performanceHistory, questionSelection]);
+  }, [currentQuestion, answeredQuestions, startTime, currentDifficulty, performanceHistory, questionSelection, setCurrentDifficulty, setCurrentQuestion, setSelectedAnswer, setStartTime]);
   
   const skipQuestion = useCallback(() => {
-    if (!currentQuestion) return;
+    if (!currentQuestion) return false;
     
     const timeNow = new Date().getTime();
     
@@ -126,16 +128,18 @@ export function useQuizActions(
     // Check if we've reached the maximum number of questions
     if (newAnsweredQuestions.length >= maxQuestions) {
       finishQuiz(newAnsweredQuestions);
+      return true;
     } else {
       // Update the quiz state
       setSelectedAnswer(null);
-      setStartTime(timeNow);
+      setStartTime && setStartTime(timeNow);
       
       // Select the next question
       const nextQuestion = questionSelection.selectNextQuestion();
       setCurrentQuestion(nextQuestion);
+      return true;
     }
-  }, [currentQuestion, answeredQuestions, startTime, questionSelection]);
+  }, [currentQuestion, answeredQuestions, startTime, questionSelection, setCurrentQuestion, setSelectedAnswer, setStartTime, maxQuestions, performanceHistory]);
   
   const finishQuiz = useCallback((finalAnsweredQuestions: AnsweredQuestion[]) => {
     // Calculate quiz results
@@ -214,7 +218,31 @@ export function useQuizActions(
         .then(() => console.log('Learning path updated based on quiz results'))
         .catch(error => console.error('Error updating learning path:', error));
     }
-  }, [startTime, user]);
+  }, [startTime, user, setQuizResults, setActiveQuiz, setCurrentQuestion]);
+  
+  const nextQuestion = useCallback(() => {
+    if (currentIndex + 1 < answeredQuestions.length) {
+      setCurrentIndex(currentIndex + 1);
+      return true;
+    }
+    return false;
+  }, [currentIndex, answeredQuestions.length, setCurrentIndex]);
+
+  const previousQuestion = useCallback(() => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  }, [currentIndex, setCurrentIndex]);
+
+  const getPerformanceMetrics = useCallback(() => {
+    return {
+      correctAnswers: answeredQuestions.filter(q => q.isCorrect).length,
+      totalQuestions: answeredQuestions.length,
+      averageTime: answeredQuestions.reduce((sum, q) => sum + q.timeTaken, 0) / answeredQuestions.length,
+      topicPerformance: performanceHistory.getTopicPerformance(),
+      difficultyPerformance: performanceHistory.getDifficultyPerformance()
+    };
+  }, [answeredQuestions, performanceHistory]);
   
   const restartQuiz = useCallback(() => {
     // Reset quiz state
@@ -239,6 +267,9 @@ export function useQuizActions(
     skipQuestion,
     restartQuiz,
     setConfidence,
+    nextQuestion,
+    previousQuestion,
+    getPerformanceMetrics,
     questionSelection,
     performanceHistory
   };
