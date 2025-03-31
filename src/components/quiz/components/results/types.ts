@@ -5,6 +5,7 @@ export interface QuizResultsProps {
   results: QuizResults;
   onRestart: () => void;
   onReview?: () => void;
+  sessionId?: string;
 }
 
 export interface ScoreDataItem {

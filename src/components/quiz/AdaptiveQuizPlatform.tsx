@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAdaptiveQuiz, useSessionHistory } from './hooks/adaptive-quiz';
 import { useToast } from '@/components/ui/use-toast';
-import { Brain, Dices, Settings, History } from 'lucide-react';
+import { Brain, Dices, Settings, History, Users } from 'lucide-react';
 
 // Import mockQuestions from a data file or service
 import { mockQuestions, topics, subjects } from './data/mockQuizData';
@@ -16,6 +16,7 @@ import QuizSettings from './components/platform/QuizSettings';
 import QuizWelcome from './components/platform/QuizWelcome';
 import FormulasTab from './components/platform/FormulasTab';
 import AnalyticsTab from './components/platform/AnalyticsTab';
+import SocialTab from './components/platform/SocialTab';
 import ActiveQuiz from './components/platform/ActiveQuiz';
 import QuizResults from './components/QuizResults';
 import SessionHistoryTab from './components/history/SessionHistoryTab';
@@ -137,6 +138,12 @@ const AdaptiveQuizPlatform: React.FC = () => {
           <TabsList>
             <TabsTrigger value="quiz">Quiz</TabsTrigger>
             <TabsTrigger value="history">History</TabsTrigger>
+            <TabsTrigger value="social">
+              <div className="flex items-center gap-1">
+                <Users className="h-4 w-4" />
+                Social
+              </div>
+            </TabsTrigger>
             <TabsTrigger value="formulas">Key Formulas</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
@@ -237,6 +244,14 @@ const AdaptiveQuizPlatform: React.FC = () => {
               <QuizResults 
                 results={quiz.quizResults}
                 onRestart={quiz.restartQuiz}
+                onReview={() => {
+                  // For future implementation: review functionality
+                  toast({
+                    title: "Review feature",
+                    description: "Answer review will be available soon.",
+                  });
+                }}
+                sessionId={quiz.quizResults ? "current" : undefined}
               />
             </motion.div>
           )}
@@ -251,6 +266,10 @@ const AdaptiveQuizPlatform: React.FC = () => {
           ) : (
             <SessionHistoryTab onViewSession={handleViewSession} />
           )}
+        </TabsContent>
+        
+        <TabsContent value="social">
+          <SocialTab />
         </TabsContent>
         
         <TabsContent value="formulas">

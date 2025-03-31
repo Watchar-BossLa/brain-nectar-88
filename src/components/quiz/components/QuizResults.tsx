@@ -4,19 +4,21 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { QuizResults as QuizResultsType } from "@/types/quiz";
-import { ArrowRight, Target, Award, BookOpen } from 'lucide-react';
+import { ArrowRight, Target, Award, BookOpen, Users } from 'lucide-react';
 
 // Import refactored components
 import ScoreSummary from './results/ScoreSummary';
 import PerformanceByTopic from './results/PerformanceByTopic';
 import PerformanceByDifficulty from './results/PerformanceByDifficulty';
 import PerformanceChart from './results/PerformanceChart';
+import ShareResults from './social/ShareResults';
 import { QuizResultsProps } from './results/types';
 
 const QuizResults: React.FC<QuizResultsProps> = ({ 
   results, 
   onRestart,
-  onReview 
+  onReview,
+  sessionId
 }) => {
   const scorePercentage = results.questionsAttempted > 0 
     ? Math.round((results.correctAnswers / results.questionsAttempted) * 100) 
@@ -102,6 +104,10 @@ const QuizResults: React.FC<QuizResultsProps> = ({
             <PerformanceByDifficulty difficulties={results.performanceByDifficulty} />
           </div>
         </div>
+        
+        <Separator />
+        
+        <ShareResults results={results} sessionId={sessionId} />
       </CardContent>
       
       <CardFooter className="flex justify-between p-6 bg-muted/20">
