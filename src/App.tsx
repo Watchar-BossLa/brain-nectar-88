@@ -22,6 +22,7 @@ import Quiz from './pages/Quiz';
 import AdaptiveQuiz from './pages/AdaptiveQuiz';
 import Blockchain from './pages/Blockchain';
 import Admin from './pages/Admin';
+import FlashcardReview from './pages/FlashcardReview';
 
 function App() {
   useEffect(() => {
@@ -34,25 +35,29 @@ function App() {
         <AuthProvider>
           <SolanaContextProvider>
             <Routes>
-              <Route path="/" element={<Index />} />
+              {/* Auth routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/signin" element={<Login />} /> {/* Alias for login */}
               <Route path="/signup" element={<Register />} /> {/* Alias for register */}
+              
+              {/* Main app routes */}
+              <Route path="/" element={<Index />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/courses" element={<Courses />} />
               <Route path="/assessment" element={<Assessment />} />
               <Route path="/qualifications" element={<Qualifications />} />
               <Route path="/flashcards" element={<FlashcardsPage />} />
+              <Route path="/flashcard-review" element={<FlashcardReview />} />
               <Route path="/study-planner" element={<StudyPlannerPage />} />
               <Route path="/learning-path" element={<LearningPath />} />
               <Route path="/cognitive-profile" element={<CognitiveProfile />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/profile" element={<Settings />} /> {/* Alias for settings */}
               <Route path="/agent-dashboard" element={<AgentDashboard />} />
               <Route path="/quiz" element={<Quiz />} />
               <Route path="/adaptive-quiz" element={<AdaptiveQuiz />} />
               <Route path="/blockchain" element={<Blockchain />} />
-              <Route path="/dashboard" element={<Index />} />
-              <Route path="/profile" element={<Settings />} />
               <Route path="/admin" element={<Admin />} />
             </Routes>
             <Toaster />

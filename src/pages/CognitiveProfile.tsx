@@ -1,166 +1,233 @@
 
 import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Brain, Lightbulb, BarChart2, Network } from 'lucide-react';
-import CognitiveProfileCard from '@/components/cognitive-profile/CognitiveProfileCard';
-import LearningStyleChart from '@/components/cognitive-profile/LearningStyleChart';
-import ContentFormatPreference from '@/components/cognitive-profile/ContentFormatPreference';
-import KnowledgeGraph from '@/components/cognitive-profile/KnowledgeGraph';
-import StudyPatternAnalysis from '@/components/cognitive-profile/StudyPatternAnalysis';
-import RecommendationCard from '@/components/cognitive-profile/RecommendationCard';
+import { useAuth } from '@/context/auth';
 
 const CognitiveProfile = () => {
-  // Mock data for the components
-  const learningStyleData = [
-    { name: 'Visual', value: 40, color: '#8b5cf6' },
-    { name: 'Auditory', value: 20, color: '#ec4899' },
-    { name: 'Reading', value: 25, color: '#3b82f6' },
-    { name: 'Kinesthetic', value: 15, color: '#22c55e' },
-  ];
+  const { user } = useAuth();
   
-  const contentFormatData = [
-    { name: 'Video', value: 85, color: '#f97316' },
-    { name: 'Interactive', value: 75, color: '#8b5cf6' },
-    { name: 'Text', value: 60, color: '#3b82f6' },
-    { name: 'Audio', value: 45, color: '#22c55e' },
-  ];
-  
-  const knowledgeNodes = [
-    { id: '1', label: 'Double-Entry Bookkeeping', category: 'Accounting Basics', strength: 80 },
-    { id: '2', label: 'Balance Sheet', category: 'Financial Statements', strength: 75 },
-    { id: '3', label: 'Income Statement', category: 'Financial Statements', strength: 65 },
-    { id: '4', label: 'Cash Flow', category: 'Financial Statements', strength: 40 },
-    { id: '5', label: 'Assets', category: 'Accounting Basics', strength: 90 },
-    { id: '6', label: 'Liabilities', category: 'Accounting Basics', strength: 85 },
-    { id: '7', label: 'IFRS', category: 'Standards', strength: 30 },
-    { id: '8', label: 'GAAP', category: 'Standards', strength: 25 },
-  ];
-  
-  const categoryColors = {
-    'Accounting Basics': '#3b82f6',
-    'Financial Statements': '#8b5cf6',
-    'Standards': '#f97316',
-  };
-  
-  const studyPatternData = [
-    { time: '6 AM', effectiveness: 40, retention: 35 },
-    { time: '9 AM', effectiveness: 65, retention: 60 },
-    { time: '12 PM', effectiveness: 55, retention: 50 },
-    { time: '3 PM', effectiveness: 45, retention: 40 },
-    { time: '6 PM', effectiveness: 70, retention: 65 },
-    { time: '9 PM', effectiveness: 80, retention: 75 },
-    { time: '12 AM', effectiveness: 50, retention: 45 },
-  ];
-  
-  const recommendations = [
-    {
-      title: 'Focus on Visual Learning Materials',
-      description: 'Based on your learning style profile, emphasize visual learning materials like diagrams, charts, and videos for better retention.',
-    },
-    {
-      title: 'Schedule Study Sessions in the Evening',
-      description: 'Your study pattern shows highest effectiveness between 6-9 PM. Try to schedule important study sessions during this optimal window.',
-    },
-    {
-      title: 'Strengthen Understanding of Standards',
-      description: 'Your knowledge graph indicates weaker connections in accounting standards. Consider allocating more time to IFRS and GAAP concepts.',
-    },
-  ];
-
   return (
     <MainLayout>
-      <div className="p-6 md:p-8 max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Cognitive Profile</h1>
-        <p className="text-muted-foreground mb-6">
-          Your personalized cognitive learning pattern analysis and recommendations
+      <div className="p-6">
+        <h1 className="text-3xl font-bold mb-4">Cognitive Profile</h1>
+        <p className="text-muted-foreground mb-8">
+          Your personalized learning profile based on performance data and learning patterns.
         </p>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <CognitiveProfileCard 
-            title="Learning Efficiency" 
-            value="85%"
-            description="Overall effectiveness of your learning approach"
-            icon="brain"
-            progress={85}
-          />
-          <CognitiveProfileCard 
-            title="Knowledge Mastery" 
-            value="64%"
-            description="Average mastery across all concepts"
-            icon="book"
-            progress={64}
-          />
-          <CognitiveProfileCard 
-            title="Optimal Study Duration" 
-            value="45 min"
-            description="Your ideal focus session length"
-            icon="clock"
-          />
-          <CognitiveProfileCard 
-            title="Memory Retention" 
-            value="72%"
-            description="Average long-term knowledge retention"
-            icon="chart"
-            progress={72}
-          />
-        </div>
-        
-        <Tabs defaultValue="overview">
+        <Tabs defaultValue="profile">
           <TabsList className="mb-6">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
-              <Brain className="h-4 w-4" />
-              <span>Learning Profile</span>
-            </TabsTrigger>
-            <TabsTrigger value="recommendations" className="flex items-center gap-2">
-              <Lightbulb className="h-4 w-4" />
-              <span>Recommendations</span>
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <BarChart2 className="h-4 w-4" />
-              <span>Analytics</span>
-            </TabsTrigger>
-            <TabsTrigger value="knowledge" className="flex items-center gap-2">
-              <Network className="h-4 w-4" />
-              <span>Knowledge Map</span>
-            </TabsTrigger>
+            <TabsTrigger value="profile">Learning Profile</TabsTrigger>
+            <TabsTrigger value="strengths">Strengths & Areas for Growth</TabsTrigger>
+            <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="overview">
+          <TabsContent value="profile">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <LearningStyleChart data={learningStyleData} />
-              <ContentFormatPreference data={contentFormatData} />
-              <StudyPatternAnalysis data={studyPatternData} />
-              <KnowledgeGraph nodes={knowledgeNodes} categories={categoryColors} />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Learning Style</CardTitle>
+                  <CardDescription>
+                    Your preferred methods of engaging with educational content
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="font-medium mb-2">Primary Learning Modality</h3>
+                      <div className="grid grid-cols-3 gap-4 text-center">
+                        <div className="rounded-md border p-3">
+                          <p className="font-medium">Visual</p>
+                          <p className="text-xl font-bold mt-1">65%</p>
+                        </div>
+                        <div className="rounded-md border p-3">
+                          <p className="font-medium">Auditory</p>
+                          <p className="text-xl font-bold mt-1">20%</p>
+                        </div>
+                        <div className="rounded-md border p-3">
+                          <p className="font-medium">Kinesthetic</p>
+                          <p className="text-xl font-bold mt-1">15%</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-medium mb-2">Information Processing</h3>
+                      <div className="grid grid-cols-2 gap-4 text-center">
+                        <div className="rounded-md border p-3">
+                          <p className="font-medium">Sequential</p>
+                          <p className="text-xl font-bold mt-1">45%</p>
+                        </div>
+                        <div className="rounded-md border p-3">
+                          <p className="font-medium">Global</p>
+                          <p className="text-xl font-bold mt-1">55%</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Memory & Retention</CardTitle>
+                  <CardDescription>
+                    Analysis of your memory patterns and retention capabilities
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between mb-2">
+                        <span className="font-medium">Short-term Retention</span>
+                        <span>72%</span>
+                      </div>
+                      <div className="w-full h-2 bg-muted rounded-full">
+                        <div className="bg-primary h-full rounded-full" style={{ width: '72%' }}></div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div className="flex justify-between mb-2">
+                        <span className="font-medium">Long-term Retention</span>
+                        <span>68%</span>
+                      </div>
+                      <div className="w-full h-2 bg-muted rounded-full">
+                        <div className="bg-primary h-full rounded-full" style={{ width: '68%' }}></div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div className="flex justify-between mb-2">
+                        <span className="font-medium">Spaced Repetition Benefit</span>
+                        <span>High</span>
+                      </div>
+                      <div className="w-full h-2 bg-muted rounded-full">
+                        <div className="bg-primary h-full rounded-full" style={{ width: '85%' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
+          </TabsContent>
+          
+          <TabsContent value="strengths">
+            <Card>
+              <CardHeader>
+                <CardTitle>Your Cognitive Strengths & Growth Areas</CardTitle>
+                <CardDescription>
+                  Based on your quiz performance, flashcard reviews, and study patterns
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">Key Strengths</h3>
+                    <ul className="space-y-2 list-disc pl-5">
+                      <li>Strong visual memory and pattern recognition</li>
+                      <li>Effective at applying concepts to practical scenarios</li>
+                      <li>Consistent performance in financial statement analysis</li>
+                      <li>Good retention of mathematical formulas and calculations</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">Areas for Growth</h3>
+                    <ul className="space-y-2 list-disc pl-5">
+                      <li>Tax regulation concepts and applications</li>
+                      <li>Audit principles and methodology</li>
+                      <li>Long-term retention of technical terminology</li>
+                      <li>Abstract accounting theory concepts</li>
+                    </ul>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
           
           <TabsContent value="recommendations">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {recommendations.map((recommendation, index) => (
-                <RecommendationCard 
-                  key={index}
-                  title={recommendation.title}
-                  description={recommendation.description}
-                  actionText="Apply to My Learning Path"
-                  onAction={() => console.log('Applied recommendation:', recommendation.title)}
-                />
-              ))}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="analytics">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <StudyPatternAnalysis data={studyPatternData} />
-              <ContentFormatPreference data={contentFormatData} />
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="knowledge">
-            <KnowledgeGraph 
-              nodes={knowledgeNodes} 
-              categories={categoryColors} 
-            />
+            <Card>
+              <CardHeader>
+                <CardTitle>Personalized Learning Recommendations</CardTitle>
+                <CardDescription>
+                  Optimized study strategies based on your cognitive profile
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">Content Format Recommendations</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Card>
+                        <CardContent className="p-4">
+                          <h4 className="font-medium">Prioritize</h4>
+                          <ul className="text-sm list-disc pl-5 mt-2">
+                            <li>Visual diagrams</li>
+                            <li>Flowcharts</li>
+                            <li>Infographics</li>
+                            <li>Video demonstrations</li>
+                          </ul>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card>
+                        <CardContent className="p-4">
+                          <h4 className="font-medium">Include</h4>
+                          <ul className="text-sm list-disc pl-5 mt-2">
+                            <li>Practice problems</li>
+                            <li>Case studies</li>
+                            <li>Interactive simulations</li>
+                            <li>Quizzes with feedback</li>
+                          </ul>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card>
+                        <CardContent className="p-4">
+                          <h4 className="font-medium">Limit</h4>
+                          <ul className="text-sm list-disc pl-5 mt-2">
+                            <li>Long text passages</li>
+                            <li>Audio-only content</li>
+                            <li>Abstract theoretical discussions</li>
+                            <li>Very lengthy sessions</li>
+                          </ul>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">Study Schedule Optimization</h3>
+                    <p className="mb-4">Based on your performance data, here's your optimal study schedule:</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Card>
+                        <CardContent className="p-4">
+                          <h4 className="font-medium">Optimal Study Times</h4>
+                          <ul className="text-sm list-disc pl-5 mt-2">
+                            <li>Morning: High focus for new concepts (8-10 AM)</li>
+                            <li>Afternoon: Practice problems (2-4 PM)</li>
+                            <li>Evening: Review sessions (7-8 PM)</li>
+                          </ul>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card>
+                        <CardContent className="p-4">
+                          <h4 className="font-medium">Session Structure</h4>
+                          <ul className="text-sm list-disc pl-5 mt-2">
+                            <li>Optimal session length: 25-30 minutes</li>
+                            <li>Break interval: 5 minutes</li>
+                            <li>Topic switching: Every 1-2 sessions</li>
+                            <li>Review frequency: Every 3 days</li>
+                          </ul>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

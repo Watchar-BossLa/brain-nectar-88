@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/auth';
 import {
@@ -14,7 +14,6 @@ import {
   Brain,
   LayoutDashboard,
   ScrollText,
-  Users,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -114,18 +113,20 @@ export function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) {
           <ul className="space-y-1 px-2">
             {navigationItems.map((item) => (
               <li key={item.name}>
-                <Link
+                <NavLink
                   to={item.href}
-                  className={`
+                  className={({ isActive }) => `
                     flex items-center hover:bg-accent hover:text-accent-foreground rounded-md transition-all
                     ${isSidebarOpen ? 'py-2 px-3 justify-start' : 'p-3 justify-center'}
+                    ${isActive ? 'bg-accent text-accent-foreground' : ''}
                   `}
+                  end={item.href === '/'}
                 >
                   <item.icon className="h-5 w-5" />
                   <span className={`ml-2 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 w-0'} transition-all duration-300`}>
                     {item.name}
                   </span>
-                </Link>
+                </NavLink>
               </li>
             ))}
           </ul>
