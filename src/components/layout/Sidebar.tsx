@@ -52,6 +52,7 @@ export function Sidebar({ className }: { className?: string }) {
       icon: Flame,
       label: "Flashcards",
       path: "/flashcards",
+      isPriority: true, // Mark as priority for styling
     },
     {
       icon: PenTool,
@@ -92,12 +93,14 @@ export function Sidebar({ className }: { className?: string }) {
                 variant={isActive(item.path) ? "default" : "ghost"}
                 className={cn(
                   "w-full justify-start",
-                  isActive(item.path) && "bg-primary text-primary-foreground"
+                  isActive(item.path) && "bg-primary text-primary-foreground",
+                  item.isPriority && !isActive(item.path) && "border border-yellow-300/50" // Special styling for priority items
                 )}
                 onClick={() => handleNavigate(item.path)}
               >
-                <item.icon className="mr-2 h-4 w-4" />
+                <item.icon className={cn("mr-2 h-4 w-4", item.isPriority && "text-yellow-500")} />
                 {item.label}
+                {item.isPriority && <span className="ml-auto text-xs bg-yellow-500/10 text-yellow-600 px-1.5 py-0.5 rounded-full">New</span>}
               </Button>
             ))}
           </div>
