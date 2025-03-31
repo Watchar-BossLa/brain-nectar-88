@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Flashcard } from '@/types/supabase';
 
@@ -208,6 +207,9 @@ export const standardsFlashcards: DefaultFlashcard[] = [
  */
 export async function loadDefaultFlashcardsForUser(userId: string): Promise<boolean> {
   try {
+    console.log(`Attempting to load default flashcards for user ${userId}`);
+    
+    // First check if the user already has flashcards
     const { data: existingCards, error: fetchError } = await supabase
       .from('flashcards')
       .select('id')
@@ -224,6 +226,7 @@ export async function loadDefaultFlashcardsForUser(userId: string): Promise<bool
       return true;
     }
     
+    console.log('No existing flashcards found, creating defaults...');
     const now = new Date().toISOString();
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -234,6 +237,8 @@ export async function loadDefaultFlashcardsForUser(userId: string): Promise<bool
       ...financeFlashcards, 
       ...standardsFlashcards
     ];
+    
+    console.log(`Preparing to insert ${allDefaultFlashcards.length} default flashcards`);
     
     // Map to Supabase format
     const flashcardsToInsert = allDefaultFlashcards.map(card => ({

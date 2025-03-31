@@ -35,20 +35,39 @@ const Flashcards = () => {
   
   useEffect(() => {
     const checkAndLoadDefaultFlashcards = async () => {
+      if (!user) return;
+      
       if (user && !isLoading && flashcards.length === 0 && !loadingDefaults) {
+        console.log('No flashcards found, attempting to load defaults...');
         setLoadingDefaults(true);
+        
         try {
           const loaded = await loadDefaultFlashcardsForUser(user.id);
           if (loaded) {
+            console.log('Default flashcards loaded successfully');
             toast({
               title: "Default flashcards loaded",
               description: "We've added some starter flashcards to help you get started!",
               duration: 5000,
             });
-            refreshFlashcards();
+            await refreshFlashcards();
+          } else {
+            console.error("Failed to load default flashcards");
+            toast({
+              title: "Error",
+              description: "Could not load default flashcards. Please try refreshing the page.",
+              variant: "destructive",
+              duration: 5000,
+            });
           }
         } catch (error) {
           console.error("Error loading default flashcards:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load default flashcards. Please try again later.",
+            variant: "destructive",
+            duration: 5000,
+          });
         } finally {
           setLoadingDefaults(false);
         }
