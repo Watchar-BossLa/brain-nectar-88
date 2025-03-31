@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { getSession } from '@/lib/supabaseAuth';
 
 export function TestTabContent({ handleTestTask }: { handleTestTask: () => Promise<void> }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -14,8 +15,8 @@ export function TestTabContent({ handleTestTask }: { handleTestTask: () => Promi
   const handleTest = async () => {
     setIsLoading(true);
     try {
-      // Get current user session using the correct Supabase v2 API
-      const { data: sessionData } = await supabase.auth.getSession();
+      // Get current user session using the compatibility layer
+      const { data: sessionData } = await getSession();
       const session = sessionData?.session;
       
       if (!session) {

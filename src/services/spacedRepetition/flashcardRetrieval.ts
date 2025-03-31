@@ -1,215 +1,145 @@
 
-import { supabase } from '@/lib/supabase';
-import { getSession } from '@/lib/supabaseAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { queryFlashcardLearningStats } from '@/lib/database-stub';
 
 /**
- * Get all flashcards for the current user
+ * Get all flashcards due for review for a specific user
+ * @param userId The ID of the user
+ * @returns Array of flashcards due for review
  */
-export async function getUserFlashcards() {
+export const getDueFlashcards = async (userId: string) => {
   try {
-    // Get current user session
-    const { data: sessionData } = await getSession();
-    
-    if (!sessionData?.session?.user?.id) {
-      throw new Error('User not authenticated');
-    }
-    
-    const userId = sessionData.session.user.id;
-    
-    // Get all flashcards
-    const { data, error } = await supabase
-      .from('flashcards')
-      .select(`
-        *,
-        flashcard_learning_stats(*)
-      `)
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-    
-    if (error) {
-      throw error;
-    }
-    
-    return data;
-  } catch (error) {
-    console.error('Error getting user flashcards:', error);
-    throw error;
-  }
-}
-
-/**
- * Get flashcards due for review
- */
-export async function getDueFlashcards(limit = 20) {
-  try {
-    // Get current user session
-    const { data: sessionData } = await getSession();
-    
-    if (!sessionData?.session?.user?.id) {
-      throw new Error('User not authenticated');
-    }
-    
-    const userId = sessionData.session.user.id;
     const now = new Date().toISOString();
     
-    // Get flashcards with their learning stats where review date is due
-    const { data, error } = await supabase
-      .from('flashcard_learning_stats')
-      .select(`
-        *,
-        flashcard:flashcard_id(*)
-      `)
+    // Get flashcards due for review
+    const { data: flashcards, error } = await supabase
+      .from('flashcards')
+      .select('*')
       .eq('user_id', userId)
       .lte('next_review_date', now)
-      .limit(limit);
+      .order('next_review_date', { ascending: true });
+      
+    if (error) throw error;
     
-    if (error) {
-      throw error;
-    }
-    
-    // Format the result to have flashcard as the root object with stats
-    return data.map((item) => ({
-      ...item.flashcard,
-      learning_stats: {
-        easiness_factor: item.easiness_factor,
-        repetition_count: item.repetition_count,
-        interval_days: item.interval_days,
-        last_review_date: item.last_review_date,
-        next_review_date: item.next_review_date
-      }
-    }));
+    return flashcards || [];
   } catch (error) {
     console.error('Error getting due flashcards:', error);
-    throw error;
+    return [];
   }
-}
+};
 
 /**
- * Get flashcards by topic
+ * Get all flashcards for a specific user
+ * @param userId The ID of the user
+ * @returns Array of all user's flashcards
  */
-export async function getFlashcardsByTopic(topic: string, limit = 20) {
+export const getUserFlashcards = async (userId: string) => {
   try {
-    // Get current user session
-    const { data: sessionData } = await getSession();
-    
-    if (!sessionData?.session?.user?.id) {
-      throw new Error('User not authenticated');
-    }
-    
-    const userId = sessionData.session.user.id;
-    
-    // Get flashcards with the specified topic
-    const { data, error } = await supabase
+    // Get all flashcards for this user
+    const { data: flashcards, error } = await supabase
       .from('flashcards')
-      .select(`
-        *,
-        flashcard_learning_stats(*)
-      `)
+      .select('*')
       .eq('user_id', userId)
-      .eq('topic', topic)
-      .limit(limit);
+      .order('created_at', { ascending: false });
+      
+    if (error) throw error;
     
-    if (error) {
-      throw error;
-    }
+    return flashcards || [];
+  } catch (error) {
+    console.error('Error getting user flashcards:', error);
+    return [];
+  }
+};
+
+/**
+ * Get flashcards for a specific topic
+ * @param userId The ID of the user
+ * @param topicId The ID of the topic
+ * @returns Array of flashcards for the specified topic
+ */
+export const getFlashcardsByTopic = async (userId: string, topicId: string) => {
+  try {
+    // Get flashcards for this topic
+    const { data: flashcards, error } = await supabase
+      .from('flashcards')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('topic_id', topicId)
+      .order('created_at', { ascending: false });
+      
+    if (error) throw error;
     
-    return data;
+    return flashcards || [];
   } catch (error) {
     console.error('Error getting flashcards by topic:', error);
-    throw error;
+    return [];
   }
-}
+};
 
 /**
- * Get mastered flashcards
+ * Get flashcards that the user is struggling with
+ * @param userId The ID of the user
+ * @param limit The maximum number of flashcards to return
+ * @returns Array of struggled flashcards
  */
-export async function getMasteredFlashcards(limit = 20) {
+export const getStrugglingFlashcards = async (userId: string, limit = 10) => {
   try {
-    // Get current user session
-    const { data: sessionData } = await getSession();
-    
-    if (!sessionData?.session?.user?.id) {
-      throw new Error('User not authenticated');
-    }
-    
-    const userId = sessionData.session.user.id;
-    
-    // Get flashcards that are considered mastered (high repetition count and easiness factor)
-    const { data, error } = await supabase
-      .from('flashcard_learning_stats')
-      .select(`
-        *,
-        flashcard:flashcard_id(*)
-      `)
+    // Flashcards with low mastery level or high repetition count
+    const { data: flashcards, error } = await supabase
+      .from('flashcards')
+      .select('*')
       .eq('user_id', userId)
-      .gte('easiness_factor', 2.5)
-      .gte('repetition_count', 3)
+      .lt('mastery_level', 0.5)
+      .gt('repetition_count', 2)
+      .order('mastery_level', { ascending: true })
       .limit(limit);
+      
+    if (error) throw error;
     
-    if (error) {
-      throw error;
-    }
-    
-    // Format the result
-    return data.map((item) => ({
-      ...item.flashcard,
-      learning_stats: {
-        easiness_factor: item.easiness_factor,
-        repetition_count: item.repetition_count,
-        interval_days: item.interval_days,
-        last_review_date: item.last_review_date,
-        next_review_date: item.next_review_date
-      }
-    }));
-  } catch (error) {
-    console.error('Error getting mastered flashcards:', error);
-    throw error;
-  }
-}
-
-/**
- * Get struggling flashcards (low easiness factor)
- */
-export async function getStrugglingFlashcards(limit = 20) {
-  try {
-    // Get current user session
-    const { data: sessionData } = await getSession();
-    
-    if (!sessionData?.session?.user?.id) {
-      throw new Error('User not authenticated');
-    }
-    
-    const userId = sessionData.session.user.id;
-    
-    // Get flashcards that are considered difficult (low easiness factor)
-    const { data, error } = await supabase
-      .from('flashcard_learning_stats')
-      .select(`
-        *,
-        flashcard:flashcard_id(*)
-      `)
-      .eq('user_id', userId)
-      .lt('easiness_factor', 1.8) // Threshold for "struggling"
-      .gt('repetition_count', 1) // Has been reviewed at least once
-      .limit(limit);
-    
-    if (error) {
-      throw error;
-    }
-    
-    // Format the result
-    return data.map((item) => ({
-      ...item.flashcard,
-      learning_stats: {
-        easiness_factor: item.easiness_factor,
-        repetition_count: item.repetition_count,
-        interval_days: item.interval_days,
-        last_review_date: item.last_review_date,
-        next_review_date: item.next_review_date
-      }
-    }));
+    return flashcards || [];
   } catch (error) {
     console.error('Error getting struggling flashcards:', error);
-    throw error;
+    return [];
   }
-}
+};
+
+/**
+ * Get flashcards that the user has mastered
+ * @param userId The ID of the user
+ * @param limit The maximum number of flashcards to return
+ * @returns Array of mastered flashcards
+ */
+export const getMasteredFlashcards = async (userId: string, limit = 10) => {
+  try {
+    // Get learning stats for all flashcards
+    const { data: stats } = await queryFlashcardLearningStats(userId);
+    
+    if (!stats || stats.length === 0) {
+      return [];
+    }
+    
+    // Filter for mastered cards (high easiness factor and repetition count)
+    const masteredIds = stats
+      .filter(stat => stat.easiness_factor >= 2.5 && stat.repetitions >= 3)
+      .map(stat => stat.flashcard_id);
+    
+    if (masteredIds.length === 0) {
+      return [];
+    }
+    
+    // Get the actual flashcards
+    const { data: flashcards, error } = await supabase
+      .from('flashcards')
+      .select('*')
+      .eq('user_id', userId)
+      .in('id', masteredIds)
+      .limit(limit);
+      
+    if (error) throw error;
+    
+    return flashcards || [];
+  } catch (error) {
+    console.error('Error getting mastered flashcards:', error);
+    return [];
+  }
+};

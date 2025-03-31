@@ -1,102 +1,142 @@
 
-import { supabase } from '@/lib/supabase';
-import { getSession } from '@/lib/supabaseAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Calculate retention percentage for a flashcard
+ * Calculate the retention rate for a flashcard based on review history
+ * @param flashcardId The ID of the flashcard
+ * @param userId The ID of the user
+ * @returns The calculated retention rate (0-1)
  */
-export function calculateRetentionPercentage(flashcard: any) {
-  if (!flashcard) return 0;
-  
-  const easinessFactor = flashcard.easiness_factor || 2.5;
-  const repetitionCount = flashcard.repetition_count || 0;
-  
-  if (repetitionCount === 0) return 0;
-  
-  // A simple formula to estimate retention based on repetition count and easiness
-  // This is just a heuristic, not based on actual memory models
-  const baseRetention = Math.min(90, repetitionCount * 15);  
-  const easinessBonus = Math.max(0, (easinessFactor - 2.5) * 10);
-  
-  return Math.min(100, baseRetention + easinessBonus);
-}
-
-/**
- * Get flashcard retention stats for user
- */
-export async function getFlashcardRetentionStats(userId?: string) {
+export const calculateFlashcardRetention = async (
+  flashcardId: string,
+  userId: string
+): Promise<number> => {
   try {
-    // Get current user session if userId is not provided
-    if (!userId) {
-      const { data: sessionData } = await getSession();
-      
-      if (!sessionData?.session?.user?.id) {
-        throw new Error('User not authenticated');
-      }
-      
-      userId = sessionData.session.user.id;
-    }
-    
-    // Get all flashcard stats
-    const { data: statsData, error: statsError } = await supabase
-      .from('flashcard_learning_stats')
+    // Get review history for this flashcard
+    const { data: reviews, error } = await supabase
+      .from('flashcard_reviews')
       .select('*')
-      .eq('user_id', userId);
+      .eq('flashcard_id', flashcardId)
+      .eq('user_id', userId)
+      .order('reviewed_at', { ascending: false })
+      .limit(10);
     
-    if (statsError) {
-      throw statsError;
+    if (error) throw error;
+    
+    if (!reviews || reviews.length === 0) {
+      return 0.85; // Default retention rate for new cards
     }
     
-    // Get all flashcards
-    const { data: flashcardsData, error: flashcardsError } = await supabase
+    // Calculate retention based on difficulty ratings
+    // Lower difficulty rating = higher retention
+    const totalRatings = reviews.reduce((sum, review) => sum + review.difficulty_rating, 0);
+    const avgDifficulty = totalRatings / reviews.length;
+    
+    // Convert to retention rate (5=difficult → low retention, 1=easy → high retention)
+    // Scale from 1-5 to 0.6-1.0 range
+    const retentionRate = 1 - ((avgDifficulty - 1) / 10);
+    
+    return Math.max(0.6, Math.min(1, retentionRate));
+  } catch (error) {
+    console.error('Error calculating flashcard retention:', error);
+    return 0.85; // Default fallback
+  }
+};
+
+/**
+ * Get learning statistics for a flashcard
+ * @param flashcardId The ID of the flashcard
+ * @param userId The ID of the user
+ * @returns Learning statistics object
+ */
+export const getFlashcardLearningStats = async (
+  flashcardId: string,
+  userId: string
+) => {
+  try {
+    // Use flashcards table instead of flashcard_learning_stats
+    // since the latter doesn't exist in the database schema
+    const { data, error } = await supabase
+      .from('flashcards')
+      .select('*')
+      .eq('id', flashcardId)
+      .eq('user_id', userId)
+      .single();
+    
+    if (error) throw error;
+    
+    if (!data) {
+      return null;
+    }
+    
+    // Return stats from the flashcards table
+    return {
+      flashcard_id: data.id,
+      user_id: data.user_id,
+      easiness_factor: data.easiness_factor,
+      interval: data.repetition_count,
+      repetitions: data.repetition_count,
+      last_reviewed_at: data.last_reviewed_at,
+      next_review_at: data.next_review_date,
+      review_count: data.repetition_count,
+      mastery_level: data.mastery_level
+    };
+  } catch (error) {
+    console.error('Error getting flashcard learning stats:', error);
+    return null;
+  }
+};
+
+/**
+ * Get retention statistics for a flashcard
+ */
+export const getFlashcardRetentionStats = async (userId: string) => {
+  try {
+    // Get all flashcards for this user
+    const { data: flashcards, error } = await supabase
       .from('flashcards')
       .select('*')
       .eq('user_id', userId);
     
-    if (flashcardsError) {
-      throw flashcardsError;
+    if (error) throw error;
+    
+    if (!flashcards || flashcards.length === 0) {
+      return {
+        averageRetention: 0,
+        totalReviews: 0,
+        masteredCount: 0
+      };
     }
     
-    // Calculate retention metrics
-    const totalCards = statsData.length;
-    let totalRetention = 0;
+    // Count mastered cards (those with high mastery_level)
+    const masteredCount = flashcards.filter(card => 
+      card.mastery_level && card.mastery_level >= 0.8
+    ).length;
     
-    statsData.forEach(stats => {
-      totalRetention += calculateRetentionPercentage(stats);
-    });
+    // Calculate average retention across all cards
+    const totalRetention = flashcards.reduce((sum, card) => 
+      sum + (card.last_retention || 0.85), 0);
+    const averageRetention = totalRetention / flashcards.length;
     
-    const averageRetention = totalCards > 0 ? totalRetention / totalCards : 0;
+    // Get total number of reviews
+    const { count: totalReviews, error: reviewsError } = await supabase
+      .from('flashcard_reviews')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
     
-    // Group cards by topic for topic-based retention
-    const topicRetention: Record<string, { count: number, total: number }> = {};
-    
-    flashcardsData.forEach(flashcard => {
-      const stats = statsData.find(s => s.flashcard_id === flashcard.id);
-      if (!stats) return;
-      
-      const topic = flashcard.topic || 'Uncategorized';
-      
-      if (!topicRetention[topic]) {
-        topicRetention[topic] = { count: 0, total: 0 };
-      }
-      
-      topicRetention[topic].count++;
-      topicRetention[topic].total += calculateRetentionPercentage(stats);
-    });
-    
-    // Calculate average retention by topic
-    const retentionByTopic = Object.entries(topicRetention).map(([topic, data]) => ({
-      topic,
-      retention: data.count > 0 ? data.total / data.count : 0
-    }));
+    if (reviewsError) throw reviewsError;
     
     return {
-      totalCards,
       averageRetention,
-      retentionByTopic
+      totalReviews: totalReviews || 0,
+      masteredCount
     };
   } catch (error) {
     console.error('Error getting flashcard retention stats:', error);
-    throw error;
+    return {
+      averageRetention: 0,
+      totalReviews: 0,
+      masteredCount: 0
+    };
   }
-}
+};

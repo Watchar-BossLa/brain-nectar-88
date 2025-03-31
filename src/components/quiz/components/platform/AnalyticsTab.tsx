@@ -1,132 +1,173 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useAuth } from '@/context/auth';
-import { getUserPerformanceStats, getPerformanceByDifficulty } from '@/services/quiz/performanceService';
-import { getFeedbackStats } from '@/services/quiz/feedbackService';
-import PerformanceMetrics from '../analytics/PerformanceMetrics';
-import PerformanceByTopic from '../analytics/PerformanceByTopic';
-import PerformanceByDifficulty from '../analytics/PerformanceByDifficulty';
-import { Loader2 } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BarChart, LineChart, PieChart } from '@/components/ui/charts';
+import { PerformanceMetrics } from '../metrics/PerformanceMetrics';
+import { getPerformanceByDifficulty } from '@/services/quiz/performanceService';
+import { supabase } from '@/lib/supabase';
 
-const AnalyticsTab: React.FC = () => {
-  const { user } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [performanceData, setPerformanceData] = useState<any>(null);
-  const [topicData, setTopicData] = useState<Record<string, { total: number; correct: number }>>({});
-  const [difficultyData, setDifficultyData] = useState<any>(null);
-  const [feedbackData, setFeedbackData] = useState<any>(null);
+export const AnalyticsTab = ({ userId }: { userId: string }) => {
+  const [performanceData, setPerformanceData] = useState({
+    byDifficulty: {
+      easy: { correct: 0, total: 0, accuracy: 0 },
+      medium: { correct: 0, total: 0, accuracy: 0 },
+      hard: { correct: 0, total: 0, accuracy: 0 }
+    },
+    byTopic: [],
+    overall: {
+      correct: 0,
+      total: 0,
+      accuracy: 0
+    }
+  });
+  
+  const [metrics, setMetrics] = useState({
+    averageScore: 0,
+    totalQuestions: 0,
+    improvementRate: 0
+  });
+  
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadAnalytics = async () => {
-      if (!user) return;
-      
-      setLoading(true);
+    const fetchAnalytics = async () => {
       try {
-        // Get performance statistics
-        const performanceStats = await getUserPerformanceStats(user.id);
-        setPerformanceData(performanceStats);
+        setIsLoading(true);
         
-        // Transform topic performance data
-        const topicStats: Record<string, { total: number; correct: number }> = {};
-        Object.entries(performanceStats.topicPerformance).forEach(([topic, data]: [string, any]) => {
-          topicStats[topic] = {
-            total: data.totalCount || 0,
-            correct: data.correctCount || 0
-          };
+        // Get performance by difficulty
+        const difficultyData = await getPerformanceByDifficulty(userId);
+        
+        // Get overall metrics
+        const { data: sessions } = await supabase
+          .from('quiz_sessions')
+          .select('*')
+          .eq('user_id', userId)
+          .order('date', { ascending: false });
+        
+        const totalSessions = sessions?.length || 0;
+        const totalQuestions = sessions?.reduce((sum, session) => sum + (session.total_questions || 0), 0) || 0;
+        const totalCorrect = sessions?.reduce((sum, session) => sum + (session.correct_answers || 0), 0) || 0;
+        
+        // Calculate improvement rate (compare last 3 sessions with previous 3)
+        let improvementRate = 0;
+        
+        if (sessions && sessions.length >= 6) {
+          const recent3 = sessions.slice(0, 3);
+          const previous3 = sessions.slice(3, 6);
+          
+          const recentAvg = recent3.reduce((sum, session) => sum + (session.score_percentage || 0), 0) / 3;
+          const previousAvg = previous3.reduce((sum, session) => sum + (session.score_percentage || 0), 0) / 3;
+          
+          improvementRate = ((recentAvg - previousAvg) / previousAvg) * 100;
+        }
+        
+        setPerformanceData({
+          byDifficulty: difficultyData,
+          byTopic: [],
+          overall: {
+            correct: totalCorrect,
+            total: totalQuestions,
+            accuracy: totalQuestions > 0 ? (totalCorrect / totalQuestions) * 100 : 0
+          }
         });
-        setTopicData(topicStats);
         
-        // Get difficulty performance
-        const difficultyStats = await getPerformanceByDifficulty(user.id);
-        setDifficultyData(difficultyStats);
-        
-        // Get feedback statistics
-        const feedbackStats = await getFeedbackStats();
-        setFeedbackData(feedbackStats);
+        setMetrics({
+          averageScore: totalSessions > 0 
+            ? sessions.reduce((sum, session) => sum + (session.score_percentage || 0), 0) / totalSessions 
+            : 0,
+          totalQuestions,
+          improvementRate
+        });
       } catch (error) {
-        console.error('Error loading analytics:', error);
+        console.error('Error fetching analytics data:', error);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
     
-    loadAnalytics();
-  }, [user]);
+    if (userId) {
+      fetchAnalytics();
+    }
+  }, [userId]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (!performanceData) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Analytics</CardTitle>
-          <CardDescription>View your quiz performance analytics</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center justify-center py-8">
-          <p className="text-center mb-4">No quiz data available yet.</p>
-          <Button>Try a Quiz</Button>
-        </CardContent>
-      </Card>
-    );
+  if (isLoading) {
+    return <div>Loading analytics data...</div>;
   }
 
   return (
-    <div className="space-y-6">
-      <PerformanceMetrics
-        averageScore={performanceData.averageScore}
-        totalSessions={performanceData.totalSessions}
-        improvementRate={performanceData.improvementRate}
+    <div className="space-y-8">
+      <PerformanceMetrics 
+        averageScore={metrics.averageScore} 
+        totalQuestions={metrics.totalQuestions} 
+        improvementRate={metrics.improvementRate} 
       />
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <PerformanceByTopic 
-          topicStats={topicData} 
-        />
+      <Tabs defaultValue="difficulty">
+        <TabsList className="grid grid-cols-3 mb-4">
+          <TabsTrigger value="difficulty">By Difficulty</TabsTrigger>
+          <TabsTrigger value="topics">By Topic</TabsTrigger>
+          <TabsTrigger value="progress">Progress</TabsTrigger>
+        </TabsList>
         
-        <PerformanceByDifficulty 
-          difficultyStats={difficultyData}
-        />
-      </div>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Quiz Sessions</CardTitle>
-          <CardDescription>Your most recent quiz attempts</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {performanceData.recentSessions.length > 0 ? (
-            <div className="space-y-4">
-              {performanceData.recentSessions.map((session: any) => (
-                <div key={session.id} className="flex justify-between items-center p-3 border rounded-md">
-                  <div>
-                    <p className="font-medium">
-                      Score: {session.score_percentage}%
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(session.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <Button variant="outline" size="sm">View Details</Button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-center text-muted-foreground">
-              No recent quiz sessions found.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+        <TabsContent value="difficulty" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Performance by Difficulty Level</CardTitle>
+              <CardDescription>
+                How you perform across different difficulty levels
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <BarChart 
+                data={[
+                  { name: 'Easy', value: performanceData.byDifficulty.easy.accuracy },
+                  { name: 'Medium', value: performanceData.byDifficulty.medium.accuracy },
+                  { name: 'Hard', value: performanceData.byDifficulty.hard.accuracy }
+                ]}
+                xAxisKey="name"
+                yAxisKey="value"
+                height={300}
+                valueFormatter={(value) => `${value.toFixed(1)}%`}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="topics">
+          {/* Content for topics tab */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Performance by Topic</CardTitle>
+              <CardDescription>
+                Your accuracy across different accounting topics
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-center text-muted-foreground py-12">
+                Topic analytics will be available after completing more quizzes
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="progress">
+          {/* Content for progress tab */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Learning Progress</CardTitle>
+              <CardDescription>
+                Your quiz performance over time
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-center text-muted-foreground py-12">
+                Progress analytics will be available after completing more quizzes
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
-
-export default AnalyticsTab;

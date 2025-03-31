@@ -1,41 +1,43 @@
 
-// Agent-related types
 export enum AgentType {
-  COGNITIVE_PROFILE = 'COGNITIVE_PROFILE',
-  LEARNING_PATH = 'LEARNING_PATH',
-  CONTENT_ADAPTATION = 'CONTENT_ADAPTATION',
-  ASSESSMENT = 'ASSESSMENT',
-  SCHEDULING = 'SCHEDULING',
-  UI_UX = 'UI_UX',
-  ENGAGEMENT = 'ENGAGEMENT',
-  FEEDBACK = 'FEEDBACK'
-}
-
-export enum TaskPriority {
-  LOW = 'LOW',
-  MEDIUM = 'MEDIUM',
-  HIGH = 'HIGH',
-  CRITICAL = 'CRITICAL'
-}
-
-export enum TaskStatus {
-  PENDING = 'PENDING',
-  IN_PROGRESS = 'IN_PROGRESS',
-  COMPLETED = 'COMPLETED',
-  FAILED = 'FAILED'
+  COGNITIVE_PROFILE = "COGNITIVE_PROFILE",
+  LEARNING_PATH = "LEARNING_PATH",
+  CONTENT_ADAPTATION = "CONTENT_ADAPTATION",
+  ASSESSMENT = "ASSESSMENT",
+  ENGAGEMENT = "ENGAGEMENT",
+  FEEDBACK = "FEEDBACK",
+  UI_UX = "UI_UX",
+  SCHEDULING = "SCHEDULING",
+  TUTORING = "TUTORING"
 }
 
 export enum TaskType {
-  GENERATE_COGNITIVE_PROFILE = 'GENERATE_COGNITIVE_PROFILE',
-  UPDATE_COGNITIVE_PROFILE = 'UPDATE_COGNITIVE_PROFILE',
-  GENERATE_LEARNING_PATH = 'GENERATE_LEARNING_PATH',
-  ADAPT_CONTENT = 'ADAPT_CONTENT',
-  GENERATE_ASSESSMENT = 'GENERATE_ASSESSMENT',
-  GRADE_ASSESSMENT = 'GRADE_ASSESSMENT',
-  GENERATE_STUDY_SCHEDULE = 'GENERATE_STUDY_SCHEDULE',
-  OPTIMIZE_UI = 'OPTIMIZE_UI',
-  TRACK_ENGAGEMENT = 'TRACK_ENGAGEMENT',
-  PROCESS_FEEDBACK = 'PROCESS_FEEDBACK'
+  COGNITIVE_PROFILING = "COGNITIVE_PROFILING",
+  LEARNING_PATH_GENERATION = "LEARNING_PATH_GENERATION",
+  LEARNING_PATH_UPDATE = "LEARNING_PATH_UPDATE",
+  CONTENT_ADAPTATION = "CONTENT_ADAPTATION",
+  ASSESSMENT_GENERATION = "ASSESSMENT_GENERATION",
+  ENGAGEMENT_OPTIMIZATION = "ENGAGEMENT_OPTIMIZATION",
+  FEEDBACK_GENERATION = "FEEDBACK_GENERATION",
+  UI_OPTIMIZATION = "UI_OPTIMIZATION",
+  SCHEDULE_OPTIMIZATION = "SCHEDULE_OPTIMIZATION",
+  FLASHCARD_OPTIMIZATION = "FLASHCARD_OPTIMIZATION",
+  MULTI_AGENT_COORDINATION = "MULTI_AGENT_COORDINATION",
+  TUTORING = "TUTORING"
+}
+
+export enum TaskPriority {
+  LOW = "LOW",
+  MEDIUM = "MEDIUM",
+  HIGH = "HIGH",
+  CRITICAL = "CRITICAL"
+}
+
+export enum TaskStatus {
+  PENDING = "PENDING",
+  PROCESSING = "PROCESSING",
+  COMPLETED = "COMPLETED",
+  FAILED = "FAILED"
 }
 
 export interface Task {
@@ -43,45 +45,44 @@ export interface Task {
   type: TaskType;
   priority: TaskPriority;
   status: TaskStatus;
-  createdAt: string;
-  updatedAt: string;
-  completedAt?: string;
   data: any;
+  createdAt: string;
+  updatedAt?: string;
+  completedAt?: string;
 }
 
-export interface AgentTask {
-  id: string;
+export interface AgentTask extends Task {
   userId: string;
   taskType: TaskType;
-  priority: TaskPriority;
-  status: TaskStatus;
   targetAgentTypes: AgentType[];
-  assignedAgentId?: string;
-  createdAt: string;
-  updatedAt: string;
-  completedAt?: string;
-  context: any;
+  context: Record<string, any>;
   data: any;
 }
 
 export interface AgentMessage {
   id: string;
-  type: string;
-  data: any;
   senderId: string;
-  recipientId: string;
+  receiverId: string;
+  messageType: string;
+  content: string;
   timestamp: string;
+  priority: TaskPriority;
+  data?: any;
 }
 
 export interface SystemState {
-  agents: Record<string, any>;
-  tasks: Record<string, AgentTask>;
+  activeAgents: Record<AgentType, boolean>;
+  taskQueue: Task[];
+  completedTasks: Task[];
   metrics: {
     completedTasks: number;
     averageResponseTime: number;
     successRate: number;
+    taskCompletionRate: number;
   };
   globalVariables: Record<string, any>;
+  priorityMatrix: Record<string, number>;
+  lastUpdated: string;
 }
 
 export interface CognitiveProfile {
@@ -89,11 +90,8 @@ export interface CognitiveProfile {
   learningStyle: Record<string, number>;
   strengths: string[];
   weaknesses: string[];
-  optimalStudyDuration: number;
-  retentionLevel: number;
-  studyPatterns: Record<string, any>;
-  preferredContentFormats: string[];
-  knowledgeGraph: Record<string, any>;
-  learningSpeed: string;
-  lastUpdated: string;
+  recommendedTopics: string[];
+  retentionPatterns: Record<string, number>;
+  createdAt: string;
+  updatedAt: string;
 }

@@ -1,157 +1,90 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { getDueFlashcards, updateFlashcardAfterReview } from '@/services/spacedRepetition';
-import { useToast } from '@/components/ui/use-toast';
-import { useAuth } from '@/context/auth';
-import { Loader2 } from 'lucide-react';
+import FlashcardView from './review-page/FlashcardView';
+import { getFlashcardReviews } from '@/services/flashcardService';
 
-interface Flashcard {
-  id: string;
-  front_content: string;
-  back_content: string;
-  front?: string;
-  back?: string;
-  difficulty?: number;
-  next_review_date?: string;
-  user_id?: string;
-  topic_id?: string;
+interface FlashcardReviewSystemProps {
+  userId: string;
 }
 
-const FlashcardReviewSystem = () => {
-  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ userId }) => {
+  const [flashcards, setFlashcards] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isFlipped, setIsFlipped] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [reviewComplete, setReviewComplete] = useState(false);
-  const { toast } = useToast();
-  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [finished, setFinished] = useState(false);
 
   useEffect(() => {
-    const fetchFlashcards = async () => {
-      if (!user) return;
-      
-      setIsLoading(true);
+    const loadReviews = async () => {
       try {
-        const { data, error } = await getDueFlashcards(user.id);
-        
-        if (error) {
-          throw error;
-        }
-        
-        if (data && data.length > 0) {
-          setFlashcards(data);
-        } else {
-          setReviewComplete(true);
-        }
+        setLoading(true);
+        const flashcardsData = await getFlashcardReviews(userId);
+        setFlashcards(flashcardsData || []);
       } catch (error) {
-        toast({
-          title: 'Error loading flashcards',
-          description: 'Could not load flashcards for review.',
-          variant: 'destructive'
-        });
-        console.error('Error fetching flashcards:', error);
+        console.error('Error loading flashcards for review:', error);
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
-    
-    fetchFlashcards();
-  }, [user, toast]);
 
-  const handleFlip = () => {
-    setIsFlipped(!isFlipped);
+    loadReviews();
+  }, [userId]);
+
+  const handleRate = (difficulty: string | number) => {
+    // Convert string to number if needed
+    const difficultyValue = typeof difficulty === 'string' ? parseInt(difficulty, 10) : difficulty;
+    
+    // Handle flashcard rating logic here
+    console.log(`Rated flashcard as ${difficultyValue}`);
+    
+    handleNext();
   };
 
-  const handleDifficulty = async (difficulty: number) => {
-    if (!user || currentIndex >= flashcards.length) return;
-    
-    const currentCard = flashcards[currentIndex];
-    try {
-      await updateFlashcardAfterReview(currentCard.id, difficulty);
-      
-      if (currentIndex < flashcards.length - 1) {
-        setCurrentIndex(currentIndex + 1);
-        setIsFlipped(false);
-      } else {
-        setReviewComplete(true);
-      }
-    } catch (error) {
-      toast({
-        title: 'Error updating flashcard',
-        description: 'Could not save your review.',
-        variant: 'destructive'
-      });
-      console.error('Error updating flashcard:', error);
+  const handleNext = () => {
+    if (currentIndex < flashcards.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    } else {
+      setFinished(true);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-40">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
+  const handleRestart = () => {
+    setCurrentIndex(0);
+    setFinished(false);
+  };
+
+  if (loading) {
+    return <div>Loading flashcards...</div>;
   }
 
-  if (reviewComplete || flashcards.length === 0) {
+  if (flashcards.length === 0) {
+    return <div>No flashcards due for review.</div>;
+  }
+
+  if (finished) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Review Complete</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="mb-4">You have completed all your due flashcards.</p>
-          <Button onClick={() => window.location.reload()}>
-            Check for New Cards
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="text-center p-8">
+        <h2 className="text-2xl font-bold mb-4">Review Completed!</h2>
+        <p className="mb-6">You've reviewed all your due flashcards.</p>
+        <Button onClick={handleRestart}>Review Again</Button>
+      </div>
     );
   }
 
   const currentCard = flashcards[currentIndex];
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Flashcard Review</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="min-h-[200px] flex items-center justify-center">
-          <div className="text-center">
-            {isFlipped ? (
-              <div className="animate-fadeIn">
-                <div className="text-xl font-semibold">{currentCard.back_content || currentCard.back}</div>
-              </div>
-            ) : (
-              <div className="text-xl font-semibold">{currentCard.front_content || currentCard.front}</div>
-            )}
-          </div>
-        </div>
-        
-        <div className="flex flex-col space-y-4 mt-6">
-          <Button onClick={handleFlip} variant="outline" className="w-full">
-            {isFlipped ? 'Show Question' : 'Show Answer'}
-          </Button>
-          
-          {isFlipped && (
-            <div className="grid grid-cols-3 gap-2">
-              <Button onClick={() => handleDifficulty(1)} variant="outline" className="bg-red-100 hover:bg-red-200">
-                Hard
-              </Button>
-              <Button onClick={() => handleDifficulty(3)} variant="outline" className="bg-yellow-100 hover:bg-yellow-200">
-                Medium
-              </Button>
-              <Button onClick={() => handleDifficulty(5)} variant="outline" className="bg-green-100 hover:bg-green-200">
-                Easy
-              </Button>
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="max-w-2xl mx-auto">
+      <div className="mb-4 text-sm text-muted-foreground">
+        Card {currentIndex + 1} of {flashcards.length}
+      </div>
+      
+      <FlashcardView 
+        flashcard={currentCard} 
+        onRate={handleRate}
+        onNext={handleNext} 
+      />
+    </div>
   );
 };
 
