@@ -1,298 +1,128 @@
+
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAdaptiveQuiz, useSessionHistory } from './hooks/adaptive-quiz';
-import { useToast } from '@/components/ui/use-toast';
-import { Brain, Dices, Settings, History, Users } from 'lucide-react';
-import { useAuth } from '@/context/auth/AuthContext';
-import { setupSupabaseFunctions } from './hooks/setupSupabase';
-
-// Import mockQuestions from a data file or service
-import { mockQuestions, topics, subjects } from './data/mockQuizData';
-
-// Import refactored components
+import { Card } from '@/components/ui/card';
+import { useQuizState } from './hooks/adaptive-quiz/useQuizState';
+import { useQuizActions } from './hooks/adaptive-quiz/useQuizActions';
+import { useTopicSelection } from './hooks/quiz/useTopicSelection';
 import QuizSettings from './components/platform/QuizSettings';
-import QuizWelcome from './components/platform/QuizWelcome';
-import FormulasTab from './components/platform/FormulasTab';
-import AnalyticsTab from './components/platform/AnalyticsTab';
-import SocialTab from './components/platform/SocialTab';
-import ActiveQuiz from './components/platform/ActiveQuiz';
-import QuizResults from './components/QuizResults';
-import SessionHistoryTab from './components/history/SessionHistoryTab';
-import SessionDetail from './components/history/SessionDetail';
+import QuizQuestion from './components/QuizQuestion';
+import QuizResults from './components/platform/QuizResults';
+import { Button } from '@/components/ui/button';
+import { Settings, PlayCircle } from 'lucide-react';
 
-const AdaptiveQuizPlatform: React.FC = () => {
-  const { toast } = useToast();
-  const { user } = useAuth();
-  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
-  const [questionCount, setQuestionCount] = useState(5);
-  const [initialDifficulty, setInitialDifficulty] = useState<1 | 2 | 3>(2);
-  const [showSettings, setShowSettings] = useState(false);
-  const [userConfidence, setUserConfidence] = useState(0.5);
-  const [activeTab, setActiveTab] = useState("quiz");
-  const [selectedSubjects, setSelectedSubjects] = useState<string[]>(["accounting", "finance"]);
-  const [filteredQuestions, setFilteredQuestions] = useState(mockQuestions);
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+interface AdaptiveQuizPlatformProps {
+  initialSubject?: string;
+}
+
+const AdaptiveQuizPlatform: React.FC<AdaptiveQuizPlatformProps> = ({ 
+  initialSubject = 'accounting'
+}) => {
+  const [showSettings, setShowSettings] = useState(true);
+  const quizState = useQuizState();
+  const quizActions = useQuizActions(quizState);
   
-  const quiz = useAdaptiveQuiz(filteredQuestions, initialDifficulty, questionCount);
-  const { saveSession } = useSessionHistory();
+  const {
+    selectedTopics,
+    setSelectedTopics,
+    selectedSubject,
+    setSelectedSubject,
+    questionCount,
+    setQuestionCount,
+    currentDifficulty,
+    setCurrentDifficulty,
+    quizStatus
+  } = quizState;
   
-  // Initialize Supabase functions when the component mounts
+  const {
+    startQuiz,
+    submitAnswer,
+    restartQuiz,
+    nextQuestion
+  } = quizActions;
+  
+  // Initialize with the prop value
   useEffect(() => {
-    if (user) {
-      setupSupabaseFunctions();
+    if (initialSubject) {
+      setSelectedSubject(initialSubject);
     }
-  }, [user]);
+  }, [initialSubject, setSelectedSubject]);
   
-  // Save session when quiz is completed
-  useEffect(() => {
-    if (quiz.quizResults && quiz.answeredQuestions.length > 0) {
-      saveSession(
-        quiz.quizResults,
-        quiz.answeredQuestions,
-        selectedTopics,
-        initialDifficulty,
-        questionCount
-      );
-    }
-  }, [quiz.quizResults]);
-  
-  // Filter questions based on selected topics and subjects
-  useEffect(() => {
-    let filtered = mockQuestions;
-    
-    if (selectedTopics.length > 0) {
-      filtered = filtered.filter(q => selectedTopics.includes(q.topic));
-    }
-    
-    if (selectedSubjects.length > 0) {
-      filtered = filtered.filter(q => q.subject && selectedSubjects.includes(q.subject));
-    }
-    
-    setFilteredQuestions(filtered);
-  }, [selectedTopics, selectedSubjects]);
-  
-  const handleTopicChange = (topic: string) => {
-    setSelectedTopics(prev => 
-      prev.includes(topic) 
-        ? prev.filter(t => t !== topic) 
-        : [...prev, topic]
-    );
-  };
-  
-  const handleSubjectChange = (subject: string) => {
-    setSelectedSubjects(prev => 
-      prev.includes(subject) 
-        ? prev.filter(s => s !== subject) 
-        : [...prev, subject]
-    );
-  };
-  
-  const handleQuestionCountChange = (value: string) => {
-    setQuestionCount(parseInt(value));
-  };
-  
-  const handleDifficultyChange = (value: string) => {
-    setInitialDifficulty(parseInt(value) as 1 | 2 | 3);
-  };
-  
+  const { allTopics, allSubjects, toggleTopic, getFilteredQuestions } = useTopicSelection(quizState);
+
   const handleStartQuiz = () => {
-    if (filteredQuestions.length < questionCount) {
-      toast({
-        title: "Not enough questions",
-        description: `Only ${filteredQuestions.length} questions available with current filters. Please adjust your settings.`,
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    quiz.startQuiz();
+    startQuiz();
     setShowSettings(false);
   };
-  
-  const handleRandomQuiz = () => {
-    // Randomly select topics and difficulty
-    const randomTopicCount = Math.floor(Math.random() * 3) + 1;
-    const shuffledTopics = [...topics].sort(() => 0.5 - Math.random());
-    const randomTopics = shuffledTopics.slice(0, randomTopicCount);
-    
-    const randomDifficulty = Math.floor(Math.random() * 3) + 1 as 1 | 2 | 3;
-    
-    setSelectedTopics(randomTopics);
-    setInitialDifficulty(randomDifficulty);
-    setTimeout(() => {
-      handleStartQuiz();
-    }, 100);
-  };
-  
-  const handleConfidenceChange = (value: number) => {
-    setUserConfidence(value);
-    quiz.setConfidence(value);
+
+  const handleToggleSettings = () => {
+    setShowSettings(!showSettings);
   };
 
-  const handleViewSession = (sessionId: string) => {
-    setSelectedSessionId(sessionId);
-  };
-  
-  const handleBackFromSessionDetail = () => {
-    setSelectedSessionId(null);
-  };
-  
   return (
-    <div className="space-y-6">
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="flex justify-between items-center mb-4">
-          <TabsList>
-            <TabsTrigger value="quiz">Quiz</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-            <TabsTrigger value="social">
-              <div className="flex items-center gap-1">
-                <Users className="h-4 w-4" />
-                Social
-              </div>
-            </TabsTrigger>
-            <TabsTrigger value="formulas">Key Formulas</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          </TabsList>
-          
-          {activeTab === "quiz" && !quiz.activeQuiz && !quiz.quizResults && (
-            <div className="flex items-center gap-2">
-              <Button 
-                variant={showSettings ? "secondary" : "outline"} 
-                onClick={() => setShowSettings(!showSettings)}
-                size="sm"
-              >
-                <Settings className="h-4 w-4 mr-1" />
-                Settings
-              </Button>
-              <Button 
-                onClick={handleRandomQuiz}
-                size="sm"
-                variant="outline"
-              >
-                <Dices className="h-4 w-4 mr-1" />
-                Random Quiz
-              </Button>
-            </div>
-          )}
-        </div>
-        
-        <TabsContent value="quiz">
-          {!quiz.activeQuiz && !quiz.quizResults && (
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-            >
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Brain className="h-5 w-5 mr-2" />
-                    Adaptive Quiz System
-                  </CardTitle>
-                  <CardDescription>
-                    Test your knowledge with questions that adapt to your skill level
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {showSettings ? (
-                    <QuizSettings
-                      topics={topics}
-                      selectedTopics={selectedTopics}
-                      handleTopicChange={handleTopicChange}
-                      subjects={subjects}
-                      selectedSubjects={selectedSubjects}
-                      handleSubjectChange={handleSubjectChange}
-                      questionCount={questionCount}
-                      handleQuestionCountChange={handleQuestionCountChange}
-                      initialDifficulty={initialDifficulty}
-                      handleDifficultyChange={handleDifficultyChange}
-                      showSettings={showSettings}
-                      setShowSettings={setShowSettings}
-                      handleStartQuiz={handleStartQuiz}
-                    />
-                  ) : (
-                    <QuizWelcome
-                      setShowSettings={setShowSettings}
-                      handleStartQuiz={handleStartQuiz}
-                    />
-                  )}
-                </CardContent>
-                {showSettings && (
-                  <CardFooter className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => setShowSettings(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handleStartQuiz}>
-                      Start Quiz
-                    </Button>
-                  </CardFooter>
-                )}
-              </Card>
-            </motion.div>
-          )}
-          
-          {quiz.activeQuiz && quiz.currentQuestion && (
-            <ActiveQuiz
-              quiz={quiz}
-              filteredQuestions={filteredQuestions}
-              questionCount={questionCount}
-              userConfidence={userConfidence}
-              handleConfidenceChange={handleConfidenceChange}
-            />
-          )}
-          
-          {quiz.quizResults && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-            >
-              <QuizResults 
-                results={quiz.quizResults}
-                onRestart={quiz.restartQuiz}
-                onReview={() => {
-                  // For future implementation: review functionality
-                  toast({
-                    title: "Review feature",
-                    description: "Answer review will be available soon.",
-                  });
-                }}
-                sessionId={quiz.quizResults ? "current" : undefined}
-              />
-            </motion.div>
-          )}
-        </TabsContent>
+    <Card className="p-4 md:p-6">
+      {quizStatus === 'setup' && (
+        <>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-semibold">Quiz Setup</h2>
+            <Button variant="outline" size="sm" onClick={handleToggleSettings}>
+              {showSettings ? <PlayCircle className="h-4 w-4 mr-1" /> : <Settings className="h-4 w-4 mr-1" />}
+              {showSettings ? 'Quick Start' : 'Show Settings'}
+            </Button>
+          </div>
 
-        <TabsContent value="history">
-          {selectedSessionId ? (
-            <SessionDetail 
-              sessionId={selectedSessionId} 
-              onBack={handleBackFromSessionDetail} 
+          {showSettings ? (
+            <QuizSettings
+              topics={allTopics}
+              selectedTopics={selectedTopics}
+              handleTopicChange={toggleTopic}
+              subjects={allSubjects}
+              selectedSubjects={[selectedSubject]}
+              handleSubjectChange={(subject) => setSelectedSubject(subject)}
+              questionCount={questionCount}
+              handleQuestionCountChange={(value) => setQuestionCount(Number(value))}
+              initialDifficulty={currentDifficulty}
+              handleDifficultyChange={(value) => setCurrentDifficulty(Number(value))}
+              showSettings={showSettings}
+              setShowSettings={setShowSettings}
+              handleStartQuiz={handleStartQuiz}
             />
           ) : (
-            <SessionHistoryTab onViewSession={handleViewSession} />
+            <div className="text-center p-6">
+              <p className="mb-4">Ready to start a quick quiz with the current settings?</p>
+              <Button onClick={handleStartQuiz}>Start Quiz</Button>
+            </div>
           )}
-        </TabsContent>
-        
-        <TabsContent value="social">
-          <SocialTab />
-        </TabsContent>
-        
-        <TabsContent value="formulas">
-          <FormulasTab />
-        </TabsContent>
-        
-        <TabsContent value="analytics">
-          <AnalyticsTab
-            answeredQuestions={quiz.answeredQuestions}
-            setActiveTab={setActiveTab}
-          />
-        </TabsContent>
-      </Tabs>
-    </div>
+
+          <div className="flex justify-end mt-4">
+            <Button 
+              onClick={handleStartQuiz} 
+              size="lg"
+              className="w-full md:w-auto"
+            >
+              Start Quiz
+            </Button>
+          </div>
+        </>
+      )}
+
+      {quizStatus === 'in-progress' && (
+        <QuizQuestion
+          key={quizState.currentQuestionIndex}
+          question={quizState.questions[quizState.currentQuestionIndex]}
+          onSubmit={submitAnswer}
+          questionNumber={quizState.currentQuestionIndex + 1}
+          totalQuestions={quizState.questions.length}
+        />
+      )}
+
+      {quizStatus === 'completed' && (
+        <QuizResults
+          questions={quizState.questions}
+          answers={quizState.userAnswers}
+          onRestart={restartQuiz}
+        />
+      )}
+    </Card>
   );
 };
 
