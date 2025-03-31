@@ -1,4 +1,3 @@
-
 /**
  * Algorithm for spaced repetition based on a modified SM-2 algorithm
  * 
@@ -65,7 +64,7 @@ export const calculateNextReviewSchedule = (
   }
   
   const nextReviewDate = new Date();
-  nextReviewDate.setDate(nextDate.getDate() + interval);
+  nextReviewDate.setDate(nextReviewDate.getDate() + interval);
   
   // Calculate estimated retention based on the interval and repetition count
   const estimatedRetention = calculateEstimatedRetention(interval, repetition);

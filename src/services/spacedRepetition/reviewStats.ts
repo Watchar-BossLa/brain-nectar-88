@@ -6,9 +6,15 @@ import { FlashcardLearningStats } from './reviewTypes';
  * Calculates the retention rate for a flashcard based on its learning history
  */
 export const calculateFlashcardRetention = (flashcard: Flashcard | FlashcardLearningStats): number => {
-  // Simple retention calculation based on easiness factor and repetitions
-  const easinessFactor = 'easiness_factor' in flashcard ? flashcard.easiness_factor : 2.5;
-  const repetitions = 'repetitions' in flashcard ? flashcard.repetitions : 0;
+  // Get the easiness factor, handling both object types
+  const easinessFactor = 'easiness_factor' in flashcard 
+    ? flashcard.easiness_factor 
+    : (flashcard as any).easinessFactor || 2.5;
+    
+  // Get the repetition count, handling both object types
+  const repetitions = 'repetitions' in flashcard 
+    ? flashcard.repetitions 
+    : (flashcard as any).repetition_count || 0;
   
   // Retention formula: base retention adjusted by easiness and repetitions
   // Range: 0-100%

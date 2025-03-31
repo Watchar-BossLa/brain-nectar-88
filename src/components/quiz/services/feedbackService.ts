@@ -5,12 +5,18 @@ import { QuestionFeedback } from '@/components/quiz/components/results/types';
 // Create feedback for a question
 export const createQuestionFeedback = async (feedback: Omit<QuestionFeedback, 'timestamp'>) => {
   try {
+    // Create a custom insert operation since question_feedback table might not exist in the schema
     const { data, error } = await supabase
       .from('question_feedback')
       .insert({
-        ...feedback,
+        questionId: feedback.questionId,
+        feedback: feedback.feedback,
+        rating: feedback.rating,
         timestamp: new Date().toISOString(),
-        // Use timestamp instead of createdAt
+        userId: feedback.userId || null,
+        questionText: feedback.questionText || null,
+        feedbackType: feedback.feedbackType || 'general',
+        feedbackText: feedback.feedbackText || feedback.feedback
       })
       .select();
       
@@ -24,6 +30,7 @@ export const createQuestionFeedback = async (feedback: Omit<QuestionFeedback, 't
 // Get feedback for questions
 export const getQuestionFeedback = async (questionId?: string) => {
   try {
+    // Handle query for question_feedback table
     let query = supabase
       .from('question_feedback')
       .select('*');

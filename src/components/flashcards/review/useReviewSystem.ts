@@ -37,7 +37,7 @@ export const useReviewSystem = (onComplete?: () => void) => {
 
   // Calculate retention statistics
   useRetentionStats(
-    reviewComplete ? "complete" : "incomplete", // Pass a string value instead of boolean
+    reviewComplete,
     setRetentionStats
   );
 

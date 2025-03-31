@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ScoreDataItem } from './types';
@@ -44,10 +45,15 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ data }) => {
         <Tooltip />
         <Bar 
           dataKey="score"
-          fill={(entry) => entry.color || '#10b981'}
+          fill="#10b981"
           barSize={40} 
           radius={[4, 4, 0, 0]}
-        />
+          fillOpacity={0.9}
+        >
+          {data.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={entry.color || '#10b981'} />
+          ))}
+        </Bar>
       </BarChart>
     </ResponsiveContainer>
   );

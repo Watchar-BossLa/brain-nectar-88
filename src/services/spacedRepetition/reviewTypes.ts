@@ -30,4 +30,5 @@ export interface FlashcardLearningStats {
   streakDays?: number;
   averageRetention?: number;
   nextDueCards?: number;
+  topic?: string; // Adding this field to fix compatibility issues
 }

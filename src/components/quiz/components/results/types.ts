@@ -22,14 +22,14 @@ export interface QuestionFeedback {
   timestamp: string;
   userId?: string;
   questionText?: string;
-  feedbackType?: string; // Add this to fix errors
-  feedbackText?: string; // Add this to fix errors
-  createdAt?: string;    // Add this to fix errors
+  feedbackType?: string; 
+  feedbackText?: string;
+  createdAt?: string;
 }
 
 export interface ScoreDataItem {
   name: string;
   score: number;
   average: number;
-  color?: string;        // Add optional color property
+  color?: string;
 }
