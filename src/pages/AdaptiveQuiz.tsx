@@ -6,11 +6,16 @@ import AdaptiveQuizPlatform from '@/components/quiz/AdaptiveQuizPlatform';
 import { motion } from 'framer-motion';
 import { BookOpen, Brain, ChevronRight, LineChart, Award, BarChart } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import HomeNavigation from '@/components/layout/HomeNavigation';
 
 const AdaptiveQuiz = () => {
   return (
     <MainLayout>
-      <div className="p-8 max-w-7xl mx-auto">
+      <div className="container p-6 md:p-8 mx-auto">
+        <div className="mb-4">
+          <HomeNavigation />
+        </div>
+      
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}

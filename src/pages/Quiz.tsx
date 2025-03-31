@@ -6,11 +6,16 @@ import AdaptiveQuizPlatform from '@/components/quiz/AdaptiveQuizPlatform';
 import { BrainCircuit, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import HomeNavigation from '@/components/layout/HomeNavigation';
 
 const Quiz = () => {
   return (
     <MainLayout>
-      <div className="p-6 md:p-8 max-w-6xl mx-auto">
+      <div className="container p-6 md:p-8 mx-auto">
+        <div className="mb-4">
+          <HomeNavigation />
+        </div>
+        
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
