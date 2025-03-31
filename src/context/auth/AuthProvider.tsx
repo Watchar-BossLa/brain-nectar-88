@@ -1,159 +1,198 @@
 
-import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { PLATFORM_OWNERS } from './constants';
-import { AuthContext } from './AuthContext';
-import { useAuthService } from './authService';
-import { AuthUser } from './types';
-import { Session, User } from '@/types/supabase-types';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { AuthContextType, AuthUser, PlatformOwnerType } from './types';
+import { useToast } from '@/components/ui/use-toast';
+import { authService } from './authService';
+import { 
+  supabase, 
+  getCurrentSession, 
+  getCurrentUser, 
+  signIn, 
+  signUp, 
+  signInWithGoogle, 
+  signOut, 
+  onAuthStateChange,
+  Session,
+  User
+} from '@/lib/supabaseAuth';
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
+// Create auth context
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPlatformOwner, setIsPlatformOwner] = useState(false);
   const { toast } = useToast();
-  const authService = useAuthService();
+
+  // Placeholder platform owner data
+  const platformOwner: PlatformOwnerType = {
+    name: 'Study Bee',
+    email: 'admin@studybee.io'
+  };
+  
+  const platformOwners: PlatformOwnerType[] = [
+    { name: 'Study Bee Admin', email: 'admin@studybee.io' },
+    { name: 'Support Team', email: 'support@studybee.io' }
+  ];
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
-        console.log('Auth state changed:', event, currentSession?.user?.email);
-        setSession(currentSession as Session | null);
-        setUser(currentSession?.user as AuthUser ?? null);
+    const loadSession = async () => {
+      setLoading(true);
+      try {
+        // Get session data
+        const { session: currentSession } = await getCurrentSession();
         
-        // Check if the current user is a platform administrator
-        const userEmail = currentSession?.user?.email;
-        
-        if (userEmail) {
-          // Check if user is a platform owner
-          const isOwner = PLATFORM_OWNERS.some(owner => owner.email === userEmail);
-          setIsPlatformOwner(isOwner);
+        if (currentSession) {
+          setSession(currentSession);
+          setUser(currentSession.user as AuthUser);
           
-          if (isOwner) {
-            setIsAdmin(true);
-          } else {
-            // Check if the user is in the admins table
-            if (currentSession?.user?.id) {
-              checkIfUserIsAdmin(currentSession.user.id);
-            }
-          }
+          // Check admin status
+          const { data: adminData } = await supabase
+            .from('admins')
+            .select('*')
+            .eq('user_id', currentSession.user.id)
+            .single();
+            
+          setIsAdmin(!!adminData);
+          setIsPlatformOwner(currentSession.user.email === platformOwner.email);
         } else {
+          setSession(null);
+          setUser(null);
           setIsAdmin(false);
           setIsPlatformOwner(false);
         }
-        
-        setLoading(false);
-      }
-    );
-
-    // THEN check for existing session
-    const initialSession = async () => {
-      try {
-        setLoading(true);
-        const { data, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Error fetching session:', error);
-          toast({
-            title: 'Authentication Error',
-            description: 'Failed to restore your session.',
-            variant: 'destructive',
-          });
-          return;
-        }
-        
-        if (data.session) {
-          console.log('Initial session restored for:', data.session.user?.email);
-          setSession(data.session as Session);
-          setUser(data.session.user as AuthUser);
-          
-          // Check if the current user is a platform administrator
-          const userEmail = data.session.user.email;
-          
-          if (userEmail) {
-            // Check if user is a platform owner
-            const isOwner = PLATFORM_OWNERS.some(owner => owner.email === userEmail);
-            setIsPlatformOwner(isOwner);
-            
-            if (isOwner) {
-              setIsAdmin(true);
-            } else {
-              // Check if the user is in the admins table
-              if (data.session.user.id) {
-                checkIfUserIsAdmin(data.session.user.id);
-              }
-            }
-          }
-        }
       } catch (error) {
-        console.error('Error fetching session:', error);
-        toast({
-          title: 'Authentication Error',
-          description: 'Failed to restore your session.',
-          variant: 'destructive',
-        });
+        console.error('Error loading session:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    // Check if a user is an admin by querying the admins table
-    const checkIfUserIsAdmin = async (userId: string) => {
-      try {
-        const { data, error } = await supabase
-          .from('admins')
-          .select('*')
-          .eq('user_id', userId);
-          
-        if (error) {
-          console.error('Error checking admin status:', error);
-          setIsAdmin(false);
-          return;
-        }
-        
-        setIsAdmin(data && data.length > 0);
-      } catch (error) {
-        console.error('Error checking admin status:', error);
-        setIsAdmin(false);
-      }
-    };
+    loadSession();
 
-    initialSession();
+    // Listen for auth changes
+    const subscription = onAuthStateChange((event, newSession) => {
+      setSession(newSession);
+      setUser(newSession?.user as AuthUser || null);
+      setIsPlatformOwner(newSession?.user?.email === platformOwner.email);
+      
+      if (event === 'SIGNED_IN') {
+        toast({
+          title: 'Signed in',
+          description: 'You have successfully signed in.'
+        });
+      }
+      
+      if (event === 'SIGNED_OUT') {
+        toast({
+          title: 'Signed out',
+          description: 'You have been signed out.'
+        });
+      }
+    });
 
     return () => {
-      subscription.unsubscribe();
+      subscription?.unsubscribe();
     };
-  }, [toast]);
+  }, [toast, platformOwner.email]);
 
-  // Create wrapped versions of auth methods that handle navigation within components
-  const wrappedAuthMethods = {
-    signIn: authService.signIn,
-    signUp: authService.signUp,
-    signInWithGoogle: authService.signInWithGoogle,
-    signOut: authService.signOut
+  // Auth methods
+  const handleSignIn = async (email: string, password: string, callback?: (success: boolean) => void) => {
+    const { error } = await signIn(email, password);
+    
+    if (error) {
+      toast({
+        title: 'Sign In Failed',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+    
+    if (callback) {
+      callback(!error);
+    }
+    
+    return { error };
   };
 
-  return (
-    <AuthContext.Provider 
-      value={{
-        session,
-        user,
-        loading,
-        signIn: wrappedAuthMethods.signIn,
-        signUp: wrappedAuthMethods.signUp,
-        signInWithGoogle: wrappedAuthMethods.signInWithGoogle,
-        signOut: wrappedAuthMethods.signOut,
-        platformOwner: PLATFORM_OWNERS[0], // For backward compatibility
-        platformOwners: PLATFORM_OWNERS,
-        isAdmin,
-        isPlatformOwner,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
-}
+  const handleSignUp = async (email: string, password: string, callback?: (success: boolean) => void) => {
+    const { error } = await signUp(email, password);
+    
+    if (error) {
+      toast({
+        title: 'Sign Up Failed',
+        description: error.message,
+        variant: 'destructive'
+      });
+    } else {
+      toast({
+        title: 'Sign Up Successful',
+        description: 'Check your email for the confirmation link.',
+      });
+    }
+    
+    if (callback) {
+      callback(!error);
+    }
+    
+    return { error };
+  };
+
+  const handleSignInWithGoogle = async (callback?: () => void) => {
+    const { error } = await signInWithGoogle();
+    
+    if (error) {
+      toast({
+        title: 'Google Sign In Failed',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+    
+    if (callback && !error) {
+      callback();
+    }
+    
+    return { error };
+  };
+
+  const handleSignOut = async (callback?: () => void) => {
+    await signOut();
+    
+    setUser(null);
+    setSession(null);
+    setIsAdmin(false);
+    setIsPlatformOwner(false);
+    
+    if (callback) {
+      callback();
+    }
+  };
+
+  const value = {
+    session,
+    user,
+    loading,
+    signIn: handleSignIn,
+    signUp: handleSignUp,
+    signInWithGoogle: handleSignInWithGoogle,
+    signOut: handleSignOut,
+    platformOwner,
+    platformOwners,
+    isAdmin,
+    isPlatformOwner
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};

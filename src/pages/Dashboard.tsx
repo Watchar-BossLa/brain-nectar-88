@@ -1,67 +1,66 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
+import MainLayout from '@/components/layout/MainLayout';
 import { useAuth } from '@/context/auth';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Link } from 'react-router-dom';
-import { useFlashcardStats } from '@/hooks/flashcards/useFlashcardStats';
+import { useNavigate } from 'react-router-dom';
+import { useFlashcardsStats } from '@/hooks/flashcards';
+import WelcomeHeader from '@/components/dashboard/WelcomeHeader';
+import StatsOverview from '@/components/dashboard/StatsOverview';
+import RecommendedStudy from '@/components/dashboard/RecommendedStudy';
+import DailyStudyGoal from '@/components/dashboard/DailyStudyGoal';
+import CoursesSection from '@/components/dashboard/CoursesSection';
+import UpcomingAssessments from '@/components/dashboard/UpcomingAssessments';
 
-const Dashboard = () => {
-  const { user } = useAuth();
-  const { stats, loading } = useFlashcardStats();
+const Dashboard: React.FC = () => {
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const { stats, fetchStats, loading: statsLoading } = useFlashcardsStats();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/login');
+    }
+    
+    if (user) {
+      fetchStats();
+    }
+  }, [user, authLoading, navigate, fetchStats]);
+
+  if (authLoading) {
+    return (
+      <MainLayout>
+        <div className="flex justify-center items-center min-h-[80vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {/* Flashcards Stats */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Flashcards</CardTitle>
-            <CardDescription>Your flashcard statistics</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-                <Skeleton className="h-4 w-5/6" />
-              </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Flashcards</p>
-                    <p className="text-2xl font-semibold">{stats.totalCards}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Due Today</p>
-                    <p className="text-2xl font-semibold">{stats.dueCards}</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Mastered</p>
-                    <p className="text-2xl font-semibold">{stats.masteredCards}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Reviews Today</p>
-                    <p className="text-2xl font-semibold">{stats.reviewsToday}</p>
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <Link to="/flashcard-review">
-                    <Button className="w-full">Review Flashcards</Button>
-                  </Link>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+    <MainLayout>
+      <div className="space-y-6">
+        <WelcomeHeader />
+        
+        <StatsOverview 
+          totalCards={stats.totalCards} 
+          masteredCards={stats.masteredCards} 
+          dueCards={stats.dueCards} 
+          loading={statsLoading} 
+        />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <RecommendedStudy />
+            <CoursesSection />
+          </div>
+          
+          <div className="space-y-6">
+            <DailyStudyGoal />
+            <UpcomingAssessments />
+          </div>
+        </div>
       </div>
-    </div>
+    </MainLayout>
   );
 };
 

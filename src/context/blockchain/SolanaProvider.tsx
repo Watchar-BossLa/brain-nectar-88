@@ -1,15 +1,18 @@
 
 import React, { FC, ReactNode, useMemo } from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
-import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { clusterApiUrl } from '@solana/web3.js';
-import '@solana/wallet-adapter-react-ui/styles.css';
-import { 
-  BackpackWalletAdapter, 
+// Import our stubs instead of the real adapters (replace with real imports when needed)
+import {
+  BackpackWalletAdapter,
   BraveWalletAdapter,
   CoinbaseWalletAdapter
-} from '@solana/wallet-adapter-wallets';
+} from '@/lib/wallet-adapter-stubs';
+
+// Default styles that can be overridden by your app
+require('@solana/wallet-adapter-react-ui/styles.css');
 
 interface SolanaProviderProps {
   children: ReactNode;
@@ -22,19 +25,20 @@ export const SolanaProvider: FC<SolanaProviderProps> = ({ children }) => {
   // You can also provide a custom RPC endpoint
   const endpoint = useMemo(() => clusterApiUrl(network), [network]);
 
-  // Initialize wallets
-  const wallets = useMemo(() => [
-    new BackpackWalletAdapter(),
-    new BraveWalletAdapter(),
-    new CoinbaseWalletAdapter(),
-  ], []);
+  // Stub wallets with minimal functionality
+  const wallets = useMemo(
+    () => [
+      new BackpackWalletAdapter(),
+      new BraveWalletAdapter(),
+      new CoinbaseWalletAdapter()
+    ],
+    []
+  );
 
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>
-          {children}
-        </WalletModalProvider>
+        <WalletModalProvider>{children}</WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
   );

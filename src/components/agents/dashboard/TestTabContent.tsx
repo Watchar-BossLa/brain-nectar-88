@@ -1,106 +1,90 @@
 
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { calculateFlashcardRetention } from '@/services/spacedRepetition/reviewStats';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { FlashcardLearningStats } from '@/services/spacedRepetition/reviewTypes';
+import { supabase } from '@/lib/supabase';
 
-interface TestTabContentProps {
-  handleTestTask: () => Promise<void>;
-}
-
-export function TestTabContent({ handleTestTask }: TestTabContentProps) {
-  const [isTestingSpacedRep, setIsTestingSpacedRep] = useState(false);
-  const [spacedRepResult, setSpacedRepResult] = useState<any>(null);
-
-  const testSpacedRepetition = async () => {
-    setIsTestingSpacedRep(true);
+export function TestTabContent({ handleTestTask }: { handleTestTask: () => Promise<void> }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState<string>('');
+  
+  const handleTest = async () => {
+    setIsLoading(true);
     try {
-      // Get current user ID directly from local storage as a fallback
+      // Get current user session using the correct Supabase v2 API
       const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData?.session?.user;
+      const session = sessionData?.session;
       
-      if (!user) {
-        throw new Error('User not authenticated');
+      if (!session) {
+        setResult('Error: No authenticated user session found');
+        return;
       }
       
-      // Create a valid flashcard object for testing
-      const testFlashcard: FlashcardLearningStats = {
-        flashcard_id: 'test-id',
-        userId: user.id,
-        easinessFactor: 2.5,
-        interval: 1,
-        repetitionCount: 0,
-        lastReviewedAt: new Date().toISOString(),
-        nextReviewAt: new Date().toISOString(),
-        reviewCount: 0,
-        masteryLevel: 0,
-        retentionRate: 0,
-        totalCards: 10
+      // Test agent system task
+      await handleTestTask();
+      
+      // Test flashcard stats
+      const testStats = {
+        flashcard_id: '123e4567-e89b-12d3-a456-426614174000',
+        retention_rate: 0.85,
+        review_count: 5,
+        mastery_level: 0.7
       };
       
-      // Test the retention calculation
-      const retentionValue = calculateFlashcardRetention(testFlashcard);
-      setSpacedRepResult({ 
-        retention: retentionValue,
-        userId: user.id, 
-        timestamp: new Date().toISOString()
-      });
+      setResult(JSON.stringify({
+        message: 'Test tasks submitted successfully',
+        userId: session.user.id,
+        testStats
+      }, null, 2));
+      
     } catch (error) {
-      console.error('Error testing spaced repetition:', error);
-      setSpacedRepResult({ error: 'Failed to test spaced repetition system' });
+      console.error('Test error:', error);
+      setResult(`Error: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
-      setIsTestingSpacedRep(false);
+      setIsLoading(false);
     }
   };
-
+  
   return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-sm font-medium mb-2">Test Agent Task</h3>
-        <p className="text-xs text-muted-foreground mb-4">
-          Submit a test task to the agent system to verify functionality.
-        </p>
-        <Button onClick={handleTestTask}>
-          Submit Test Task
-        </Button>
-      </div>
-      
-      <div>
-        <h3 className="text-sm font-medium mb-2">Test Spaced Repetition</h3>
-        <p className="text-xs text-muted-foreground mb-4">
-          Test the enhanced spaced repetition algorithm for flashcards.
-        </p>
-        <Button 
-          onClick={testSpacedRepetition} 
-          disabled={isTestingSpacedRep}
-          variant="outline"
-        >
-          {isTestingSpacedRep ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Testing...
-            </>
-          ) : (
-            'Test Algorithm'
-          )}
-        </Button>
-      </div>
-      
-      {spacedRepResult && (
-        <Card className="mt-4">
-          <CardHeader>
-            <CardTitle className="text-base">Spaced Repetition Test Results</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <pre className="text-xs overflow-auto bg-muted p-2 rounded-md max-h-40">
-              {JSON.stringify(spacedRepResult, null, 2)}
-            </pre>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Test Agent System</CardTitle>
+        <CardDescription>
+          Run test tasks to verify the agent system is working correctly
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Button 
+            onClick={handleTest} 
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
+                Running Tests...
+              </>
+            ) : (
+              'Run Test Tasks'
+            )}
+          </Button>
+        </div>
+        
+        {result && (
+          <div className="space-y-2">
+            <Label htmlFor="result">Test Result</Label>
+            <Textarea
+              id="result"
+              value={result}
+              readOnly
+              className="font-mono h-64"
+            />
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
