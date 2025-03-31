@@ -176,7 +176,7 @@ export const updateFlashcardAfterReview = async (flashcardId: string, difficulty
     } else if (repetitions === 2) {
       interval = 6;
     } else {
-      interval = Math.round((flashcard.interval || repetitions) * easinessFactor);
+      interval = Math.round((flashcard.repetition_count || repetitions) * easinessFactor);
     }
     
     // Calculate next review date
@@ -250,8 +250,8 @@ export const getFlashcardStats = async (userId: string) => {
     }
     
     // Get flashcards due today
-    const now = new Date();
-    const endOfDay = new Date(now);
+    const today = new Date();
+    const endOfDay = new Date(today);
     endOfDay.setHours(23, 59, 59, 999);
     
     const { data: dueCards, error: dueError } = await supabase
@@ -265,7 +265,7 @@ export const getFlashcardStats = async (userId: string) => {
     }
     
     // Get reviews done today
-    const startOfDay = new Date(now);
+    const startOfDay = new Date(today);
     startOfDay.setHours(0, 0, 0, 0);
     
     const { data: reviewsToday, error: reviewError } = await supabase
@@ -350,10 +350,10 @@ export const getFlashcardLearningStats = async (userId: string) => {
     const averageDifficulty = totalCards > 0 ? totalDifficulty / totalCards : 0;
     
     // Count due cards
-    const now = new Date();
+    const currentDate = new Date();
     const dueCards = flashcards?.filter(card => {
       const reviewDate = new Date(card.next_review_date || '');
-      return reviewDate <= now;
+      return reviewDate <= currentDate;
     }).length || 0;
     
     // Calculate retention rate
@@ -395,10 +395,10 @@ export const getFlashcardLearningStats = async (userId: string) => {
     
     // Calculate streak
     let streakDays = 0;
-    const today = new Date().toISOString().split('T')[0];
+    const todayString = new Date().toISOString().split('T')[0];
     
     // Check if studied today
-    if (reviewsByDay[today] > 0) {
+    if (reviewsByDay[todayString] > 0) {
       streakDays = 1;
       
       // Check previous days
@@ -423,10 +423,9 @@ export const getFlashcardLearningStats = async (userId: string) => {
       }
     }
     
-    const now = new Date();
-    const yesterday = new Date(now);
-    yesterday.setDate(now.getDate() - 1);
-    const yesterdayString = yesterday.toISOString().split('T')[0];
+    const yesterdayDate = new Date();
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const yesterdayString = yesterdayDate.toISOString().split('T')[0];
     
     return {
       totalCards,
@@ -435,10 +434,10 @@ export const getFlashcardLearningStats = async (userId: string) => {
       learningCards,
       retentionRate: averageRetention * 100,
       reviewsLast7Days,
-      reviewsToday: reviewsByDay[today] || 0,
+      reviewsToday: reviewsByDay[todayString] || 0,
       reviewsYesterday: reviewsByDay[yesterdayString] || 0,
       streakDays,
-      averageRetention: averageRetention,
+      averageRetention,
       nextDueCards: dueCards
     };
   } catch (error) {

@@ -1,3 +1,4 @@
+
 import { Flashcard } from '@/hooks/flashcards/types';
 import { FlashcardLearningStats } from './reviewTypes';
 
@@ -6,8 +7,8 @@ import { FlashcardLearningStats } from './reviewTypes';
  */
 export const calculateFlashcardRetention = (flashcard: Flashcard | FlashcardLearningStats): number => {
   // Simple retention calculation based on easiness factor and repetitions
-  const easinessFactor = flashcard.easiness_factor || 2.5;
-  const repetitions = flashcard.repetitions || 0;
+  const easinessFactor = 'easiness_factor' in flashcard ? flashcard.easiness_factor : 2.5;
+  const repetitions = 'repetitions' in flashcard ? flashcard.repetitions : 0;
   
   // Retention formula: base retention adjusted by easiness and repetitions
   // Range: 0-100%
@@ -24,8 +25,8 @@ export const calculateFlashcardRetention = (flashcard: Flashcard | FlashcardLear
 export const getFlashcardLearningStats = async (userId: string): Promise<FlashcardLearningStats> => {
   // Placeholder implementation - replace with actual implementation
   return {
-    flashcard_id: '',
     user_id: userId,
+    flashcard_id: '',
     easiness_factor: 2.5,
     interval: 0,
     repetitions: 0,

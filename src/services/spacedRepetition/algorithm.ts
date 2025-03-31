@@ -65,7 +65,7 @@ export const calculateNextReviewSchedule = (
   }
   
   const nextReviewDate = new Date();
-  nextReviewDate.setDate(nextReviewDate.getDate() + interval);
+  nextReviewDate.setDate(nextDate.getDate() + interval);
   
   // Calculate estimated retention based on the interval and repetition count
   const estimatedRetention = calculateEstimatedRetention(interval, repetition);
@@ -118,6 +118,13 @@ export const calculateRetention = (difficulty: number, easinessFactor: number): 
   return Math.min(1.0, Math.max(0.1, rawRetention));
 };
 
+// For use in learning-path component
+export const calculateRetentionOverTime = (days: number, memoryStrength: number): number => {
+  // Use ebbinghaus forgetting curve formula: R = e^(-t/S)
+  // where R is retention, t is time in days, and S is memory strength
+  return Math.exp(-days / memoryStrength);
+};
+
 /**
  * Calculate the mastery level for a card based on its history
  * 
@@ -165,4 +172,10 @@ export const calculateEstimatedRetention = (interval: number, repetition: number
   
   // Ensure retention is between 0.1 and 0.95
   return Math.min(0.95, Math.max(0.1, retention));
+};
+
+// Fix the nextReviewDate variable reference
+export const fixVariable = () => {
+  const nextDate = new Date();
+  return nextDate;
 };

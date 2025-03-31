@@ -11,15 +11,23 @@ export interface FlashcardRetentionResult {
 }
 
 export interface FlashcardLearningStats {
+  flashcard_id: string;
+  user_id: string;
+  easiness_factor: number;
+  interval: number;
+  repetitions: number;
+  last_reviewed_at: string;
+  next_review_at: string;
+  review_count: number;
   totalCards: number;
-  masteredCards: number;
-  averageDifficulty: number;
-  learningCards: number;
-  retentionRate: number;
-  reviewsLast7Days: number[];
-  reviewsToday: number;
-  reviewsYesterday: number;
-  streakDays: number;
-  averageRetention: number;
-  nextDueCards: number;
+  masteredCards?: number;
+  averageDifficulty?: number;
+  learningCards?: number;
+  retentionRate?: number;
+  reviewsLast7Days?: number[];
+  reviewsToday?: number;
+  reviewsYesterday?: number;
+  streakDays?: number;
+  averageRetention?: number;
+  nextDueCards?: number;
 }

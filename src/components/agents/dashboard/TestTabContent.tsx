@@ -5,6 +5,7 @@ import { calculateFlashcardRetention } from '@/services/spacedRepetition/reviewS
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { FlashcardLearningStats } from '@/services/spacedRepetition/reviewTypes';
 
 interface TestTabContentProps {
   handleTestTask: () => Promise<void>;
@@ -25,9 +26,26 @@ export function TestTabContent({ handleTestTask }: TestTabContentProps) {
         throw new Error('User not authenticated');
       }
       
+      // Create a valid flashcard object for testing
+      const testFlashcard: FlashcardLearningStats = {
+        flashcard_id: 'test-id',
+        user_id: user.id,
+        easiness_factor: 2.5,
+        interval: 1,
+        repetitions: 0,
+        last_reviewed_at: new Date().toISOString(),
+        next_review_at: new Date().toISOString(),
+        review_count: 0,
+        totalCards: 10
+      };
+      
       // Test the retention calculation
-      const retentionData = await calculateFlashcardRetention(user.id);
-      setSpacedRepResult(retentionData);
+      const retentionValue = calculateFlashcardRetention(testFlashcard);
+      setSpacedRepResult({ 
+        retention: retentionValue,
+        userId: user.id, 
+        timestamp: new Date().toISOString()
+      });
     } catch (error) {
       console.error('Error testing spaced repetition:', error);
       setSpacedRepResult({ error: 'Failed to test spaced repetition system' });

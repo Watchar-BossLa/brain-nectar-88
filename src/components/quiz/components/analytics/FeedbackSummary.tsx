@@ -1,103 +1,78 @@
-
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageSquare, Flag, ThumbsUp } from 'lucide-react';
-import { getAllFeedback } from '../../services/feedbackService';
-import { QuestionFeedback } from '../results/types';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { QuestionFeedback } from '@/components/quiz/components/results/types';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { format } from 'date-fns';
+import { SparklesIcon, ThumbsDownIcon, ThumbsUpIcon } from '@heroicons/react/24/outline';
 
 interface FeedbackSummaryProps {
-  questionId?: string; // Optional, if provided will filter feedback for just this question
+  feedbackData: QuestionFeedback[];
 }
 
-const FeedbackSummary: React.FC<FeedbackSummaryProps> = ({ questionId }) => {
-  // In a real app, this would be state fetched from an API
-  // For this demo, we'll just read from localStorage directly
-  const allFeedback: QuestionFeedback[] = getAllFeedback();
-  
-  // Filter by questionId if provided
-  const feedback = questionId 
-    ? allFeedback.filter(f => f.questionId === questionId)
-    : allFeedback;
-  
-  // Count by type
-  const issueCount = feedback.filter(f => f.feedbackType === 'issue').length;
-  const suggestionCount = feedback.filter(f => f.feedbackType === 'suggestion').length;
-  const praiseCount = feedback.filter(f => f.feedbackType === 'praise').length;
-  
-  // If no feedback yet
-  if (feedback.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" />
-            Question Feedback
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            No feedback has been provided yet. Feedback helps us improve our questions.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-  
+const FeedbackSummary: React.FC<FeedbackSummaryProps> = ({ feedbackData }) => {
+  const totalCount = feedbackData.length;
+  const positiveCount = feedbackData.filter(feedback => feedback.feedback === 'praise').length;
+  const issueCount = feedbackData.filter(feedback => feedback.feedback === 'issue').length;
+  const suggestionCount = feedbackData.filter(feedback => feedback.feedback === 'suggestion').length;
+  const hasFeedback = feedbackData.length > 0;
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MessageSquare className="h-5 w-5" />
-          Question Feedback
-        </CardTitle>
+        <CardTitle>Feedback Summary</CardTitle>
+        <CardDescription>Overview of feedback received for this question.</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-3 gap-4">
-          <div className="flex flex-col items-center p-3 bg-red-50 dark:bg-red-900/20 rounded-md">
-            <Flag className="h-5 w-5 text-red-500 mb-1" />
-            <p className="text-sm text-muted-foreground">Issues</p>
-            <p className="text-2xl font-bold">{issueCount}</p>
-          </div>
-          
-          <div className="flex flex-col items-center p-3 bg-amber-50 dark:bg-amber-900/20 rounded-md">
-            <MessageSquare className="h-5 w-5 text-amber-500 mb-1" />
-            <p className="text-sm text-muted-foreground">Suggestions</p>
-            <p className="text-2xl font-bold">{suggestionCount}</p>
-          </div>
-          
-          <div className="flex flex-col items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-md">
-            <ThumbsUp className="h-5 w-5 text-green-500 mb-1" />
-            <p className="text-sm text-muted-foreground">Praise</p>
-            <p className="text-2xl font-bold">{praiseCount}</p>
-          </div>
-        </div>
-        
-        {feedback.length > 0 && (
-          <div className="mt-4">
-            <h4 className="text-sm font-medium mb-2">Recent Feedback</h4>
-            <div className="space-y-3 max-h-[300px] overflow-auto">
-              {feedback.slice(0, 5).map((item, index) => (
-                <div key={index} className="p-3 border rounded-md text-sm">
-                  <div className="flex items-center gap-2 mb-1">
-                    {item.feedbackType === 'issue' && (
-                      <Flag className="h-4 w-4 text-red-500" />
-                    )}
-                    {item.feedbackType === 'suggestion' && (
-                      <MessageSquare className="h-4 w-4 text-amber-500" />
-                    )}
-                    {item.feedbackType === 'praise' && (
-                      <ThumbsUp className="h-4 w-4 text-green-500" />
-                    )}
-                    <span className="font-medium capitalize">{item.feedbackType}</span>
-                    <span className="text-xs text-muted-foreground ml-auto">
-                      {new Date(item.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <p>{item.feedbackText}</p>
-                </div>
-              ))}
+        {hasFeedback ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card className="bg-green-50 border-green-200">
+                <CardContent className="flex flex-col items-center justify-center p-4">
+                  <ThumbsUpIcon className="h-6 w-6 text-green-500 mb-2" />
+                  <p className="text-2xl font-bold text-green-600">{positiveCount}</p>
+                  <p className="text-sm text-muted-foreground">Positive</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-red-50 border-red-200">
+                <CardContent className="flex flex-col items-center justify-center p-4">
+                  <ThumbsDownIcon className="h-6 w-6 text-red-500 mb-2" />
+                  <p className="text-2xl font-bold text-red-600">{issueCount}</p>
+                  <p className="text-sm text-muted-foreground">Issues</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-blue-50 border-blue-200">
+                <CardContent className="flex flex-col items-center justify-center p-4">
+                  <SparklesIcon className="h-6 w-6 text-blue-500 mb-2" />
+                  <p className="text-2xl font-bold text-blue-600">{suggestionCount}</p>
+                  <p className="text-sm text-muted-foreground">Suggestions</p>
+                </CardContent>
+              </Card>
             </div>
+            <h4 className="text-sm font-medium">Recent Feedback</h4>
+            <ul className="list-none space-y-2">
+              {feedbackData.slice(0, 3).map(feedback => (
+                <li key={feedback.questionId} className="flex items-start space-x-3 py-2 border-b last:border-b-0">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={`https://avatar.vercel.sh/${feedback.userId}.png`} />
+                    <AvatarFallback>{feedback.userId?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm font-medium">{feedback.userId}</div>
+                      <div className="text-xs text-muted-foreground">{format(new Date(feedback.timestamp || ''), 'MMM d, yyyy h:mm a')}</div>
+                    </div>
+                    <p className="text-sm text-gray-800 dark:text-gray-300">{feedback.feedback}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            {feedbackData.length > 3 && (
+              <p className="text-xs text-muted-foreground">Showing latest 3 of {feedbackData.length} feedback entries</p>
+            )}
           </div>
+        ) : (
+          <p className="text-muted-foreground">No feedback available for this question.</p>
         )}
       </CardContent>
     </Card>

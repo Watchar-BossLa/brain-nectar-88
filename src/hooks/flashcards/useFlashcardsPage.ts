@@ -41,13 +41,22 @@ export const useFlashcardsPage = (): UseFlashcardsPageReturn => {
   };
 
   const { 
-    createFlashcard,
+    createFlashcard: createFlashcardMutation,
     deleteFlashcard,
     updateFlashcard,
     isLoading: isMutating
   } = useFlashcardMutation(() => {
     refreshFlashcards();
   });
+  
+  // Adapter function to match the expected signature
+  const createFlashcard = async (frontContent: string, backContent: string, topicId?: string) => {
+    return createFlashcardMutation({
+      front_content: frontContent,
+      back_content: backContent,
+      topic_id: topicId
+    });
+  };
 
   return {
     activeTab,

@@ -11,18 +11,18 @@ import {
 } from './algorithm';
 
 import { 
-  getDueFlashcards, 
-  createFlashcard, 
-  getUserFlashcards,
-  deleteFlashcard,
-  getFlashcardsByTopic,
+  getDueFlashcards as getDueFlashcardsFromRetrieval, 
+  createFlashcard as createFlashcardFromMutation, 
+  getUserFlashcards as getUserFlashcardsFromRetrieval,
+  deleteFlashcard as deleteFlashcardFromMutation,
+  getFlashcardsByTopic as getFlashcardsByTopicFromRetrieval,
   getStrugglingFlashcards,
   getMasteredFlashcards,
-  getFlashcardStats
+  getFlashcardStats as getFlashcardStatsFromService
 } from './flashcardService';
 
 import { 
-  updateFlashcardAfterReview,
+  updateFlashcardAfterReview as updateFlashcardAfterReviewFromService,
   calculateFlashcardRetention,
   getFlashcardLearningStats
 } from './reviewService';
@@ -33,14 +33,15 @@ import type {
 } from './reviewTypes';
 
 // Create a compatibility layer for backward compatibility
-import { 
-  createFlashcard as createFlashcardCompat, 
+import {
   getUserFlashcards as getUserFlashcardsCompat,
   getDueFlashcards as getDueFlashcardsCompat,
+  createFlashcard as createFlashcardCompat, 
   deleteFlashcard as deleteFlashcardCompat,
   updateFlashcardAfterReview as updateFlashcardAfterReviewCompat,
   getFlashcardsByTopic as getFlashcardsByTopicCompat,
-  getFlashcardStats as getFlashcardStatsCompat
+  getFlashcardStats as getFlashcardStatsCompat,
+  getFlashcardLearningStats as getFlashcardLearningStatsCompat
 } from '../flashcardService';
 
 // Export all the services
@@ -54,17 +55,17 @@ export {
   MIN_EASINESS_FACTOR,
   
   // Flashcard management
-  getDueFlashcards,
-  createFlashcard,
-  getUserFlashcards,
-  deleteFlashcard,
-  getFlashcardsByTopic,
+  getDueFlashcardsFromRetrieval as getDueFlashcards,
+  createFlashcardFromMutation as createFlashcard,
+  getUserFlashcardsFromRetrieval as getUserFlashcards,
+  deleteFlashcardFromMutation as deleteFlashcard,
+  getFlashcardsByTopicFromRetrieval as getFlashcardsByTopic,
   getStrugglingFlashcards,
   getMasteredFlashcards,
-  getFlashcardStats,
+  getFlashcardStatsFromService as getFlashcardStats,
   
   // Review management
-  updateFlashcardAfterReview,
+  updateFlashcardAfterReviewFromService as updateFlashcardAfterReview,
   calculateFlashcardRetention,
   getFlashcardLearningStats,
   
@@ -73,12 +74,13 @@ export {
   type FlashcardRetentionResult,
   type FlashcardLearningStats,
   
-  // Backward compatibility exports
-  createFlashcardCompat as createFlashcard,
-  getUserFlashcardsCompat as getUserFlashcards,
-  getDueFlashcardsCompat as getDueFlashcards,
-  deleteFlashcardCompat as deleteFlashcard,
-  updateFlashcardAfterReviewCompat as updateFlashcardAfterReview,
-  getFlashcardsByTopicCompat as getFlashcardsByTopic,
-  getFlashcardStatsCompat as getFlashcardStats
+  // Re-export services from flashcardService for backward compatibility
+  getUserFlashcardsCompat,
+  getDueFlashcardsCompat,
+  createFlashcardCompat,
+  deleteFlashcardCompat,
+  updateFlashcardAfterReviewCompat,
+  getFlashcardsByTopicCompat,
+  getFlashcardStatsCompat,
+  getFlashcardLearningStatsCompat
 };
