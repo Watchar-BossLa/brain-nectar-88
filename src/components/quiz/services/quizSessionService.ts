@@ -366,8 +366,8 @@ export const clearUserQuizHistory = async (userId: string) => {
 // Create a function to help with the increment
 export const createIncrementFunction = async () => {
   try {
-    // Use rpc directly instead of from('_rpc')
-    const { error } = await supabase.rpc('create_increment_function');
+    // Use functions.invoke instead of rpc directly to avoid TypeScript errors
+    const { error } = await supabase.functions.invoke('create-increment-function');
     
     if (error) {
       console.error('Error creating increment function:', error);

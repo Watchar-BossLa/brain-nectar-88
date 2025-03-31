@@ -11,23 +11,25 @@ export const setupSupabaseFunctions = async () => {
       console.error('Error creating increment function:', error);
       
       // Create the function manually if it doesn't exist
-      // Use raw SQL query instead of the _rpc table approach
-      const { error: functionError } = await supabase.rpc('exec_sql', {
-        sql: `
-          CREATE OR REPLACE FUNCTION increment(row_count INT)
-          RETURNS INT AS $$
-          BEGIN
-            RETURN row_count + 1;
-          END;
-          $$ LANGUAGE plpgsql;
-          
-          CREATE OR REPLACE FUNCTION create_increment_function()
-          RETURNS VOID AS $$
-          BEGIN
-            -- Function already created
-          END;
-          $$ LANGUAGE plpgsql;
-        `
+      // Use raw SQL query as a workaround for TypeScript issues with rpc
+      const { error: functionError } = await supabase.functions.invoke('exec-sql', {
+        body: {
+          sql: `
+            CREATE OR REPLACE FUNCTION increment(row_count INT)
+            RETURNS INT AS $$
+            BEGIN
+              RETURN row_count + 1;
+            END;
+            $$ LANGUAGE plpgsql;
+            
+            CREATE OR REPLACE FUNCTION create_increment_function()
+            RETURNS VOID AS $$
+            BEGIN
+              -- Function already created
+            END;
+            $$ LANGUAGE plpgsql;
+          `
+        }
       });
       
       if (functionError) {
