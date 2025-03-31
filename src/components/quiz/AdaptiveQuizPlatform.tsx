@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
@@ -7,6 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAdaptiveQuiz, useSessionHistory } from './hooks/adaptive-quiz';
 import { useToast } from '@/components/ui/use-toast';
 import { Brain, Dices, Settings, History, Users } from 'lucide-react';
+import { useAuth } from '@/context/auth/AuthContext';
+import { setupSupabaseFunctions } from './hooks/setupSupabase';
 
 // Import mockQuestions from a data file or service
 import { mockQuestions, topics, subjects } from './data/mockQuizData';
@@ -24,6 +25,7 @@ import SessionDetail from './components/history/SessionDetail';
 
 const AdaptiveQuizPlatform: React.FC = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [questionCount, setQuestionCount] = useState(5);
   const [initialDifficulty, setInitialDifficulty] = useState<1 | 2 | 3>(2);
@@ -36,6 +38,13 @@ const AdaptiveQuizPlatform: React.FC = () => {
   
   const quiz = useAdaptiveQuiz(filteredQuestions, initialDifficulty, questionCount);
   const { saveSession } = useSessionHistory();
+  
+  // Initialize Supabase functions when the component mounts
+  useEffect(() => {
+    if (user) {
+      setupSupabaseFunctions();
+    }
+  }, [user]);
   
   // Save session when quiz is completed
   useEffect(() => {

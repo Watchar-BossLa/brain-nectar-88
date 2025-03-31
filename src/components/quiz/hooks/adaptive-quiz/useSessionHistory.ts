@@ -1,32 +1,36 @@
-
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { QuizResults, AnsweredQuestion } from '../../types';
-import { QuizSessionSummary } from '@/types/quiz-session';
-
-interface QuizSession {
-  id: string;
-  date: string;
-  results: QuizResults;
-  answeredQuestions: AnsweredQuestion[];
-  selectedTopics: string[];
-  initialDifficulty: 1 | 2 | 3;
-  questionCount: number;
-}
+import { QuizSession, QuizSessionSummary } from '@/types/quiz-session';
+import { useAuth } from '@/context/auth/AuthContext';
+import { useSupabaseSync } from './useSupabaseSync';
 
 export const useSessionHistory = () => {
-  const [sessions, setSessions] = useState<QuizSession[]>(() => {
+  const { user } = useAuth();
+  const supabaseSync = useSupabaseSync();
+  const [localSessions, setLocalSessions] = useState<QuizSession[]>(() => {
     const savedSessions = localStorage.getItem('quiz-sessions');
     return savedSessions ? JSON.parse(savedSessions) : [];
   });
   
-  const saveSession = useCallback((
+  const saveSession = useCallback(async (
     results: QuizResults,
     answeredQuestions: AnsweredQuestion[],
     selectedTopics: string[],
     initialDifficulty: 1 | 2 | 3,
     questionCount: number
   ) => {
+    if (user) {
+      const savedSession = await supabaseSync.saveSession(
+        results,
+        answeredQuestions,
+        selectedTopics,
+        initialDifficulty,
+        questionCount
+      );
+      return savedSession;
+    } 
+    
     const newSession: QuizSession = {
       id: uuidv4(),
       date: new Date().toISOString(),
@@ -37,31 +41,53 @@ export const useSessionHistory = () => {
       questionCount
     };
     
-    const updatedSessions = [newSession, ...sessions];
+    const updatedSessions = [newSession, ...localSessions];
     localStorage.setItem('quiz-sessions', JSON.stringify(updatedSessions));
-    setSessions(updatedSessions);
+    setLocalSessions(updatedSessions);
     
     return newSession;
-  }, [sessions]);
+  }, [localSessions, user, supabaseSync]);
   
-  const getSession = useCallback((sessionId: string) => {
-    return sessions.find(s => s.id === sessionId) || null;
-  }, [sessions]);
+  const getSession = useCallback(async (sessionId: string) => {
+    if (user) {
+      const supabaseSession = await supabaseSync.getSession(sessionId);
+      if (supabaseSession) {
+        return supabaseSession;
+      }
+    }
+    
+    return localSessions.find(s => s.id === sessionId) || null;
+  }, [localSessions, user, supabaseSync]);
 
-  const deleteSession = useCallback((sessionId: string) => {
-    const updatedSessions = sessions.filter(s => s.id !== sessionId);
+  const deleteSession = useCallback(async (sessionId: string) => {
+    if (user) {
+      const success = await supabaseSync.deleteSession(sessionId);
+      if (success) return true;
+    }
+    
+    const updatedSessions = localSessions.filter(s => s.id !== sessionId);
     localStorage.setItem('quiz-sessions', JSON.stringify(updatedSessions));
-    setSessions(updatedSessions);
-  }, [sessions]);
+    setLocalSessions(updatedSessions);
+    return true;
+  }, [localSessions, user, supabaseSync]);
   
-  const clearHistory = useCallback(() => {
+  const clearHistory = useCallback(async () => {
+    if (user) {
+      const success = await supabaseSync.clearHistory();
+      if (success) return;
+    }
+    
     localStorage.removeItem('quiz-sessions');
-    setSessions([]);
-  }, []);
+    setLocalSessions([]);
+  }, [user, supabaseSync]);
 
-  // Add a method to get session summaries for the table display
   const getSessionSummaries = useCallback((): QuizSessionSummary[] => {
-    return sessions.map(session => {
+    if (user) {
+      return supabaseSync.getSessionSummaries();
+    }
+    
+    return localSessions.map(session => {
+      const scorePercentage = Math.round((session.results.correctAnswers / session.results.questionsAttempted) * 100);
       const difficultyMap = {
         1: 'Easy',
         2: 'Medium',
@@ -71,7 +97,7 @@ export const useSessionHistory = () => {
       return {
         id: session.id,
         date: session.date,
-        scorePercentage: session.results.score,
+        scorePercentage,
         correctAnswers: session.results.correctAnswers,
         totalQuestions: session.results.questionsAttempted,
         timeSpent: session.results.timeSpent || 0,
@@ -79,10 +105,16 @@ export const useSessionHistory = () => {
         topics: session.selectedTopics
       };
     });
-  }, [sessions]);
+  }, [localSessions, user, supabaseSync]);
+  
+  useEffect(() => {
+    if (user) {
+      supabaseSync.loadSessions();
+    }
+  }, [user]);
   
   return {
-    sessions,
+    sessions: localSessions,
     saveSession,
     getSession,
     deleteSession,

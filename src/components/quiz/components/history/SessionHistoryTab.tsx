@@ -3,13 +3,15 @@ import React, { useState } from 'react';
 import { useSessionHistory } from '../../hooks/adaptive-quiz/useSessionHistory';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart3, Trash2 } from 'lucide-react';
+import { BarChart3, Trash2, LogIn, Cloud, Server } from 'lucide-react';
 import { 
   NoSessionsMessage, 
   SessionTabContent,
   DeleteConfirmDialog,
   ExportMenu
 } from './components';
+import { useAuth } from '@/context/auth/AuthContext';
+import { useToast } from '@/components/ui/use-toast';
 
 const SessionHistoryTab: React.FC<{
   onViewSession: (sessionId: string) => void;
@@ -17,6 +19,8 @@ const SessionHistoryTab: React.FC<{
   const { getSessionSummaries, deleteSession, clearHistory } = useSessionHistory();
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [showClearDialog, setShowClearDialog] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
   
   const sessions = getSessionSummaries();
   
@@ -24,9 +28,9 @@ const SessionHistoryTab: React.FC<{
     setConfirmDeleteId(id);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (confirmDeleteId) {
-      deleteSession(confirmDeleteId);
+      await deleteSession(confirmDeleteId);
       setConfirmDeleteId(null);
     }
   };
@@ -35,13 +39,20 @@ const SessionHistoryTab: React.FC<{
     setShowClearDialog(true);
   };
   
-  const confirmClearHistory = () => {
-    clearHistory();
+  const confirmClearHistory = async () => {
+    await clearHistory();
     setShowClearDialog(false);
+  };
+
+  const handleSignInPrompt = () => {
+    toast({
+      title: "Sign in to sync your quiz history",
+      description: "Create an account to access your quiz history across all your devices",
+    });
   };
   
   if (sessions.length === 0) {
-    return <NoSessionsMessage />;
+    return <NoSessionsMessage isLoggedIn={!!user} />;
   }
 
   return (
@@ -56,17 +67,37 @@ const SessionHistoryTab: React.FC<{
           </p>
         </div>
         
-        <div className="flex gap-2">
-          <ExportMenu sessions={sessions} />
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="text-destructive" 
-            onClick={handleClearHistory}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Clear History
-          </Button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          {!user && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleSignInPrompt}
+              className="flex items-center gap-2"
+            >
+              <LogIn className="h-4 w-4" />
+              Sign in to sync
+            </Button>
+          )}
+          {user && (
+            <div className="flex items-center text-sm text-muted-foreground mr-2">
+              <Cloud className="h-4 w-4 mr-1 text-primary" />
+              <span>Synced to cloud</span>
+            </div>
+          )}
+          
+          <div className="flex gap-2">
+            <ExportMenu sessions={sessions} />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-destructive" 
+              onClick={handleClearHistory}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Clear History
+            </Button>
+          </div>
         </div>
       </div>
       

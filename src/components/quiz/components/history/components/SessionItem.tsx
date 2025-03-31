@@ -1,11 +1,13 @@
 
 import React from 'react';
 import { format, parseISO } from 'date-fns';
-import { Clock, Eye, Trash2 } from 'lucide-react';
+import { Clock, Eye, Trash2, Cloud } from 'lucide-react';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { QuizSessionSummary } from '@/types/quiz-session';
+import { useAuth } from '@/context/auth/AuthContext';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface SessionItemProps {
   session: QuizSessionSummary;
@@ -17,11 +19,26 @@ const SessionItem: React.FC<SessionItemProps> = ({ session, onView, onDelete }) 
   const formattedDate = format(parseISO(session.date), 'MMM d, yyyy h:mm a');
   const minutes = Math.floor(session.timeSpent / 60000);
   const seconds = Math.floor((session.timeSpent % 60000) / 1000);
+  const { user } = useAuth();
   
   return (
     <TableRow>
       <TableCell>
-        <div className="font-medium">{formattedDate}</div>
+        <div className="font-medium flex items-center">
+          {user && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Cloud className="h-3 w-3 text-primary mr-2" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Synced to cloud</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          {formattedDate}
+        </div>
       </TableCell>
       <TableCell>
         <div className="flex items-center">

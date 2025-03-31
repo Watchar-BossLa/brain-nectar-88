@@ -345,6 +345,140 @@ export type Database = {
           },
         ]
       }
+      quiz_answered_questions: {
+        Row: {
+          confidence_level: number | null
+          created_at: string
+          difficulty: number | null
+          id: string
+          is_correct: boolean
+          question_id: string
+          session_id: string
+          time_taken: number
+          topic: string | null
+          user_answer: string
+        }
+        Insert: {
+          confidence_level?: number | null
+          created_at?: string
+          difficulty?: number | null
+          id?: string
+          is_correct: boolean
+          question_id: string
+          session_id: string
+          time_taken: number
+          topic?: string | null
+          user_answer: string
+        }
+        Update: {
+          confidence_level?: number | null
+          created_at?: string
+          difficulty?: number | null
+          id?: string
+          is_correct?: boolean
+          question_id?: string
+          session_id?: string
+          time_taken?: number
+          topic?: string | null
+          user_answer?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_answered_questions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_performance_metrics: {
+        Row: {
+          average_confidence: number | null
+          average_time: number | null
+          correct_count: number
+          created_at: string
+          id: string
+          last_attempt_at: string | null
+          topic: string
+          total_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          average_confidence?: number | null
+          average_time?: number | null
+          correct_count?: number
+          created_at?: string
+          id?: string
+          last_attempt_at?: string | null
+          topic: string
+          total_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          average_confidence?: number | null
+          average_time?: number | null
+          correct_count?: number
+          created_at?: string
+          id?: string
+          last_attempt_at?: string | null
+          topic?: string
+          total_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      quiz_sessions: {
+        Row: {
+          correct_answers: number
+          created_at: string
+          date: string
+          difficulty: number
+          id: string
+          initial_difficulty: number
+          score_percentage: number
+          selected_topics: string[] | null
+          time_spent: number
+          topics: Json | null
+          total_questions: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          correct_answers: number
+          created_at?: string
+          date?: string
+          difficulty: number
+          id?: string
+          initial_difficulty: number
+          score_percentage: number
+          selected_topics?: string[] | null
+          time_spent: number
+          topics?: Json | null
+          total_questions: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          correct_answers?: number
+          created_at?: string
+          date?: string
+          difficulty?: number
+          id?: string
+          initial_difficulty?: number
+          score_percentage?: number
+          selected_topics?: string[] | null
+          time_spent?: number
+          topics?: Json | null
+          total_questions?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       study_plans: {
         Row: {
           created_at: string
