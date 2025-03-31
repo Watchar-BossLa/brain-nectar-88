@@ -44,7 +44,7 @@ export function useAdaptiveQuiz(
     
     // Actions from useQuizActions
     startQuiz: actions.startQuiz,
-    submitAnswer: () => actions.submitAnswer(quizState.selectedAnswer, quizState.userConfidence) || false,
+    submitAnswer: () => actions.submitAnswer(quizState.selectedAnswer, quizState.userConfidence),
     skipQuestion: actions.skipQuestion,
     nextQuestion: actions.nextQuestion,
     previousQuestion: actions.previousQuestion,

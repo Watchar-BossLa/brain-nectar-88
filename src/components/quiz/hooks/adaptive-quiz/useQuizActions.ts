@@ -1,7 +1,6 @@
-
 import { useCallback } from 'react';
 import { QuizQuestion, QuizResults, AnsweredQuestion } from '../../types';
-import { QuizStateWithSetters, QuestionSelectionState } from './types';
+import { QuizStateWithSetters } from './types';
 import { useQuestionSelection } from './useQuestionSelection';
 import { usePerformanceHistory } from './usePerformanceHistory';
 import { updateLearningPathFromQuizResults } from '@/services/learningPath/quizLearningPathService';
@@ -28,7 +27,9 @@ export function useQuizActions(
     startTime,
     setStartTime,
     currentIndex,
-    setCurrentIndex
+    setCurrentIndex,
+    setIsAnswerSubmitted,
+    setIsCorrect
   } = quizState;
   
   const questionSelection = useQuestionSelection(quizState);
@@ -48,8 +49,8 @@ export function useQuizActions(
     setQuizResults(null);
   }, [availableQuestions, questionSelection, setActiveQuiz, setCurrentQuestion, setQuizResults, setStartTime]);
   
-  const submitAnswer = useCallback((answer: string, confidenceLevel?: number) => {
-    if (!currentQuestion) return;
+  const submitAnswer = useCallback((answer: string, confidenceLevel?: number): boolean => {
+    if (!currentQuestion) return false;
     
     const timeNow = new Date().getTime();
     const questionStartTime = startTime || timeNow;
@@ -62,6 +63,11 @@ export function useQuizActions(
     } else {
       isCorrect = answer === currentQuestion.correctAnswer;
     }
+    
+    // Set the isCorrect state
+    setIsCorrect(isCorrect);
+    // Set the isAnswerSubmitted state
+    setIsAnswerSubmitted(true);
     
     // Create the answered question object
     const answeredQuestion: AnsweredQuestion = {
@@ -102,7 +108,9 @@ export function useQuizActions(
       const nextQuestion = questionSelection.selectNextQuestion();
       setCurrentQuestion(nextQuestion);
     }
-  }, [currentQuestion, answeredQuestions, startTime, currentDifficulty, performanceHistory, questionSelection, setCurrentDifficulty, setCurrentQuestion, setSelectedAnswer, setStartTime]);
+    
+    return true;
+  }, [currentQuestion, answeredQuestions, startTime, currentDifficulty, performanceHistory, questionSelection, setCurrentDifficulty, setCurrentQuestion, setSelectedAnswer, setStartTime, setIsAnswerSubmitted, setIsCorrect]);
   
   const skipQuestion = useCallback(() => {
     if (!currentQuestion) return false;

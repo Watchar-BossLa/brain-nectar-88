@@ -44,9 +44,7 @@ export interface QuizStateWithSetters extends AdaptiveQuizState {
   setCorrectStreak: (streak: number) => void;
   setIncorrectStreak: (streak: number) => void;
   setTopicMastery: (mastery: Record<string, number>) => void;
-  questionPool?: QuizQuestion[];
   setQuestionPool?: (questions: QuizQuestion[]) => void;
-  startTime?: number | null;
   setStartTime?: (time: number | null) => void;
 }
 
