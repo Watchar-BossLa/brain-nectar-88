@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   BookOpen, 
@@ -54,12 +54,25 @@ const navigationItems = [
 
 const HomeNavigation: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string>(
     navigationItems.find(item => item.path === location.pathname)?.name || navigationItems[0].name
   );
 
+  // Update active tab when location changes
+  useEffect(() => {
+    const currentItem = navigationItems.find(item => item.path === location.pathname);
+    if (currentItem) {
+      setActiveTab(currentItem.name);
+    }
+  }, [location.pathname]);
+
   const handleTabChange = (value: string) => {
     setActiveTab(value);
+    const selectedItem = navigationItems.find(item => item.name === value);
+    if (selectedItem) {
+      navigate(selectedItem.path);
+    }
   };
 
   return (
@@ -67,7 +80,7 @@ const HomeNavigation: React.FC = () => {
       {/* Desktop Navigation */}
       <div className="hidden md:block">
         <Tabs 
-          defaultValue={activeTab} 
+          value={activeTab} 
           onValueChange={handleTabChange} 
           className="w-full"
         >
@@ -77,12 +90,9 @@ const HomeNavigation: React.FC = () => {
                 key={item.name}
                 value={item.name}
                 className="data-[state=active]:bg-primary/10"
-                asChild
               >
-                <Link to={item.path} className="flex items-center">
-                  {item.icon}
-                  {item.name}
-                </Link>
+                {item.icon}
+                {item.name}
               </TabsTrigger>
             ))}
           </TabsList>
