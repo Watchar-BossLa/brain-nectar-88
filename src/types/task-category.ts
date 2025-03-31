@@ -6,6 +6,6 @@ export enum TaskCategory {
   STUDY_PLAN = 'study_plan',
   LEARNING_PATH = 'learning_path',
   CONTENT_GENERATION = 'content_generation',
-  TUTORING = 'tutoring', // Adding this missing enum value
+  TUTORING = 'tutoring',
   ERROR_HANDLING = 'error_handling'
 }

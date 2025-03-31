@@ -32,6 +32,18 @@ import type {
   FlashcardLearningStats
 } from './reviewTypes';
 
+// Create a compatibility layer for backward compatibility
+import { 
+  createFlashcard as createFlashcardCompat, 
+  getUserFlashcards as getUserFlashcardsCompat,
+  getDueFlashcards as getDueFlashcardsCompat,
+  deleteFlashcard as deleteFlashcardCompat,
+  updateFlashcardAfterReview as updateFlashcardAfterReviewCompat,
+  getFlashcardsByTopic as getFlashcardsByTopicCompat,
+  getFlashcardStats as getFlashcardStatsCompat
+} from '../flashcardService';
+
+// Export all the services
 export {
   // Algorithm
   calculateNextReviewDate,
@@ -59,5 +71,14 @@ export {
   // Types
   type RepetitionSchedule,
   type FlashcardRetentionResult,
-  type FlashcardLearningStats
+  type FlashcardLearningStats,
+  
+  // Backward compatibility exports
+  createFlashcardCompat as createFlashcard,
+  getUserFlashcardsCompat as getUserFlashcards,
+  getDueFlashcardsCompat as getDueFlashcards,
+  deleteFlashcardCompat as deleteFlashcard,
+  updateFlashcardAfterReviewCompat as updateFlashcardAfterReview,
+  getFlashcardsByTopicCompat as getFlashcardsByTopic,
+  getFlashcardStatsCompat as getFlashcardStats
 };

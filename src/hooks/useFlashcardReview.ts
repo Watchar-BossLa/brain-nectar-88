@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/auth';
@@ -51,21 +50,21 @@ export const useFlashcardReview = (onComplete?: () => void) => {
       
       if (error) throw error;
       
-      // Convert database format to Flashcard format
+      // Convert database format to Flashcard format with necessary fields
       const convertedCards: Flashcard[] = data.map(card => ({
         id: card.id,
-        deck_id: card.deck_id || '',
+        deck_id: card.topic_id || '', // Using topic_id as a fallback
         front: card.front_content || '',
         back: card.back_content || '',
         user_id: card.user_id,
         created_at: card.created_at,
         updated_at: card.updated_at,
         easiness_factor: card.easiness_factor,
-        interval: card.interval || 0,
-        repetitions: card.repetitions || 0,
+        interval: card.repetition_count || 0, // Map to repetition_count as fallback
+        repetitions: card.repetition_count || 0, // Map to repetition_count as fallback
         last_reviewed_at: card.last_reviewed_at,
         next_review_at: card.next_review_date,
-        review_count: card.review_count || 0,
+        review_count: card.repetition_count || 0, // Map to repetition_count as fallback
         // Additional fields for front-end compatibility
         front_content: card.front_content,
         back_content: card.back_content,
@@ -74,7 +73,8 @@ export const useFlashcardReview = (onComplete?: () => void) => {
         mastery_level: card.mastery_level,
         repetition_count: card.repetition_count,
         next_review_date: card.next_review_date,
-        last_retention: card.last_retention
+        last_retention: card.last_retention,
+        topic: card.topic || card.topic_id || '' // Use topic if available, fallback to topic_id
       }));
 
       setFlashcards(convertedCards);
@@ -222,7 +222,6 @@ export const useFlashcardReview = (onComplete?: () => void) => {
   };
   
   return {
-    // Original properties
     flashcards,
     currentFlashcard: flashcards[currentIndex],
     isFlipped,
@@ -235,7 +234,6 @@ export const useFlashcardReview = (onComplete?: () => void) => {
     skipCard,
     refreshCards: fetchDueFlashcards,
     
-    // Additional properties needed by components
     currentCard: flashcards[currentIndex],
     reviewState,
     reviewStats,
