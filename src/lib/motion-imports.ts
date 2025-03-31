@@ -42,7 +42,7 @@ export const useAnimation = () => ({
 export const useMotionValue = (initialValue: number) => ({
   get: () => initialValue,
   set: () => {},
-  onChange: () => (() => {})
+  onChange: (callback: (value: number) => void) => (() => {})
 });
 
 export const useTransform = (
