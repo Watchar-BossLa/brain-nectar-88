@@ -1,289 +1,156 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { ThumbsUp, ThumbsDown, Lightbulb, Star, Trophy, MessageSquare } from 'lucide-react';
-import { useFlashcardReview } from '@/hooks/useFlashcardReview';
-import { LatexRenderer } from '@/components/math/LatexRendererWrapper';
-import FeedbackDialog from '../quiz/components/feedback/FeedbackDialog';
+import { getDueFlashcards, updateFlashcardAfterReview } from '@/services/spacedRepetition';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/context/auth';
+import { Loader2 } from 'lucide-react';
 
-interface FlashcardReviewSystemProps {
-  onComplete: () => void;
+interface Flashcard {
+  id: string;
+  front_content: string;
+  back_content: string;
+  front?: string;
+  back?: string;
+  difficulty?: number;
+  next_review_date?: string;
+  user_id?: string;
+  topic_id?: string;
 }
 
-interface FlashcardReviewCardProps {
-  flashcard: any;
-  onFlip: () => void;
-  isFlipped: boolean;
-  onRate: (difficulty: number) => void;
-}
-
-const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ onComplete }) => {
-  const {
-    currentFlashcard,
-    isFlipped,
-    loading,
-    flipCard,
-    reviewFlashcard,
-    currentIndex,
-    flashcards,
-    refreshCards
-  } = useFlashcardReview();
-
-  // Derived states
-  const reviewState = isFlipped ? 'answering' : 'reviewing';
-  const reviewComplete = !loading && (!flashcards || flashcards.length === 0 || currentIndex >= flashcards.length);
-  
-  const [reviewStats, setReviewStats] = useState({
-    totalReviewed: 0,
-    easy: 0,
-    medium: 0,
-    hard: 0,
-    averageRating: 0
-  });
-
-  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+const FlashcardReviewSystem = () => {
+  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [reviewComplete, setReviewComplete] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
-  const handleSubmitFeedback = (feedback: {
-    questionId: string;
-    feedbackType: 'issue' | 'suggestion' | 'praise';
-    feedbackText: string;
-  }) => {
-    console.log('Flashcard feedback submitted:', feedback);
+  useEffect(() => {
+    const fetchFlashcards = async () => {
+      if (!user) return;
+      
+      setIsLoading(true);
+      try {
+        const { data, error } = await getDueFlashcards(user.id);
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (data && data.length > 0) {
+          setFlashcards(data);
+        } else {
+          setReviewComplete(true);
+        }
+      } catch (error) {
+        toast({
+          title: 'Error loading flashcards',
+          description: 'Could not load flashcards for review.',
+          variant: 'destructive'
+        });
+        console.error('Error fetching flashcards:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
-    toast({
-      title: "Feedback received",
-      description: "Thank you for helping us improve our flashcards!",
-    });
+    fetchFlashcards();
+  }, [user, toast]);
+
+  const handleFlip = () => {
+    setIsFlipped(!isFlipped);
   };
 
-  const showAnswer = () => flipCard();
-  
-  const rateCard = async (difficulty: number) => {
-    if (currentFlashcard) {
-      // Update review stats
-      setReviewStats(prev => {
-        const newStats = { ...prev };
-        newStats.totalReviewed++;
-        
-        if (difficulty <= 2) newStats.hard++;
-        else if (difficulty === 3) newStats.medium++;
-        else newStats.easy++;
-        
-        const totalRating = prev.averageRating * prev.totalReviewed + difficulty;
-        newStats.averageRating = totalRating / newStats.totalReviewed;
-        
-        return newStats;
-      });
+  const handleDifficulty = async (difficulty: number) => {
+    if (!user || currentIndex >= flashcards.length) return;
+    
+    const currentCard = flashcards[currentIndex];
+    try {
+      await updateFlashcardAfterReview(currentCard.id, difficulty);
       
-      await reviewFlashcard(currentFlashcard.id, difficulty);
+      if (currentIndex < flashcards.length - 1) {
+        setCurrentIndex(currentIndex + 1);
+        setIsFlipped(false);
+      } else {
+        setReviewComplete(true);
+      }
+    } catch (error) {
+      toast({
+        title: 'Error updating flashcard',
+        description: 'Could not save your review.',
+        variant: 'destructive'
+      });
+      console.error('Error updating flashcard:', error);
     }
   };
 
-  const completeReview = () => {
-    refreshCards();
-    if (onComplete) onComplete();
-  };
-
-  // If there's no current card, show a message
-  if (!currentFlashcard && !reviewComplete) {
+  if (isLoading) {
     return (
-      <Card>
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <h3 className="text-lg font-medium mb-2">No cards due for review</h3>
-          <p className="text-muted-foreground text-center">
-            You've caught up with all your reviews. Check back later.
-          </p>
-          <Button onClick={completeReview} className="mt-4">
-            Return to Flashcards
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center h-40">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
     );
   }
 
-  // Show review completion screen
-  if (reviewComplete) {
+  if (reviewComplete || flashcards.length === 0) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-yellow-500" />
-            Review Session Complete
-          </CardTitle>
+          <CardTitle>Review Complete</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-center text-lg">
-            Great job! You've completed your review session.
-          </p>
-          
-          <div className="grid grid-cols-3 gap-4 mt-4">
-            <div className="bg-green-50 border border-green-200 rounded-md p-3 text-center">
-              <p className="text-sm text-muted-foreground">Easy</p>
-              <p className="text-2xl font-bold text-green-600">{reviewStats.easy}</p>
-            </div>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 text-center">
-              <p className="text-sm text-muted-foreground">Medium</p>
-              <p className="text-2xl font-bold text-yellow-600">{reviewStats.medium}</p>
-            </div>
-            <div className="bg-red-50 border border-red-200 rounded-md p-3 text-center">
-              <p className="text-sm text-muted-foreground">Hard</p>
-              <p className="text-2xl font-bold text-red-600">{reviewStats.hard}</p>
-            </div>
-          </div>
-          
-          <div className="mt-4">
-            <p className="text-sm text-muted-foreground mb-1">Average Rating</p>
-            <Progress value={reviewStats.averageRating * 20} className="h-2" />
-            <div className="flex justify-between mt-1 text-xs text-muted-foreground">
-              <span>Hard</span>
-              <span>Easy</span>
-            </div>
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button onClick={completeReview} className="w-full">
-            Return to Flashcards
+        <CardContent>
+          <p className="mb-4">You have completed all your due flashcards.</p>
+          <Button onClick={() => window.location.reload()}>
+            Check for New Cards
           </Button>
-        </CardFooter>
+        </CardContent>
       </Card>
     );
   }
 
-  // Check if content contains LaTeX code
-  const hasLatex = (content: string) => {
-    return content.includes('$$') || content.includes('$');
-  };
+  const currentCard = flashcards[currentIndex];
 
-  const front = currentFlashcard?.front || currentFlashcard?.front_content || '';
-  const back = currentFlashcard?.back || currentFlashcard?.back_content || '';
-
-  return (
-    <Card className="overflow-hidden">
-      <CardHeader className="bg-muted/20">
-        <div className="flex justify-between items-center">
-          <CardTitle>Flashcard Review</CardTitle>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setIsFeedbackOpen(true)}
-              className="flex items-center gap-1"
-            >
-              <MessageSquare className="h-4 w-4" />
-              Feedback
-            </Button>
-            <p className="text-sm text-muted-foreground">
-              Cards reviewed: {reviewStats.totalReviewed}
-            </p>
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="pt-6">
-        <div className="min-h-[200px] flex flex-col justify-center">
-          {/* Front side or question */}
-          <div className="mb-6">
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">Question</h3>
-            <div className="p-4 border rounded-md bg-card">
-              {hasLatex(front) ? (
-                <LatexRenderer latex={front} />
-              ) : (
-                <p className="text-lg">{front}</p>
-              )}
-            </div>
-          </div>
-          
-          {/* Back side or answer (shown only after clicking "Show Answer") */}
-          {reviewState === 'answering' && (
-            <div className="mt-4">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Answer</h3>
-              <div className="p-4 border rounded-md bg-card">
-                {hasLatex(back) ? (
-                  <LatexRenderer latex={back} />
-                ) : (
-                  <p className="text-lg">{back}</p>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </CardContent>
-      
-      <CardFooter className="border-t p-4 bg-muted/10">
-        {reviewState === 'reviewing' ? (
-          <Button onClick={showAnswer} className="w-full">
-            <Lightbulb className="mr-2 h-4 w-4" />
-            Show Answer
-          </Button>
-        ) : (
-          <div className="w-full space-y-4">
-            <p className="text-sm text-center text-muted-foreground mb-2">
-              How well did you know this?
-            </p>
-            <div className="grid grid-cols-3 gap-2">
-              <Button variant="outline" onClick={() => rateCard(1)} className="flex flex-col py-3">
-                <ThumbsDown className="h-5 w-5 text-red-500 mb-1" />
-                <span className="text-xs">Hard</span>
-              </Button>
-              <Button variant="outline" onClick={() => rateCard(3)} className="flex flex-col py-3">
-                <Star className="h-5 w-5 text-yellow-500 mb-1" />
-                <span className="text-xs">Medium</span>
-              </Button>
-              <Button variant="outline" onClick={() => rateCard(5)} className="flex flex-col py-3">
-                <ThumbsUp className="h-5 w-5 text-green-500 mb-1" />
-                <span className="text-xs">Easy</span>
-              </Button>
-            </div>
-          </div>
-        )}
-      </CardFooter>
-
-      {currentFlashcard && (
-        <FeedbackDialog
-          questionId={currentFlashcard.id || 'unknown'}
-          questionText={front}
-          isOpen={isFeedbackOpen}
-          onClose={() => setIsFeedbackOpen(false)}
-          onSubmitFeedback={handleSubmitFeedback}
-        />
-      )}
-    </Card>
-  );
-};
-
-const FlashcardReviewCard: React.FC<FlashcardReviewCardProps> = ({ flashcard, onFlip, isFlipped, onRate }) => {
   return (
     <Card className="w-full">
-      <CardContent className="p-6 min-h-[300px] flex items-center justify-center">
-        <div className="text-center">
-          {isFlipped ? (
-            <div className="animate-fadeIn">
-              <div className="mb-4 text-xl font-semibold">{flashcard.back_content || flashcard.back}</div>
-            </div>
-          ) : (
-            <div>
-              <div className="mb-4 text-xl font-semibold">{flashcard.front_content || flashcard.front}</div>
+      <CardHeader>
+        <CardTitle>Flashcard Review</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="min-h-[200px] flex items-center justify-center">
+          <div className="text-center">
+            {isFlipped ? (
+              <div className="animate-fadeIn">
+                <div className="text-xl font-semibold">{currentCard.back_content || currentCard.back}</div>
+              </div>
+            ) : (
+              <div className="text-xl font-semibold">{currentCard.front_content || currentCard.front}</div>
+            )}
+          </div>
+        </div>
+        
+        <div className="flex flex-col space-y-4 mt-6">
+          <Button onClick={handleFlip} variant="outline" className="w-full">
+            {isFlipped ? 'Show Question' : 'Show Answer'}
+          </Button>
+          
+          {isFlipped && (
+            <div className="grid grid-cols-3 gap-2">
+              <Button onClick={() => handleDifficulty(1)} variant="outline" className="bg-red-100 hover:bg-red-200">
+                Hard
+              </Button>
+              <Button onClick={() => handleDifficulty(3)} variant="outline" className="bg-yellow-100 hover:bg-yellow-200">
+                Medium
+              </Button>
+              <Button onClick={() => handleDifficulty(5)} variant="outline" className="bg-green-100 hover:bg-green-200">
+                Easy
+              </Button>
             </div>
           )}
         </div>
       </CardContent>
-      
-      <CardFooter className="border-t p-4 bg-muted/10">
-        {isFlipped ? (
-          <Button onClick={onFlip} className="w-full">
-            <Lightbulb className="mr-2 h-4 w-4" />
-            Show Question
-          </Button>
-        ) : (
-          <Button onClick={onFlip} className="w-full">
-            <Lightbulb className="mr-2 h-4 w-4" />
-            Show Answer
-          </Button>
-        )}
-      </CardFooter>
     </Card>
   );
 };

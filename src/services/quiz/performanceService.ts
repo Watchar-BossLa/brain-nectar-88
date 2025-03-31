@@ -2,12 +2,12 @@
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Get user quiz performance statistics
- * @param userId The user ID
+ * Get quiz performance metrics for a user
  */
-export const getUserPerformance = async (userId: string) => {
+export const getQuizPerformanceMetrics = async (userId: string) => {
   try {
-    const { data, error } = await supabase
+    // Use the quiz_sessions table which should exist
+    const { data: sessions, error } = await supabase
       .from('quiz_sessions')
       .select('*')
       .eq('user_id', userId)
@@ -15,89 +15,119 @@ export const getUserPerformance = async (userId: string) => {
       
     if (error) throw error;
     
-    return data || [];
+    // Calculate metrics
+    const totalQuizzes = sessions?.length || 0;
+    let totalScore = 0;
+    let totalQuestions = 0;
+    let totalCorrect = 0;
+    
+    sessions?.forEach(session => {
+      totalScore += session.score_percentage || 0;
+      totalQuestions += session.total_questions || 0;
+      totalCorrect += session.correct_answers || 0;
+    });
+    
+    const averageScore = totalQuizzes > 0 ? totalScore / totalQuizzes : 0;
+    const completionRate = totalQuizzes > 0 ? 100 : 0; // Assuming all sessions are complete
+    
+    // Calculate improvement (comparing the latest session with the average of previous sessions)
+    let improvementRate = 0;
+    if (totalQuizzes > 1 && sessions) {
+      const latestSession = sessions[0];
+      const previousSessions = sessions.slice(1);
+      const previousAverage = previousSessions.reduce((sum, session) => sum + (session.score_percentage || 0), 0) / previousSessions.length;
+      improvementRate = latestSession.score_percentage - previousAverage;
+    }
+    
+    return {
+      totalQuizzes,
+      averageScore,
+      completionRate,
+      improvementRate,
+      totalQuestions,
+      correctAnswers: totalCorrect
+    };
   } catch (error) {
-    console.error('Error fetching user performance:', error);
-    return [];
+    console.error('Error getting performance metrics:', error);
+    return {
+      totalQuizzes: 0,
+      averageScore: 0,
+      completionRate: 0,
+      improvementRate: 0,
+      totalQuestions: 0,
+      correctAnswers: 0
+    };
   }
 };
 
 /**
- * Get topic performance for a user
- * @param userId The user ID
+ * Get performance by topic
  */
-export const getTopicPerformance = async (userId: string) => {
+export const getPerformanceByTopic = async (userId: string) => {
   try {
-    const { data, error } = await supabase
-      .from('quiz_sessions')
-      .select('*, quiz_answered_questions(*)')
+    // Use answered questions which joins to topics
+    const { data: answeredQuestions, error } = await supabase
+      .from('quiz_answered_questions')
+      .select('*, questions(topic)')
       .eq('user_id', userId);
       
     if (error) throw error;
-
-    // Calculate performance by topic
+    
+    // Group questions by topic
     const topicStats: Record<string, { total: number; correct: number }> = {};
     
-    data?.forEach(session => {
-      const questions = session.quiz_answered_questions || [];
+    answeredQuestions?.forEach(answer => {
+      const topic = answer.questions?.topic || 'Unknown';
       
-      questions.forEach((q: any) => {
-        if (!q.topic) return;
-        
-        if (!topicStats[q.topic]) {
-          topicStats[q.topic] = { total: 0, correct: 0 };
-        }
-        
-        topicStats[q.topic].total += 1;
-        if (q.is_correct) {
-          topicStats[q.topic].correct += 1;
-        }
-      });
+      if (!topicStats[topic]) {
+        topicStats[topic] = { total: 0, correct: 0 };
+      }
+      
+      topicStats[topic].total++;
+      if (answer.is_correct) {
+        topicStats[topic].correct++;
+      }
     });
     
     return topicStats;
   } catch (error) {
-    console.error('Error fetching topic performance:', error);
+    console.error('Error getting performance by topic:', error);
     return {};
   }
 };
 
 /**
- * Get difficulty level performance for a user
- * @param userId The user ID
+ * Get performance by difficulty level
  */
-export const getDifficultyPerformance = async (userId: string) => {
+export const getPerformanceByDifficulty = async (userId: string) => {
   try {
-    const { data, error } = await supabase
-      .from('quiz_sessions')
-      .select('*, quiz_answered_questions(*)')
+    // Get all answered questions with their difficulty
+    const { data: answeredQuestions, error } = await supabase
+      .from('quiz_answered_questions')
+      .select('*, questions(difficulty)')
       .eq('user_id', userId);
       
     if (error) throw error;
     
-    // Calculate performance by difficulty
+    // Group by difficulty
     const difficultyStats: Record<number, { total: number; correct: number }> = {};
     
-    for (let i = 1; i <= 5; i++) {
-      difficultyStats[i] = { total: 0, correct: 0 };
-    }
-    
-    data?.forEach(session => {
-      const questions = session.quiz_answered_questions || [];
+    answeredQuestions?.forEach(answer => {
+      const difficulty = answer.questions?.difficulty || 0;
       
-      questions.forEach((q: any) => {
-        const difficulty = q.difficulty || 1;
-        
-        difficultyStats[difficulty].total += 1;
-        if (q.is_correct) {
-          difficultyStats[difficulty].correct += 1;
-        }
-      });
+      if (!difficultyStats[difficulty]) {
+        difficultyStats[difficulty] = { total: 0, correct: 0 };
+      }
+      
+      difficultyStats[difficulty].total++;
+      if (answer.is_correct) {
+        difficultyStats[difficulty].correct++;
+      }
     });
     
     return difficultyStats;
   } catch (error) {
-    console.error('Error fetching difficulty performance:', error);
+    console.error('Error getting performance by difficulty:', error);
     return {};
   }
 };

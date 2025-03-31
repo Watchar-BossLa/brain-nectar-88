@@ -1,123 +1,131 @@
+
 import React, { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card } from '@/components/ui/card';
 import { useAuth } from '@/context/auth';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { getQuizPerformanceMetrics } from '@/services/quiz/performanceService';
 import { getFeedbackData } from '@/services/quiz/feedbackService';
 import PerformanceMetrics from '../analytics/PerformanceMetrics';
 import PerformanceByTopic from '../analytics/PerformanceByTopic';
 import PerformanceByDifficulty from '../analytics/PerformanceByDifficulty';
 import FeedbackSummary from '../analytics/FeedbackSummary';
-import { Loader2, BarChart3, MessageSquare, BookOpen } from 'lucide-react';
-import { QuestionFeedback } from '../results/types';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Loader2 } from 'lucide-react';
 
-const AnalyticsTab: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('performance');
-  const [isLoading, setIsLoading] = useState(true);
-  const [metrics, setMetrics] = useState<any>(null);
-  const [topicPerformance, setTopicPerformance] = useState<Record<string, { total: number; correct: number }>>({});
-  const [difficultyPerformance, setDifficultyPerformance] = useState<Record<number, { total: number; correct: number }>>({});
-  const [feedbackData, setFeedbackData] = useState<QuestionFeedback[]>([]);
+export function AnalyticsTab() {
+  const [activeTab, setActiveTab] = useState("overview");
+  const [loading, setLoading] = useState(true);
+  const [metricsData, setMetricsData] = useState<any>(null);
+  const [topicData, setTopicData] = useState<any>(null);
+  const [difficultyData, setDifficultyData] = useState<any>(null);
+  const [feedbackData, setFeedbackData] = useState<any>(null);
   const { user } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
       if (!user) return;
       
-      setIsLoading(true);
+      setLoading(true);
       
       try {
-        // Fetch performance metrics
-        const metricsData = await getQuizPerformanceMetrics(user.id);
-        setMetrics(metricsData);
-        
-        // Extract topic and difficulty performance
-        const topicData: Record<string, { total: number; correct: number }> = {};
-        const difficultyData: Record<number, { total: number; correct: number }> = {};
-        
-        metricsData.forEach((metric: any) => {
-          if (metric.topic) {
-            topicData[metric.topic] = {
-              total: metric.total_count,
-              correct: metric.correct_count
-            };
-          }
-          
-          // Aggregate by difficulty
-          if (metric.questions) {
-            metric.questions.forEach((q: any) => {
-              if (!difficultyData[q.difficulty]) {
-                difficultyData[q.difficulty] = { total: 0, correct: 0 };
-              }
-              difficultyData[q.difficulty].total += 1;
-              if (q.is_correct) {
-                difficultyData[q.difficulty].correct += 1;
-              }
-            });
-          }
-        });
-        
-        setTopicPerformance(topicData);
-        setDifficultyPerformance(difficultyData);
+        // Fetch metrics
+        const metrics = await getQuizPerformanceMetrics(user.id);
+        setMetricsData(metrics);
         
         // Fetch feedback data
         const feedback = await getFeedbackData();
         setFeedbackData(feedback);
         
       } catch (error) {
-        console.error("Error fetching analytics data:", error);
+        console.error('Error loading analytics data:', error);
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
     
     fetchData();
   }, [user]);
-
-  if (isLoading) {
-    return (
-      <Card className="p-8 flex justify-center items-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-          <p>Loading analytics data...</p>
+  
+  const renderTabContent = () => {
+    if (loading) {
+      return (
+        <div className="space-y-4 pt-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3, 4, 5, 6].map((item) => (
+              <Skeleton key={item} className="h-[120px] w-full rounded-xl" />
+            ))}
+          </div>
         </div>
-      </Card>
+      );
+    }
+    
+    if (!metricsData) {
+      return (
+        <Card className="mt-6">
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <p className="text-center text-muted-foreground">
+              No analytics data available yet. Complete some quizzes to see your performance metrics.
+            </p>
+          </CardContent>
+        </Card>
+      );
+    }
+    
+    return (
+      <>
+        <TabsContent value="overview" className="space-y-8 pt-4">
+          <PerformanceMetrics
+            totalQuizzes={metricsData.totalQuizzes}
+            averageScore={metricsData.averageScore}
+            completionRate={metricsData.completionRate}
+            improvementRate={metricsData.improvementRate}
+            totalQuestions={metricsData.totalQuestions}
+            correctAnswers={metricsData.correctAnswers}
+          />
+          
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <PerformanceByTopic topicStats={topicData} />
+            <PerformanceByDifficulty difficultyStats={difficultyData} />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="feedback" className="pt-4">
+          <FeedbackSummary feedbackData={feedbackData || {}} />
+        </TabsContent>
+        
+        <TabsContent value="trends" className="pt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                Performance Trends
+                <Badge variant="outline">Coming Soon</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="h-[400px] flex items-center justify-center">
+              <p className="text-muted-foreground">
+                Trend analysis will be available in a future update.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </>
     );
-  }
+  };
   
   return (
-    <Card className="p-4">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-4">
-          <TabsTrigger value="performance" className="flex items-center">
-            <BarChart3 className="h-4 w-4 mr-2" />
-            Performance
-          </TabsTrigger>
-          <TabsTrigger value="topics" className="flex items-center">
-            <BookOpen className="h-4 w-4 mr-2" />
-            Topics
-          </TabsTrigger>
-          <TabsTrigger value="feedback" className="flex items-center">
-            <MessageSquare className="h-4 w-4 mr-2" />
-            Feedback
-          </TabsTrigger>
+    <div className="space-y-4">
+      <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="feedback">Feedback</TabsTrigger>
+          <TabsTrigger value="trends">Trends</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="performance" className="space-y-4">
-          <PerformanceMetrics metrics={metrics} />
-          <PerformanceByDifficulty difficultyStats={difficultyPerformance} />
-        </TabsContent>
-        
-        <TabsContent value="topics" className="space-y-4">
-          <PerformanceByTopic topicStats={topicPerformance} />
-        </TabsContent>
-        
-        <TabsContent value="feedback" className="space-y-4">
-          <FeedbackSummary feedbackData={feedbackData} />
-        </TabsContent>
+        {renderTabContent()}
       </Tabs>
-    </Card>
+    </div>
   );
-};
+}
 
 export default AnalyticsTab;

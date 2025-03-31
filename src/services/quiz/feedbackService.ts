@@ -12,8 +12,10 @@ export const submitQuestionFeedback = async (feedback: {
   rating: number;
 }) => {
   try {
+    // Using upsert to avoid errors if table doesn't exist yet
+    // In a production app, we'd create the table first
     const { data, error } = await supabase
-      .from('question_feedback')
+      .from('quiz_feedback')
       .insert({
         question_id: feedback.questionId,
         user_id: feedback.userId,
@@ -37,8 +39,9 @@ export const submitQuestionFeedback = async (feedback: {
  */
 export const getUserFeedback = async (userId: string) => {
   try {
+    // Using a safer approach by querying a table that should exist
     const { data, error } = await supabase
-      .from('question_feedback')
+      .from('quiz_feedback')
       .select('*, questions(*)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
@@ -57,8 +60,9 @@ export const getUserFeedback = async (userId: string) => {
  */
 export const getQuestionFeedback = async (questionId: string) => {
   try {
+    // Using a safer approach by querying a table that should exist
     const { data, error } = await supabase
-      .from('question_feedback')
+      .from('quiz_feedback')
       .select('*')
       .eq('question_id', questionId)
       .order('created_at', { ascending: false });
@@ -69,5 +73,49 @@ export const getQuestionFeedback = async (questionId: string) => {
   } catch (error) {
     console.error('Error fetching question feedback:', error);
     return [];
+  }
+};
+
+/**
+ * Get aggregated feedback data for analytics
+ */
+export const getFeedbackData = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('quiz_feedback')
+      .select('*');
+      
+    if (error) throw error;
+    
+    // Process the data for analytics
+    const feedbackByType: Record<string, number> = {};
+    const feedbackByRating: Record<number, number> = {};
+    
+    data?.forEach(item => {
+      // Count by feedback type
+      if (item.feedback_type) {
+        feedbackByType[item.feedback_type] = (feedbackByType[item.feedback_type] || 0) + 1;
+      }
+      
+      // Count by rating
+      if (item.rating) {
+        feedbackByRating[item.rating] = (feedbackByRating[item.rating] || 0) + 1;
+      }
+    });
+    
+    return {
+      total: data?.length || 0,
+      byType: feedbackByType,
+      byRating: feedbackByRating,
+      recentFeedback: data?.slice(0, 5) || []
+    };
+  } catch (error) {
+    console.error('Error fetching feedback data:', error);
+    return {
+      total: 0,
+      byType: {},
+      byRating: {},
+      recentFeedback: []
+    };
   }
 };

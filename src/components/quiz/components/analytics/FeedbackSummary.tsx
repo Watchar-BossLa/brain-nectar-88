@@ -1,110 +1,137 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { QuestionFeedback } from '../results/types';
-import { MessageCircle, Flag, ThumbsUp } from 'lucide-react';
+import { MessageSquare, ThumbsUp, Flag, Calendar } from 'lucide-react';
 
-interface FeedbackSummaryProps {
-  feedbackData: QuestionFeedback[];
+export interface FeedbackSummaryProps {
+  feedbackData: {
+    total: number;
+    byType: Record<string, number>;
+    byRating: Record<number, number>;
+    recentFeedback: any[];
+  };
 }
 
 const FeedbackSummary: React.FC<FeedbackSummaryProps> = ({ feedbackData }) => {
-  const [activeTab, setActiveTab] = useState('all');
+  const { total, byType, byRating, recentFeedback } = feedbackData;
   
-  if (!feedbackData || feedbackData.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Feedback Summary</CardTitle>
-          <CardDescription>No feedback data available</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-center py-8 text-muted-foreground">
-            No feedback has been collected yet.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
+  const feedbackTypeIcon = (type: string) => {
+    switch (type) {
+      case 'issue':
+        return <Flag className="h-4 w-4 text-destructive" />;
+      case 'suggestion':
+        return <MessageSquare className="h-4 w-4 text-amber-500" />;
+      case 'praise':
+        return <ThumbsUp className="h-4 w-4 text-green-500" />;
+      default:
+        return <MessageSquare className="h-4 w-4" />;
+    }
+  };
 
-  // Process feedback data
-  const issueCount = feedbackData.filter(item => item.feedbackType === 'issue').length;
-  const suggestionCount = feedbackData.filter(item => item.feedbackType === 'suggestion').length;
-  const praiseCount = feedbackData.filter(item => item.feedbackType === 'praise').length;
-  
-  // Calculate average rating
-  const totalRating = feedbackData.reduce((sum, item) => sum + item.rating, 0);
-  const averageRating = totalRating / feedbackData.length;
-  
-  // Filter data based on active tab
-  const filteredData = activeTab === 'all' 
-    ? feedbackData 
-    : feedbackData.filter(item => item.feedbackType === activeTab);
+  const feedbackTypeBadge = (type: string) => {
+    let variant: "default" | "destructive" | "outline" | "secondary" = "outline";
+    
+    switch (type) {
+      case 'issue':
+        variant = "destructive";
+        break;
+      case 'suggestion':
+        variant = "secondary";
+        break;
+      case 'praise':
+        variant = "default";
+        break;
+    }
+    
+    return (
+      <Badge variant={variant} className="flex items-center gap-1">
+        {feedbackTypeIcon(type)}
+        <span className="capitalize">{type}</span>
+      </Badge>
+    );
+  };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <MessageCircle className="h-5 w-5 mr-2" /> Feedback Summary
-        </CardTitle>
-        <CardDescription>
-          Analysis of student feedback on questions
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="bg-red-50 border border-red-200 rounded-md p-3 text-center">
-            <p className="text-sm text-muted-foreground mb-1">Issues</p>
-            <p className="text-2xl font-bold text-red-600">{issueCount}</p>
-          </div>
-          <div className="bg-amber-50 border border-amber-200 rounded-md p-3 text-center">
-            <p className="text-sm text-muted-foreground mb-1">Suggestions</p>
-            <p className="text-2xl font-bold text-amber-600">{suggestionCount}</p>
-          </div>
-          <div className="bg-green-50 border border-green-200 rounded-md p-3 text-center">
-            <p className="text-sm text-muted-foreground mb-1">Praise</p>
-            <p className="text-2xl font-bold text-green-600">{praiseCount}</p>
-          </div>
-        </div>
-        
-        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full mb-4">
-            <TabsTrigger value="all">All Feedback</TabsTrigger>
-            <TabsTrigger value="issue">Issues</TabsTrigger>
-            <TabsTrigger value="suggestion">Suggestions</TabsTrigger>
-            <TabsTrigger value="praise">Praise</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value={activeTab}>
-            <div className="space-y-4">
-              {filteredData.map((item, index) => (
-                <div key={index} className="border rounded-md p-3">
-                  <div className="flex justify-between items-center mb-2">
-                    <Badge variant={
-                      item.feedbackType === 'issue' ? "destructive" : 
-                      item.feedbackType === 'suggestion' ? "secondary" : 
-                      "outline"
-                    }>
-                      {item.feedbackType === 'issue' && <Flag className="h-3 w-3 mr-1" />}
-                      {item.feedbackType === 'suggestion' && <MessageCircle className="h-3 w-3 mr-1" />}
-                      {item.feedbackType === 'praise' && <ThumbsUp className="h-3 w-3 mr-1" />}
-                      {item.feedbackType?.charAt(0).toUpperCase() + item.feedbackType?.slice(1)}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(item.timestamp || item.createdAt || '').toLocaleDateString()}
-                    </span>
+    <div className="grid gap-4 md:grid-cols-7">
+      <Card className="md:col-span-2">
+        <CardHeader>
+          <CardTitle>Feedback Summary</CardTitle>
+          <CardDescription>Overview of question feedback</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <div className="text-2xl font-bold">{total}</div>
+              <p className="text-xs text-muted-foreground">Total feedback submissions</p>
+            </div>
+            
+            <div className="space-y-2">
+              <p className="text-sm font-medium">By Type</p>
+              <div className="space-y-1">
+                {Object.entries(byType).map(([type, count]) => (
+                  <div key={type} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      {feedbackTypeIcon(type)}
+                      <span className="capitalize">{type}</span>
+                    </div>
+                    <span>{count}</span>
                   </div>
-                  <p className="text-sm font-medium mb-1">{item.questionText}</p>
-                  <p className="text-sm text-muted-foreground">{item.feedbackText || item.feedback}</p>
+                ))}
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <p className="text-sm font-medium">By Rating</p>
+              <div className="space-y-1">
+                {Object.entries(byRating).map(([rating, count]) => (
+                  <div key={rating} className="flex items-center justify-between text-sm">
+                    <span>{rating} {Number(rating) === 1 ? 'Star' : 'Stars'}</span>
+                    <span>{count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card className="md:col-span-5">
+        <CardHeader>
+          <CardTitle>Recent Feedback</CardTitle>
+          <CardDescription>Latest feedback from students</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {recentFeedback.length > 0 ? (
+            <div className="space-y-4">
+              {recentFeedback.map((feedback) => (
+                <div key={feedback.id} className="space-y-2 border-b pb-4 last:border-0">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {feedbackTypeBadge(feedback.feedback_type)}
+                      <span className="text-sm text-muted-foreground">
+                        {Array(feedback.rating).fill('★').join('')}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Calendar className="h-3 w-3" />
+                      {new Date(feedback.created_at).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <p className="text-sm">{feedback.feedback_text}</p>
                 </div>
               ))}
             </div>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+          ) : (
+            <div className="flex h-[200px] items-center justify-center">
+              <p className="text-sm text-muted-foreground">
+                No feedback submitted yet.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
