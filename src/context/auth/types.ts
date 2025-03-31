@@ -1,8 +1,8 @@
 
-import type { Session } from '@supabase/supabase-js';
+import type { Session, User } from '@supabase/supabase-js';
 
 // Define AuthUser interface
-export interface AuthUser {
+export interface AuthUser extends User {
   id: string;
   email?: string;
   app_metadata: {

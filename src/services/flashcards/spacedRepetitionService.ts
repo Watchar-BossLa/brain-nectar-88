@@ -1,37 +1,39 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  calculateNextReviewDate,
-  INITIAL_EASINESS_FACTOR,
-  MIN_EASINESS_FACTOR
-} from '@/services/spacedRepetition/algorithm';
 
-// Type definitions
-interface FlashcardReviewResult {
-  flashcardId: string;
-  difficulty: number; // 1-5 scale
-  userId: string;
-}
-
-export class SpacedRepetitionService {
+class SpacedRepetitionService {
   /**
-   * Record a review of a flashcard
+   * Calculate the next review date based on difficulty rating
    */
-  public async recordReview(flashcardId: string, difficulty: number): Promise<boolean> {
+  calculateNextReviewDate(difficulty: number, repetitions: number): Date {
+    // Simple algorithm
+    let daysToAdd = 1;
+    
+    if (difficulty >= 4) {
+      // Easy
+      daysToAdd = repetitions < 2 ? 3 : 7;
+    } else if (difficulty >= 3) {
+      // Medium
+      daysToAdd = repetitions < 2 ? 2 : 5;
+    } else {
+      // Hard
+      daysToAdd = 1;
+    }
+    
+    const nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + daysToAdd);
+    return nextDate;
+  }
+  
+  /**
+   * Record a flashcard review and update its next review date
+   */
+  async recordReview(flashcardId: string, difficulty: number): Promise<boolean> {
     try {
-      // Get current user
-      const { data: session } = await supabase.auth.getSession();
-      const userId = session?.session?.user?.id;
-      
-      if (!userId) {
-        console.error('User not authenticated');
-        return false;
-      }
-      
       // Get current flashcard data
       const { data: flashcard, error: fetchError } = await supabase
         .from('flashcards')
-        .select('repetition_count, easiness_factor')
+        .select('repetition_count')
         .eq('id', flashcardId)
         .single();
         
@@ -40,34 +42,18 @@ export class SpacedRepetitionService {
         return false;
       }
       
-      // Calculate new spaced repetition values
-      const easinessFactor = Math.max(MIN_EASINESS_FACTOR, 
-        (flashcard.easiness_factor || INITIAL_EASINESS_FACTOR) + 
-        (0.1 - (5 - difficulty) * (0.08 + (5 - difficulty) * 0.02)));
+      // Calculate new values
+      const repetitionCount = (flashcard?.repetition_count || 0) + 1;
+      const nextReviewDate = this.calculateNextReviewDate(difficulty, repetitionCount);
       
-      let repetitions = (flashcard.repetition_count || 0);
-      if (difficulty < 3) {
-        repetitions = 0;
-      } else {
-        repetitions += 1;
-      }
-      
-      // Calculate next review date
-      const nextReviewDate = calculateNextReviewDate(difficulty, repetitions, easinessFactor);
-      
-      // Calculate mastery level - simple formula based on repetitions
-      const masteryLevel = Math.min(1.0, (repetitions / 10) + (easinessFactor - 1.3) / 2.5 * 0.5);
-      
-      // Update the flashcard
+      // Update flashcard with new review data
       const { error: updateError } = await supabase
         .from('flashcards')
         .update({
-          easiness_factor: easinessFactor,
-          repetition_count: repetitions,
-          last_reviewed_at: new Date().toISOString(),
+          difficulty: difficulty,
+          repetition_count: repetitionCount,
           next_review_date: nextReviewDate.toISOString(),
-          mastery_level: masteryLevel,
-          difficulty: difficulty
+          last_reviewed_at: new Date().toISOString()
         })
         .eq('id', flashcardId);
         
@@ -82,18 +68,20 @@ export class SpacedRepetitionService {
       return false;
     }
   }
-
+  
   /**
    * Get flashcards due for review
    */
-  public async getDueFlashcards(userId: string, limit: number = 20): Promise<any[]> {
+  async getDueFlashcards(userId: string, limit: number = 20): Promise<any[]> {
     try {
+      const now = new Date().toISOString();
+      
       const { data, error } = await supabase
         .from('flashcards')
         .select('*')
         .eq('user_id', userId)
-        .lte('next_review_date', new Date().toISOString())
-        .order('next_review_date', { ascending: true })
+        .lte('next_review_date', now)
+        .order('next_review_date')
         .limit(limit);
         
       if (error) {
@@ -103,28 +91,63 @@ export class SpacedRepetitionService {
       
       return data || [];
     } catch (error) {
-      console.error('Error getting due flashcards:', error);
+      console.error('Error in getDueFlashcards:', error);
       return [];
     }
   }
-
+  
   /**
-   * Calculate retention metrics
+   * Get flashcard statistics
    */
-  public async calculateRetention(userId: string): Promise<{ overall: number; improved: number }> {
+  async getFlashcardStats(userId: string) {
     try {
-      // This would be a complex calculation based on review history
-      // For now, return a simple estimation
+      // Get all flashcards for the user
+      const { data: flashcards, error } = await supabase
+        .from('flashcards')
+        .select('*')
+        .eq('user_id', userId);
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Calculate statistics
+      const totalCards = flashcards?.length || 0;
+      const masteredCards = flashcards?.filter(card => (card.mastery_level || 0) >= 0.8).length || 0;
+      
+      // Calculate due cards
+      const now = new Date();
+      const dueCards = flashcards?.filter(card => {
+        if (!card.next_review_date) return false;
+        const reviewDate = new Date(card.next_review_date);
+        return reviewDate <= now;
+      }).length || 0;
+      
+      // Calculate average difficulty
+      let totalDifficulty = 0;
+      flashcards?.forEach(card => {
+        totalDifficulty += card.difficulty || 3;
+      });
+      const averageDifficulty = totalCards > 0 ? totalDifficulty / totalCards : 0;
+      
       return {
-        overall: 85, // 85% retention rate
-        improved: 5  // 5% improvement
+        totalCards,
+        masteredCards,
+        dueCards,
+        averageDifficulty,
+        reviewsToday: 0 // This would require a more complex query, simplified for now
       };
     } catch (error) {
-      console.error('Error calculating retention:', error);
-      return { overall: 0, improved: 0 };
+      console.error('Error getting flashcard stats:', error);
+      return {
+        totalCards: 0,
+        masteredCards: 0,
+        dueCards: 0,
+        averageDifficulty: 0,
+        reviewsToday: 0
+      };
     }
   }
 }
 
-// Create a singleton instance
 export const spacedRepetitionService = new SpacedRepetitionService();

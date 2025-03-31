@@ -1,7 +1,6 @@
 
 import React, { ReactNode, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { Sidebar } from './Sidebar';
 import { useAuth } from '@/context/auth';
 import { ThemeSwitcher } from '@/components/ui/theme-switcher';
@@ -26,14 +25,11 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       
       {/* Main content */}
       <main className={`flex-1 overflow-auto transition-all duration-300 ${isSidebarOpen ? 'md:ml-64' : 'md:ml-16'}`}>
-        <motion.div 
-          className="h-full p-4 md:p-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
+        <div 
+          className="h-full p-4 md:p-6 opacity-100 transition-opacity duration-500"
         >
           {children}
-        </motion.div>
+        </div>
       </main>
     </div>
   );

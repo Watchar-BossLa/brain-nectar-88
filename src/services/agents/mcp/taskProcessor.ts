@@ -1,6 +1,10 @@
-import { Task, TaskCategory, TaskStatus } from '../types/taskTypes';
+
+import { Task, TaskStatus } from '../types/taskTypes';
 import { agentRegistry } from './agentRegistry';
-import { supabase } from '@/integrations/supabase/client';
+import { masterControlProgram } from './MasterControlProgram';
+
+// In-memory store for task assignments
+const taskAssignments: Record<string, string> = {};
 
 /**
  * Assign a task to the appropriate agent based on category
@@ -19,18 +23,13 @@ export const assignTaskToAgent = async (task: Task): Promise<string | null> => {
     // In a more sophisticated implementation, we could consider agent load, etc.
     const agent = agents[0];
     
+    // Store the assignment in memory
+    taskAssignments[task.id] = agent.id;
+    
     // Process the task with the agent
     agent.processTask(task);
     
-    // Update the task in the database
-    await supabase
-      .from('agent_tasks')
-      .update({ 
-        assigned_to: agent.id,
-        status: TaskStatus.ASSIGNED,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', task.id);
+    console.log(`Task ${task.id} assigned to agent ${agent.id}`);
     
     return agent.id;
   } catch (error) {
@@ -40,22 +39,12 @@ export const assignTaskToAgent = async (task: Task): Promise<string | null> => {
 };
 
 /**
- * Process task result and update the database
+ * Process task result and update status
  */
 export const processTaskResult = async (taskId: string, result: any): Promise<boolean> => {
   try {
-    // Update the task in the database with the result
-    await supabase
-      .from('agent_tasks')
-      .update({
-        status: TaskStatus.COMPLETED,
-        result: result,
-        completed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', taskId);
-      
-    return true;
+    // Update the task status in the MasterControlProgram
+    return await masterControlProgram.completeTask(taskId, result);
   } catch (error) {
     console.error('Error processing task result:', error);
     return false;
@@ -67,17 +56,8 @@ export const processTaskResult = async (taskId: string, result: any): Promise<bo
  */
 export const markTaskAsFailed = async (taskId: string, error: string): Promise<boolean> => {
   try {
-    // Update the task in the database with the failure status
-    await supabase
-      .from('agent_tasks')
-      .update({
-        status: TaskStatus.FAILED,
-        result: { success: false, error: error },
-        completed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', taskId);
-      
+    // For now, just log it
+    console.log(`Task ${taskId} failed with error:`, error);
     return true;
   } catch (updateError) {
     console.error('Error marking task as failed:', updateError);

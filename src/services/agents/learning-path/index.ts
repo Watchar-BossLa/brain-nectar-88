@@ -1,257 +1,159 @@
 
-import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
-import { BaseAgent, AgentMessage } from '../mcp/BaseAgent';
-import { Task, TaskCategory, TaskStatus } from '../types/taskTypes';
+import { supabase } from '@/integrations/supabase/client';
+import { BaseAgent } from '../mcp/BaseAgent';
+import { Task, TaskCategory } from '../types/taskTypes';
 
-export class LearningPathAgent extends BaseAgent {
-  private static instance: LearningPathAgent;
-  public type: string = TaskCategory.LEARNING_PATH;
-
-  constructor(id: string) {
-    super(id);
+// Implement BaseAgent interface
+export class LearningPathAgent implements BaseAgent {
+  id: string;
+  
+  constructor() {
+    this.id = `learning-path-agent-${uuidv4().substring(0, 8)}`;
+    console.log(`LearningPathAgent initialized with ID: ${this.id}`);
   }
-
-  public static getInstance(): LearningPathAgent {
-    if (!LearningPathAgent.instance) {
-      LearningPathAgent.instance = new LearningPathAgent(
-        'learning_path_agent_' + uuidv4().substring(0, 8)
-      );
-    }
-    return LearningPathAgent.instance;
+  
+  getType(): string {
+    return TaskCategory.LEARNING_PATH;
   }
-
-  public getType(): string {
-    return this.type;
-  }
-
-  public async processTask(task: Task): Promise<void> {
+  
+  async processTask(task: Task): Promise<void> {
+    console.log(`LearningPathAgent ${this.id} processing task ${task.id}`);
+    
     try {
-      console.log(`LearningPathAgent processing task: ${task.id}`);
-      
-      switch(task.description) {
-        case 'generate_learning_path':
-          await this.generateLearningPath(task);
-          break;
-        case 'update_learning_path':
-          await this.updateLearningPath(task);
-          break;
-        case 'evaluate_progress':
-          await this.evaluateProgress(task);
-          break;
-        default:
-          console.warn(`Unknown task description: ${task.description}`);
-          break;
+      if (task.category !== TaskCategory.LEARNING_PATH) {
+        throw new Error(`LearningPathAgent cannot handle task category ${task.category}`);
       }
-    } catch (error) {
-      console.error('Error processing task:', error);
-    }
-  }
-
-  public receiveMessage(message: AgentMessage): void {
-    console.log(`LearningPathAgent received message from ${message.sender}: ${message.content}`);
-    // Process the message based on content and metadata
-  }
-
-  private async generateLearningPath(task: Task): Promise<void> {
-    try {
-      const { userId } = task.payload || {};
       
+      // Extract the user ID from the task payload
+      const userId = task.payload?.userId;
       if (!userId) {
-        console.error('No userId provided in task payload');
-        return;
+        throw new Error('Task payload is missing user ID');
       }
       
+      // Gather user information, preferences and learning history
+      const userInfo = await this.getUserInfo(userId);
+      
+      // Generate a personalized learning path
+      const learningPath = await this.generateLearningPath(userId, userInfo);
+      
+      // Store the learning path
+      await this.storeLearningPath(userId, learningPath);
+      
+      console.log(`Learning path generated for user ${userId}`);
+    } catch (error) {
+      console.error(`Error in LearningPathAgent processing task ${task.id}:`, error);
+    }
+  }
+  
+  receiveMessage(message: any): void {
+    console.log(`LearningPathAgent ${this.id} received message from ${message.sender}`);
+  }
+  
+  private async getUserInfo(userId: string): Promise<any> {
+    try {
       // Get user profile
-      const { data: profile, error: profileError } = await supabase
+      const { data: userProfile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
         
-      if (profileError) {
-        console.error('Error fetching user profile:', profileError);
-        return;
+      if (profileError || !userProfile) {
+        throw new Error(`Error fetching user profile: ${profileError?.message || 'User profile not found'}`);
       }
       
-      // In a real implementation, we would use learning preferences and knowledge areas
-      // Since they might not exist in the profile, we'll use defaults
-      const learningPreferences = profile.learning_preferences || {
-        preferredDifficulty: 'medium',
-        studySessionLength: 30,
-        learningStyle: 'visual'
+      // For now, we'll just mock some learning preferences and knowledge areas
+      const learningPreferences = {
+        learningStyle: 'visual',
+        preferredTimeOfDay: 'evening',
+        sessionDuration: 30
       };
       
-      const knowledgeAreas = profile.knowledge_areas || [
-        'financial_accounting',
-        'management_accounting',
-        'taxation'
-      ];
-      
-      // Generate a simple learning path
-      const pathData = {
-        userId,
-        topics: knowledgeAreas.map(area => ({
-          name: area,
-          difficulty: learningPreferences.preferredDifficulty,
-          estimatedDuration: 14, // days
-          resources: [
-            { type: 'video', name: `Introduction to ${area}`, duration: 30 },
-            { type: 'reading', name: `${area} fundamentals`, duration: 60 },
-            { type: 'practice', name: `${area} exercises`, duration: 45 }
-          ],
-          milestones: [
-            { name: 'Complete introduction', daysFromStart: 3 },
-            { name: 'Complete fundamentals', daysFromStart: 7 },
-            { name: 'Complete exercises', daysFromStart: 14 }
-          ]
-        }))
+      const knowledgeAreas = {
+        accounting: 'intermediate',
+        finance: 'beginner',
+        taxation: 'advanced'
       };
       
-      // Store the generated learning path
-      try {
-        // Just log for now since the table might not exist
-        console.log('Would store learning path:', pathData);
-        
-        // In a real app with the table created:
-        /*
-        await supabase
-          .from('learning_paths')
-          .insert({
-            user_id: userId,
-            path_data: pathData,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          });
-        */
-        
-        // Update task status
-        await supabase
-          .from('agent_tasks')
-          .update({
-            status: TaskStatus.COMPLETED,
-            result: { success: true, path: pathData },
-            completed_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', task.id);
-          
-      } catch (error) {
-        console.error('Error storing learning path:', error);
-      }
-    } catch (error) {
-      console.error('Error generating learning path:', error);
-    }
-  }
-
-  private async updateLearningPath(task: Task): Promise<void> {
-    try {
-      const { userId, updates } = task.payload || {};
-      
-      if (!userId || !updates) {
-        console.error('Missing required payload data for updating learning path');
-        return;
-      }
-      
-      // Log the update operation since the table might not exist
-      console.log('Would update learning path for user:', userId, 'with updates:', updates);
-      
-      // In a real app with the table created:
-      /*
-      // Get the current learning path
-      const { data: learningPath, error: pathError } = await supabase
-        .from('learning_paths')
+      // Get recent quiz performance
+      const { data: quizPerformance, error: quizError } = await supabase
+        .from('quiz_performance_metrics')
         .select('*')
-        .eq('user_id', userId)
-        .single();
+        .eq('user_id', userId);
         
-      if (pathError) {
-        console.error('Error fetching learning path:', pathError);
-        return;
+      if (quizError) {
+        console.warn(`Error fetching quiz performance: ${quizError.message}`);
       }
       
-      // Apply updates to the path
-      const updatedPathData = {
-        ...learningPath.path_data,
-        ...updates
+      return {
+        profile: userProfile,
+        learningPreferences,
+        knowledgeAreas,
+        quizPerformance: quizPerformance || []
       };
-      
-      // Update the learning path
-      await supabase
-        .from('learning_paths')
-        .update({
-          path_data: updatedPathData,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', userId);
-      */
-      
-      // Update task status
-      await supabase
-        .from('agent_tasks')
-        .update({
-          status: TaskStatus.COMPLETED,
-          result: { success: true, message: 'Learning path updated' },
-          completed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', task.id);
-        
     } catch (error) {
-      console.error('Error updating learning path:', error);
+      console.error('Error getting user info:', error);
+      return {
+        profile: {},
+        learningPreferences: {},
+        knowledgeAreas: {},
+        quizPerformance: []
+      };
     }
   }
   
-  private async evaluateProgress(task: Task): Promise<void> {
-    try {
-      const { userId } = task.payload || {};
-      
-      if (!userId) {
-        console.error('No userId provided in task payload');
-        return;
-      }
-      
-      // Log the evaluation operation since the tables might not exist
-      console.log('Would evaluate learning progress for user:', userId);
-      
-      // In a real app with the tables created, we would:
-      // 1. Get the user's learning path
-      // 2. Get the user's completed activities
-      // 3. Calculate progress metrics
-      // 4. Generate recommendations
-      
-      // Mock progress data
-      const progressData = {
-        userId,
-        overallProgress: 0.35, // 35% complete
-        topicProgress: {
-          'financial_accounting': 0.5,
-          'management_accounting': 0.2,
-          'taxation': 0.1
+  private async generateLearningPath(userId: string, userInfo: any): Promise<any> {
+    // In a real implementation, this would use AI/LLMs to generate a personalized path
+    // For now, we'll create a simple mock learning path
+    
+    const learningPath = {
+      userId,
+      generatedAt: new Date().toISOString(),
+      recommendedModules: [
+        {
+          moduleId: 'module-1',
+          title: 'Financial Accounting Basics',
+          reason: 'Matches your beginner level in finance',
+          priority: 'high'
         },
-        recommendations: [
-          'Focus more on taxation concepts',
-          'Review recent management accounting exercises',
-          'Ready for intermediate financial accounting material'
-        ],
-        lastActivity: new Date().toISOString()
-      };
-      
-      // Update task status
-      await supabase
-        .from('agent_tasks')
-        .update({
-          status: TaskStatus.COMPLETED,
-          result: { success: true, progress: progressData },
-          completed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', task.id);
-        
-    } catch (error) {
-      console.error('Error evaluating learning progress:', error);
-    }
+        {
+          moduleId: 'module-2',
+          title: 'Intermediate Accounting Concepts',
+          reason: 'Aligns with your intermediate accounting knowledge',
+          priority: 'medium'
+        },
+        {
+          moduleId: 'module-3',
+          title: 'Advanced Tax Planning',
+          reason: 'Reinforces your advanced taxation knowledge',
+          priority: 'low'
+        }
+      ],
+      dailyGoals: {
+        flashcardReviews: 10,
+        quizQuestions: 5,
+        readingTimeMinutes: 20
+      },
+      adaptivityRules: {
+        increaseDifficultyThreshold: 0.85,
+        decreaseDifficultyThreshold: 0.60
+      }
+    };
+    
+    return learningPath;
+  }
+  
+  private async storeLearningPath(userId: string, learningPath: any): Promise<void> {
+    // In a real implementation, this would store the learning path in the database
+    console.log(`Storing learning path for user ${userId}:`, learningPath);
+    
+    // For now, we'll just log it
+    return;
   }
 }
 
-export const learningPathAgent = LearningPathAgent.getInstance();
+// Export a function to create a new agent instance
+export const createLearningPathAgent = (): BaseAgent => {
+  return new LearningPathAgent();
+};

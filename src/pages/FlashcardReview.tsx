@@ -1,135 +1,101 @@
 
-import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import { useFlashcardReview } from '@/hooks/useFlashcardReview';
-import { SpacedRepetitionCard } from '@/components/flashcards/SpacedRepetitionCard';
-import { Card, CardContent } from '@/components/ui/card';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useFlashcardReview } from '@/hooks/useFlashcardReview';
+import SpacedRepetitionCard from '@/components/flashcards/SpacedRepetitionCard';
 import { Progress } from '@/components/ui/progress';
-import { Check, ArrowRight, Loader2 } from 'lucide-react';
 import MainLayout from '@/layouts/MainLayout';
 
-// Add a skipCard function to the useFlashcardReview hook return type
-const useReviewWithSkip = () => {
-  const hookResult = useFlashcardReview();
-  const { currentIndex, flashcards, setCurrentIndex } = hookResult as any;
-  
-  // Add skipCard function if it doesn't exist
-  const skipCard = () => {
+const FlashcardReview = () => {
+  const {
+    flashcards,
+    currentFlashcard,
+    currentIndex,
+    isFlipped,
+    loading,
+    flipCard,
+    reviewFlashcard,
+    refreshCards
+  } = useFlashcardReview();
+
+  const handleSkip = () => {
     if (currentIndex < flashcards.length - 1) {
-      setCurrentIndex(currentIndex + 1);
+      // For now, just move to the next card without updating
+      // This is a temporary solution until we implement proper skipping
+      refreshCards();
     }
   };
-  
-  return { ...hookResult, skipCard };
-};
-
-const FlashcardReviewPage: React.FC = () => {
-  const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-  const topicId = queryParams.get('topic');
-  
-  const [topicName, setTopicName] = useState<string>('');
-  
-  // Use the enhanced hook with skipCard
-  const { 
-    flashcards, 
-    currentFlashcard, 
-    currentIndex, 
-    isFlipped, 
-    loading, 
-    flipCard, 
-    reviewFlashcard, 
-    refreshCards,
-    skipCard 
-  } = useReviewWithSkip();
-
-  useEffect(() => {
-    if (currentFlashcard && currentFlashcard.topic) {
-      setTopicName(currentFlashcard.topic);
-    }
-  }, [currentFlashcard]);
 
   if (loading) {
     return (
       <MainLayout>
-        <div className="flex flex-col items-center justify-center h-96">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="mt-4">Loading flashcards...</p>
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin h-10 w-10 border-4 border-blue-500 rounded-full border-t-transparent"></div>
         </div>
       </MainLayout>
     );
   }
 
-  if (flashcards.length === 0) {
+  if (!flashcards || flashcards.length === 0) {
     return (
       <MainLayout>
-        <div className="flex flex-col items-center justify-center h-96">
-          <Check className="h-12 w-12 text-green-500" />
-          <h2 className="text-2xl font-bold mt-4">All Caught Up!</h2>
-          <p className="mt-2 text-muted-foreground">
-            You've reviewed all your due flashcards{topicName ? ` in ${topicName}` : ''}.
-          </p>
-          <Button onClick={refreshCards} className="mt-6">
-            Check Again
-          </Button>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>No Flashcards Due</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-4">You don't have any flashcards due for review right now. Check back later!</p>
+            <Button onClick={refreshCards}>Check Again</Button>
+          </CardContent>
+        </Card>
       </MainLayout>
     );
   }
 
-  if (!currentFlashcard) {
+  if (currentIndex >= flashcards.length) {
     return (
       <MainLayout>
-        <div className="flex flex-col items-center justify-center h-96">
-          <p>No flashcard to review.</p>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Review Complete!</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-4">You've completed your review session for today!</p>
+            <Button onClick={refreshCards}>Start New Session</Button>
+          </CardContent>
+        </Card>
       </MainLayout>
     );
   }
 
-  const progress = ((currentIndex) / flashcards.length) * 100;
+  const progress = Math.round((currentIndex / flashcards.length) * 100);
 
   return (
     <MainLayout>
-      <div className="container py-6 max-w-3xl">
+      <div className="max-w-4xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold mb-2">Flashcard Review</h1>
-          <p className="text-muted-foreground">
-            {currentFlashcard.topic_id ? `Topic: ${currentFlashcard.topic || 'Unknown'}` : 'Mixed Topics'}
-          </p>
-          
-          <div className="mt-4">
-            <div className="flex justify-between text-sm mb-1">
-              <span>Progress: {currentIndex} of {flashcards.length}</span>
-              <span>{Math.round(progress)}%</span>
+          <div className="flex justify-between items-center mb-2">
+            <div className="text-sm font-medium">
+              Progress: {currentIndex} of {flashcards.length} cards
             </div>
-            <Progress value={progress} className="h-2" />
+            <div className="text-sm font-medium">{progress}%</div>
           </div>
+          <Progress value={progress} className="h-2" />
         </div>
         
         {currentFlashcard && (
-          <Card className="mb-4">
-            <CardContent className="p-6">
-              <SpacedRepetitionCard
-                flashcard={currentFlashcard}
-                isFlipped={isFlipped}
-                onFlip={flipCard}
-                onRate={async (difficulty) => {
-                  await reviewFlashcard(currentFlashcard.id, difficulty);
-                }}
-              />
-            </CardContent>
-          </Card>
+          <SpacedRepetitionCard
+            flashcard={currentFlashcard}
+            onComplete={async (difficulty) => {
+              await reviewFlashcard(currentFlashcard.id, difficulty);
+            }}
+          />
         )}
-        
-        <div className="flex justify-between">
-          <Button 
-            variant="outline" 
-            onClick={skipCard}
-            disabled={currentIndex >= flashcards.length - 1}
-          >
-            Skip <ArrowRight className="ml-2 h-4 w-4" />
+
+        <div className="mt-6 flex justify-end">
+          <Button variant="outline" onClick={handleSkip}>
+            Skip for now
           </Button>
         </div>
       </div>
@@ -137,4 +103,4 @@ const FlashcardReviewPage: React.FC = () => {
   );
 };
 
-export default FlashcardReviewPage;
+export default FlashcardReview;

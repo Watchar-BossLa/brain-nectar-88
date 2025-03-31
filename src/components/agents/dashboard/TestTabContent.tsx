@@ -18,9 +18,9 @@ export function TestTabContent({ handleTestTask }: TestTabContentProps) {
   const testSpacedRepetition = async () => {
     setIsTestingSpacedRep(true);
     try {
-      // Get current user with updated Supabase syntax
-      const { data } = await supabase.auth.getSession();
-      const user = data?.session?.user;
+      // Get current user ID directly from local storage as a fallback
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
       
       if (!user) {
         throw new Error('User not authenticated');
@@ -28,14 +28,16 @@ export function TestTabContent({ handleTestTask }: TestTabContentProps) {
       
       // Create a valid flashcard object for testing
       const testFlashcard: FlashcardLearningStats = {
-        flashcard_id: 'test-id',
-        user_id: user.id,
-        easiness_factor: 2.5,
+        flashcardId: 'test-id',
+        userId: user.id,
+        easinessFactor: 2.5,
         interval: 1,
-        repetitions: 0,
-        last_reviewed_at: new Date().toISOString(),
-        next_review_at: new Date().toISOString(),
-        review_count: 0,
+        repetitionCount: 0,
+        lastReviewedAt: new Date().toISOString(),
+        nextReviewAt: new Date().toISOString(),
+        reviewCount: 0,
+        masteryLevel: 0,
+        retentionRate: 0,
         totalCards: 10
       };
       
