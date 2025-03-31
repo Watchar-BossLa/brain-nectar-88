@@ -5,7 +5,7 @@ export const setupSupabaseFunctions = async () => {
   // Create the increment function if it doesn't exist
   try {
     // Check if the function exists first to avoid errors
-    const { error } = await supabase.rpc('create_increment_function');
+    const { data, error } = await supabase.functions.invoke('create-increment-function');
     
     if (error && !error.message.includes('already exists')) {
       console.error('Error creating increment function:', error);

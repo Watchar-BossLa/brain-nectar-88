@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { QuizResults } from '@/types/quiz';
 import { AnsweredQuestion } from '@/components/quiz/types';
