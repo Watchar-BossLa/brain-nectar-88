@@ -1,7 +1,7 @@
 
 export interface Flashcard {
   id: string;
-  deck_id: string;
+  deck_id?: string;
   front: string;
   back: string;
   user_id?: string;
