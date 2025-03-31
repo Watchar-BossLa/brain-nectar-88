@@ -11,7 +11,8 @@ export const setupSupabaseFunctions = async () => {
       console.error('Error creating increment function:', error);
       
       // Create the function manually if it doesn't exist
-      const { error: functionError } = await supabase.from('_rpc').select('*').execute('exec_sql', {
+      // Use raw SQL query instead of the _rpc table approach
+      const { error: functionError } = await supabase.rpc('exec_sql', {
         sql: `
           CREATE OR REPLACE FUNCTION increment(row_count INT)
           RETURNS INT AS $$

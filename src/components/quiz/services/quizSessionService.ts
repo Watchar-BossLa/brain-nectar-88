@@ -1,8 +1,8 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { QuizResults } from '@/types/quiz';
 import { AnsweredQuestion } from '@/components/quiz/types';
 import { QuizSessionSummary, QuizSession } from '@/types/quiz-session';
+import { Json } from '@/integrations/supabase/types';
 
 // Save a quiz session to Supabase
 export const saveQuizSession = async (
@@ -219,13 +219,29 @@ export const fetchQuizSessionDetails = async (sessionId: string): Promise<QuizSe
       difficulty: question.difficulty
     }));
 
+    // Ensure performanceByTopic is correctly typed
+    const topicsData = sessionData.topics || {};
+    const typedPerformanceByTopic: Record<string, { correct: number; total: number }> = {};
+    
+    // Convert the JSON data to the expected type
+    if (typeof topicsData === 'object' && topicsData !== null) {
+      Object.entries(topicsData).forEach(([topic, data]) => {
+        if (data && typeof data === 'object' && 'correct' in data && 'total' in data) {
+          typedPerformanceByTopic[topic] = {
+            correct: Number(data.correct),
+            total: Number(data.total)
+          };
+        }
+      });
+    }
+
     // Reconstruct results object
-    const results = {
+    const results: QuizResults = {
       questionsAttempted: sessionData.total_questions,
       correctAnswers: sessionData.correct_answers,
       incorrectAnswers: sessionData.total_questions - sessionData.correct_answers,
       skippedQuestions: answeredQuestions.filter(q => q.userAnswer === 'SKIPPED').length,
-      performanceByTopic: sessionData.topics || {},
+      performanceByTopic: typedPerformanceByTopic,
       performanceByDifficulty: {}, // We'll reconstruct this from answered questions
       timeSpent: sessionData.time_spent,
       score: sessionData.score_percentage
@@ -349,8 +365,8 @@ export const clearUserQuizHistory = async (userId: string) => {
 // Create a function to help with the increment
 export const createIncrementFunction = async () => {
   try {
-    // Check if the function already exists
-    const { error } = await supabase.from('_rpc').select('*').execute('create_increment_function');
+    // Use rpc directly instead of from('_rpc')
+    const { error } = await supabase.rpc('create_increment_function');
     
     if (error) {
       console.error('Error creating increment function:', error);
