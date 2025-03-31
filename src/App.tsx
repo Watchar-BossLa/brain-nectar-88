@@ -36,6 +36,8 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/signin" element={<Login />} /> {/* Alias for login */}
+              <Route path="/signup" element={<Register />} /> {/* Alias for register */}
               <Route path="/courses" element={<Courses />} />
               <Route path="/assessment" element={<Assessment />} />
               <Route path="/qualifications" element={<Qualifications />} />
