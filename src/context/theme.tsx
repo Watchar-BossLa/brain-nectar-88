@@ -32,9 +32,16 @@ export function ThemeProvider({
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => {
-    const storedTheme = localStorage.getItem(storageKey);
-    if (storedTheme) {
-      return JSON.parse(storedTheme);
+    // Only access localStorage if we're in a browser environment
+    if (typeof window !== 'undefined') {
+      const storedTheme = localStorage.getItem(storageKey);
+      if (storedTheme) {
+        try {
+          return JSON.parse(storedTheme);
+        } catch (e) {
+          console.error('Failed to parse theme from localStorage:', e);
+        }
+      }
     }
     
     return {
@@ -44,6 +51,8 @@ export function ThemeProvider({
   });
   
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     localStorage.setItem(storageKey, JSON.stringify(theme));
     
     const root = window.document.documentElement;
