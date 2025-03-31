@@ -1,7 +1,8 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/auth/AuthContext';
-import { QuizResults, AnsweredQuestion } from '@/types/quiz';
+import { QuizResults } from '@/types/quiz';
+import { AnsweredQuestion } from '@/components/quiz/types';
 import { saveQuizSession, fetchQuizSessions, fetchQuizSessionDetails, deleteQuizSession, clearUserQuizHistory } from '../../services/quizSessionService';
 import { QuizSession, QuizSessionSummary } from '@/types/quiz-session';
 import { useToast } from '@/components/ui/use-toast';
@@ -21,7 +22,7 @@ export const useSupabaseSync = () => {
     }
   }, [user]);
 
-  const loadSessions = async () => {
+  const loadSessions = useCallback(async () => {
     if (!user) return;
     
     setIsLoading(true);
@@ -38,9 +39,9 @@ export const useSupabaseSync = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, toast]);
 
-  const saveSession = async (
+  const saveSession = useCallback(async (
     results: QuizResults,
     answeredQuestions: AnsweredQuestion[],
     selectedTopics: string[],
@@ -74,6 +75,10 @@ export const useSupabaseSync = () => {
       // Refresh the sessions list
       await loadSessions();
       
+      if (!newSession) {
+        throw new Error('Failed to fetch created session');
+      }
+      
       return newSession;
     } catch (error) {
       console.error('Error saving session:', error);
@@ -84,13 +89,14 @@ export const useSupabaseSync = () => {
       });
       return null;
     }
-  };
+  }, [user, toast, loadSessions]);
 
-  const getSession = async (sessionId: string): Promise<QuizSession | null> => {
+  const getSession = useCallback(async (sessionId: string): Promise<QuizSession | null> => {
     if (!user) return null;
     
     try {
-      return await fetchQuizSessionDetails(sessionId);
+      const fetchedSession = await fetchQuizSessionDetails(sessionId);
+      return fetchedSession;
     } catch (error) {
       console.error('Error getting session:', error);
       toast({
@@ -100,9 +106,9 @@ export const useSupabaseSync = () => {
       });
       return null;
     }
-  };
+  }, [user, toast]);
 
-  const deleteSession = async (sessionId: string): Promise<boolean> => {
+  const deleteSession = useCallback(async (sessionId: string): Promise<boolean> => {
     if (!user) return false;
     
     try {
@@ -125,9 +131,9 @@ export const useSupabaseSync = () => {
       });
       return false;
     }
-  };
+  }, [user, toast]);
   
-  const clearHistory = async (): Promise<boolean> => {
+  const clearHistory = useCallback(async (): Promise<boolean> => {
     if (!user) return false;
     
     try {
@@ -150,11 +156,11 @@ export const useSupabaseSync = () => {
       });
       return false;
     }
-  };
+  }, [user, toast]);
 
-  const getSessionSummaries = (): QuizSessionSummary[] => {
+  const getSessionSummaries = useCallback((): QuizSessionSummary[] => {
     return sessions;
-  };
+  }, [sessions]);
   
   return {
     sessions,

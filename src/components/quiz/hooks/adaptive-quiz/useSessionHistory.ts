@@ -1,9 +1,11 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { QuizResults, AnsweredQuestion } from '../../types';
+import { QuizResults } from '../../types';
 import { QuizSession, QuizSessionSummary } from '@/types/quiz-session';
 import { useAuth } from '@/context/auth/AuthContext';
 import { useSupabaseSync } from './useSupabaseSync';
+import { AnsweredQuestion } from '@/components/quiz/types';
 
 export const useSessionHistory = () => {
   const { user } = useAuth();
@@ -35,7 +37,7 @@ export const useSessionHistory = () => {
       id: uuidv4(),
       date: new Date().toISOString(),
       results,
-      answeredQuestions,
+      answeredQuestions: answeredQuestions,
       selectedTopics,
       initialDifficulty,
       questionCount
@@ -48,7 +50,7 @@ export const useSessionHistory = () => {
     return newSession;
   }, [localSessions, user, supabaseSync]);
   
-  const getSession = useCallback(async (sessionId: string) => {
+  const getSession = useCallback(async (sessionId: string): Promise<QuizSession | null> => {
     if (user) {
       const supabaseSession = await supabaseSync.getSession(sessionId);
       if (supabaseSession) {
@@ -111,7 +113,7 @@ export const useSessionHistory = () => {
     if (user) {
       supabaseSync.loadSessions();
     }
-  }, [user]);
+  }, [user, supabaseSync]);
   
   return {
     sessions: localSessions,

@@ -1,11 +1,12 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useSessionHistory } from '../../hooks/adaptive-quiz/useSessionHistory';
 import { format, parseISO } from 'date-fns';
 import { ArrowLeft, Clock, Calendar, Award, Target, BookOpen } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { QuizSession } from '@/types/quiz-session';
 
 // Import the components we need from the results folder
 import PerformanceByTopic from '../results/PerformanceByTopic';
@@ -20,7 +21,37 @@ interface SessionDetailProps {
 
 const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack }) => {
   const { getSession } = useSessionHistory();
-  const session = getSession(sessionId);
+  const [session, setSession] = useState<QuizSession | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Fetch session asynchronously
+  useEffect(() => {
+    const fetchSession = async () => {
+      setIsLoading(true);
+      try {
+        const fetchedSession = await getSession(sessionId);
+        setSession(fetchedSession);
+      } catch (error) {
+        console.error('Error fetching session:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchSession();
+  }, [sessionId, getSession]);
+  
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="py-10">
+          <div className="flex justify-center items-center h-40">
+            <p className="text-muted-foreground">Loading session details...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
   
   if (!session) {
     return (

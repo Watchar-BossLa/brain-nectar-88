@@ -1,8 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { QuizResults, AnsweredQuestion } from '@/types/quiz';
-import { QuizSessionSummary } from '@/types/quiz-session';
-import { useAuth } from '@/context/auth/AuthContext';
+import { QuizResults } from '@/types/quiz';
+import { AnsweredQuestion } from '@/components/quiz/types';
+import { QuizSessionSummary, QuizSession } from '@/types/quiz-session';
 
 // Save a quiz session to Supabase
 export const saveQuizSession = async (
@@ -94,24 +94,54 @@ export const saveQuizSession = async (
         ? performance.time.reduce((sum, value) => sum + value, 0) / performance.time.length
         : null;
 
-      // Upsert performance metrics for this topic
-      const { error: metricsError } = await supabase
+      // First check if the metric already exists
+      const { data: existingMetric, error: fetchError } = await supabase
         .from('quiz_performance_metrics')
-        .upsert({
-          user_id: userId,
-          topic,
-          correct_count: supabase.rpc('increment', { row_count: performance.correct }),
-          total_count: supabase.rpc('increment', { row_count: performance.total }),
-          average_confidence: averageConfidence,
-          average_time: averageTime,
-          last_attempt_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id, topic'
-        });
+        .select('*')
+        .eq('user_id', userId)
+        .eq('topic', topic)
+        .single();
 
-      if (metricsError) {
-        console.error(`Error updating performance metrics for topic ${topic}:`, metricsError);
+      if (fetchError && !fetchError.message.includes('No rows found')) {
+        console.error(`Error fetching metrics for topic ${topic}:`, fetchError);
+        continue;
+      }
+
+      if (existingMetric) {
+        // Update existing metric
+        const { error: updateError } = await supabase
+          .from('quiz_performance_metrics')
+          .update({
+            correct_count: existingMetric.correct_count + performance.correct,
+            total_count: existingMetric.total_count + performance.total,
+            average_confidence: averageConfidence,
+            average_time: averageTime,
+            last_attempt_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingMetric.id);
+
+        if (updateError) {
+          console.error(`Error updating performance metrics for topic ${topic}:`, updateError);
+        }
+      } else {
+        // Insert new metric
+        const { error: insertError } = await supabase
+          .from('quiz_performance_metrics')
+          .insert({
+            user_id: userId,
+            topic,
+            correct_count: performance.correct,
+            total_count: performance.total,
+            average_confidence: averageConfidence,
+            average_time: averageTime,
+            last_attempt_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+
+        if (insertError) {
+          console.error(`Error inserting performance metrics for topic ${topic}:`, insertError);
+        }
       }
     }
 
@@ -153,7 +183,7 @@ export const fetchQuizSessions = async (userId: string): Promise<QuizSessionSumm
 };
 
 // Fetch a specific quiz session with its answered questions
-export const fetchQuizSessionDetails = async (sessionId: string) => {
+export const fetchQuizSessionDetails = async (sessionId: string): Promise<QuizSession | null> => {
   try {
     // Fetch session data
     const { data: sessionData, error: sessionError } = await supabase
@@ -175,7 +205,7 @@ export const fetchQuizSessionDetails = async (sessionId: string) => {
 
     if (answersError) {
       console.error('Error fetching answered questions:', answersError);
-      return { session: sessionData, answeredQuestions: [] };
+      return null;
     }
 
     // Transform data to match the expected format
@@ -282,6 +312,11 @@ export const clearUserQuizHistory = async (userId: string) => {
 
     const sessionIds = sessions.map(s => s.id);
 
+    if (sessionIds.length === 0) {
+      // No sessions to delete
+      return true;
+    }
+
     // Delete all related answered questions
     const { error: answersError } = await supabase
       .from('quiz_answered_questions')
@@ -314,7 +349,9 @@ export const clearUserQuizHistory = async (userId: string) => {
 // Create a function to help with the increment
 export const createIncrementFunction = async () => {
   try {
-    const { error } = await supabase.rpc('create_increment_function');
+    // Check if the function already exists
+    const { error } = await supabase.from('_rpc').select('*').execute('create_increment_function');
+    
     if (error) {
       console.error('Error creating increment function:', error);
     }

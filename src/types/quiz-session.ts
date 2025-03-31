@@ -1,5 +1,6 @@
 
-import { QuizResults, AnsweredQuestion } from '@/types/quiz';
+import { QuizResults } from '@/types/quiz';
+import { AnsweredQuestion } from '@/components/quiz/types';
 
 export interface QuizSession {
   id: string;
