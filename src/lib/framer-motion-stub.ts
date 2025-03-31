@@ -1,48 +1,108 @@
 
 import React from 'react';
 
-// This is a stub for framer-motion to avoid build errors
-// Replace with actual framer-motion imports when the library is installed
+// Create stub components to mimic Framer Motion functionality
+// This allows the app to compile without framer-motion dependency
 
-export const motion = {
-  div: React.forwardRef((props: any, ref) => React.createElement('div', { ...props, ref }, props.children)),
-  h1: React.forwardRef((props: any, ref) => React.createElement('h1', { ...props, ref }, props.children)),
-  h2: React.forwardRef((props: any, ref) => React.createElement('h2', { ...props, ref }, props.children)),
-  p: React.forwardRef((props: any, ref) => React.createElement('p', { ...props, ref }, props.children)),
-  span: React.forwardRef((props: any, ref) => React.createElement('span', { ...props, ref }, props.children)),
-  button: React.forwardRef((props: any, ref) => React.createElement('button', { ...props, ref }, props.children)),
-  ul: React.forwardRef((props: any, ref) => React.createElement('ul', { ...props, ref }, props.children)),
-  li: React.forwardRef((props: any, ref) => React.createElement('li', { ...props, ref }, props.children)),
-  section: React.forwardRef((props: any, ref) => React.createElement('section', { ...props, ref }, props.children)),
-  img: React.forwardRef((props: any, ref) => React.createElement('img', { ...props, ref }, null)),
-  a: React.forwardRef((props: any, ref) => React.createElement('a', { ...props, ref }, props.children)),
-  nav: React.forwardRef((props: any, ref) => React.createElement('nav', { ...props, ref }, props.children)),
-  header: React.forwardRef((props: any, ref) => React.createElement('header', { ...props, ref }, props.children)),
-  footer: React.forwardRef((props: any, ref) => React.createElement('footer', { ...props, ref }, props.children)),
-  main: React.forwardRef((props: any, ref) => React.createElement('main', { ...props, ref }, props.children)),
-  aside: React.forwardRef((props: any, ref) => React.createElement('aside', { ...props, ref }, props.children)),
-  article: React.forwardRef((props: any, ref) => React.createElement('article', { ...props, ref }, props.children)),
-  form: React.forwardRef((props: any, ref) => React.createElement('form', { ...props, ref }, props.children)),
-  input: React.forwardRef((props: any, ref) => React.createElement('input', { ...props, ref }, null)),
-  textarea: React.forwardRef((props: any, ref) => React.createElement('textarea', { ...props, ref }, props.children)),
-  select: React.forwardRef((props: any, ref) => React.createElement('select', { ...props, ref }, props.children)),
-};
-
-// Animation helpers
-export const AnimatePresence = ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children);
-
-export const useAnimation = () => ({
-  start: () => Promise.resolve(),
-  stop: () => {},
-});
-
-export const useMotionValue = (initial: any) => ({ get: () => initial, set: () => {} });
-export const useTransform = () => 0;
-export const useScroll = () => ({ scrollYProgress: { get: () => 0 } });
-export const animate = () => {};
-export const useInView = () => true;
-
-// Types
-export type Variants = {
+type MotionComponentProps = {
+  initial?: any;
+  animate?: any;
+  exit?: any;
+  transition?: any;
+  variants?: any;
+  whileHover?: any;
+  whileTap?: any;
+  whileFocus?: any;
+  whileDrag?: any;
+  whileInView?: any;
+  viewport?: any;
+  drag?: boolean | 'x' | 'y';
+  dragConstraints?: any;
+  onAnimationComplete?: () => void;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
+  onClick?: () => void;
+  children?: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
   [key: string]: any;
 };
+
+// Create a factory function for motion components
+const createMotionComponent = (Component: any) => 
+  React.forwardRef<HTMLElement, MotionComponentProps>(
+    ({ children, ...props }, ref) => (
+      <Component ref={ref} {...props}>
+        {children}
+      </Component>
+    )
+  );
+
+// Create the motion object with all HTML elements
+export const motion = {
+  div: createMotionComponent('div'),
+  span: createMotionComponent('span'),
+  button: createMotionComponent('button'),
+  a: createMotionComponent('a'),
+  ul: createMotionComponent('ul'),
+  li: createMotionComponent('li'),
+  p: createMotionComponent('p'),
+  h1: createMotionComponent('h1'),
+  h2: createMotionComponent('h2'),
+  h3: createMotionComponent('h3'),
+  h4: createMotionComponent('h4'),
+  h5: createMotionComponent('h5'),
+  h6: createMotionComponent('h6'),
+  article: createMotionComponent('article'),
+  section: createMotionComponent('section'),
+  nav: createMotionComponent('nav'),
+  aside: createMotionComponent('aside'),
+  header: createMotionComponent('header'),
+  footer: createMotionComponent('footer'),
+  main: createMotionComponent('main'),
+  form: createMotionComponent('form'),
+  input: createMotionComponent('input'),
+  textarea: createMotionComponent('textarea'),
+  select: createMotionComponent('select'),
+  option: createMotionComponent('option'),
+  svg: createMotionComponent('svg'),
+  path: createMotionComponent('path'),
+  circle: createMotionComponent('circle'),
+  rect: createMotionComponent('rect'),
+  img: createMotionComponent('img'),
+  video: createMotionComponent('video'),
+  iframe: createMotionComponent('iframe')
+};
+
+// AnimatePresence component stub
+export const AnimatePresence: React.FC<{
+  children?: React.ReactNode;
+  mode?: 'sync' | 'wait' | 'popLayout';
+  initial?: boolean;
+  onExitComplete?: () => void;
+}> = ({ children }) => {
+  return <>{children}</>;
+};
+
+// Hooks stubs
+export const useAnimation = () => ({
+  start: () => Promise.resolve(),
+  stop: () => Promise.resolve(),
+  set: () => {},
+});
+
+export const useMotionValue = (initial: number) => ({
+  get: () => initial,
+  set: () => {},
+  onChange: () => () => {},
+});
+
+export const useTransform = () => 0;
+export const useScroll = () => ({
+  scrollY: { get: () => 0, onChange: () => () => {} },
+  scrollYProgress: { get: () => 0, onChange: () => () => {} },
+});
+export const useSpring = () => 0;
+export const useInView = () => false;
+export const useDragControls = () => ({});
+export const useVelocity = () => 0;
