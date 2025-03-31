@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -5,7 +6,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useFlashcardsPage } from '@/hooks/useFlashcardsPage';
 import { deleteFlashcard } from '@/services/spacedRepetition';
 import { convertToSupabaseFlashcard } from '@/components/flashcards/utils/flashcardTypeConverter';
-import { loadDefaultFlashcardsForUser } from '@/services/defaultFlashcards';
+import { loadDefaultFlashcardsForUser } from '@/services/flashcards/defaultFlashcards';
 import { useAuth } from '@/context/auth';
 
 // Component imports
