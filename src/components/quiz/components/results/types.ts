@@ -7,12 +7,10 @@ export interface ScoreSummaryProps {
 
 export interface PerformanceByTopicProps {
   topicStats?: Record<string, { total: number; correct: number }>;
-  performanceByTopic?: Record<string, { total: number; correct: number }>;
 }
 
 export interface PerformanceByDifficultyProps {
   difficultyStats?: Record<number, { total: number; correct: number }>;
-  performanceByDifficulty?: Record<string, { total: number; correct: number }>;
 }
 
 export interface QuestionFeedback {
@@ -22,9 +20,9 @@ export interface QuestionFeedback {
   timestamp: string;
   userId?: string;
   questionText?: string;
-  feedbackType?: string;  // Added this property
-  feedbackText?: string;  // Added this property
-  createdAt?: string;     // Added this property
+  feedbackType?: string;
+  feedbackText?: string;
+  createdAt?: string;
 }
 
 export interface ScoreDataItem {

@@ -1,83 +1,140 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useFlashcardReview } from '@/hooks/useFlashcardReview';
-import LoadingSkeleton from '@/components/flashcards/review-page/LoadingSkeleton';
-import EmptyReviewState from '@/components/flashcards/review-page/EmptyReviewState';
-import ReviewHeader from '@/components/flashcards/review-page/ReviewHeader';
-import FlashcardView from '@/components/flashcards/review-page/FlashcardView';
-import RatingButtons from '@/components/flashcards/review-page/RatingButtons';
-import { Flashcard } from '@/types/supabase';
+import { SpacedRepetitionCard } from '@/components/flashcards/SpacedRepetitionCard';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Check, ArrowRight, Loader2 } from 'lucide-react';
+import MainLayout from '@/layouts/MainLayout';
 
-const FlashcardReview = () => {
-  const {
-    loading,
-    flashcards,
-    currentIndex,
-    isFlipped,
-    currentFlashcard,
-    flipCard,
-    reviewFlashcard,
-    skipCard
-  } = useFlashcardReview();
+// Add a skipCard function to the useFlashcardReview hook return type
+const useReviewWithSkip = () => {
+  const hookResult = useFlashcardReview();
+  const { currentIndex, flashcards, setCurrentIndex } = hookResult as any;
   
-  // Derived state
-  const reviewComplete = !loading && (!flashcards || flashcards.length === 0 || currentIndex >= flashcards.length);
-  const reviewStats = {
-    totalReviewed: currentIndex
+  // Add skipCard function if it doesn't exist
+  const skipCard = () => {
+    if (currentIndex < flashcards.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    }
   };
+  
+  return { ...hookResult, skipCard };
+};
+
+const FlashcardReviewPage: React.FC = () => {
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const topicId = queryParams.get('topic');
+  
+  const [topicName, setTopicName] = useState<string>('');
+  
+  // Use the enhanced hook with skipCard
+  const { 
+    flashcards, 
+    currentFlashcard, 
+    currentIndex, 
+    isFlipped, 
+    loading, 
+    flipCard, 
+    reviewFlashcard, 
+    refreshCards,
+    skipCard 
+  } = useReviewWithSkip();
+
+  useEffect(() => {
+    if (currentFlashcard && currentFlashcard.topic) {
+      setTopicName(currentFlashcard.topic);
+    }
+  }, [currentFlashcard]);
 
   if (loading) {
-    return <LoadingSkeleton />;
+    return (
+      <MainLayout>
+        <div className="flex flex-col items-center justify-center h-96">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="mt-4">Loading flashcards...</p>
+        </div>
+      </MainLayout>
+    );
   }
 
-  if (!flashcards || flashcards.length === 0) {
-    return <EmptyReviewState />;
+  if (flashcards.length === 0) {
+    return (
+      <MainLayout>
+        <div className="flex flex-col items-center justify-center h-96">
+          <Check className="h-12 w-12 text-green-500" />
+          <h2 className="text-2xl font-bold mt-4">All Caught Up!</h2>
+          <p className="mt-2 text-muted-foreground">
+            You've reviewed all your due flashcards{topicName ? ` in ${topicName}` : ''}.
+          </p>
+          <Button onClick={refreshCards} className="mt-6">
+            Check Again
+          </Button>
+        </div>
+      </MainLayout>
+    );
   }
 
-  const reviewsCompleted = reviewStats.totalReviewed || 0;
-  const totalToReview = flashcards.length || 0;
+  if (!currentFlashcard) {
+    return (
+      <MainLayout>
+        <div className="flex flex-col items-center justify-center h-96">
+          <p>No flashcard to review.</p>
+        </div>
+      </MainLayout>
+    );
+  }
 
-  // Safe conversion of the currentCard to Supabase Flashcard type
-  const displayCard: Flashcard = currentFlashcard ? {
-    id: currentFlashcard.id,
-    user_id: currentFlashcard.user_id || '',
-    topic_id: currentFlashcard.topicId || currentFlashcard.topic_id || null,
-    front_content: currentFlashcard.front || currentFlashcard.front_content || '',
-    back_content: currentFlashcard.back || currentFlashcard.back_content || '',
-    difficulty: currentFlashcard.difficulty || 0,
-    next_review_date: currentFlashcard.next_review_date || new Date().toISOString(),
-    repetition_count: currentFlashcard.repetition_count || 0,
-    mastery_level: currentFlashcard.mastery_level || 0,
-    created_at: currentFlashcard.created_at || new Date().toISOString(),
-    updated_at: currentFlashcard.updated_at || new Date().toISOString(),
-    easiness_factor: currentFlashcard.easiness_factor || 2.5,
-    last_retention: currentFlashcard.last_retention || 0,
-    last_reviewed_at: currentFlashcard.last_reviewed_at || null
-  } : {} as Flashcard;
+  const progress = ((currentIndex) / flashcards.length) * 100;
 
   return (
-    <div className="container max-w-5xl py-10">
-      <ReviewHeader 
-        reviewsCompleted={reviewsCompleted} 
-        totalToReview={totalToReview} 
-      />
-      
-      {currentFlashcard && (
-        <FlashcardView
-          flashcard={displayCard}
-          isFlipped={isFlipped}
-          onFlip={flipCard}
-        />
-      )}
-      
-      <RatingButtons 
-        isFlipped={isFlipped}
-        onRating={difficulty => currentFlashcard && reviewFlashcard(currentFlashcard.id, difficulty)}
-        onSkip={skipCard}
-        onRevealAnswer={flipCard}
-      />
-    </div>
+    <MainLayout>
+      <div className="container py-6 max-w-3xl">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold mb-2">Flashcard Review</h1>
+          <p className="text-muted-foreground">
+            {currentFlashcard.topic_id ? `Topic: ${currentFlashcard.topic || 'Unknown'}` : 'Mixed Topics'}
+          </p>
+          
+          <div className="mt-4">
+            <div className="flex justify-between text-sm mb-1">
+              <span>Progress: {currentIndex} of {flashcards.length}</span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <Progress value={progress} className="h-2" />
+          </div>
+        </div>
+        
+        {currentFlashcard && (
+          <Card className="mb-4">
+            <CardContent className="p-6">
+              <SpacedRepetitionCard
+                flashcard={currentFlashcard}
+                isFlipped={isFlipped}
+                onFlip={flipCard}
+                onRate={async (difficulty) => {
+                  await reviewFlashcard(currentFlashcard.id, difficulty);
+                }}
+              />
+            </CardContent>
+          </Card>
+        )}
+        
+        <div className="flex justify-between">
+          <Button 
+            variant="outline" 
+            onClick={skipCard}
+            disabled={currentIndex >= flashcards.length - 1}
+          >
+            Skip <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </MainLayout>
   );
 };
 
-export default FlashcardReview;
+export default FlashcardReviewPage;

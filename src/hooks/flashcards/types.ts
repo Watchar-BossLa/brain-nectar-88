@@ -1,8 +1,11 @@
+
 export interface Flashcard {
   id: string;
   deck_id?: string;
-  front: string;
-  back: string;
+  front?: string;
+  back?: string;
+  front_content?: string;  // Add these for compatibility
+  back_content?: string;   // Add these for compatibility
   user_id?: string;
   created_at?: string;
   updated_at?: string;
@@ -14,8 +17,6 @@ export interface Flashcard {
   next_review_at?: string;
   review_count?: number;
   // Additional fields for front-end compatibility
-  front_content?: string;
-  back_content?: string;
   topic_id?: string;
   topicId?: string;
   difficulty?: number;

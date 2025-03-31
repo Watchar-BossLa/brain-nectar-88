@@ -19,7 +19,7 @@ export interface FlashcardLearningStats {
   last_reviewed_at: string;
   next_review_at: string;
   review_count: number;
-  totalCards: number;
+  totalCards?: number;
   masteredCards?: number;
   averageDifficulty?: number;
   learningCards?: number;
@@ -30,10 +30,9 @@ export interface FlashcardLearningStats {
   streakDays?: number;
   averageRetention?: number;
   nextDueCards?: number;
-  topic?: string; // Adding this field to fix compatibility issues
-  id?: string; // Add for compatibility
-  difficulty?: number; // Add for compatibility
-  mastery_level?: number; // Add for compatibility
-  easiness_factor?: number; // Ensure both naming conventions are available
-  repetition_count?: number; // Add for compatibility
+  topic?: string;
+  id?: string;
+  difficulty?: number;
+  mastery_level?: number;
+  repetition_count?: number;
 }

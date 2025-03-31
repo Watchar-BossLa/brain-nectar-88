@@ -1,44 +1,55 @@
 
 import { BaseAgent } from './BaseAgent';
-import { LearningPathAgent, learningPathAgent } from '../learning-path';
 
-/**
- * AgentRegistry manages all agents in the system
- */
-class AgentRegistry {
-  private agents: Map<string, BaseAgent>;
-  
-  constructor() {
-    this.agents = new Map<string, BaseAgent>();
-  }
-  
+// Registry to store agent instances
+const registry = new Map<string, BaseAgent>();
+
+// Export createAgentRegistry function for compatibility with existing code
+export function createAgentRegistry() {
+  return agentRegistry;
+}
+
+// Create the agent registry singleton
+export const agentRegistry = {
   /**
    * Register an agent in the registry
    */
   registerAgent(agent: BaseAgent): void {
-    this.agents.set(agent.id, agent);
-    console.log(`Agent registered: ${agent.name} (${agent.id})`);
-  }
-  
+    registry.set(agent.id, agent);
+  },
+
   /**
    * Get an agent by ID
    */
-  getAgent(id: string): BaseAgent | undefined {
-    return this.agents.get(id);
-  }
-  
+  getAgent(agentId: string): BaseAgent | undefined {
+    return registry.get(agentId);
+  },
+
   /**
-   * Initialize the registry with all available agents
+   * Get all registered agents
    */
-  initialize(): void {
-    // Register the learning path agent
-    // Cast to BaseAgent since we've updated LearningPathAgent to extend AbstractBaseAgent
-    this.registerAgent(learningPathAgent as BaseAgent);
+  getAllAgents(): BaseAgent[] {
+    return Array.from(registry.values());
+  },
+
+  /**
+   * Get agents by type
+   */
+  getAgentsByType(type: string): BaseAgent[] {
+    return Array.from(registry.values()).filter(agent => agent.type === type);
+  },
+
+  /**
+   * Remove an agent from the registry
+   */
+  removeAgent(agentId: string): boolean {
+    return registry.delete(agentId);
+  },
+
+  /**
+   * Clear the registry
+   */
+  clear(): void {
+    registry.clear();
   }
-}
-
-// Export a singleton instance
-export const agentRegistry = new AgentRegistry();
-
-// Initialize the registry
-agentRegistry.initialize();
+};

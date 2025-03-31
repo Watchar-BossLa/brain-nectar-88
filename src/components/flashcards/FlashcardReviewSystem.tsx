@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,13 @@ import { useToast } from '@/components/ui/use-toast';
 
 interface FlashcardReviewSystemProps {
   onComplete: () => void;
+}
+
+interface FlashcardReviewCardProps {
+  flashcard: any;
+  onFlip: () => void;
+  isFlipped: boolean;
+  onRate: (difficulty: number) => void;
 }
 
 const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ onComplete }) => {
@@ -244,6 +250,40 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ onComplet
           onSubmitFeedback={handleSubmitFeedback}
         />
       )}
+    </Card>
+  );
+};
+
+const FlashcardReviewCard: React.FC<FlashcardReviewCardProps> = ({ flashcard, onFlip, isFlipped, onRate }) => {
+  return (
+    <Card className="w-full">
+      <CardContent className="p-6 min-h-[300px] flex items-center justify-center">
+        <div className="text-center">
+          {isFlipped ? (
+            <div className="animate-fadeIn">
+              <div className="mb-4 text-xl font-semibold">{flashcard.back_content || flashcard.back}</div>
+            </div>
+          ) : (
+            <div>
+              <div className="mb-4 text-xl font-semibold">{flashcard.front_content || flashcard.front}</div>
+            </div>
+          )}
+        </div>
+      </CardContent>
+      
+      <CardFooter className="border-t p-4 bg-muted/10">
+        {isFlipped ? (
+          <Button onClick={onFlip} className="w-full">
+            <Lightbulb className="mr-2 h-4 w-4" />
+            Show Question
+          </Button>
+        ) : (
+          <Button onClick={onFlip} className="w-full">
+            <Lightbulb className="mr-2 h-4 w-4" />
+            Show Answer
+          </Button>
+        )}
+      </CardFooter>
     </Card>
   );
 };
