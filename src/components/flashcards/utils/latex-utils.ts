@@ -9,5 +9,5 @@ import LatexRenderer from './latex-renderer';
  * @returns Rendered React element
  */
 export const renderLatexContent = (content: string, isBlock = false): React.ReactElement => {
-  return <LatexRenderer content={content} isBlock={isBlock} />;
+  return React.createElement(LatexRenderer, { content, isBlock });
 };
