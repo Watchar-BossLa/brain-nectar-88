@@ -37,7 +37,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setIsAdmin(true);
           } else {
             // Check if the user is in the admins table
-            checkIfUserIsAdmin(currentSession.user.id);
+            if (currentSession?.user?.id) {
+              checkIfUserIsAdmin(currentSession.user.id);
+            }
           }
         } else {
           setIsAdmin(false);
@@ -81,7 +83,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setIsAdmin(true);
             } else {
               // Check if the user is in the admins table
-              checkIfUserIsAdmin(data.session.user.id);
+              if (data.session.user.id) {
+                checkIfUserIsAdmin(data.session.user.id);
+              }
             }
           }
         }
@@ -103,8 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data, error } = await supabase
           .from('admins')
           .select('*')
-          .eq('user_id', userId)
-          .single();
+          .eq('user_id', userId);
           
         if (error) {
           console.error('Error checking admin status:', error);
@@ -112,7 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
         
-        setIsAdmin(!!data);
+        setIsAdmin(data && data.length > 0);
       } catch (error) {
         console.error('Error checking admin status:', error);
         setIsAdmin(false);

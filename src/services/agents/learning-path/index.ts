@@ -2,6 +2,8 @@ import { AgentMessage, AgentTask, TaskType, MessageType } from '../types';
 import { BaseAgent } from '../baseAgent';
 import { calculateFlashcardRetention } from '@/services/spacedRepetition';
 import { spacedRepetitionService } from '@/services/flashcards/spacedRepetitionService';
+import { supabase } from '@/integrations/supabase/client';
+import { calculateFlashcardRetention } from '@/hooks/flashcards/useFlashcardRetention';
 
 /**
  * Learning Path Agent
@@ -161,5 +163,82 @@ export const analyzeRetentionPatterns = async (userId: string) => {
   } catch (error) {
     console.error('Error analyzing retention patterns:', error);
     return [];
+  }
+};
+
+export const getSpacedRepetitionData = async (userId: string) => {
+  try {
+    // Get flashcard data
+    const { data: flashcards, error: flashcardsError } = await supabase
+      .from('flashcards')
+      .select('*')
+      .eq('user_id', userId);
+      
+    if (flashcardsError) {
+      console.error('Error fetching flashcards:', flashcardsError);
+      return { success: false, error: flashcardsError.message };
+    }
+    
+    // Get review data
+    const { data: reviews, error: reviewsError } = await supabase
+      .from('flashcard_reviews')
+      .select('*')
+      .eq('user_id', userId);
+      
+    if (reviewsError) {
+      console.error('Error fetching flashcard reviews:', reviewsError);
+      return { success: false, error: reviewsError.message };
+    }
+    
+    // Calculate retention stats
+    const retentionResult = await calculateFlashcardRetention(userId);
+    
+    // Return combined data
+    return {
+      success: true,
+      data: {
+        flashcards: flashcards || [],
+        reviews: reviews || [],
+        retention: retentionResult?.data || {
+          overallRetention: 0,
+          cardRetention: {},
+          retentionByDay: {}
+        }
+      }
+    };
+  } catch (error) {
+    console.error('Error in getSpacedRepetitionData:', error);
+    return { success: false, error: 'Failed to get spaced repetition data' };
+  }
+};
+
+export const getUserPerformanceData = async (userId: string) => {
+  try {
+    // Get quiz performance metrics
+    const { data: quizPerformance, error: quizError } = await supabase
+      .from('quiz_performance_metrics')
+      .select('*')
+      .eq('user_id', userId);
+      
+    if (quizError) {
+      console.error('Error fetching quiz performance:', quizError);
+      return { success: false, error: quizError.message };
+    }
+    
+    // Get flashcard retention
+    const retentionResult = await calculateFlashcardRetention(userId);
+    const flashcardRetention = retentionResult.data;
+    
+    // Return combined data
+    return {
+      success: true,
+      data: {
+        quizPerformance: quizPerformance || [],
+        flashcardRetention
+      }
+    };
+  } catch (error) {
+    console.error('Error in getUserPerformanceData:', error);
+    return { success: false, error: 'Failed to get user performance data' };
   }
 };

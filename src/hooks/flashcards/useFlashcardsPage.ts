@@ -1,35 +1,47 @@
 
-import { useState, useEffect } from 'react';
-import { Flashcard } from './types';
+import { useState } from 'react';
 import { useFlashcardsRetrieval } from './useFlashcardsRetrieval';
-import { useFlashcardsStats } from './useFlashcardsStats';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/context/auth';
+import { useFlashcardMutation } from './useFlashcardMutation';
+import { Flashcard } from './types';
 
-export interface UseFlashcardsPageReturn {
-  flashcards: Flashcard[];
-  loading: boolean;
-  error: Error | null;
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-  dueFlashcards: Flashcard[];
-  stats: any;
-  refreshFlashcards: () => Promise<void>;
-}
-
-export const useFlashcardsPage = (): UseFlashcardsPageReturn => {
+export const useFlashcardsPage = () => {
   const [activeTab, setActiveTab] = useState('all');
-  const { flashcards, dueFlashcards, loading, error, refreshFlashcards } = useFlashcardsRetrieval();
-  const stats = useFlashcardsStats(flashcards);
+  const [refreshKey, setRefreshKey] = useState(0);
   
-  return {
+  const { 
     flashcards,
     dueFlashcards,
-    loading,
+    isLoading,
     error,
+    fetchFlashcards,
+    fetchDueFlashcards
+  } = useFlashcardsRetrieval();
+
+  const refreshFlashcards = () => {
+    setRefreshKey(prev => prev + 1);
+    fetchFlashcards();
+    fetchDueFlashcards();
+  };
+
+  const { 
+    createFlashcard,
+    deleteFlashcard,
+    updateFlashcard,
+    isLoading: isMutating
+  } = useFlashcardMutation(() => {
+    refreshFlashcards();
+  });
+
+  return {
     activeTab,
     setActiveTab,
-    stats,
-    refreshFlashcards
+    flashcards,
+    dueFlashcards,
+    isLoading: isLoading || isMutating,
+    error,
+    refreshFlashcards: refreshFlashcards,
+    createFlashcard,
+    deleteFlashcard,
+    updateFlashcard
   };
 };

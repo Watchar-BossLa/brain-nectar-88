@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from '@/context/auth';
-import { supabase } from '@/integrations/supabase/client';
 import MainLayout from '@/components/layout/MainLayout';
 import AdminUsers from '@/components/admin/AdminUsers';
 import AdminPayments from '@/components/admin/AdminPayments';

@@ -41,11 +41,10 @@ export default function AdminAdmins() {
     try {
       setLoading(true);
       
-      // Get all admin user IDs
+      // Get all admin records from our new custom table
       const { data: adminData, error: adminError } = await supabase
         .from('admins')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
         
       if (adminError) throw adminError;
       
@@ -135,9 +134,9 @@ export default function AdminAdmins() {
       // Add as admin
       const { error: insertError } = await supabase
         .from('admins')
-        .insert({
+        .insert([{
           user_id: userData.id
-        });
+        }]);
         
       if (insertError) throw insertError;
       

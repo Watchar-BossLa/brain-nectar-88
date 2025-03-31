@@ -40,7 +40,6 @@ export {
   calculateRetention,
   INITIAL_EASINESS_FACTOR,
   MIN_EASINESS_FACTOR,
-  type RepetitionSchedule,
   
   // Flashcard management
   getDueFlashcards,
@@ -58,6 +57,7 @@ export {
   getFlashcardLearningStats,
   
   // Types
+  type RepetitionSchedule,
   type FlashcardRetentionResult,
   type FlashcardLearningStats
 };
