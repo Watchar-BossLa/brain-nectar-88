@@ -1,6 +1,6 @@
 
 import MainLayout from '@/components/layout/MainLayout';
-import UserProfileCard from '@/components/profile/UserProfileCard';
+import { UserProfileCard } from '@/components/profile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/auth';

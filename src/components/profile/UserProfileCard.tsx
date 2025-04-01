@@ -1,14 +1,13 @@
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/context/auth';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { useProfileData } from './useProfileData';
 import ProfileAvatar from './ProfileAvatar';
+import ProfileHeader from './ProfileHeader';
 import ProfileForm from './ProfileForm';
 import ProfileActions from './ProfileActions';
 import ProfileLoading from './ProfileLoading';
-import { useProfileData } from './useProfileData';
 
 const UserProfileCard = () => {
-  const { user } = useAuth();
   const {
     profile,
     isLoading,
@@ -30,29 +29,18 @@ const UserProfileCard = () => {
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center gap-4">
-        <ProfileAvatar 
-          avatarUrl={profile?.avatar_url}
-          firstName={profile?.first_name}
-          lastName={profile?.last_name}
-          email={profile?.email || user?.email}
-          size="lg"
+        <ProfileHeader 
+          profile={profile}
+          firstName={firstName}
+          lastName={lastName}
+          isEditing={isEditing}
         />
-        <div>
-          <CardTitle>
-            {isEditing ? 'Edit Profile' : (
-              profile?.first_name && profile?.last_name
-                ? `${profile.first_name} ${profile.last_name}`
-                : 'Your Profile'
-            )}
-          </CardTitle>
-          <CardDescription>{profile?.email || user?.email}</CardDescription>
-        </div>
       </CardHeader>
       <CardContent>
         <ProfileForm
           firstName={firstName}
           lastName={lastName}
-          email={profile?.email || user?.email}
+          email={profile?.email}
           isEditing={isEditing}
           onChange={{
             firstName: setFirstName,

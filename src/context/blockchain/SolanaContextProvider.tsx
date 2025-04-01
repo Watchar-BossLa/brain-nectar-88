@@ -1,6 +1,8 @@
 
-import React, { FC, ReactNode, useEffect, useState } from 'react';
+import React, { FC, ReactNode, useState } from 'react';
+import { PublicKey } from '@solana/web3.js';
 import { SolanaContext } from './SolanaContext';
+import { AchievementData } from './types';
 import { useToast } from '@/hooks/use-toast';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom';
 import { WalletProvider, ConnectionProvider } from '@solana/wallet-adapter-react';
@@ -30,6 +32,10 @@ export const SolanaContextProvider: FC<SolanaContextProviderProps> = ({ children
           value={{ 
             isConnecting,
             setIsConnecting,
+            // Mock implementations for required properties
+            connected: false,
+            publicKey: null as PublicKey | null,
+            balance: null,
             // Provide fallback methods that show appropriate messages
             connectWallet: async () => {
               toast({
@@ -42,6 +48,34 @@ export const SolanaContextProvider: FC<SolanaContextProviderProps> = ({ children
               toast({
                 title: "Wallet Connection",
                 description: "Please use the wallet button in the header to disconnect your wallet.",
+              });
+              return false;
+            },
+            fetchBalance: async () => {
+              toast({
+                title: "Wallet Operation",
+                description: "Balance fetching is not available in this context.",
+              });
+              return null;
+            },
+            mintAchievementNFT: async (_achievementData: AchievementData) => {
+              toast({
+                title: "NFT Operation",
+                description: "NFT minting is not available in this context.",
+              });
+              return null;
+            },
+            sendTokenReward: async (_amount: number) => {
+              toast({
+                title: "Token Operation",
+                description: "Token rewards are not available in this context.",
+              });
+              return false;
+            },
+            processPayment: async (_amount: number, _description: string) => {
+              toast({
+                title: "Payment Operation",
+                description: "Payments are not available in this context.",
               });
               return false;
             }
