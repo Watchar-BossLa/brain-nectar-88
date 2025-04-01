@@ -5,7 +5,11 @@
  */
 
 // Import the algorithm
-import { calculateNextReview } from './algorithm';
+import { 
+  calculateEasinessFactor, 
+  calculateReviewInterval, 
+  calculateNextReview 
+} from './algorithm';
 
 // Import services
 import { ReviewService, reviewService } from './review-service';
@@ -16,7 +20,11 @@ import { StatsService, statsService } from './stats-service';
 import { FlashcardReviewResult } from './types';
 
 // Re-export the algorithm
-export { calculateNextReview } from './algorithm';
+export { 
+  calculateEasinessFactor, 
+  calculateReviewInterval, 
+  calculateNextReview 
+};
 
 // Re-export the services
 export { reviewService } from './review-service';
@@ -26,23 +34,47 @@ export { statsService } from './stats-service';
 // Re-export types
 export type { FlashcardReviewResult } from './types';
 
-// Create a single facade for convenience
+// Create a unified service facade for backward compatibility
 export class SpacedRepetitionService {
-  // Re-export methods from individual services as class methods
-  public calculateNextReview = calculateNextReview;
-  
-  public async recordReview(reviewResult: FlashcardReviewResult): Promise<boolean> {
-    return reviewService.recordReview(reviewResult);
+  /**
+   * Records a review for a flashcard
+   * @param flashcardId The ID of the flashcard being reviewed
+   * @param difficulty The difficulty rating (1-5)
+   * @returns True if successful, false otherwise
+   */
+  public async recordReview(flashcardId: string, difficulty: number): Promise<boolean> {
+    return reviewService.recordReview(flashcardId, difficulty);
   }
   
-  public async getDueFlashcards(userId: string, limit: number = 20): Promise<any[]> {
-    return retrievalService.getDueFlashcards(userId, limit);
+  /**
+   * Get flashcards due for review for a user
+   * @param userId The user ID
+   * @returns Array of flashcards due for review
+   */
+  public async getDueFlashcards(userId: string): Promise<any[]> {
+    return retrievalService.getDueFlashcards(userId);
   }
   
+  /**
+   * Get statistics for a user's flashcards
+   * @param userId The user ID
+   * @returns Object with flashcard statistics
+   */
   public async getFlashcardStats(userId: string) {
     return statsService.getFlashcardStats(userId);
   }
+  
+  /**
+   * Calculate the review interval in days based on easiness factor and mastery level
+   * @param easinessFactor The easiness factor
+   * @param masteryLevel The mastery level
+   * @param repetitionCount The number of times the card has been reviewed
+   * @returns The number of days until the next review
+   */
+  public calculateReviewInterval(easinessFactor: number, masteryLevel: number, repetitionCount: number): number {
+    return calculateReviewInterval(easinessFactor, masteryLevel, repetitionCount);
+  }
 }
 
-// Export a singleton instance
+// Export a singleton instance for backward compatibility
 export const spacedRepetitionService = new SpacedRepetitionService();
