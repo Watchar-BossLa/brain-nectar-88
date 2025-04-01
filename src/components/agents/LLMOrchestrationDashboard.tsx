@@ -29,7 +29,7 @@ export default function LLMOrchestrationDashboard() {
   const [testResult, setTestResult] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedModel, setSelectedModel] = useState('');
-  const [selectedTaskCategory, setSelectedTaskCategory] = useState(TaskCategory.CONTENT_GENERATION);
+  const [selectedTaskCategory, setSelectedTaskCategory] = useState(TaskCategory.TEXT_GENERATION);
 
   // Toggle LLM orchestration
   const handleToggleOrchestration = () => {

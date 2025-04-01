@@ -13,8 +13,8 @@ export interface SolanaContextType {
   connected: boolean;
   publicKey: PublicKey | null;
   balance: number | null;
+  connectWallet: () => void;
   isConnecting: boolean;
-  connectWallet: () => Promise<void>;
   fetchBalance: () => Promise<number | null>;
   mintAchievementNFT: (achievementData: AchievementData) => Promise<string | null>;
   sendTokenReward: (amount: number) => Promise<boolean>;

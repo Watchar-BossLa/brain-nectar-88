@@ -1,144 +1,191 @@
-
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/auth';
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { createFlashcard } from '@/services/spacedRepetition';
 import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { createNewFlashcard } from '@/services/spacedRepetition';
-import FlashcardFormInputs from './FlashcardFormInputs';
+import FlashcardPreview from './FlashcardPreview';
+
+// Import sub-components
+import TextContentInput from './form/TextContentInput';
+import FormulaContentInput from './form/FormulaContentInput';
+import FinancialContentInput from './form/FinancialContentInput';
 import ContentTypeSelector from './form/ContentTypeSelector';
 import HelpContent from './form/HelpContent';
+import FormButtons from './form/FormButtons';
 
 interface AdvancedFlashcardFormProps {
-  topicId?: string;
-  onSuccess?: () => void;
-  onCancel?: () => void;
+  onSuccess: () => void;
+  onCancel: () => void;
 }
 
-const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({ 
-  topicId,
-  onSuccess,
-  onCancel
-}) => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const [front, setFront] = useState('');
-  const [back, setBack] = useState('');
-  const [selectedTopicId, setSelectedTopicId] = useState(topicId || '');
-  const [contentTypeFront, setContentTypeFront] = useState('text');
-  const [contentTypeBack, setContentTypeBack] = useState('text');
-  const [loading, setLoading] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
-  const [topics, setTopics] = useState<Array<{ id: string; title: string }>>([]);
+type FinancialStatementType = 'balance-sheet' | 'income-statement' | 'cash-flow' | 'ratio';
 
-  useEffect(() => {
-    if (!user) {
-      navigate('/login');
-    }
-    
-    // Set the topicId whenever it changes externally
-    if (topicId) {
-      setSelectedTopicId(topicId);
-    }
-    
-    // Here you would typically fetch topics from your API
-    // For now we'll use empty array as default
-  }, [user, navigate, topicId]);
+const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({ onSuccess, onCancel }) => {
+  const [frontContent, setFrontContent] = useState('');
+  const [backContent, setBackContent] = useState('');
+  const [useLatex, setUseLatex] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [contentType, setContentType] = useState<'text' | 'formula' | 'financial'>('text');
+  const [financialType, setFinancialType] = useState<FinancialStatementType>('balance-sheet');
+  const { toast } = useToast();
+
+  const handleFinancialTypeChange = (value: FinancialStatementType) => {
+    setFinancialType(value);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
-    if (!user) {
-      toast({
-        title: 'Not authenticated.',
-        description: 'You must be logged in to create flashcards.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!front.trim() || !back.trim()) {
-      toast({
-        title: 'Input Error',
-        description: 'Front and back cannot be empty.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setLoading(true);
     try {
-      await createNewFlashcard(user.id, front, back, selectedTopicId || undefined);
+      // Process content based on type
+      let processedFrontContent = frontContent;
+      let processedBackContent = backContent;
+
+      // Add LaTeX delimiters if formula type is selected
+      if (contentType === 'formula' && !frontContent.includes('$$')) {
+        processedFrontContent = `$$${frontContent}$$`;
+      }
+      
+      if (contentType === 'formula' && !backContent.includes('$$')) {
+        processedBackContent = `$$${backContent}$$`;
+      }
+      
+      // Add financial statement token if financial type is selected
+      if (contentType === 'financial') {
+        processedBackContent = `${backContent}\n\n[fin:${financialType}]`;
+      }
+
+      // Passing null for the topicId (third parameter is optional)
+      const { data, error } = await createFlashcard(processedFrontContent, processedBackContent, null);
+
+      if (error) {
+        throw new Error(error.message);
+      }
 
       toast({
-        title: 'Flashcard created!',
-        description: 'Your new flashcard has been successfully created.',
+        title: 'Success',
+        description: 'Flashcard created successfully.'
       });
 
-      setFront('');
-      setBack('');
-      setContentTypeFront('text');
-      setContentTypeBack('text');
-
-      if (onSuccess) {
-        onSuccess();
-      } else {
-        navigate('/flashcards');
-      }
-    } catch (error: any) {
+      onSuccess();
+    } catch (error) {
       console.error('Error creating flashcard:', error);
       toast({
         title: 'Error',
-        description: error.message || 'Failed to create flashcard. Please try again.',
-        variant: 'destructive',
+        description: 'Failed to create flashcard. Please try again.',
+        variant: 'destructive'
       });
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
+    }
+  };
+
+  const renderContentInputs = () => {
+    switch (contentType) {
+      case 'text':
+        return (
+          <TextContentInput 
+            frontContent={frontContent}
+            setFrontContent={setFrontContent}
+            backContent={backContent}
+            setBackContent={setBackContent}
+          />
+        );
+      
+      case 'formula':
+        return (
+          <FormulaContentInput
+            frontContent={frontContent}
+            setFrontContent={setFrontContent}
+            backContent={backContent}
+            setBackContent={setBackContent}
+          />
+        );
+      
+      case 'financial':
+        return (
+          <FinancialContentInput
+            frontContent={frontContent}
+            setFrontContent={setFrontContent}
+            backContent={backContent}
+            setBackContent={setBackContent}
+            financialType={financialType}
+            setFinancialType={handleFinancialTypeChange}
+          />
+        );
+      
+      default:
+        return null;
     }
   };
 
   return (
-    <Card className="w-full">
-      <form onSubmit={handleSubmit} className="space-y-4 p-6">
-        <FlashcardFormInputs
-          front_content={front}
-          setFront={setFront}
-          back_content={back}
-          setBack={setBack}
-          topicId={selectedTopicId}
-          setTopicId={setSelectedTopicId}
-          topics={topics}
-        />
-
-        <ContentTypeSelector
-          contentTypeFront={contentTypeFront}
-          setContentTypeFront={setContentTypeFront}
-          contentTypeBack={contentTypeBack}
-          setContentTypeBack={setContentTypeBack}
-        />
-
-        <div className="flex justify-between items-center mt-6">
-          <div className="space-x-2">
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Creating...' : 'Create Flashcard'}
-            </Button>
-            {onCancel && (
-              <Button type="button" variant="outline" onClick={onCancel}>
-                Cancel
-              </Button>
-            )}
-          </div>
-          <Button type="button" variant="secondary" onClick={() => setShowHelp(!showHelp)}>
-            {showHelp ? 'Hide Help' : 'Show Help'}
-          </Button>
-        </div>
-      </form>
-
-      {showHelp && (
-        <HelpContent />
-      )}
+    <Card>
+      <CardHeader>
+        <CardTitle>Create Advanced Flashcard</CardTitle>
+        <CardDescription>
+          Add a new flashcard with advanced formatting options
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit}>
+          <Tabs defaultValue="create" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-4">
+              <TabsTrigger value="create">Create</TabsTrigger>
+              <TabsTrigger value="preview">Preview</TabsTrigger>
+              <TabsTrigger value="help">Help</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="create" className="space-y-4">
+              <div className="flex flex-col space-y-4">
+                <ContentTypeSelector 
+                  contentType={contentType}
+                  setContentType={setContentType}
+                  setUseLatex={setUseLatex}
+                />
+                
+                <div className="flex items-center space-x-2 pt-2">
+                  <Switch
+                    id="use-latex"
+                    checked={useLatex}
+                    onCheckedChange={setUseLatex}
+                    disabled={contentType === 'formula'}
+                  />
+                  <Label htmlFor="use-latex">Enable LaTeX rendering</Label>
+                </div>
+                
+                {renderContentInputs()}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="preview">
+              <FlashcardPreview
+                frontContent={frontContent}
+                backContent={
+                  contentType === 'financial'
+                    ? `${backContent}\n\n[fin:${financialType}]`
+                    : backContent
+                }
+                useLatex={useLatex || contentType === 'formula'}
+              />
+            </TabsContent>
+            
+            <TabsContent value="help">
+              <HelpContent />
+            </TabsContent>
+          </Tabs>
+          
+          <FormButtons 
+            isSubmitting={isSubmitting}
+            onCancel={onCancel}
+            frontContent={frontContent}
+            backContent={backContent}
+          />
+        </form>
+      </CardContent>
     </Card>
   );
 };

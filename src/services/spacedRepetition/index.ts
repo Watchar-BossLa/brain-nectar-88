@@ -1,22 +1,63 @@
 
-// Re-export specific functions from algorithm
-export { calculateNextReviewDate, calculateRetention, INITIAL_EASINESS_FACTOR, MIN_EASINESS_FACTOR } from './algorithm';
+// Re-export all spaced repetition services
+import { 
+  calculateNextReviewDate, 
+  calculateNextReviewSchedule,
+  calculateMasteryLevel,
+  calculateRetention,
+  INITIAL_EASINESS_FACTOR, 
+  MIN_EASINESS_FACTOR,
+  type RepetitionSchedule
+} from './algorithm';
 
-// Re-export flashcard stats functionality
-export * from './flashcardStats';
-
-// Re-export review update functionality
-export * from './reviewUpdate';
-
-// Re-export specific functions from reviewService with explicit names to avoid conflicts
-export { getFlashcardLearningStats } from './reviewService';
-
-// Export flashcard service functions with explicit names to avoid ambiguity
-export { 
-  getUserFlashcards, 
+import { 
   getDueFlashcards, 
-  getFlashcardsByTopic,
   createFlashcard, 
-  updateFlashcard, 
-  deleteFlashcard 
+  getUserFlashcards,
+  deleteFlashcard,
+  getFlashcardsByTopic,
+  getStrugglingFlashcards,
+  getMasteredFlashcards,
+  getFlashcardStats
 } from './flashcardService';
+
+import { 
+  updateFlashcardAfterReview,
+  calculateFlashcardRetention,
+  getFlashcardLearningStats
+} from './reviewService';
+
+import type { 
+  FlashcardRetentionResult,
+  FlashcardLearningStats
+} from './reviewTypes';
+
+export {
+  // Algorithm
+  calculateNextReviewDate,
+  calculateNextReviewSchedule,
+  calculateMasteryLevel,
+  calculateRetention,
+  INITIAL_EASINESS_FACTOR,
+  MIN_EASINESS_FACTOR,
+  type RepetitionSchedule,
+  
+  // Flashcard management
+  getDueFlashcards,
+  createFlashcard,
+  getUserFlashcards,
+  deleteFlashcard,
+  getFlashcardsByTopic,
+  getStrugglingFlashcards,
+  getMasteredFlashcards,
+  getFlashcardStats,
+  
+  // Review management
+  updateFlashcardAfterReview,
+  calculateFlashcardRetention,
+  getFlashcardLearningStats,
+  
+  // Types
+  type FlashcardRetentionResult,
+  type FlashcardLearningStats
+};

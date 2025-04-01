@@ -1,7 +1,7 @@
 
 import React from 'react';
-// Import the stub instead of the real library
-import { motion } from '@/lib/framer-motion-stub';
+import { motion } from 'framer-motion';
+import { MathJax } from 'better-react-mathjax';
 
 interface AnimatedFlashcardContentProps {
   content: string;
@@ -16,25 +16,50 @@ export const AnimatedFlashcardContent: React.FC<AnimatedFlashcardContentProps> =
   onClick,
   isFlipped
 }) => {
+  // Check if content contains LaTeX (enclosed in $$)
+  const hasLatex = content.includes('$$');
+  
+  // Check if content references a financial statement
+  const financialMatch = content.match(/\[fin:(.*?)\]/);
+  const isFinancial = !!financialMatch;
+  
   return (
-    <div 
-      className={`
-        absolute inset-0 p-6 flex flex-col justify-center items-center 
-        bg-card border rounded-md shadow-sm cursor-pointer
-        ${isAnswer ? 'border-primary/30 bg-primary/5' : 'border-muted'}
-      `}
+    <motion.div
+      key={isAnswer ? 'answer' : 'question'}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className="absolute inset-0 p-6 border rounded-md bg-card flex flex-col items-center justify-center"
       onClick={onClick}
     >
-      <div className="max-w-full overflow-auto">
-        <div
-          className="whitespace-pre-wrap text-center"
-          dangerouslySetInnerHTML={{ __html: content }}
-        />
+      <div className="text-xs text-muted-foreground mb-2">
+        {isAnswer ? 'Answer' : 'Question'}
       </div>
       
-      <div className="mt-4 text-sm text-muted-foreground">
-        {isAnswer ? 'Click to see question' : 'Click to reveal answer'}
+      <div className="w-full h-full flex items-center justify-center overflow-auto">
+        {hasLatex ? (
+          <MathJax>{content}</MathJax>
+        ) : isFinancial ? (
+          <div className="w-full overflow-auto text-sm">
+            <div className="mb-2 text-muted-foreground text-xs">
+              {financialMatch && financialMatch[1] === 'balance-sheet' && 'Balance Sheet'}
+              {financialMatch && financialMatch[1] === 'income-statement' && 'Income Statement'}
+              {financialMatch && financialMatch[1] === 'cash-flow' && 'Cash Flow Statement'}
+              {financialMatch && financialMatch[1] === 'ratio' && 'Financial Ratio'}
+            </div>
+            {content.split('\n').map((line, i) => (
+              <p key={i} className="mb-1">{line}</p>
+            ))}
+          </div>
+        ) : (
+          <div className="w-full overflow-auto">
+            {content.split('\n').map((line, i) => (
+              <p key={i} className="mb-1">{line}</p>
+            ))}
+          </div>
+        )}
       </div>
-    </div>
+    </motion.div>
   );
 };

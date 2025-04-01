@@ -1,20 +1,10 @@
 
-import React, { createContext, useContext } from 'react';
-import { AuthContextType, PLATFORM_OWNER } from './auth/types';
+// This file is now deprecated and serves as a re-export for backward compatibility
+// Import and re-export from the new location
+import { AuthProvider, useAuth, PLATFORM_OWNER } from './auth';
+import type { AuthContextType, PlatformOwnerType } from './auth';
 
-// Create the auth context with default values
-export const AuthContext = createContext<AuthContextType>({
-  user: null,
-  loading: true,
-  error: null,
-  signIn: async () => ({ error: null }),
-  signUp: async () => ({ error: null }),
-  signOut: async () => {},
-  isAdmin: false
-});
+export { AuthProvider, useAuth, PLATFORM_OWNER };
+export type { AuthContextType, PlatformOwnerType };
 
-// Create a hook to use the auth context
-export const useAuth = () => useContext(AuthContext);
-
-// Re-export the platform owner
-export { PLATFORM_OWNER };
+// This file can be safely deleted once all imports are updated to use @/context/auth

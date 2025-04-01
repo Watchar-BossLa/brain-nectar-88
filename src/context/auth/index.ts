@@ -1,7 +1,5 @@
 
-// Export all auth components
 export { AuthProvider } from './AuthProvider';
 export { useAuth } from './AuthContext';
-export * from './types';
-export * from './constants';
-export * from './authService';
+export { PLATFORM_OWNER } from './constants';
+export type { AuthContextType, PlatformOwnerType } from './types';

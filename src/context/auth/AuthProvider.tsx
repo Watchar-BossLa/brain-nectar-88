@@ -1,150 +1,108 @@
 
-import React, { useState, useEffect, ReactNode } from 'react';
-import { User } from '@supabase/supabase-js';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { PLATFORM_OWNER } from './constants';
 import { AuthContext } from './AuthContext';
-import { supabase } from '@/lib/supabase';
+import { useAuthService } from './authService';
+import { AuthUser } from './types';
+import type { Session } from '@supabase/supabase-js';
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [isAdmin, setIsAdmin] = useState<boolean>(false); // Add isAdmin state
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const { toast } = useToast();
+  const authService = useAuthService();
 
   useEffect(() => {
-    const session = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, currentSession) => {
+        console.log('Auth state changed:', event, currentSession?.user?.email);
+        setSession(currentSession);
+        setUser(currentSession?.user as AuthUser ?? null);
+        
+        // Check if the current user is the platform administrator
+        if (currentSession?.user?.email === PLATFORM_OWNER.email) {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+        }
+        
+        setLoading(false);
+      }
+    );
 
-      setUser(session?.user || null);
-      setLoading(false);
+    // THEN check for existing session
+    const initialSession = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error fetching session:', error);
+          toast({
+            title: 'Authentication Error',
+            description: 'Failed to restore your session.',
+            variant: 'destructive',
+          });
+          return;
+        }
+        
+        if (data.session) {
+          console.log('Initial session restored for:', data.session.user?.email);
+          setSession(data.session);
+          setUser(data.session.user as AuthUser);
+          
+          // Check if the current user is the platform administrator
+          if (data.session.user.email === PLATFORM_OWNER.email) {
+            setIsAdmin(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching session:', error);
+        toast({
+          title: 'Authentication Error',
+          description: 'Failed to restore your session.',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
     };
 
-    session();
+    initialSession();
 
-    supabase.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user || null);
-      setLoading(false);
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [toast]);
 
-      // Check if user is admin on auth state change
-      if (session?.user) {
-        try {
-          const { data: userData } = await supabase
-            .from('profiles')
-            .select('*')  // Get all fields as role might not exist yet
-            .eq('id', session.user.id)
-            .single();
-            
-          // Safely check if role exists and set admin status
-          if (userData) {
-            setIsAdmin(userData?.role === 'admin' || false);
-          } else {
-            setIsAdmin(false);
-          }
-        } catch (error) {
-          console.error('Error checking admin status:', error);
-          setIsAdmin(false);
-        }
-      } else {
-        setIsAdmin(false);
-      }
-    });
-  }, []);
-
-  const signIn = async (email: string, password: string) => {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      
-      // Check if user is admin
-      if (data?.user) {
-        try {
-          const { data: userData } = await supabase
-            .from('profiles')
-            .select('*')  // Get all fields as role might not exist yet
-            .eq('id', data.user.id)
-            .single();
-            
-          // Safely check if role exists and set admin status
-          if (userData) {
-            setIsAdmin(userData?.role === 'admin' || false);
-          } else {
-            setIsAdmin(false);
-          }
-        } catch (adminError) {
-          console.error('Error checking admin status:', adminError);
-          setIsAdmin(false);
-        }
-      }
-      
-      return { error: null };
-    } catch (err) {
-      console.error('Error signing in:', err);
-      return { error: err instanceof Error ? err : new Error('Unknown error occurred during sign in') };
-    }
-  };
-
-  const signUp = async (email: string, password: string, name: string) => {
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name,
-            role: 'user', // Default role
-          },
-        },
-      });
-      if (error) throw error;
-      return { error: null };
-    } catch (err) {
-      console.error('Error signing up:', err);
-      return { error: err instanceof Error ? err : new Error('Unknown error occurred during sign up') };
-    }
-  };
-
-  const signInWithGoogle = async () => {
-    try {
-      await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`
-        }
-      });
-    } catch (err) {
-      console.error('Error signing in with Google:', err);
-      setError(err instanceof Error ? err : new Error('Unknown error occurred'));
-    }
-  };
-
-  const signOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      setUser(null);
-      setIsAdmin(false);
-    } catch (err) {
-      console.error('Error signing out:', err);
-      setError(err instanceof Error ? err : new Error('Unknown error occurred'));
-    }
+  // Create wrapped versions of auth methods that handle navigation within components
+  const wrappedAuthMethods = {
+    signIn: authService.signIn,
+    signUp: authService.signUp,
+    signInWithGoogle: authService.signInWithGoogle,
+    signOut: authService.signOut
   };
 
   return (
-    <AuthContext.Provider
+    <AuthContext.Provider 
       value={{
+        session,
         user,
         loading,
-        error,
-        signIn,
-        signUp,
-        signInWithGoogle,
-        signOut,
-        isAdmin
+        signIn: wrappedAuthMethods.signIn,
+        signUp: wrappedAuthMethods.signUp,
+        signInWithGoogle: wrappedAuthMethods.signInWithGoogle,
+        signOut: wrappedAuthMethods.signOut,
+        platformOwner: PLATFORM_OWNER,
+        isAdmin,
       }}
     >
       {children}
     </AuthContext.Provider>
   );
-};
+}

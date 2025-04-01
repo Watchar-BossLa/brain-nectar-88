@@ -1,98 +1,67 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Flashcard } from '@/types/supabase';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface FlashcardViewProps {
   flashcard: Flashcard;
-  onRate?: (rating: number) => void;
-  onFlip?: () => void;
-  onNext?: () => void;
+  isFlipped: boolean;
+  onFlip: () => void;
+  onRating?: (rating: number) => Promise<void>;
 }
 
 const FlashcardView: React.FC<FlashcardViewProps> = ({
   flashcard,
-  onRate,
+  isFlipped,
   onFlip,
-  onNext
+  onRating
 }) => {
-  const [isFlipped, setIsFlipped] = useState(false);
-
-  const handleFlip = () => {
-    setIsFlipped(!isFlipped);
-    if (onFlip) {
-      onFlip();
-    }
-  };
-
-  const handleRating = (rating: number) => {
-    if (onRate) {
-      onRate(rating);
-    }
-  };
-
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardContent 
-        className="p-6 min-h-[250px] flex items-center justify-center cursor-pointer"
-        onClick={handleFlip}
-      >
-        <div className="text-center text-lg">
-          {isFlipped ? (
-            <div className="animate-fadeIn">
-              {flashcard.back_content || ''}
-            </div>
-          ) : (
-            <div>
-              {flashcard.front_content || ''}
-            </div>
-          )}
-        </div>
-      </CardContent>
-      
-      <CardFooter className="flex flex-col gap-4">
-        <div className="flex justify-center w-full">
-          <Button 
-            variant="outline" 
-            onClick={handleFlip}
-            className="w-full"
+    <div className="relative h-96 w-full perspective-1000">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={flashcard.id + (isFlipped ? '-back' : '-front')}
+          initial={{ opacity: 0, rotateY: isFlipped ? -180 : 0 }}
+          animate={{ opacity: 1, rotateY: isFlipped ? -180 : 0 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+          className="h-full w-full"
+        >
+          <Card 
+            className={`h-full w-full cursor-pointer ${isFlipped ? 'bg-muted/50' : ''}`}
+            onClick={onFlip}
           >
-            {isFlipped ? 'Show Question' : 'Show Answer'}
-          </Button>
-        </div>
-        
-        {isFlipped && onRate && (
-          <div className="flex justify-between w-full">
-            <Button 
-              variant="outline" 
-              onClick={() => handleRating(1)}
-              className="flex-1 border-red-500 text-red-500 hover:bg-red-50"
-            >
-              Hard
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => handleRating(3)}
-              className="flex-1 mx-2 border-yellow-500 text-yellow-500 hover:bg-yellow-50"
-            >
-              Medium
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => handleRating(5)}
-              className="flex-1 border-green-500 text-green-500 hover:bg-green-50"
-            >
-              Easy
-            </Button>
-          </div>
-        )}
-        
-        {onNext && (
-          <Button onClick={onNext} className="w-full">Next Card</Button>
-        )}
-      </CardFooter>
-    </Card>
+            <div className="flex h-full flex-col">
+              <CardHeader>
+                <CardTitle className="text-xl">
+                  {isFlipped ? 'Answer' : 'Question'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 overflow-auto">
+                <div 
+                  className="text-xl"
+                  style={{ transform: isFlipped ? 'rotateY(180deg)' : 'none' }}
+                >
+                  {isFlipped 
+                    ? <div dangerouslySetInnerHTML={{ __html: flashcard.back_content }} />
+                    : <div dangerouslySetInnerHTML={{ __html: flashcard.front_content }} />
+                  }
+                </div>
+              </CardContent>
+              <CardFooter className="border-t bg-muted/30 p-4">
+                <p className="text-sm text-muted-foreground">
+                  {isFlipped
+                    ? "Rate how well you remembered this card"
+                    : "Click to reveal the answer"}
+                </p>
+              </CardFooter>
+            </div>
+          </Card>
+        </motion.div>
+      </AnimatePresence>
+    </div>
   );
 };
 

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTheme } from '@/context/theme';
@@ -10,14 +10,13 @@ import UserProfileCard from '@/components/profile/UserProfileCard';
 
 const Settings = () => {
   const { theme, setMode, toggleHighContrast } = useTheme();
-  const [activeTab, setActiveTab] = useState("profile");
 
   return (
     <MainLayout>
       <div className="p-6 md:p-8 max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold tracking-tight mb-6">Settings</h1>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs defaultValue="profile">
           <TabsList className="mb-6">
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="appearance">Appearance</TabsTrigger>

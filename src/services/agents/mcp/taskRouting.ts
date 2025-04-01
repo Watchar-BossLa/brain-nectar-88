@@ -1,90 +1,92 @@
+import { AgentTask, AgentType, TaskType } from '../types';
 
-import { AgentTask, AgentType } from '../types';
-
-// TaskRouter handles directing tasks to the appropriate agents
-export class TaskRouter {
-  // Maps task types to the appropriate agent types
-  private static taskToAgentMapping: Record<string, AgentType[]> = {
-    "LEARNING_ASSESSMENT": ["cognitive_profile"],
-    "PATH_CREATION": ["learning_path"],
-    "CONTENT_ADAPTATION": ["content_adaptation"],
-    "QUIZ_GENERATION": ["assessment"],
-    "ENGAGEMENT_ANALYSIS": ["engagement"],
-    "USER_FEEDBACK": ["feedback"],
-    "UI_OPTIMIZATION": ["ui_ux"],
-    "SCHEDULE_OPTIMIZATION": ["scheduling"]
-  };
-  
-  // Maps specialized task types to collaborating agents
-  private static specializedTaskMapping: Record<string, AgentType[]> = {
-    "LEARNING_PROFILE_CREATION": ["cognitive_profile", "scheduling"],
-    "ADAPTIVE_LEARNING_PATH": ["cognitive_profile", "learning_path", "assessment"]
-  };
-  
-  /**
-   * Route a task to appropriate agents based on task type
-   * 
-   * @param task The task to route
-   * @returns Array of agent types that should handle this task
-   */
-  public static routeTask(task: AgentTask): AgentType[] {
-    const taskType = task.taskType;
-    
-    if (taskType in this.specializedTaskMapping) {
-      return this.specializedTaskMapping[taskType];
-    }
-    
-    if (taskType in this.taskToAgentMapping) {
-      return this.taskToAgentMapping[taskType];
-    }
-    
-    // Default routing based on task requirements
-    return this.determineAgentsByRequirements(task);
+/**
+ * Determine which agent(s) should handle a given task
+ */
+export function determineTargetAgents(task: AgentTask): AgentType[] {
+  // If the task specifies target agents, use those
+  if (task.targetAgentTypes && task.targetAgentTypes.length > 0) {
+    return task.targetAgentTypes;
   }
   
-  /**
-   * Determine which agents should handle a task based on its requirements
-   */
-  private static determineAgentsByRequirements(task: AgentTask): AgentType[] {
-    const requiredAgents: AgentType[] = [];
-    
-    if (task.context?.learningProfile) {
-      requiredAgents.push("cognitive_profile" as AgentType);
-    }
-    
-    if (task.context?.learningPath) {
-      requiredAgents.push("learning_path" as AgentType);
-    }
-    
-    if (task.context?.assessment) {
-      requiredAgents.push("assessment" as AgentType);
-    }
-    
-    if (task.context?.contentAdaptation) {
-      requiredAgents.push("content_adaptation" as AgentType);
-    }
-    
-    if (task.context?.userFeedback) {
-      requiredAgents.push("feedback" as AgentType);
-    }
-    
-    if (task.context?.engagement) {
-      requiredAgents.push("engagement" as AgentType);
-    }
-    
-    if (task.context?.ui) {
-      requiredAgents.push("ui_ux" as AgentType);
-    }
-    
-    if (task.context?.scheduling) {
-      requiredAgents.push("scheduling" as AgentType);
-    }
-    
-    // If no specific agents were determined, default to cognitive profile
-    if (requiredAgents.length === 0) {
-      requiredAgents.push("cognitive_profile" as AgentType, "learning_path" as AgentType, "assessment" as AgentType);
-    }
-    
-    return requiredAgents;
+  // Otherwise, determine the best agent(s) based on the task type
+  const { taskType } = task;
+  
+  switch (taskType) {
+    case 'COGNITIVE_PROFILING':
+      return ['COGNITIVE_PROFILE'];
+    case 'LEARNING_PATH_GENERATION':
+      return ['LEARNING_PATH'];
+    case 'CONTENT_ADAPTATION':
+      return ['CONTENT_ADAPTATION'];
+    case 'ASSESSMENT_GENERATION':
+      return ['ASSESSMENT'];
+    case 'ENGAGEMENT_OPTIMIZATION':
+      return ['ENGAGEMENT'];
+    case 'FEEDBACK_GENERATION':
+      return ['FEEDBACK'];
+    case 'UI_OPTIMIZATION':
+      return ['UI_UX'];
+    case 'SCHEDULE_OPTIMIZATION':
+      return ['SCHEDULING'];
+    case 'FLASHCARD_OPTIMIZATION':
+      // For flashcard tasks, involve the cognitive profile and engagement agents
+      return ['COGNITIVE_PROFILE', 'SCHEDULING'];
+    case 'MULTI_AGENT_COORDINATION':
+      // For complex tasks requiring multiple agents
+      return determineMultiAgentTeam(task);
+    default:
+      // If we can't determine a specific agent, return an empty array
+      // The MCP will handle this case
+      return [];
   }
+}
+
+/**
+ * For complex tasks, determine the optimal team of agents
+ */
+export function determineMultiAgentTeam(task: AgentTask): AgentType[] {
+  const { context } = task;
+  const team: AgentType[] = [];
+  
+  // Enhanced team composition based on task context with more granular analysis
+  if (context.includes('learning_path') || context.includes('study_plan')) {
+    team.push('LEARNING_PATH');
+  }
+  
+  if (context.includes('assessment') || context.includes('test') || context.includes('quiz')) {
+    team.push('ASSESSMENT');
+  }
+  
+  if (context.includes('content') || context.includes('material') || context.includes('resources')) {
+    team.push('CONTENT_ADAPTATION');
+  }
+  
+  if (context.includes('user_profile') || context.includes('cognitive') || context.includes('learning_style')) {
+    team.push('COGNITIVE_PROFILE');
+  }
+  
+  if (context.includes('feedback') || context.includes('review') || context.includes('evaluation')) {
+    team.push('FEEDBACK');
+  }
+  
+  if (context.includes('engagement') || context.includes('motivation') || context.includes('gamification')) {
+    team.push('ENGAGEMENT');
+  }
+  
+  if (context.includes('ui') || context.includes('interface') || context.includes('display')) {
+    team.push('UI_UX');
+  }
+  
+  if (context.includes('schedule') || context.includes('timing') || context.includes('planning') || 
+      context.includes('spaced_repetition') || context.includes('flashcard')) {
+    team.push('SCHEDULING');
+  }
+  
+  // If we couldn't determine a specific team, default to the core agents
+  if (team.length === 0) {
+    return ['COGNITIVE_PROFILE', 'LEARNING_PATH', 'ASSESSMENT'];
+  }
+  
+  return team;
 }

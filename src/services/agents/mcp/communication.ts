@@ -1,57 +1,60 @@
 
-import { AgentType, AgentMessage, CommunicationManager } from '../types';
+import { AgentMessage, AgentType, MessageType } from '../types';
+import { createAgentRegistry } from './agentRegistry';
 
-class InternalCommunicationManager implements CommunicationManager {
-  private static instance: InternalCommunicationManager;
-  private messageHandlers: Map<AgentType | 'MCP', ((message: AgentMessage) => Promise<void>)[]>;
-  private messageLog: AgentMessage[];
-  
-  private constructor() {
-    this.messageHandlers = new Map();
-    this.messageLog = [];
-  }
-  
-  public static getInstance(): InternalCommunicationManager {
-    if (!InternalCommunicationManager.instance) {
-      InternalCommunicationManager.instance = new InternalCommunicationManager();
-    }
-    return InternalCommunicationManager.instance;
-  }
-  
-  public async sendMessage(message: AgentMessage): Promise<boolean> {
-    // Log the message for debugging/history
-    this.messageLog.push(message);
-    
-    // Get handlers for recipient
-    const handlers = this.messageHandlers.get(message.recipientId);
-    
-    if (!handlers || handlers.length === 0) {
-      console.warn(`No handlers registered for recipient: ${message.recipientId}`);
-      return false;
-    }
-    
-    try {
-      // Deliver message to all registered handlers
-      await Promise.all(handlers.map(handler => handler(message)));
-      return true;
-    } catch (error) {
-      console.error(`Error delivering message to ${message.recipientId}:`, error);
-      return false;
+/**
+ * CommunicationManager
+ * 
+ * Handles communication between agents in the system.
+ */
+export class CommunicationManager {
+  private agentRegistry = createAgentRegistry();
+
+  /**
+   * Broadcast a message to all agents or specific agents
+   */
+  public broadcastMessage(message: AgentMessage, targetAgents?: AgentType[]): void {
+    if (targetAgents && targetAgents.length > 0) {
+      targetAgents.forEach(agentType => {
+        const agent = this.agentRegistry.getAgent(agentType);
+        if (agent) {
+          agent.receiveMessage(message);
+        }
+      });
+    } else {
+      // Broadcast to all registered agents
+      const registeredAgents = this.agentRegistry.getRegisteredAgentTypes();
+      registeredAgents.forEach(agentType => {
+        const agent = this.agentRegistry.getAgent(agentType);
+        if (agent) {
+          agent.receiveMessage(message);
+        }
+      });
     }
   }
-  
-  public registerMessageHandler(
-    agentType: AgentType | 'MCP',
-    handler: (message: AgentMessage) => Promise<void>
+
+  /**
+   * Send a message from one agent to another
+   */
+  public sendDirectMessage(
+    fromAgent: AgentType, 
+    toAgent: AgentType, 
+    content: string, 
+    data: Record<string, any> = {}
   ): void {
-    const existingHandlers = this.messageHandlers.get(agentType) || [];
-    this.messageHandlers.set(agentType, [...existingHandlers, handler]);
-  }
-  
-  public getMessageLog(): AgentMessage[] {
-    return [...this.messageLog];
+    const targetAgent = this.agentRegistry.getAgent(toAgent);
+    
+    if (targetAgent) {
+      targetAgent.receiveMessage({
+        type: 'REQUEST' as MessageType,
+        content,
+        data,
+        timestamp: new Date().toISOString(),
+        senderId: fromAgent,
+        targetId: toAgent
+      });
+    } else {
+      console.warn(`Target agent ${toAgent} not found for direct message`);
+    }
   }
 }
-
-// Export singleton instance
-export const communicationManager = InternalCommunicationManager.getInstance();

@@ -1,17 +1,13 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Loader2 } from 'lucide-react';
 
 const ReviewLoading: React.FC = () => {
   return (
-    <Card>
-      <CardContent className="flex justify-center items-center p-12">
-        <div className="flex flex-col items-center">
-          <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p>Loading flashcards...</p>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="flex flex-col items-center justify-center p-8">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <p className="mt-4 text-muted-foreground">Loading flashcards...</p>
+    </div>
   );
 };
 

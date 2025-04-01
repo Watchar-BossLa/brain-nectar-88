@@ -1,105 +1,81 @@
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
 import { useFlashcardReview } from '@/hooks/useFlashcardReview';
-import SpacedRepetitionCard from '@/components/flashcards/SpacedRepetitionCard';
-import { Progress } from '@/components/ui/progress';
-import MainLayout from '@/layouts/MainLayout';
+import LoadingSkeleton from '@/components/flashcards/review-page/LoadingSkeleton';
+import EmptyReviewState from '@/components/flashcards/review-page/EmptyReviewState';
+import ReviewHeader from '@/components/flashcards/review-page/ReviewHeader';
+import FlashcardView from '@/components/flashcards/review-page/FlashcardView';
+import RatingButtons from '@/components/flashcards/review-page/RatingButtons';
+import { Flashcard } from '@/types/supabase';
 
 const FlashcardReview = () => {
   const {
-    flashcards,
-    currentFlashcard,
-    currentIndex,
-    isFlipped,
-    loading,
-    flipCard,
-    reviewFlashcard,
-    refreshCards
-  } = useFlashcardReview();
+    isLoading,
+    reviewCards,
+    currentCardIndex,
+    reviewStats,
+    currentCard,
+    reviewState,
+    handleFlip,
+    handleDifficultyRating,
+    handleSkip
+  } = useFlashcardReview(() => {
+    // Callback for when review is complete
+    console.log("Review completed");
+  });
 
-  const handleSkip = () => {
-    if (currentIndex < flashcards.length - 1) {
-      // For now, just move to the next card without updating
-      // This is a temporary solution until we implement proper skipping
-      refreshCards();
-    }
-  };
-
-  if (loading) {
-    return (
-      <MainLayout>
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin h-10 w-10 border-4 border-blue-500 rounded-full border-t-transparent"></div>
-        </div>
-      </MainLayout>
-    );
+  if (isLoading) {
+    return <LoadingSkeleton />;
   }
 
-  if (!flashcards || flashcards.length === 0) {
-    return (
-      <MainLayout>
-        <Card>
-          <CardHeader>
-            <CardTitle>No Flashcards Due</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="mb-4">You don't have any flashcards due for review right now. Check back later!</p>
-            <Button onClick={refreshCards}>Check Again</Button>
-          </CardContent>
-        </Card>
-      </MainLayout>
-    );
+  if (!reviewCards || reviewCards.length === 0) {
+    return <EmptyReviewState />;
   }
 
-  if (currentIndex >= flashcards.length) {
-    return (
-      <MainLayout>
-        <Card>
-          <CardHeader>
-            <CardTitle>Review Complete!</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="mb-4">You've completed your review session for today!</p>
-            <Button onClick={refreshCards}>Start New Session</Button>
-          </CardContent>
-        </Card>
-      </MainLayout>
-    );
-  }
+  const reviewsCompleted = reviewStats.totalReviewed || 0;
+  const totalToReview = reviewCards.length || 0;
+  const isFlipped = reviewState === 'answering';
 
-  const progress = Math.round((currentIndex / flashcards.length) * 100);
+  // Safe conversion of the currentCard to Supabase Flashcard type
+  const displayCard: Flashcard = currentCard ? {
+    id: currentCard.id,
+    user_id: currentCard.user_id || '',
+    topic_id: currentCard.topicId || currentCard.topic_id || null,
+    front_content: currentCard.front || currentCard.front_content || '',
+    back_content: currentCard.back || currentCard.back_content || '',
+    difficulty: currentCard.difficulty || 0,
+    next_review_date: currentCard.next_review_date || new Date().toISOString(),
+    repetition_count: currentCard.repetition_count || 0,
+    mastery_level: currentCard.mastery_level || 0,
+    created_at: currentCard.created_at || new Date().toISOString(),
+    updated_at: currentCard.updated_at || new Date().toISOString(),
+    easiness_factor: currentCard.easiness_factor || 2.5,
+    last_retention: currentCard.last_retention || 0,
+    last_reviewed_at: currentCard.last_reviewed_at || null
+  } : {} as Flashcard;
 
   return (
-    <MainLayout>
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <div className="text-sm font-medium">
-              Progress: {currentIndex} of {flashcards.length} cards
-            </div>
-            <div className="text-sm font-medium">{progress}%</div>
-          </div>
-          <Progress value={progress} className="h-2" />
-        </div>
-        
-        {currentFlashcard && (
-          <SpacedRepetitionCard
-            flashcard={currentFlashcard}
-            onComplete={async (difficulty) => {
-              await reviewFlashcard(currentFlashcard.id, difficulty);
-            }}
-          />
-        )}
-
-        <div className="mt-6 flex justify-end">
-          <Button variant="outline" onClick={handleSkip}>
-            Skip for now
-          </Button>
-        </div>
-      </div>
-    </MainLayout>
+    <div className="container max-w-5xl py-10">
+      <ReviewHeader 
+        reviewsCompleted={reviewsCompleted} 
+        totalToReview={totalToReview} 
+      />
+      
+      {currentCard && (
+        <FlashcardView
+          flashcard={displayCard}
+          isFlipped={isFlipped}
+          onFlip={handleFlip}
+        />
+      )}
+      
+      <RatingButtons 
+        isFlipped={isFlipped}
+        onRating={handleDifficultyRating}
+        onSkip={handleSkip}
+        onRevealAnswer={handleFlip}
+      />
+    </div>
   );
 };
 

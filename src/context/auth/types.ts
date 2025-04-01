@@ -1,24 +1,38 @@
 
-import { User } from '@supabase/supabase-js';
+import type { Session } from '@supabase/supabase-js';
 
-export interface AuthContextType {
-  user: User | null;
-  loading: boolean;
-  error: Error | null;
-  signIn: (email: string, password: string) => Promise<any>;
-  signUp: (email: string, password: string, name: string) => Promise<any>;
-  signOut: () => Promise<void>;
-  signInWithGoogle?: () => Promise<void>;
-  isAdmin?: boolean;
+// Define AuthUser interface
+export interface AuthUser {
+  id: string;
+  email?: string;
+  app_metadata: {
+    provider?: string;
+    [key: string]: any;
+  };
+  user_metadata: {
+    avatar_url?: string;
+    full_name?: string;
+    [key: string]: any;
+  };
+  aud: string;
 }
 
-// Define the platform owner as an object with name and email properties
 export interface PlatformOwnerType {
   email: string;
-  name: string;
+  [key: string]: string;
 }
 
-export const PLATFORM_OWNER: PlatformOwnerType = {
-  email: 'admin@studybee.com',
-  name: 'Admin'
-};
+export interface AuthContextType {
+  session: Session | null;
+  user: AuthUser | null;
+  loading: boolean;
+  signIn: (email: string, password: string, callback?: (success: boolean) => void) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, callback?: (success: boolean) => void) => Promise<{ error: Error | null }>;
+  signInWithGoogle: (callback?: () => void) => Promise<{ error: Error | null }>;
+  signOut: (callback?: () => void) => Promise<void>;
+  platformOwner: {
+    email: string;
+    [key: string]: string;
+  };
+  isAdmin: boolean;
+}

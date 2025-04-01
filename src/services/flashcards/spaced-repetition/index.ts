@@ -1,31 +1,48 @@
 
-// Export specific functions
-export { 
-  getFlashcardLearningStats,
-  getDueFlashcards,
-  getAllFlashcards
-} from './retrieval-service';
+/**
+ * Main entry point for the spaced repetition system
+ * Re-exports all functionality from specialized modules
+ */
 
-// Create a service object for compatibility
-export const spacedRepetitionService = {
-  getFlashcardLearningStats: async (userId: string, flashcardId?: string) => {
-    const { getFlashcardLearningStats } = await import('./retrieval-service');
-    return getFlashcardLearningStats(userId, flashcardId);
-  },
+// Import the algorithm
+import { calculateNextReview } from './algorithm';
+
+// Import services
+import { ReviewService, reviewService } from './review-service';
+import { RetrievalService, retrievalService } from './retrieval-service';
+import { StatsService, statsService } from './stats-service';
+
+// Import types
+import { FlashcardReviewResult } from './types';
+
+// Re-export the algorithm
+export { calculateNextReview } from './algorithm';
+
+// Re-export the services
+export { reviewService } from './review-service';
+export { retrievalService } from './retrieval-service';
+export { statsService } from './stats-service';
+
+// Re-export types
+export type { FlashcardReviewResult } from './types';
+
+// Create a single facade for convenience
+export class SpacedRepetitionService {
+  // Re-export methods from individual services as class methods
+  public calculateNextReview = calculateNextReview;
   
-  getDueFlashcards: async (userId: string) => {
-    const { getDueFlashcards } = await import('./retrieval-service');
-    return getDueFlashcards(userId);
-  },
-  
-  getAllFlashcards: async (userId: string) => {
-    const { getAllFlashcards } = await import('./retrieval-service');
-    return getAllFlashcards(userId);
-  },
-  
-  recordReview: async (flashcardId: string, difficulty: number) => {
-    // This is a stub function to maintain compatibility
-    console.log(`Recording review for flashcard ${flashcardId} with difficulty ${difficulty}`);
-    return { success: true };
+  public async recordReview(reviewResult: FlashcardReviewResult): Promise<boolean> {
+    return reviewService.recordReview(reviewResult);
   }
-};
+  
+  public async getDueFlashcards(userId: string, limit: number = 20): Promise<any[]> {
+    return retrievalService.getDueFlashcards(userId, limit);
+  }
+  
+  public async getFlashcardStats(userId: string) {
+    return statsService.getFlashcardStats(userId);
+  }
+}
+
+// Export a singleton instance
+export const spacedRepetitionService = new SpacedRepetitionService();

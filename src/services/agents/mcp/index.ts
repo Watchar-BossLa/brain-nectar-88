@@ -1,19 +1,13 @@
 
-// Export MCP core functionality
-import MasterControlProgram from './MCP';
-import { SystemStateManager } from './systemState';
-import { TaskQueueManager } from './taskQueueManager';
-import { TaskProcessor } from './taskProcessor';
-import { TaskRouter } from './taskRouting';
-import { communicationManager } from './communication';
+import { MasterControlProgram } from './MasterControlProgram';
 
-// Re-export components
+// Export the master control program functionality
 export { MasterControlProgram };
-export { SystemStateManager };
-export { TaskQueueManager };
-export { TaskProcessor };
-export { TaskRouter };
-export { communicationManager };
 
-// Re-export type definitions
-export type { AgentType, AgentTask } from '../types';
+// Export a singleton instance for use throughout the application
+export const mcp = MasterControlProgram.getInstance();
+
+// Re-export important types and components for easier access
+export * from './systemState';
+export * from './communication';
+export * from './taskProcessor';

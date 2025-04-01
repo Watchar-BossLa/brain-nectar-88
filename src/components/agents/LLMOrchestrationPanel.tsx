@@ -72,7 +72,7 @@ export function LLMOrchestrationPanel() {
     try {
       const result = await generateText(
         testPrompt,
-        TaskCategory.CONTENT_GENERATION,
+        TaskCategory.TEXT_GENERATION,
         0.5,
         ['accounting', 'finance']
       );

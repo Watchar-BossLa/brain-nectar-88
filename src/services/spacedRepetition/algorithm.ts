@@ -1,106 +1,168 @@
 
 /**
- * Core spaced repetition algorithm implementation
+ * Algorithm for spaced repetition based on a modified SM-2 algorithm
+ * 
+ * References:
+ * - https://www.supermemo.com/en/archives1990-2015/english/ol/sm2
+ * - https://www.msankhala.com/blog/spaced-repetition-algorithm/
  */
 
-// Constants for the spaced repetition algorithm
 export const INITIAL_EASINESS_FACTOR = 2.5;
 export const MIN_EASINESS_FACTOR = 1.3;
 
+export interface RepetitionSchedule {
+  interval: number;  // in days
+  repetition: number;
+  easinessFactor: number;
+  nextReviewDate?: Date;
+  estimatedRetention?: number;
+  masteryLevel?: number;
+}
+
 /**
- * Calculate the next review date based on difficulty rating, repetition count, and easiness factor
- * Implementing the SM-2 algorithm
+ * Calculate the next review date for a flashcard
  * 
- * @param difficulty Integer between 0-5 (0: complete blackout, 5: perfect recall)
- * @param repetitionCount Number of times the card has been reviewed
- * @param easinessFactor Current easiness factor (defaults to 2.5)
- * @returns Object with nextReviewDate, newRepetitionCount, and newEasinessFactor
+ * @param easinessFactor The easiness factor (between 1.3 and 2.5)
+ * @param repetition The number of times the card has been reviewed
+ * @returns The next review date as a string
  */
-export const calculateNextReviewDate = (difficulty: number, repetitionCount: number, easinessFactor: number = INITIAL_EASINESS_FACTOR) => {
-  // Calculate new easiness factor (EF)
-  const newEasinessFactor = Math.max(
-    MIN_EASINESS_FACTOR,
-    easinessFactor + (0.1 - (5 - difficulty) * (0.08 + (5 - difficulty) * 0.02))
-  );
-  
-  // Calculate new repetition count
-  let newRepetitionCount = repetitionCount;
-  
-  // If recall was difficult, reset the repetition count
-  if (difficulty < 3) {
-    newRepetitionCount = 0;
-  } else {
-    newRepetitionCount += 1;
-  }
-  
-  // Calculate interval based on SM-2 algorithm
-  let interval: number;
-  if (newRepetitionCount <= 1) {
-    interval = 1; // 1 day
-  } else if (newRepetitionCount === 2) {
-    interval = 6; // 6 days
-  } else {
-    // For subsequent repetitions
-    interval = Math.round((newRepetitionCount - 2) * 6 * newEasinessFactor);
-  }
-  
-  // Calculate next review date
-  const nextReviewDate = new Date();
-  nextReviewDate.setDate(nextReviewDate.getDate() + interval);
-  
-  return { nextReviewDate, newRepetitionCount, newEasinessFactor, interval };
+export const calculateNextReviewDate = (
+  easinessFactor: number,
+  repetition: number
+): string => {
+  const schedule = calculateNextReviewSchedule(easinessFactor, repetition);
+  const nextDate = new Date();
+  nextDate.setDate(nextDate.getDate() + schedule.interval);
+  return nextDate.toISOString();
 };
 
 /**
- * Calculate estimated retention rate for a flashcard
+ * Calculate the next review schedule for a flashcard
+ * Implementation of the SuperMemo SM-2 algorithm with some modifications
  * 
- * @param daysElapsed Days since last review
- * @param easinessFactor Easiness factor of the card
- * @returns Estimated retention rate (0-1)
+ * @param easinessFactor The easiness factor (between 1.3 and 2.5)
+ * @param repetition The number of times the card has been reviewed
+ * @returns An object with the next interval, repetition number, and easiness factor
  */
-export const calculateRetention = (daysElapsed: number, easinessFactor: number): number => {
-  // Using an exponential decay model: R = e^(-t/λ)
-  // where λ is related to easiness factor: higher EF = slower decay
-  const decayFactor = 3 * easinessFactor; // Scale factor to relate EF to decay rate
-  return Math.exp(-daysElapsed / decayFactor);
-};
-
-/**
- * Calculate the next review date using a simplified approach
- * For backward compatibility with other implementations
- */
-export const calculateNextReview = (difficulty: number, repetitionCount: number): { 
-  nextReviewDate: Date, 
-  newRepetitionCount: number 
-} => {
-  // Simplified algorithm implementation
+export const calculateNextReviewSchedule = (
+  easinessFactor: number,
+  repetition: number
+): RepetitionSchedule => {
   let interval: number;
-  let newRepetitionCount = repetitionCount;
   
-  if (difficulty < 3) {
-    // Reset repetition count for difficult recalls
-    newRepetitionCount = 0;
-    interval = 1; // Review again in 1 day
+  // Standard SM-2 algorithm intervals
+  if (repetition === 0) {
+    interval = 1; // First review after 1 day
+  } else if (repetition === 1) {
+    interval = 3; // Second review after 3 days
+  } else if (repetition === 2) {
+    interval = 7; // Third review after 7 days
   } else {
-    // Increase repetition count for easy recalls
-    newRepetitionCount++;
-    
-    // Calculate interval
-    if (newRepetitionCount === 1) {
-      interval = 1; // First successful recall: 1 day
-    } else if (newRepetitionCount === 2) {
-      interval = 6; // Second successful recall: 6 days
-    } else {
-      // For subsequent successful recalls
-      const prevInterval = newRepetitionCount === 3 ? 6 : (newRepetitionCount - 2) * 6;
-      const easeFactor = 1.3 + (difficulty - 3) * 0.1;
-      interval = Math.round(prevInterval * easeFactor);
-    }
+    // For subsequent reviews, use the formula: previousInterval * easinessFactor
+    // with a maximum practical limit to avoid too long intervals
+    const previousInterval = calculateNextReviewSchedule(easinessFactor, repetition - 1).interval;
+    interval = Math.min(Math.round(previousInterval * easinessFactor), 365); // Cap at 365 days
   }
   
-  // Calculate next review date
   const nextReviewDate = new Date();
   nextReviewDate.setDate(nextReviewDate.getDate() + interval);
   
-  return { nextReviewDate, newRepetitionCount };
+  // Calculate estimated retention based on the interval and repetition count
+  const estimatedRetention = calculateEstimatedRetention(interval, repetition);
+  
+  // Calculate mastery level based on repetition count and retention
+  const masteryLevel = Math.min(1.0, repetition * 0.1 + estimatedRetention * 0.2);
+  
+  return {
+    interval,
+    repetition: repetition + 1,
+    easinessFactor,
+    nextReviewDate,
+    estimatedRetention,
+    masteryLevel
+  };
+};
+
+/**
+ * Update the easiness factor based on the quality of recall
+ * 
+ * @param currentEF The current easiness factor
+ * @param quality The quality of recall (0-5, where 0 is complete blackout, 5 is perfect recall)
+ * @returns The updated easiness factor
+ */
+export const updateEasinessFactor = (currentEF: number, quality: number): number => {
+  // SM-2 algorithm formula for updating the easiness factor
+  const newEF = currentEF + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+  return Math.max(MIN_EASINESS_FACTOR, newEF);
+};
+
+/**
+ * Calculate the retention probability based on difficulty and easiness factor
+ * 
+ * @param difficulty The difficulty rating (1-5, where 1 is easy, 5 is hard)
+ * @param easinessFactor The easiness factor of the card
+ * @returns The estimated retention probability (0-1)
+ */
+export const calculateRetention = (difficulty: number, easinessFactor: number): number => {
+  // Convert 1-5 difficulty to 0-1 range (inverted, since higher difficulty means lower retention)
+  const normalizedDifficulty = (6 - difficulty) / 5;
+  
+  // Normalize easiness factor to 0-1 range
+  const normalizedEF = (easinessFactor - MIN_EASINESS_FACTOR) / (INITIAL_EASINESS_FACTOR - MIN_EASINESS_FACTOR);
+  
+  // Calculate retention based on difficulty and easiness factor
+  // This is a simplified model that combines difficulty rating and easiness factor
+  const rawRetention = 0.5 + (normalizedDifficulty * 0.3) + (normalizedEF * 0.2);
+  
+  // Ensure retention is between 0.1 and 1.0
+  return Math.min(1.0, Math.max(0.1, rawRetention));
+};
+
+/**
+ * Calculate the mastery level for a card based on its history
+ * 
+ * @param currentMastery The current mastery level (0-1)
+ * @param retention The estimated retention probability
+ * @param difficulty The difficulty rating (1-5)
+ * @returns The updated mastery level (0-1)
+ */
+export const calculateMasteryLevel = (
+  currentMastery: number,
+  retention: number,
+  difficulty: number
+): number => {
+  // Convert difficulty to a mastery impact factor
+  // Easier cards (low difficulty) increase mastery more
+  const masteryImpact = (6 - difficulty) / 5;
+  
+  // Calculate mastery change based on retention and impact
+  const masteryChange = (retention * masteryImpact * 0.1);
+  
+  // Calculate new mastery level
+  const newMastery = currentMastery + masteryChange;
+  
+  // Ensure mastery is between 0 and 1
+  return Math.min(1.0, Math.max(0, newMastery));
+};
+
+/**
+ * Calculate estimated retention based on interval and repetition count
+ * Uses the forgetting curve formula: R = e^(-t/S), where:
+ * - R is retention (0-1)
+ * - t is time in days
+ * - S is strength of memory (increases with repetition)
+ * 
+ * @param interval Days until next review
+ * @param repetition Number of successful reviews
+ * @returns Estimated retention (0-1) at review time
+ */
+export const calculateEstimatedRetention = (interval: number, repetition: number): number => {
+  // Memory strength increases with each successful review
+  const memoryStrength = 1 + repetition * 0.7;
+  
+  // Apply forgetting curve formula
+  const retention = Math.exp(-interval / (memoryStrength * 10));
+  
+  // Ensure retention is between 0.1 and 0.95
+  return Math.min(0.95, Math.max(0.1, retention));
 };

@@ -1,102 +1,82 @@
 
-import { v4 as uuidv4 } from 'uuid';
-import { CognitiveProfile } from '@/services/agents/types';
+import { CognitiveProfile } from '../types';
+import { DataAnalysisUtils } from './utils/dataAnalysis';
+import { LearningHistoryService } from './utils/historyService';
+import { supabase } from '@/integrations/supabase/client';
 
+/**
+ * Creates and updates cognitive profiles
+ */
 export class ProfileGenerator {
   /**
-   * Generate an initial cognitive profile for a new user
+   * Create an initial cognitive profile for a new user
    */
-  public generateInitialProfile(userId: string): CognitiveProfile {
-    return {
-      userId: userId,
-      learningStyle: {
-        visual: 0.6,
-        auditory: 0.4,
-        reading: 0.5,
-        kinesthetic: 0.3
-      },
-      strengths: ['basic-concepts', 'terminology'],
-      weaknesses: ['complex-formulas', 'regulatory-frameworks'],
-      recommendedTopics: ['accounting-fundamentals', 'basic-financial-statements'],
-      retentionPatterns: {
-        shortTerm: 0.8,
-        mediumTerm: 0.6,
-        longTerm: 0.4
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      // Using optional props that were added to CognitiveProfile
-      preferredContentFormats: ['text', 'diagrams', 'interactive'],
-      learningSpeed: 0.5,
-      knowledgeGraph: {
-        accounting: {
-          familiarity: 0.3,
-          connections: ['finance', 'business']
-        },
-        finance: {
-          familiarity: 0.2,
-          connections: ['economics', 'accounting']
-        }
-      },
-      lastUpdated: new Date().toISOString(),
-      // Add compatibility properties
-      visual: 0.6,
-      auditory: 0.4,
-      reading: 0.5,
-      kinesthetic: 0.3
-    };
-  }
-  
-  /**
-   * Update a cognitive profile based on learning activities
-   */
-  public updateProfileFromActivities(
-    existingProfile: CognitiveProfile,
-    activities: any[]
-  ): CognitiveProfile {
-    // This is a simplified implementation
-    // In a real system, we would analyze activities in detail
+  public async createInitialCognitiveProfile(userId: string): Promise<CognitiveProfile> {
+    console.log(`Creating initial cognitive profile for user ${userId}`);
     
-    const updatedProfile: CognitiveProfile = {
-      ...existingProfile,
-      updatedAt: new Date().toISOString(),
+    // Fetch user learning history to inform the initial profile
+    const learningHistory = await LearningHistoryService.fetchUserLearningHistory(userId);
+    
+    // Create a default profile
+    const profile: CognitiveProfile = {
+      userId,
+      learningSpeed: {},
+      preferredContentFormats: ['text', 'video'],
+      knowledgeGraph: {},
+      attentionSpan: 25, // Default: 25 minutes (Pomodoro-inspired)
+      retentionRates: {},
       lastUpdated: new Date().toISOString()
     };
     
-    // For demonstration purposes, we'll make minimal adjustments
-    // based on activity count
-    if (activities.length > 0) {
-      const topicFrequency: Record<string, number> = {};
+    // If we have learning history, use it to populate the initial profile
+    if (learningHistory.length > 0) {
+      // Analyze content interaction patterns
+      const contentTypes = DataAnalysisUtils.analyzeContentInteractions(learningHistory);
+      if (contentTypes.length > 0) {
+        profile.preferredContentFormats = contentTypes;
+      }
       
-      // Count topic frequencies in activities
-      activities.forEach(activity => {
-        const topic = activity.topic || 'general';
-        topicFrequency[topic] = (topicFrequency[topic] || 0) + 1;
-      });
+      // Estimate learning speed across different domains
+      profile.learningSpeed = DataAnalysisUtils.estimateLearningSpeed(learningHistory);
       
-      // Find top topics
-      const topTopics = Object.entries(topicFrequency)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 3)
-        .map(([topic]) => topic);
-        
-      // Update strengths with top topics
-      updatedProfile.strengths = [
-        ...new Set([...updatedProfile.strengths, ...topTopics])
-      ].slice(0, 5);
+      // Build initial knowledge graph from completed topics
+      profile.knowledgeGraph = DataAnalysisUtils.buildInitialKnowledgeGraph(learningHistory);
     }
+    
+    // In a real implementation, we would store this profile in the database
+    /*
+    await supabase
+      .from('cognitive_profiles')
+      .insert(profile);
+    */
+    
+    return profile;
+  }
+  
+  /**
+   * Update an existing cognitive profile with new data
+   */
+  public async updateCognitiveProfile(
+    existingProfile: CognitiveProfile, 
+    newData: Record<string, any>
+  ): Promise<CognitiveProfile> {
+    console.log(`Updating cognitive profile for user ${existingProfile.userId}`);
+    
+    // Merge existing profile with new data
+    const updatedProfile: CognitiveProfile = {
+      ...existingProfile,
+      ...newData,
+      lastUpdated: new Date().toISOString()
+    };
+    
+    // In a real implementation, we would update the profile in the database
+    /*
+    await supabase
+      .from('cognitive_profiles')
+      .update(updatedProfile)
+      .eq('user_id', updatedProfile.userId);
+    */
     
     return updatedProfile;
   }
-
-  /**
-   * Create initial cognitive profile
-   * Added for compatibility with existing code
-   */
-  public createInitialCognitiveProfile(userId: string): Promise<CognitiveProfile> {
-    const profile = this.generateInitialProfile(userId);
-    return Promise.resolve(profile);
-  }
 }
-
-export const profileGenerator = new ProfileGenerator();

@@ -20,13 +20,6 @@ export function useQuizState(initialDifficulty: 1 | 2 | 3 = 2): QuizStateWithSet
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<string>('accounting');
   const [quizLength, setQuizLength] = useState(5);
-  const [questionCount, setQuestionCount] = useState(5);
-  
-  // Additional properties for the expanded QuizState
-  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [userAnswers, setUserAnswers] = useState<string[]>([]);
-  const [quizStatus, setQuizStatus] = useState<'setup' | 'in-progress' | 'completed'>('setup');
 
   return {
     // State
@@ -44,11 +37,6 @@ export function useQuizState(initialDifficulty: 1 | 2 | 3 = 2): QuizStateWithSet
     startTime,
     quizLength,
     selectedSubject,
-    questionCount,
-    questions,
-    currentQuestionIndex,
-    userAnswers,
-    quizStatus,
     
     // Setters
     setActiveQuiz,
@@ -64,7 +52,6 @@ export function useQuizState(initialDifficulty: 1 | 2 | 3 = 2): QuizStateWithSet
     setSelectedTopics,
     setStartTime,
     setQuizLength,
-    setSelectedSubject,
-    setQuestionCount
+    setSelectedSubject
   };
 }

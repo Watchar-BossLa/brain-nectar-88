@@ -1,12 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth';
-import { fetchDueFlashcards, fetchFlashcardsByTopic } from '@/services/spacedRepetition';
+import { getDueFlashcards, getFlashcardsByTopic } from '@/services/spacedRepetition';
 import { Topic, Flashcard } from '@/types/supabase';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { useNavigate } from 'react-router-dom';
 
 interface AdaptiveLearningPathProps {
@@ -28,12 +27,22 @@ const AdaptiveLearningPath: React.FC<AdaptiveLearningPathProps> = ({ topics }) =
 
       for (const topic of topics) {
         try {
-          // Get due flashcards for this topic
-          const dueCardsInTopic = await fetchDueFlashcards(user.id, topic.id);
-          
-          // Get all flashcards for this topic
-          const allCardsForTopic = await fetchFlashcardsByTopic(user.id, topic.id);
+          const topicCards = await getDueFlashcards(user.id);
+          const allCardsForTopicResult = await getFlashcardsByTopic(user.id, topic.id);
 
+          if (allCardsForTopicResult.error) {
+            console.error("Error fetching flashcards by topic:", allCardsForTopicResult.error);
+            continue;
+          }
+
+          const allCardsForTopic = allCardsForTopicResult.data || [];
+
+          if (topicCards.error) {
+            console.error("Error fetching due flashcards:", topicCards.error);
+            continue;
+          }
+
+          const dueCardsInTopic = topicCards.data?.filter(card => card.topic_id === topic.id) || [];
           const totalCardsInTopic = allCardsForTopic.length;
           const reviewedCards = totalCardsInTopic - dueCardsInTopic.length;
 
@@ -75,13 +84,10 @@ const AdaptiveLearningPath: React.FC<AdaptiveLearningPathProps> = ({ topics }) =
                   </p>
                 </>
               )}
-              <Button 
-                onClick={() => navigateToReview(topic.id)}
-                className="mt-4"
-              >
-                Review Flashcards
-              </Button>
             </CardContent>
+            <Button onClick={() => navigateToReview(topic.id)}>
+              Review Flashcards
+            </Button>
           </Card>
         ))}
       </div>

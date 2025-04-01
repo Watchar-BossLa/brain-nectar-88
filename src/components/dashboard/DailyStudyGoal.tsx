@@ -1,10 +1,16 @@
 
 import React from 'react';
+import { motion } from 'framer-motion';
 import { Progress } from '@/components/ui/progress';
 
 const DailyStudyGoal = () => {
   return (
-    <div className="border border-border rounded-xl p-5 bg-card transition-all duration-300">
+    <motion.div 
+      className="border border-border rounded-xl p-5 bg-card"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.4 }}
+    >
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
         <div>
           <h2 className="text-xl font-semibold">Daily Study Goal</h2>
@@ -19,7 +25,7 @@ const DailyStudyGoal = () => {
         <span className="text-sm text-muted-foreground">45 minutes completed</span>
         <span className="text-sm text-muted-foreground">45 minutes remaining</span>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

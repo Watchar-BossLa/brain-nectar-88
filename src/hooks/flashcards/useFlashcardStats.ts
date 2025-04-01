@@ -1,40 +1,40 @@
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/context/auth';
-import { getFlashcardStats } from '@/services/spacedRepetition/flashcardStats';
+import { useAuth } from '@/context/AuthContext';
+import { spacedRepetitionService } from '@/services/flashcards/spacedRepetitionService';
 
+/**
+ * Hook for retrieving flashcard statistics
+ */
 export const useFlashcardStats = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({
-    totalCount: 0,
-    reviewedCount: 0,
-    masteredCount: 0,
-    dueTodayCount: 0,
-    averageRetention: 0
+    totalCards: 0,
+    masteredCards: 0,
+    dueCards: 0,
+    averageDifficulty: 0,
+    reviewsToday: 0
   });
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
-      loadStats();
+      fetchStats();
     }
   }, [user]);
-
-  const loadStats = async () => {
-    setLoading(true);
+  
+  const fetchStats = async () => {
+    if (!user) return;
+    
     try {
-      const flashcardStats = await getFlashcardStats(user?.id);
+      const flashcardStats = await spacedRepetitionService.getFlashcardStats(user.id);
       setStats(flashcardStats);
     } catch (error) {
-      console.error('Error loading flashcard stats:', error);
-    } finally {
-      setLoading(false);
+      console.error('Error fetching flashcard stats:', error);
     }
   };
 
   return {
     stats,
-    loading,
-    refreshStats: loadStats
+    fetchStats
   };
 };

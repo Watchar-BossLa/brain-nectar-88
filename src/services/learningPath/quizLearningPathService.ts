@@ -1,52 +1,87 @@
 
-import { QuizResults } from '@/components/quiz/types';
+import { supabase } from '@/integrations/supabase/client';
+import { QuizResults } from '@/types/quiz';
+import { analyzeQuizPerformance } from './quizPerformanceAnalyzer';
+import { submitTask } from '../agents/taskQueue';
 
 /**
- * Updates the learning path based on quiz results
+ * Update learning paths based on quiz results
  */
-export const updateLearningPathFromQuizResults = async (userId: string, results: QuizResults): Promise<boolean> => {
-  console.log(`Updating learning path for user ${userId} based on quiz results`);
-  
+export const updateLearningPathFromQuizResults = async (
+  userId: string,
+  results: QuizResults
+): Promise<void> => {
   try {
-    // In a real implementation, this would update the database
-    // For now, we'll just return success
+    if (!userId || !results) return;
     
-    // Process topic performance
-    const weakTopics: string[] = [];
-    const strongTopics: string[] = [];
+    // Analyze quiz results to find weak topics
+    const weakTopics = analyzeQuizPerformance(results);
     
-    // Extract performance data from the results
-    Object.entries(results.performanceByTopic || {}).forEach(([topic, performance]) => {
-      const correct = performance.correct;
-      const total = performance.total;
+    console.log('Weak topics identified from quiz:', weakTopics);
+    
+    // If there are weak topics, submit a task to update the learning path
+    if (weakTopics.length > 0) {
+      await submitTask(
+        userId,
+        'LEARNING_PATH_UPDATE',
+        'Update learning path based on quiz results',
+        {
+          weakTopics,
+          quizResults: results,
+          timestamp: new Date().toISOString()
+        },
+        'MEDIUM'
+      );
       
-      if (correct / total < 0.6) {
-        weakTopics.push(topic);
-      } else if (correct / total > 0.8) {
-        strongTopics.push(topic);
-      }
-    });
-    
-    console.log('Weak topics identified:', weakTopics);
-    console.log('Strong topics identified:', strongTopics);
-    
-    // Return success
-    return true;
+      console.log('Learning path update task submitted based on quiz results');
+    }
   } catch (error) {
-    console.error('Error updating learning path:', error);
-    return false;
+    console.error('Error updating learning path from quiz results:', error);
   }
 };
 
 /**
- * Get recommended topics based on user performance
+ * Get recommended topics for a user based on quiz performance
  */
 export const getRecommendedTopics = async (userId: string): Promise<string[]> => {
-  // In a real implementation, this would query the database
-  // For now, return some default topics
-  return [
-    'Financial Statements',
-    'Accounting Principles',
-    'Balance Sheet Analysis'
-  ];
+  try {
+    // Get recent quiz sessions to analyze performance
+    const { data, error } = await supabase
+      .from('quiz_sessions')
+      .select('*, topics')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(5);
+      
+    if (error || !data || data.length === 0) {
+      console.log('No quiz sessions found for user');
+      return [];
+    }
+    
+    // Combine topic performance from all sessions
+    const combinedTopicPerformance: Record<string, { correct: number; total: number }> = {};
+    
+    data.forEach(session => {
+      if (session.topics) {
+        Object.entries(session.topics).forEach(([topic, performance]) => {
+          if (!combinedTopicPerformance[topic]) {
+            combinedTopicPerformance[topic] = { correct: 0, total: 0 };
+          }
+          
+          combinedTopicPerformance[topic].correct += performance.correct;
+          combinedTopicPerformance[topic].total += performance.total;
+        });
+      }
+    });
+    
+    // Find topics with less than 70% accuracy
+    const recommendedTopics = Object.entries(combinedTopicPerformance)
+      .filter(([_, { correct, total }]) => (correct / total) < 0.7 && total >= 3)
+      .map(([topic]) => topic);
+      
+    return recommendedTopics;
+  } catch (error) {
+    console.error('Error getting recommended topics:', error);
+    return [];
+  }
 };

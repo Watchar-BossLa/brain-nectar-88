@@ -1,31 +1,58 @@
 
 import React from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle } from 'lucide-react';
 
 interface ReviewCompleteProps {
-  restartReview: () => void;
-  totalCards: number;
+  flashcardsCount: number;
+  retentionStats: {
+    overall: number;
+    improved: number;
+  };
+  onRestart?: () => void;
 }
 
-const ReviewComplete: React.FC<ReviewCompleteProps> = ({ restartReview, totalCards }) => {
+const ReviewComplete: React.FC<ReviewCompleteProps> = ({ 
+  flashcardsCount, 
+  retentionStats, 
+  onRestart 
+}) => {
   return (
-    <Card className="text-center">
+    <Card className="w-full">
       <CardHeader>
-        <CardTitle className="flex justify-center">
-          <CheckCircle className="text-green-500 h-12 w-12 mb-2" />
-        </CardTitle>
+        <CardTitle className="text-center">Review Complete!</CardTitle>
+        <CardDescription className="text-center">
+          {flashcardsCount === 0 
+            ? "You don't have any flashcards due for review right now." 
+            : `You've reviewed all ${flashcardsCount} cards due today!`}
+        </CardDescription>
       </CardHeader>
-      <CardContent>
-        <h2 className="text-2xl font-bold mb-2">Review Complete!</h2>
-        <p className="text-muted-foreground mb-6">
-          You've successfully reviewed {totalCards} {totalCards === 1 ? 'card' : 'cards'}.
-        </p>
-        <Button onClick={restartReview}>
-          Start Another Review
-        </Button>
+      <CardContent className="space-y-4">
+        {flashcardsCount > 0 && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-center gap-8">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-primary">{retentionStats.overall}%</div>
+                <div className="text-sm text-muted-foreground">Overall Retention</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-500">+{retentionStats.improved}%</div>
+                <div className="text-sm text-muted-foreground">Improved Today</div>
+              </div>
+            </div>
+            
+            <div className="flex justify-center">
+              <CheckCircle className="h-16 w-16 text-green-500" />
+            </div>
+          </div>
+        )}
       </CardContent>
+      <CardFooter className="flex justify-center">
+        {flashcardsCount > 0 && onRestart && (
+          <Button onClick={onRestart}>Review Again</Button>
+        )}
+      </CardFooter>
     </Card>
   );
 };
