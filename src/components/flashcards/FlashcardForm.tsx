@@ -43,8 +43,8 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({ onFlashcardCreated }) => 
     setIsSubmitting(true);
     
     try {
-      // Create the flashcard with just front and back content
-      await createFlashcard(frontContent, backContent);
+      // Create the flashcard with front and back content
+      await createFlashcard(user.id, frontContent, backContent);
       
       toast({
         title: 'Success',

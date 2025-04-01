@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/context/auth/AuthContext';
+import { useAuth } from '@/context/auth';
 import { getDueFlashcards, updateFlashcardAfterReview } from '@/services/spacedRepetition';
 import { useToast } from '@/hooks/use-toast';
 import { Flashcard } from '@/types/supabase';
@@ -51,7 +51,7 @@ export const useFlashcardReview = () => {
     if (!user) return;
     
     try {
-      // Convert numeric difficulty to string for API
+      // Update the flashcard with the provided difficulty rating
       await updateFlashcardAfterReview(flashcardId, difficulty);
       
       // Move to next card

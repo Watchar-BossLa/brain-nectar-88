@@ -3,21 +3,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { calculateNextReviewDate, INITIAL_EASINESS_FACTOR, MIN_EASINESS_FACTOR } from './algorithm';
 
 /**
- * Update a flashcard after review
- * @param flashcardId - ID of the flashcard
- * @param difficulty - Rating from 1 (hard) to 5 (easy)
- * @param userId - User ID for security verification
+ * Update a flashcard's spaced repetition data after review
  */
-export const updateFlashcardAfterReview = async (
-  flashcardId: string, 
-  difficulty: number,
-  userId?: string
-) => {
+export const updateFlashcardAfterReview = async (flashcardId: string, difficulty: number): Promise<boolean> => {
   try {
     // Get current flashcard data
     const { data: flashcard, error: fetchError } = await supabase
       .from('flashcards')
-      .select('*')
+      .select('repetition_count, easiness_factor')
       .eq('id', flashcardId)
       .single();
       
@@ -26,54 +19,22 @@ export const updateFlashcardAfterReview = async (
       return false;
     }
     
-    if (!flashcard) {
-      console.error('Flashcard not found');
-      return false;
-    }
+    // Calculate next review date
+    const { nextReviewDate, newRepetitionCount, newEasinessFactor } = calculateNextReviewDate(
+      difficulty,
+      flashcard?.repetition_count || 0,
+      flashcard?.easiness_factor || INITIAL_EASINESS_FACTOR
+    );
     
-    // If userId is provided, check if the flashcard belongs to the user
-    if (userId && flashcard.user_id !== userId) {
-      console.error('Unauthorized: Flashcard does not belong to user');
-      return false;
-    }
-    
-    // Calculate new review parameters
-    const currentEasinessFactor = flashcard.easiness_factor || INITIAL_EASINESS_FACTOR;
-    const currentRepetitionCount = flashcard.repetition_count || 0;
-    
-    const { 
-      nextReviewDate, 
-      newRepetitionCount, 
-      newEasinessFactor 
-    } = calculateNextReviewDate(difficulty, currentRepetitionCount, currentEasinessFactor);
-    
-    // Calculate mastery level (simple formula based on repetitions)
-    const masteryLevel = Math.min(1.0, (newRepetitionCount / 10) + (newEasinessFactor - 1.3) / 2.5 * 0.5);
-    
-    // Record the review
-    const { error: reviewError } = await supabase
-      .from('flashcard_reviews')
-      .insert({
-        flashcard_id: flashcardId,
-        difficulty_rating: difficulty,
-        user_id: userId || flashcard.user_id,
-        retention_estimate: flashcard.last_retention || 0.85,
-      });
-      
-    if (reviewError) {
-      console.error('Error recording review:', reviewError);
-    }
-    
-    // Update the flashcard
+    // Update flashcard with new review data
     const { error: updateError } = await supabase
       .from('flashcards')
       .update({
-        easiness_factor: newEasinessFactor,
+        difficulty,
         repetition_count: newRepetitionCount,
-        last_reviewed_at: new Date().toISOString(),
+        easiness_factor: newEasinessFactor,
         next_review_date: nextReviewDate.toISOString(),
-        mastery_level: masteryLevel,
-        difficulty: difficulty
+        last_reviewed_at: new Date().toISOString()
       })
       .eq('id', flashcardId);
       
@@ -84,7 +45,7 @@ export const updateFlashcardAfterReview = async (
     
     return true;
   } catch (error) {
-    console.error('Error in updateFlashcardAfterReview:', error);
+    console.error('Error recording flashcard review:', error);
     return false;
   }
 };

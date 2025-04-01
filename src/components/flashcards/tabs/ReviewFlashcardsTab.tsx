@@ -1,175 +1,153 @@
-
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { useAuth } from '@/context/auth/AuthContext';
-import { spacedRepetitionService } from '@/services/flashcards/spacedRepetitionService';
-import { Flashcard } from '@/hooks/flashcards/types';
+import { useToast } from '@/hooks/use-toast';
+import { Progress } from '@/components/ui/progress';
+import { useAuth } from '@/context/auth';
+import { getDueFlashcards, updateFlashcardAfterReview } from '@/services/spacedRepetition';
 
 interface ReviewFlashcardsTabProps {
   onComplete: () => void;
 }
 
-const FlashcardReviewContent = ({ flashcard, isFlipped }: { flashcard: Flashcard; isFlipped: boolean }) => {
-  return (
-    <div className="min-h-[200px] flex items-center justify-center p-6">
-      <div className="text-center">
-        {isFlipped ? (
-          <div className="animate-fadeIn">
-            <div className="text-xl font-semibold">{flashcard.back_content || flashcard.back}</div>
-          </div>
-        ) : (
-          <div className="text-xl font-semibold">{flashcard.front_content || flashcard.front}</div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const FlashcardReviewCard = ({ flashcard, onFlip, isFlipped, onRate }: {
-  flashcard: Flashcard;
-  onFlip: () => void;
-  isFlipped: boolean;
-  onRate: (rating: number) => Promise<void>;
-}) => {
-  return (
-    <Card className="w-full">
-      <CardContent className="p-6 min-h-[300px] flex items-center justify-center">
-        <div className="text-center">
-          {isFlipped ? (
-            <div className="animate-fadeIn">
-              <div className="mb-4 text-xl font-semibold">{flashcard.back_content || flashcard.back}</div>
-            </div>
-          ) : (
-            <div>
-              <div className="mb-4 text-xl font-semibold">{flashcard.front_content || flashcard.front}</div>
-            </div>
-          )}
-        </div>
-      </CardContent>
-      
-      <CardFooter className="flex justify-around">
-        <Button variant="outline" onClick={() => onRate(1)}>Hard</Button>
-        <Button onClick={onFlip}>{isFlipped ? 'Show Question' : 'Show Answer'}</Button>
-        <Button variant="outline" onClick={() => onRate(5)}>Easy</Button>
-      </CardFooter>
-    </Card>
-  );
-};
-
 const ReviewFlashcardsTab: React.FC<ReviewFlashcardsTabProps> = ({ onComplete }) => {
-  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const [flashcards, setFlashcards] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
-
+  const { toast } = useToast();
+  
   useEffect(() => {
-    const fetchFlashcards = async () => {
-      setIsLoading(true);
-      try {
-        if (!user) {
-          throw new Error('User not authenticated');
-        }
-        
-        const dueCards = await spacedRepetitionService.getDueFlashcards(user.id);
-        setFlashcards(dueCards);
+    loadDueFlashcards();
+  }, [user]);
+  
+  const loadDueFlashcards = async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    try {
+      const data = await getDueFlashcards(user.id);
+      
+      if (data && data.length > 0) {
+        setFlashcards(data);
         setCurrentIndex(0);
-      } catch (error) {
-        console.error('Error fetching due flashcards:', error);
+        setIsFlipped(false);
+      } else {
+        setFlashcards([]);
         toast({
-          title: 'Error',
-          description: 'Failed to load flashcards for review',
-          variant: 'destructive'
+          title: 'No cards due',
+          description: 'You have no flashcards due for review.',
         });
-      } finally {
-        setIsLoading(false);
       }
-    };
-
-    if (user) {
-      fetchFlashcards();
+    } catch (error) {
+      console.error('Error loading flashcards:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load flashcards for review',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
     }
-  }, [user, toast]);
-
+  };
+  
   const handleFlip = () => {
     setIsFlipped(!isFlipped);
   };
-
-  const handleRating = async (rating: number) => {
-    if (!flashcards.length || currentIndex >= flashcards.length || !user) return;
-
+  
+  const handleRate = async (difficulty: number) => {
+    if (currentIndex >= flashcards.length) return;
+    
     const currentFlashcard = flashcards[currentIndex];
     
     try {
-      // Pass the rating as a number, since the service expects a number
-      await spacedRepetitionService.recordReview(currentFlashcard.id, rating, user.id);
+      // Record the review with the difficulty rating
+      await updateFlashcardAfterReview(currentFlashcard.id, difficulty);
       
+      // Move to the next card or complete the review
       if (currentIndex < flashcards.length - 1) {
         setCurrentIndex(currentIndex + 1);
         setIsFlipped(false);
       } else {
-        onComplete();
+        // End of review session
         toast({
           title: 'Review complete',
-          description: `You've reviewed all ${flashcards.length} cards due today!`,
-          duration: 5000
+          description: 'You have completed this review session!',
         });
+        onComplete();
       }
     } catch (error) {
-      console.error('Error updating flashcard after review:', error);
+      console.error('Error updating flashcard review:', error);
       toast({
         title: 'Error',
-        description: 'Failed to save your rating',
+        description: 'Failed to record your review',
         variant: 'destructive'
       });
     }
   };
-
-  if (isLoading) {
+  
+  if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[300px]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
       </div>
     );
   }
-
+  
   if (!flashcards || flashcards.length === 0) {
     return (
-      <Card>
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <h3 className="text-lg font-medium mb-2">No cards due for review</h3>
-          <p className="text-muted-foreground text-center">
-            You've caught up with all your reviews. Check back later.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="text-center py-10">
+        <h3 className="text-xl font-medium mb-2">No Flashcards Due</h3>
+        <p className="text-muted-foreground mb-4">You don't have any flashcards due for review.</p>
+        <Button onClick={loadDueFlashcards}>Check Again</Button>
+      </div>
     );
   }
-
+  
+  if (currentIndex >= flashcards.length) {
+    return (
+      <div className="text-center py-10">
+        <h3 className="text-xl font-medium mb-2">Review Complete!</h3>
+        <p className="text-muted-foreground mb-4">You've completed your review session.</p>
+        <Button onClick={onComplete}>Return to Flashcards</Button>
+      </div>
+    );
+  }
+  
   const currentFlashcard = flashcards[currentIndex];
-
+  const progress = Math.round((currentIndex / flashcards.length) * 100);
+  
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Flashcard Review</CardTitle>
-          <CardDescription>Review your flashcards using spaced repetition.</CardDescription>
-        </CardHeader>
-        
-        {currentFlashcard && (
-          <FlashcardReviewCard
-            flashcard={currentFlashcard}
-            isFlipped={isFlipped}
-            onFlip={handleFlip}
-            onRate={handleRating}
-          />
+    <Card>
+      <CardContent className="relative">
+        <Progress value={progress} className="absolute top-2 right-2 w-24" />
+        <div className="min-h-[200px] flex items-center justify-center">
+          <div className="text-center">
+            <h3 className="text-xl font-semibold mb-4">
+              {isFlipped ? 'Answer' : 'Question'}
+            </h3>
+            <p className="text-muted-foreground">
+              {isFlipped ? currentFlashcard.back_content : currentFlashcard.front_content}
+            </p>
+          </div>
+        </div>
+      </CardContent>
+      <CardFooter className="flex justify-between">
+        <Button variant="secondary" onClick={handleFlip}>
+          {isFlipped ? 'Show Question' : 'Show Answer'}
+        </Button>
+        {isFlipped && (
+          <div className="flex space-x-2">
+            <Button onClick={() => handleRate(5)}>Easy</Button>
+            <Button onClick={() => handleRate(4)}>Good</Button>
+            <Button onClick={() => handleRate(3)}>Okay</Button>
+            <Button onClick={() => handleRate(2)}>Hard</Button>
+            <Button onClick={() => handleRate(1)}>Forgot</Button>
+          </div>
         )}
-      </Card>
-    </div>
+      </CardFooter>
+    </Card>
   );
 };
 

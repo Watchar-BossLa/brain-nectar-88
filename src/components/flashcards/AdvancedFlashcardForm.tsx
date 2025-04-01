@@ -6,6 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { createFlashcard } from '@/services/spacedRepetition';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/auth';
 import FlashcardPreview from './FlashcardPreview';
 
 // Import sub-components
@@ -31,6 +32,7 @@ const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({ onSuccess
   const [contentType, setContentType] = useState<'text' | 'formula' | 'financial'>('text');
   const [financialType, setFinancialType] = useState<FinancialStatementType>('balance-sheet');
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleFinancialTypeChange = (value: FinancialStatementType) => {
     setFinancialType(value);
@@ -59,15 +61,23 @@ const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({ onSuccess
         processedBackContent = `${backContent}\n\n[fin:${financialType}]`;
       }
 
-      // Create the flashcard with processed content
-      await createFlashcard(processedFrontContent, processedBackContent);
+      // Create the flashcard with processed content and user ID
+      if (user) {
+        await createFlashcard(user.id, processedFrontContent, processedBackContent);
 
-      toast({
-        title: 'Success',
-        description: 'Flashcard created successfully.'
-      });
+        toast({
+          title: 'Success',
+          description: 'Flashcard created successfully.'
+        });
 
-      onSuccess();
+        onSuccess();
+      } else {
+        toast({
+          title: 'Error',
+          description: 'You must be logged in to create flashcards.',
+          variant: 'destructive',
+        });
+      }
     } catch (error) {
       console.error('Error creating flashcard:', error);
       toast({
