@@ -5,9 +5,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface FlashcardFormInputsProps {
-  front: string;
+  front_content: string;
   setFront: (value: string) => void;
-  back: string;
+  back_content: string;
   setBack: (value: string) => void;
   topicId?: string;
   setTopicId?: (value: string) => void;
@@ -15,9 +15,9 @@ interface FlashcardFormInputsProps {
 }
 
 const FlashcardFormInputs: React.FC<FlashcardFormInputsProps> = ({
-  front,
+  front_content,
   setFront,
-  back,
+  back_content,
   setBack,
   topicId,
   setTopicId,
@@ -30,7 +30,7 @@ const FlashcardFormInputs: React.FC<FlashcardFormInputsProps> = ({
         <Textarea
           id="front-content"
           placeholder="Enter the question or prompt (use $$formula$$ for math formulas)"
-          value={front}
+          value={front_content}
           onChange={(e) => setFront(e.target.value)}
           rows={3}
           required
@@ -41,7 +41,7 @@ const FlashcardFormInputs: React.FC<FlashcardFormInputsProps> = ({
         <Textarea
           id="back-content"
           placeholder="Enter the answer or explanation (use $$formula$$ for math formulas)"
-          value={back}
+          value={back_content}
           onChange={(e) => setBack(e.target.value)}
           rows={3}
           required

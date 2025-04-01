@@ -3,24 +3,21 @@ import React from 'react';
 import { Progress } from '@/components/ui/progress';
 
 interface ReviewProgressProps {
-  currentIndex: number;
-  totalCards: number;
+  current: number;
+  total: number;
 }
 
-const ReviewProgress: React.FC<ReviewProgressProps> = ({ currentIndex, totalCards }) => {
-  const progress = Math.round(((currentIndex) / totalCards) * 100);
-
+const ReviewProgress: React.FC<ReviewProgressProps> = ({ current, total }) => {
+  const progress = Math.round((current / total) * 100);
+  
   return (
-    <>
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">
-          Card {currentIndex + 1} of {totalCards}
-        </div>
-        <div className="text-sm font-medium">{progress}% Complete</div>
+    <div className="mb-6">
+      <div className="flex justify-between text-sm mb-1">
+        <span>Card {current} of {total}</span>
+        <span>{progress}%</span>
       </div>
-      
-      <Progress value={progress} className="h-2" />
-    </>
+      <Progress value={progress} />
+    </div>
   );
 };
 

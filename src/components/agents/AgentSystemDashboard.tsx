@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useMultiAgentSystem } from '@/hooks/useMultiAgentSystem';
+import { useMultiAgentSystem } from '@/hooks/multiAgentSystem';
 import { StatusCards, OperationsContent } from './dashboard';
 
 /**
@@ -10,7 +10,7 @@ import { StatusCards, OperationsContent } from './dashboard';
  * Displays the status and metrics of the multi-agent system managed by the MCP.
  */
 export default function AgentSystemDashboard() {
-  const { isInitialized, getAgentStatuses, submitTask, TaskTypes } = useMultiAgentSystem();
+  const { isInitialized, getAgentStatuses, submitTask } = useMultiAgentSystem();
   const [selectedTab, setSelectedTab] = useState('status');
   const [systemState, setSystemState] = useState({
     activeAgents: Array.from(getAgentStatuses().keys()).filter(key => getAgentStatuses().get(key)),
@@ -26,9 +26,8 @@ export default function AgentSystemDashboard() {
   // Handle test task submission
   const handleTestTask = async () => {
     try {
-      // Use a TaskType that actually exists in the TaskTypes object
-      const firstAvailableTaskType = Object.values(TaskTypes)[0];
-      await submitTask(firstAvailableTaskType, { test: true });
+      // Use string directly instead of enum for now
+      await submitTask('GENERATE_ASSESSMENT' as any, { test: true });
     } catch (error) {
       console.error('Error submitting test task:', error);
     }

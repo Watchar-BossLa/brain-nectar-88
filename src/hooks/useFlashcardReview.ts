@@ -55,7 +55,6 @@ export const useFlashcardReview = () => {
     
     try {
       // Update the flashcard with the provided difficulty rating
-      // Convert numerical difficulty to string if needed
       await updateFlashcardAfterReview(flashcardId, difficulty);
       
       // Move to next card

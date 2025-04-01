@@ -103,9 +103,9 @@ const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({
     <Card className="w-full">
       <form onSubmit={handleSubmit} className="space-y-4 p-6">
         <FlashcardFormInputs
-          front={front}
+          front_content={front}
           setFront={setFront}
-          back={back}
+          back_content={back}
           setBack={setBack}
           topicId={selectedTopicId}
           setTopicId={setSelectedTopicId}

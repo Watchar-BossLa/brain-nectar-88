@@ -1,17 +1,11 @@
 
-// Re-export all types from the agent types file
-export type {
-  Task,
-  AgentTask,
-  AgentMessage,
-  SystemState,
-  CognitiveProfile,
-  TaskPriority,
-  TaskStatus
-} from './agentTypes';
+// Re-export agent types
 
-// Re-export enums
-export {
-  AgentType,
-  TaskType
-} from './agentTypes';
+export type { Task, AgentTask, AgentMessage, SystemState, CognitiveProfile } from './agentTypes';
+
+// Re-export TaskPriority and TaskStatus
+export { TaskPriority, TaskStatus } from './agentTypes';
+
+// Use export type for type-only exports
+export type { AgentType } from './agentTypes';
+export type { TaskType } from './agentTypes';

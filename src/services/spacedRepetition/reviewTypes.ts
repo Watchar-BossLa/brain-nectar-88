@@ -10,6 +10,15 @@ export interface FlashcardRetentionResult {
 }
 
 /**
+ * Review result for a flashcard
+ */
+export interface FlashcardReviewResult {
+  flashcardId: string;
+  difficulty: number;
+  reviewedAt: string;
+}
+
+/**
  * Learning statistics for a flashcard
  */
 export interface FlashcardLearningStats {

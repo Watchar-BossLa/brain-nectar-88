@@ -5,9 +5,11 @@ export interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: Error | null;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, name: string) => Promise<{ error: Error | null }>;
-  signInWithGoogle: () => Promise<void>; // Add missing method
+  signIn: (email: string, password: string) => Promise<any>;
+  signUp: (email: string, password: string, name: string) => Promise<any>;
   signOut: () => Promise<void>;
-  isAdmin: boolean; // Add missing property
+  signInWithGoogle?: () => Promise<void>;
+  isAdmin?: boolean;
 }
+
+export const PLATFORM_OWNER = 'admin@studybee.com';

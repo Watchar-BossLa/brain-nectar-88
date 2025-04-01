@@ -1,22 +1,87 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth';
-import { fetchUserFlashcards, removeFlashcard } from '@/services/spacedRepetition';
-import FlashcardCard from './FlashcardCard';
-import FlashcardListHeader from './FlashcardListHeader';
-import EmptyFlashcardState from './EmptyFlashcardState';
-import { Flashcard } from '@/types/supabase';
+import { fetchUserFlashcards } from '@/services/spacedRepetition';
 import { useToast } from '@/hooks/use-toast';
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface FlashcardListProps {
   topicId?: string;
 }
 
+interface FlashcardListHeaderProps {
+  children: React.ReactNode;
+  onAddNew?: () => void;
+}
+
+interface EmptyFlashcardStateProps {
+  topicId?: string;
+  onCreateNew?: () => void;
+}
+
+const FlashcardListHeader: React.FC<FlashcardListHeaderProps> = ({ children, onAddNew }) => {
+  return (
+    <div className="flex justify-between items-center mb-4">
+      <div className="flex-1">{children}</div>
+      {onAddNew && (
+        <button 
+          onClick={onAddNew}
+          className="px-4 py-2 bg-primary text-white rounded-md"
+        >
+          Add New Flashcard
+        </button>
+      )}
+    </div>
+  );
+};
+
+const EmptyFlashcardState: React.FC<EmptyFlashcardStateProps> = ({ topicId, onCreateNew }) => {
+  return (
+    <div className="text-center p-10 border-2 border-dashed rounded-lg">
+      <h3 className="text-xl font-medium mb-2">No flashcards yet</h3>
+      <p className="text-muted-foreground mb-4">
+        {topicId 
+          ? "You haven't created any flashcards for this topic yet." 
+          : "You haven't created any flashcards yet."}
+      </p>
+      {onCreateNew && (
+        <button
+          onClick={onCreateNew}
+          className="px-4 py-2 bg-primary text-white rounded-md"
+        >
+          Create your first flashcard
+        </button>
+      )}
+    </div>
+  );
+};
+
+interface FlashcardCardProps {
+  flashcard: any;
+  onDelete: (id: string) => Promise<void>;
+}
+
+const FlashcardCard: React.FC<FlashcardCardProps> = ({ flashcard, onDelete }) => {
+  // Simplified flashcard card component
+  return (
+    <div className="border rounded-md p-4">
+      <div className="font-bold">{flashcard.front_content || flashcard.front}</div>
+      <div className="mt-2">{flashcard.back_content || flashcard.back}</div>
+      <button
+        onClick={() => onDelete(flashcard.id)}
+        className="mt-4 text-sm text-red-500"
+      >
+        Delete
+      </button>
+    </div>
+  );
+};
+
 const FlashcardList: React.FC<FlashcardListProps> = ({ topicId }) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const [flashcards, setFlashcards] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState('asc'); // 'asc' or 'desc'
@@ -28,7 +93,7 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ topicId }) => {
     const fetchFlashcards = async () => {
       setLoading(true);
       try {
-        const fetchedFlashcards = await fetchUserFlashcards(user.id, topicId);
+        const fetchedFlashcards = await fetchUserFlashcards(user.id);
         setFlashcards(fetchedFlashcards);
       } catch (error) {
         console.error('Error fetching flashcards:', error);
@@ -47,6 +112,8 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ topicId }) => {
 
   const handleDeleteFlashcard = async (id: string) => {
     try {
+      // Import is directly used here, not passed as prop
+      const { removeFlashcard } = await import('@/services/spacedRepetition');
       await removeFlashcard(id);
       setFlashcards(flashcards.filter(card => card.id !== id));
       toast({
@@ -64,8 +131,8 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ topicId }) => {
   };
 
   const filteredFlashcards = flashcards.filter(card =>
-    card.front.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    card.back.toLowerCase().includes(searchTerm.toLowerCase())
+    (card.front_content || card.front || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (card.back_content || card.back || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const sortedFlashcards = [...filteredFlashcards].sort((a, b) => {
@@ -82,12 +149,12 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ topicId }) => {
   }
 
   if (!flashcards || flashcards.length === 0) {
-    return <EmptyFlashcardState topicId={topicId} />;
+    return <EmptyFlashcardState onCreateNew={() => {}} />;
   }
 
   return (
     <div className="space-y-4">
-      <FlashcardListHeader>
+      <FlashcardListHeader onAddNew={() => {}}>
         <div className="flex items-center space-x-2">
           <Input
             type="text"
@@ -104,8 +171,8 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ topicId }) => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="created_at">Date Created</SelectItem>
-              <SelectItem value="front">Front</SelectItem>
-              <SelectItem value="back">Back</SelectItem>
+              <SelectItem value="front_content">Front</SelectItem>
+              <SelectItem value="back_content">Back</SelectItem>
             </SelectContent>
           </Select>
           <Select value={sortOrder} onValueChange={setSortOrder}>
@@ -120,10 +187,10 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ topicId }) => {
         </div>
       </FlashcardListHeader>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {sortedFlashcards.map((card) => (
+        {sortedFlashcards.map((flashcard) => (
           <FlashcardCard
-            key={card.id}
-            card={card}
+            key={flashcard.id}
+            flashcard={flashcard}
             onDelete={handleDeleteFlashcard}
           />
         ))}

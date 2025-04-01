@@ -1,8 +1,4 @@
 
-import { PlatformOwnerType } from './types';
+import { PLATFORM_OWNER } from "./types";
 
-export const PLATFORM_OWNER: PlatformOwnerType = {
-  email: 'admin@studybee.com',
-  name: 'Kelvin',
-  role: 'admin'
-};
+export { PLATFORM_OWNER };

@@ -1,8 +1,7 @@
 
 import { useState } from 'react';
 import { updateFlashcardAfterReview } from '@/services/spacedRepetition';
-import { Flashcard } from '@/hooks/flashcards/types';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 /**
  * Hook for handling flashcard review actions
@@ -16,8 +15,8 @@ export const useReviewActions = (
   /**
    * Submit flashcard review
    */
-  const submitReview = async (flashcard: Flashcard, difficulty: number) => {
-    if (!flashcard?.id) {
+  const submitReview = async (flashcardId: string, difficulty: number) => {
+    if (!flashcardId) {
       toast({
         title: 'Error',
         description: 'Invalid flashcard data',
@@ -29,7 +28,7 @@ export const useReviewActions = (
     setIsSubmitting(true);
     try {
       // Use updateFlashcardAfterReview from the service
-      await updateFlashcardAfterReview(flashcard.id, difficulty);
+      await updateFlashcardAfterReview(flashcardId, difficulty);
       
       if (onReviewComplete) {
         onReviewComplete();

@@ -1,39 +1,23 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { BookText, Calculator } from 'lucide-react';
 
 interface FlashcardsHeaderProps {
-  isCreating: boolean;
-  onCreateSimpleFlashcard: () => void;
-  onCreateAdvancedFlashcard: () => void;
+  isCreating?: boolean;
+  onCreateSimpleFlashcard?: () => void;
+  onCreateAdvancedFlashcard?: () => void; 
 }
 
-const FlashcardsHeader = ({ 
-  isCreating, 
-  onCreateSimpleFlashcard, 
-  onCreateAdvancedFlashcard 
-}: FlashcardsHeaderProps) => {
+const FlashcardsHeader: React.FC<FlashcardsHeaderProps> = ({ 
+  isCreating = false,
+  onCreateSimpleFlashcard,
+  onCreateAdvancedFlashcard
+}) => {
   return (
-    <div className="flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-0">
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Flashcards</h2>
-        <p className="text-muted-foreground">
-          Create and review flashcards with spaced repetition
-        </p>
+        <h1 className="text-2xl font-bold">Flashcards</h1>
+        <p className="text-muted-foreground">Create and manage your study flashcards</p>
       </div>
-      {!isCreating && (
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Button variant="outline" onClick={onCreateSimpleFlashcard}>
-            <BookText className="mr-2 h-4 w-4" />
-            Simple Flashcard
-          </Button>
-          <Button onClick={onCreateAdvancedFlashcard}>
-            <Calculator className="mr-2 h-4 w-4" />
-            Advanced Flashcard
-          </Button>
-        </div>
-      )}
     </div>
   );
 };

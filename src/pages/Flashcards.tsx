@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/context/auth';
 import MainLayout from '@/layouts/MainLayout';
@@ -19,6 +20,7 @@ const FlashcardsPage: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('create');
+  const [isCreating, setIsCreating] = useState(false);
 
   const handleDeleteFlashcard = async (flashcardId: string) => {
     if (!user) {
@@ -49,7 +51,11 @@ const FlashcardsPage: React.FC = () => {
   return (
     <MainLayout>
       <div className="container max-w-4xl mx-auto p-4">
-        <FlashcardsHeader />
+        <FlashcardsHeader 
+          isCreating={isCreating} 
+          onCreateSimpleFlashcard={() => setActiveTab('create')}
+          onCreateAdvancedFlashcard={() => setActiveTab('advanced-create')} 
+        />
 
         <Tabs defaultValue="create" className="w-full mt-4" onValueChange={setActiveTab}>
           <TabsList>
@@ -68,7 +74,7 @@ const FlashcardsPage: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="list">
-            <FlashcardList onDeleteFlashcard={handleDeleteFlashcard} />
+            <FlashcardList />
           </TabsContent>
 
           <TabsContent value="review">

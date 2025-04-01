@@ -1,6 +1,4 @@
 
-// Fix for conflicting exports - be explicit with what we're exporting
-
 // Re-export specific functions from flashcardService with aliases to prevent conflicts
 export { 
   createFlashcard as createNewFlashcard,
@@ -23,17 +21,11 @@ export {
   MIN_EASINESS_FACTOR 
 } from './spacedRepetition/algorithm';
 
-// Re-export review functionality with explicit namespaces
-export { 
-  updateFlashcardAfterReview as updateCardReview,
-  getFlashcardLearningStats as getFCardLearningStats
-} from './spacedRepetition/reviewService';
+// Export reviewUpdate functions
+export { updateFlashcardAfterReview } from './spacedRepetition/reviewUpdate';
 
 // Re-export types
-export type { 
-  FlashcardReviewResult, 
-  FlashcardLearningStats as CardLearningStats
-} from './spacedRepetition/reviewTypes';
+export type { FlashcardReviewResult, FlashcardLearningStats } from './spacedRepetition/reviewTypes';
 
 // Re-export remaining types
 export * from './spacedRepetition/types';

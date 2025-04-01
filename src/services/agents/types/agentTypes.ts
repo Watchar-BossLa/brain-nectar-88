@@ -41,6 +41,7 @@ export interface AgentTask {
   updatedAt: string;
   completedAt?: string;
   failureReason?: string;
+  type?: string;
 }
 
 export enum TaskCategory {
@@ -88,6 +89,7 @@ export interface AgentMessage {
   data?: any;
   timestamp: string;
   priority: number;
+  messageType?: string;
 }
 
 export interface SystemState {
@@ -100,7 +102,7 @@ export interface SystemState {
 
 export interface CognitiveProfile {
   userId: string;
-  learningStyle: string;
+  learningStyle: string | { visual: number; auditory: number; reading: number; kinesthetic: number; };
   strengths: string[];
   weaknesses: string[];
   interests: string[];
@@ -122,53 +124,28 @@ export type AgentType =
   | 'ENGAGEMENT'
   | 'SCHEDULING';
 
-export type TaskType =
-  | 'CREATE_LEARNING_PATH'
-  | 'ADAPT_CONTENT'
-  | 'GENERATE_ASSESSMENT'
-  | 'PROVIDE_FEEDBACK'
-  | 'SCHEDULE_STUDY'
-  | 'PROFILE_USER'
-  | 'OPTIMIZE_UI'
-  | 'INCREASE_ENGAGEMENT';
+export interface Task {
+  id: string;
+  type: string;
+  priority: string;
+  status: string;
+  data: any;
+}
+
+export enum TaskType {
+  CREATE_LEARNING_PATH = 'CREATE_LEARNING_PATH',
+  ADAPT_CONTENT = 'ADAPT_CONTENT',
+  GENERATE_ASSESSMENT = 'GENERATE_ASSESSMENT',
+  PROVIDE_FEEDBACK = 'PROVIDE_FEEDBACK',
+  SCHEDULE_STUDY = 'SCHEDULE_STUDY',
+  PROFILE_USER = 'PROFILE_USER',
+  OPTIMIZE_UI = 'OPTIMIZE_UI',
+  INCREASE_ENGAGEMENT = 'INCREASE_ENGAGEMENT'
+}
 
 export enum TaskPriority {
   LOW = 'low',
   MEDIUM = 'medium',
   HIGH = 'high',
   CRITICAL = 'critical'
-}
-
-// Additional model types
-
-export interface ModelType {
-  id: string;
-  name: string;
-  provider: string;
-  capabilities: string[];
-  version: string;
-  maxTokens: number;
-  trainingCutoff: string;
-  apiEndpoint?: string;
-  resourceRequirements?: {
-    cpuUsage: number;
-    memoryUsage: number;
-    gpuUsage?: number;
-  };
-  defaultParameters?: {
-    temperature: number;
-    topP: number;
-    presencePenalty: number;
-    frequencyPenalty: number;
-  };
-}
-
-export interface ModelEvaluation {
-  modelId: string;
-  accuracy: number;
-  latency: number;
-  costEfficiency: number;
-  resourceEfficiency: number;
-  f1Score?: number;
-  userSatisfaction?: number;
 }

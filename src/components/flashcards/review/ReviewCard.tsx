@@ -1,71 +1,90 @@
 
-import React from 'react';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Flashcard } from '@/types/supabase';
-import { motion } from 'framer-motion';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 
 interface ReviewCardProps {
-  currentCard: Flashcard;
-  isFlipped: boolean;
-  onFlip: () => void;
-  onRating: (difficulty: number) => Promise<void>;
+  flashcard: any;
+  nextCard: () => void;
 }
 
-const ReviewCard: React.FC<ReviewCardProps> = ({
-  currentCard,
-  isFlipped,
-  onFlip,
-  onRating
-}) => {
+const ReviewCard: React.FC<ReviewCardProps> = ({ flashcard, nextCard }) => {
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [rating, setRating] = useState<number | null>(null);
+  
+  const handleShowAnswer = () => {
+    setShowAnswer(true);
+  };
+  
+  const handleRate = (score: number) => {
+    setRating(score);
+    setTimeout(() => {
+      nextCard();
+      setShowAnswer(false);
+      setRating(null);
+    }, 500);
+  };
+  
   return (
-    <motion.div
-      key={currentCard.id + (isFlipped ? "-flipped" : "")}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.2 }}
-    >
-      <Card className="w-full overflow-hidden">
-        <div 
-          className="min-h-[280px] cursor-pointer p-6 flex flex-col items-center justify-center"
-          onClick={onFlip}
-        >
-          <div className="text-lg font-medium mb-2">
-            {isFlipped ? "Answer" : "Question"}
-          </div>
-          <div className="text-xl font-bold text-center">
-            {isFlipped ? currentCard.back_content : currentCard.front_content}
-          </div>
-          
-          <div className="mt-4 text-sm text-muted-foreground">
-            Click to {isFlipped ? "see question" : "reveal answer"}
-          </div>
-        </div>
-        
-        {isFlipped && (
-          <CardFooter className="flex flex-col space-y-4 p-6 bg-muted/50">
-            <div className="text-sm font-medium mb-1">How well did you know this?</div>
-            <div className="flex w-full justify-between gap-2">
-              {[1, 2, 3, 4, 5].map((rating) => (
-                <Button
-                  key={rating}
-                  variant={rating <= 2 ? "destructive" : rating >= 4 ? "default" : "outline"}
-                  className="flex-1"
-                  onClick={() => onRating(rating)}
-                >
-                  {rating === 1 && "Forgot"}
-                  {rating === 2 && "Hard"}
-                  {rating === 3 && "Medium"}
-                  {rating === 4 && "Easy"}
-                  {rating === 5 && "Perfect"}
-                </Button>
-              ))}
+    <div className="min-h-[300px]">
+      <Card className="h-full">
+        <CardContent className="pt-6 h-full flex flex-col">
+          <div className="flex-1 flex items-center justify-center mb-6">
+            <div className="text-center">
+              <h3 className="text-lg font-medium mb-2">
+                {showAnswer ? 'Answer' : 'Question'}
+              </h3>
+              <div className="text-xl">
+                {showAnswer 
+                  ? (flashcard.back_content || flashcard.back) 
+                  : (flashcard.front_content || flashcard.front)}
+              </div>
             </div>
-          </CardFooter>
-        )}
+          </div>
+        </CardContent>
+        <CardFooter className="border-t p-4">
+          {!showAnswer ? (
+            <Button onClick={handleShowAnswer} className="w-full">
+              Show Answer
+            </Button>
+          ) : (
+            <div className="w-full">
+              <p className="text-sm text-center mb-2">How well did you know this?</p>
+              <div className="flex justify-between gap-2">
+                <Button 
+                  variant="outline" 
+                  className={rating === 1 ? "bg-red-100" : ""}
+                  onClick={() => handleRate(1)}
+                >
+                  Forgot
+                </Button>
+                <Button 
+                  variant="outline"
+                  className={rating === 2 ? "bg-orange-100" : ""} 
+                  onClick={() => handleRate(2)}
+                >
+                  Hard
+                </Button>
+                <Button 
+                  variant="outline"
+                  className={rating === 3 ? "bg-yellow-100" : ""} 
+                  onClick={() => handleRate(3)}
+                >
+                  Good
+                </Button>
+                <Button 
+                  variant="outline"
+                  className={rating === 4 ? "bg-green-100" : ""} 
+                  onClick={() => handleRate(4)}
+                >
+                  Easy
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardFooter>
       </Card>
-    </motion.div>
+    </div>
   );
 };
 
