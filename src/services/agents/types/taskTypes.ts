@@ -39,5 +39,5 @@ export type ContextTag =
   | 'optimization'
   | 'flashcards';
 
-// Remove duplicate TaskStatus export since it's already defined in agentTypes.ts
-// export type TaskStatus = 'pending' | 'processing' | 'completed' | 'failed';
+export type TaskStatus = 'pending' | 'processing' | 'completed' | 'failed';
+
