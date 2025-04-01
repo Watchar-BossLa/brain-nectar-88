@@ -20,12 +20,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { topicSchema } from '@/lib/validators/topic';
-import { useTopicForm } from '@/hooks/useTopicForm';
-import { useSupabaseClient } from '@supabase/auth-helpers-react';
-import { Flashcard } from '@/types/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { flashcardSchema } from '@/lib/validators/flashcard';
-import * as z from "zod"
+import * as z from "zod";
 
 interface FlashcardFormProps {
   topicId?: string;
@@ -37,7 +34,6 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({ topicId, onFlashcardCreat
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const supabase = useSupabaseClient();
 
   const form = useForm<z.infer<typeof flashcardSchema>>({
     resolver: zodResolver(flashcardSchema),
@@ -58,18 +54,6 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({ topicId, onFlashcardCreat
         });
         return;
       }
-
-      const newFlashcard: Flashcard = {
-        topic_id: topicId,
-        user_id: user.id,
-        question: values.question,
-        answer: values.answer,
-        difficulty: values.difficulty,
-        interval: 1,
-        ease_factor: 2.5,
-        repetitions: 0,
-        next_review_date: new Date(),
-      };
 
       await createNewFlashcard(user.id, values.question, values.answer, topicId);
 
