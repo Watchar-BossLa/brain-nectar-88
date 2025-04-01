@@ -46,8 +46,12 @@ export const spacedRepetitionService = {
       } else if (repetitionCount === 2) {
         interval = 6; // 6 days
       } else {
-        // Ensure we have a valid interval value, even if it's not stored on flashcard
-        const currentInterval = flashcard.interval || repetitionCount - 1;
+        // Calculate the interval using the helper method rather than accessing a property
+        const currentInterval = spacedRepetitionService.calculateReviewInterval(
+          oldEasinessFactor,
+          flashcard.mastery_level || 0,
+          repetitionCount - 1
+        );
         interval = Math.round(currentInterval * newEasinessFactor);
       }
       
@@ -137,7 +141,7 @@ export const spacedRepetitionService = {
     const repCount = repetitionCount || 0;
     
     if (repCount === 0) return 1; // First review after 1 day
-    if (repCount === 1) return 3; // Second review after 6 days
+    if (repCount === 1) return 3; // Second review after 3 days
     
     // For subsequent reviews, use exponential backoff with easiness factor
     return Math.round(Math.pow(ef, repCount - 1) * 3);
