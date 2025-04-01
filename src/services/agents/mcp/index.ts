@@ -11,3 +11,4 @@ export const mcp = MasterControlProgram.getInstance();
 export * from './systemState';
 export * from './communication';
 export * from './taskProcessor';
+export * from './taskQueueManager';

@@ -5,6 +5,8 @@ import { calculateFlashcardRetention } from '@/services/spacedRepetition/reviewS
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { TestDistributionCard } from './TestDistributionCard';
+import { mcp } from '@/services/agents/mcp';
 
 interface TestTabContentProps {
   handleTestTask: () => Promise<void>;
@@ -38,6 +40,9 @@ export function TestTabContent({ handleTestTask }: TestTabContentProps) {
 
   return (
     <div className="space-y-4">
+      {/* Task Distribution Test Card */}
+      <TestDistributionCard taskProcessor={mcp} />
+      
       <div>
         <h3 className="text-sm font-medium mb-2">Test Agent Task</h3>
         <p className="text-xs text-muted-foreground mb-4">

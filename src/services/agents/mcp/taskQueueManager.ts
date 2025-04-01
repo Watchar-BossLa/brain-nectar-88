@@ -1,81 +1,100 @@
 
-import { AgentTask } from '../types';
+import { AgentTask, TaskPriority } from '../types';
 
 /**
  * TaskQueueManager
  * 
- * Manages the task queue with priority-based ordering
+ * Manages the queue of tasks to be processed by agents.
+ * Implements priority-based queuing.
  */
 export class TaskQueueManager {
-  private taskQueue: AgentTask[] = [];
-
+  // Separate queues for different priority levels
+  private highPriorityQueue: AgentTask[] = [];
+  private mediumPriorityQueue: AgentTask[] = [];
+  private lowPriorityQueue: AgentTask[] = [];
+  
   /**
-   * Add task to queue with appropriate priority ordering
+   * Add a task to the appropriate queue based on priority
    */
   public addTaskToQueue(task: AgentTask): void {
-    // If task has no priority specified, default to MEDIUM
-    if (!task.priority) {
-      task.priority = 'MEDIUM';
-    }
-    
-    // Priority order: CRITICAL > HIGH > MEDIUM > LOW
-    const priorityValues = { 'CRITICAL': 0, 'HIGH': 1, 'MEDIUM': 2, 'LOW': 3 };
-    
-    // Find the right position based on priority
-    const insertIndex = this.taskQueue.findIndex(
-      queuedTask => priorityValues[queuedTask.priority || 'MEDIUM'] > priorityValues[task.priority || 'MEDIUM']
-    );
-    
-    if (insertIndex === -1) {
-      // Add to the end if no higher priority task is found
-      this.taskQueue.push(task);
-    } else {
-      // Insert at the right position
-      this.taskQueue.splice(insertIndex, 0, task);
+    switch (task.priority) {
+      case 'HIGH':
+      case 'CRITICAL':
+        this.highPriorityQueue.push(task);
+        break;
+      case 'MEDIUM':
+        this.mediumPriorityQueue.push(task);
+        break;
+      case 'LOW':
+      default:
+        this.lowPriorityQueue.push(task);
+        break;
     }
   }
-
+  
   /**
-   * Get the next task from the queue
+   * Get the next task to process, respecting priorities
    */
-  public getNextTask(): AgentTask | undefined {
-    return this.taskQueue.shift();
+  public getNextTask(): AgentTask | null {
+    // Check high priority queue first
+    if (this.highPriorityQueue.length > 0) {
+      return this.highPriorityQueue.shift() || null;
+    }
+    
+    // Then medium priority
+    if (this.mediumPriorityQueue.length > 0) {
+      return this.mediumPriorityQueue.shift() || null;
+    }
+    
+    // Finally low priority
+    if (this.lowPriorityQueue.length > 0) {
+      return this.lowPriorityQueue.shift() || null;
+    }
+    
+    // No tasks available
+    return null;
   }
-
+  
   /**
-   * Check if the queue is empty
+   * Check if all queues are empty
    */
   public isEmpty(): boolean {
-    return this.taskQueue.length === 0;
+    return (
+      this.highPriorityQueue.length === 0 && 
+      this.mediumPriorityQueue.length === 0 && 
+      this.lowPriorityQueue.length === 0
+    );
   }
-
+  
   /**
-   * Get the current length of the queue
+   * Get the total number of tasks in all queues
    */
-  public getQueueLength(): number {
-    return this.taskQueue.length;
+  public getQueueSize(): number {
+    return (
+      this.highPriorityQueue.length + 
+      this.mediumPriorityQueue.length + 
+      this.lowPriorityQueue.length
+    );
   }
-
+  
   /**
-   * Clear all tasks from the queue
+   * Get queue statistics
    */
-  public clearQueue(): void {
-    this.taskQueue = [];
+  public getQueueStats(): { high: number; medium: number; low: number; total: number } {
+    return {
+      high: this.highPriorityQueue.length,
+      medium: this.mediumPriorityQueue.length,
+      low: this.lowPriorityQueue.length,
+      total: this.getQueueSize()
+    };
   }
-
+  
   /**
-   * Get all tasks in the queue (for monitoring purposes)
+   * Clear all queues
    */
-  public getQueueSnapshot(): AgentTask[] {
-    return [...this.taskQueue];
-  }
-
-  /**
-   * Remove a specific task from the queue by ID
-   */
-  public removeTaskById(taskId: string): boolean {
-    const initialLength = this.taskQueue.length;
-    this.taskQueue = this.taskQueue.filter(task => task.id !== taskId);
-    return this.taskQueue.length < initialLength;
+  public clearAllQueues(): void {
+    this.highPriorityQueue = [];
+    this.mediumPriorityQueue = [];
+    this.lowPriorityQueue = [];
   }
 }
