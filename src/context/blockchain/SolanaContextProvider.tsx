@@ -1,72 +1,86 @@
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { useState } from 'react';
+import { SolanaContext } from './SolanaContext';
+import { AchievementData } from './types';
+import { PublicKey } from '@solana/web3.js';
 
-// Define context types
-interface SolanaContextType {
-  connected: boolean;
-  publicKey: string | null;
-  balance: number | null;
-  connecting: boolean;
-  connect: () => Promise<void>;
-  disconnect: () => Promise<void>;
-  sendTransaction: (recipient: string, amount: number) => Promise<string>;
+interface SolanaContextProviderProps {
+  children: React.ReactNode;
 }
 
-// Create the context
-const SolanaContext = createContext<SolanaContextType | undefined>(undefined);
-
-// Provider component
-export const SolanaContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const SolanaContextProvider: React.FC<SolanaContextProviderProps> = ({ children }) => {
   const [connected, setConnected] = useState(false);
-  const [connecting, setConnecting] = useState(false);
-  const [publicKey, setPublicKey] = useState<string | null>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [publicKey, setPublicKey] = useState<PublicKey | null>(null);
   const [balance, setBalance] = useState<number | null>(null);
 
-  // Mock implementation of wallet functionality
-  const connect = async () => {
+  // Connect wallet functionality
+  const connectWallet = async () => {
     try {
-      setConnecting(true);
+      setIsConnecting(true);
       // Simulate connection delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      setPublicKey("SimulatedWalletPubkey123456789");
+      setPublicKey(new PublicKey("SimulatedWalletPubkey123456789"));
       setBalance(10.5); // Simulated SOL balance
       setConnected(true);
     } catch (error) {
       console.error("Failed to connect wallet:", error);
       throw error;
     } finally {
-      setConnecting(false);
+      setIsConnecting(false);
     }
   };
 
-  const disconnect = async () => {
-    setConnected(false);
-    setPublicKey(null);
-    setBalance(null);
-    return Promise.resolve();
+  // Fetch balance
+  const fetchBalance = async (): Promise<number | null> => {
+    if (!connected) return null;
+    return balance;
   };
 
-  const sendTransaction = async (recipient: string, amount: number) => {
+  // Mint NFT achievement
+  const mintAchievementNFT = async (achievementData: AchievementData): Promise<string | null> => {
     if (!connected) {
       throw new Error("Wallet not connected");
     }
     
-    // Simulate transaction
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Simulate minting
+    await new Promise(resolve => setTimeout(resolve, 2000));
     const txId = `sim_tx_${Date.now()}`;
-    console.log(`Sent ${amount} SOL to ${recipient}, txId: ${txId}`);
+    console.log(`Minted achievement NFT for ${achievementData.title}, txId: ${txId}`);
     return txId;
+  };
+
+  // Send token reward
+  const sendTokenReward = async (amount: number): Promise<boolean> => {
+    if (!connected) return false;
+    
+    // Simulate transaction
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    console.log(`Sent ${amount} STUDY tokens to wallet`);
+    return true;
+  };
+
+  // Process payment
+  const processPayment = async (amount: number, description: string): Promise<boolean> => {
+    if (!connected) return false;
+    
+    // Simulate payment
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    console.log(`Processed payment of ${amount} SOL for ${description}`);
+    return true;
   };
 
   const value = {
     connected,
+    isConnecting,
     publicKey,
     balance,
-    connecting,
-    connect,
-    disconnect,
-    sendTransaction
+    connectWallet,
+    fetchBalance,
+    mintAchievementNFT,
+    sendTokenReward,
+    processPayment
   };
 
   return (
@@ -74,13 +88,4 @@ export const SolanaContextProvider: React.FC<{ children: React.ReactNode }> = ({
       {children}
     </SolanaContext.Provider>
   );
-};
-
-// Custom hook to use solana context
-export const useSolana = () => {
-  const context = useContext(SolanaContext);
-  if (context === undefined) {
-    throw new Error("useSolana must be used within a SolanaProvider");
-  }
-  return context;
 };

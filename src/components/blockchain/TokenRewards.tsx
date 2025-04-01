@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useSolana } from '@/context/SolanaContext';
+import { useSolana } from '@/context/blockchain/useSolana';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Coins, TrendingUp, Clock } from 'lucide-react';

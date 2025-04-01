@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AchievementNFT, AchievementNFTSkeleton } from './AchievementNFT';
-import { useSolana } from '@/context/SolanaContext';
+import { useSolana } from '@/context/blockchain/useSolana';
 
 export const AchievementsTab: React.FC = () => {
   const { connected } = useSolana();

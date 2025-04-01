@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from './context/auth';
 import { ThemeProvider } from './context/theme';
+import { SolanaProvider } from './context/blockchain/SolanaProvider';
 import { SolanaContextProvider } from './context/blockchain/SolanaContextProvider';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -33,35 +34,39 @@ function App() {
     <Router>
       <ThemeProvider defaultTheme="light" storageKey="study-bee-theme">
         <AuthProvider>
-          <SolanaContextProvider>
-            <Routes>
-              {/* Auth routes */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/signin" element={<Login />} /> {/* Alias for login */}
-              <Route path="/signup" element={<Register />} /> {/* Alias for register */}
-              
-              {/* Main app routes */}
-              <Route path="/" element={<Index />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/courses" element={<Courses />} />
-              <Route path="/assessment" element={<Assessment />} />
-              <Route path="/qualifications" element={<Qualifications />} />
-              <Route path="/flashcards" element={<FlashcardsPage />} />
-              <Route path="/flashcard-review" element={<FlashcardReview />} />
-              <Route path="/study-planner" element={<StudyPlannerPage />} />
-              <Route path="/learning-path" element={<LearningPath />} />
-              <Route path="/cognitive-profile" element={<CognitiveProfile />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/profile" element={<Settings />} /> {/* Alias for settings */}
-              <Route path="/agent-dashboard" element={<AgentDashboard />} />
-              <Route path="/quiz" element={<Quiz />} />
-              <Route path="/adaptive-quiz" element={<AdaptiveQuiz />} />
-              <Route path="/blockchain" element={<Blockchain />} />
-              <Route path="/admin" element={<Admin />} />
-            </Routes>
-            <Toaster />
-          </SolanaContextProvider>
+          {/* First wrap with SolanaProvider (wallet adapter) */}
+          <SolanaProvider>
+            {/* Then wrap with our custom Solana Context */}
+            <SolanaContextProvider>
+              <Routes>
+                {/* Auth routes */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/signin" element={<Login />} /> {/* Alias for login */}
+                <Route path="/signup" element={<Register />} /> {/* Alias for register */}
+                
+                {/* Main app routes */}
+                <Route path="/" element={<Index />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/courses" element={<Courses />} />
+                <Route path="/assessment" element={<Assessment />} />
+                <Route path="/qualifications" element={<Qualifications />} />
+                <Route path="/flashcards" element={<FlashcardsPage />} />
+                <Route path="/flashcard-review" element={<FlashcardReview />} />
+                <Route path="/study-planner" element={<StudyPlannerPage />} />
+                <Route path="/learning-path" element={<LearningPath />} />
+                <Route path="/cognitive-profile" element={<CognitiveProfile />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/profile" element={<Settings />} /> {/* Alias for settings */}
+                <Route path="/agent-dashboard" element={<AgentDashboard />} />
+                <Route path="/quiz" element={<Quiz />} />
+                <Route path="/adaptive-quiz" element={<AdaptiveQuiz />} />
+                <Route path="/blockchain" element={<Blockchain />} />
+                <Route path="/admin" element={<Admin />} />
+              </Routes>
+              <Toaster />
+            </SolanaContextProvider>
+          </SolanaProvider>
         </AuthProvider>
       </ThemeProvider>
     </Router>
