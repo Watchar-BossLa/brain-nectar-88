@@ -1,7 +1,7 @@
 
 import MainLayout from '@/components/layout/MainLayout';
-import { UserProfileCard } from '@/components/profile';
-import { ProfileHeader, ProfileTabs, useProfileStats, useProfileData } from '@/components/profile';
+import { UserProfileCard, ProfileHeader, ProfileTabs } from '@/components/profile';
+import { useProfileStats, useProfileData } from '@/components/profile';
 
 const Profile = () => {
   const { isLoading, learningStats } = useProfileStats();

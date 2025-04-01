@@ -1,45 +1,30 @@
-
-import { AgentMessage, AgentTask } from '../types';
 import { BaseAgent } from '../baseAgent';
+import { AgentMessage, AgentTask, AgentType } from '../types';
 
 /**
  * Content Adaptation Agent
  * 
- * Transforms learning materials to match individual learner preferences.
+ * Specialized agent responsible for adapting learning content to match 
+ * user cognitive profile and learning preferences.
  */
 export class ContentAdaptationAgent extends BaseAgent {
-  constructor() {
-    super('CONTENT_ADAPTATION');
+  type: AgentType = 'CONTENT_ADAPTATION';
+  
+  /**
+   * Process a task assigned to this agent
+   * @param task The task to process
+   */
+  async processTask(task: AgentTask): Promise<void> {
+    console.log(`Processing ${this.type} task:`, task.id);
+    // Implementation would go here
   }
   
-  async processTask(task: AgentTask): Promise<any> {
-    console.log(`Content Adaptation Agent processing task: ${task.taskType}`);
-    
-    switch (task.taskType) {
-      case 'CONTENT_ADAPTATION':
-        return this.adaptContent(task.userId, task.data);
-      default:
-        console.warn(`Content Adaptation Agent received unknown task type: ${task.taskType}`);
-        return { status: 'error', message: 'Unknown task type' };
-    }
-  }
-  
-  receiveMessage(message: AgentMessage): void {
-    console.log(`Content Adaptation Agent received message: ${message.type}`);
-    // Handle messages from other agents
-  }
-  
-  private async adaptContent(userId: string, data: any): Promise<any> {
-    console.log(`Adapting content for user ${userId}`);
-    
-    // Mock implementation
-    return {
-      status: 'success',
-      content: {
-        original: data.content,
-        adapted: data.content, // In a real implementation, this would be transformed
-        format: 'visual' // Based on user preference
-      }
-    };
+  /**
+   * Receive and process a message from another agent or system
+   * @param message The message to process
+   */
+  async receiveMessage(message: AgentMessage): Promise<void> {
+    console.log(`${this.type} agent received message:`, message.type);
+    // Implementation would go here
   }
 }

@@ -2,16 +2,15 @@
 import { AgentMessage, AgentTask, AgentType } from './types';
 
 /**
- * Base Agent
+ * Base Agent Interface
  * 
- * Base class for all specialized agents in the system.
+ * This abstract class defines the contract that all specialized agents must follow.
  */
 export abstract class BaseAgent {
-  protected type: AgentType;
-  
-  constructor(type: AgentType) {
-    this.type = type;
-  }
+  /**
+   * The type of agent (e.g., COGNITIVE_PROFILE, LEARNING_PATH)
+   */
+  abstract type: AgentType;
   
   /**
    * Get the type of this agent
@@ -22,11 +21,13 @@ export abstract class BaseAgent {
   
   /**
    * Process a task assigned to this agent
+   * @param task The task to process
    */
-  abstract processTask(task: AgentTask): Promise<any>;
+  abstract processTask(task: AgentTask): Promise<void>;
   
   /**
-   * Receive a message from another agent
+   * Receive and process a message from another agent or system
+   * @param message The message to process
    */
-  abstract receiveMessage(message: AgentMessage): void;
+  abstract receiveMessage(message: AgentMessage): Promise<void>;
 }

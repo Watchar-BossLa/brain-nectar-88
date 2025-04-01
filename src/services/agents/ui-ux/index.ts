@@ -1,47 +1,30 @@
-
-import { AgentMessage, AgentTask, TaskType } from '../types';
 import { BaseAgent } from '../baseAgent';
+import { AgentMessage, AgentTask, AgentType } from '../types';
 
 /**
  * UI/UX Agent
  * 
- * Optimizes interface presentation for learning effectiveness.
+ * Specialized agent responsible for adaptive user interface adjustments
+ * based on user preferences, device context, and cognitive profile.
  */
 export class UiUxAgent extends BaseAgent {
-  constructor() {
-    super('UI_UX');
+  type: AgentType = 'UI_UX';
+  
+  /**
+   * Process a task assigned to this agent
+   * @param task The task to process
+   */
+  async processTask(task: AgentTask): Promise<void> {
+    console.log(`Processing ${this.type} task:`, task.id);
+    // Implementation would go here
   }
   
-  async processTask(task: AgentTask): Promise<any> {
-    console.log(`UI/UX Agent processing task: ${task.taskType}`);
-    
-    switch (task.taskType) {
-      case 'UI_OPTIMIZATION':
-        return this.optimizeUi(task.userId, task.data);
-      default:
-        console.warn(`UI/UX Agent received unknown task type: ${task.taskType}`);
-        return { status: 'error', message: 'Unknown task type' };
-    }
-  }
-  
-  receiveMessage(message: AgentMessage): void {
-    console.log(`UI/UX Agent received message: ${message.type}`);
-    // Handle messages from other agents
-  }
-  
-  private async optimizeUi(userId: string, data: any): Promise<any> {
-    console.log(`Optimizing UI for user ${userId}`);
-    
-    // Mock implementation
-    return {
-      status: 'success',
-      uiPreferences: {
-        theme: 'light',
-        fontSizeFactor: 1.0,
-        contrastLevel: 'standard',
-        animationSpeed: 'normal',
-        layout: 'focused'
-      }
-    };
+  /**
+   * Receive and process a message from another agent or system
+   * @param message The message to process
+   */
+  async receiveMessage(message: AgentMessage): Promise<void> {
+    console.log(`${this.type} agent received message:`, message.type);
+    // Implementation would go here
   }
 }

@@ -1,46 +1,30 @@
-
-import { AgentMessage, AgentTask } from '../types';
 import { BaseAgent } from '../baseAgent';
+import { AgentMessage, AgentTask, AgentType } from '../types';
 
 /**
  * Cognitive Profile Agent
  * 
- * Builds and maintains a comprehensive model of the learner's cognitive patterns.
+ * Specialized agent responsible for building and maintaining user cognitive profiles,
+ * learning styles, and preferences.
  */
 export class CognitiveProfileAgent extends BaseAgent {
-  constructor() {
-    super('COGNITIVE_PROFILE');
+  type: AgentType = 'COGNITIVE_PROFILE';
+  
+  /**
+   * Process a task assigned to this agent
+   * @param task The task to process
+   */
+  async processTask(task: AgentTask): Promise<void> {
+    console.log(`Processing ${this.type} task:`, task.id);
+    // Implementation would go here
   }
   
-  async processTask(task: AgentTask): Promise<any> {
-    console.log(`Cognitive Profile Agent processing task: ${task.taskType}`);
-    
-    switch (task.taskType) {
-      case 'COGNITIVE_PROFILING':
-        return this.generateProfile(task.userId, task.data);
-      default:
-        console.warn(`Cognitive Profile Agent received unknown task type: ${task.taskType}`);
-        return { status: 'error', message: 'Unknown task type' };
-    }
-  }
-  
-  receiveMessage(message: AgentMessage): void {
-    console.log(`Cognitive Profile Agent received message: ${message.type}`);
-    // Handle messages from other agents
-  }
-  
-  private async generateProfile(userId: string, data: any): Promise<any> {
-    console.log(`Generating cognitive profile for user ${userId}`);
-    
-    // Mock implementation - would connect to profiling service in real implementation
-    return {
-      status: 'success',
-      profile: {
-        learningSpeed: { accounting: 0.8, finance: 0.7 },
-        preferredContentFormats: ['visual', 'interactive'],
-        attentionSpan: 25, // minutes
-        retentionRates: { shortTerm: 0.85, longTerm: 0.6 }
-      }
-    };
+  /**
+   * Receive and process a message from another agent or system
+   * @param message The message to process
+   */
+  async receiveMessage(message: AgentMessage): Promise<void> {
+    console.log(`${this.type} agent received message:`, message.type);
+    // Implementation would go here
   }
 }

@@ -1,31 +1,31 @@
 
-import { AgentMessage, AgentTask } from '../types';
 import { BaseAgent } from '../baseAgent';
-import { AssessmentService } from './assessmentService';
+import { AgentMessage, AgentTask, AgentType } from '../types';
 
+/**
+ * Assessment Agent
+ * 
+ * Specialized agent responsible for creating and evaluating adaptive assessments
+ * to measure user knowledge and application of concepts.
+ */
 export class AssessmentAgent extends BaseAgent {
-  constructor() {
-    super('ASSESSMENT');
+  type: AgentType = 'ASSESSMENT';
+  
+  /**
+   * Process a task assigned to this agent
+   * @param task The task to process
+   */
+  async processTask(task: AgentTask): Promise<void> {
+    console.log(`Processing ${this.type} task:`, task.id);
+    // Implementation would go here
   }
   
-  async processTask(task: AgentTask): Promise<any> {
-    console.log(`Assessment Agent processing task: ${task.taskType}`);
-    
-    switch (task.taskType) {
-      case 'ASSESSMENT_GENERATION':
-        return this.generateAssessment(task.userId, task.data);
-      default:
-        console.warn(`Assessment Agent received unknown task type: ${task.taskType}`);
-        return { status: 'error', message: 'Unknown task type' };
-    }
-  }
-  
-  receiveMessage(message: AgentMessage): void {
-    console.log(`Assessment Agent received message: ${message.type}`);
-  }
-  
-  private async generateAssessment(userId: string, data: any): Promise<any> {
-    console.log(`Generating assessment for user ${userId} with data:`, data);
-    return AssessmentService.generateAssessment(userId, data);
+  /**
+   * Receive and process a message from another agent or system
+   * @param message The message to process
+   */
+  async receiveMessage(message: AgentMessage): Promise<void> {
+    console.log(`${this.type} agent received message:`, message.type);
+    // Implementation would go here
   }
 }
