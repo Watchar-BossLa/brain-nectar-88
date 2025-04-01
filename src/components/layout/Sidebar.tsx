@@ -12,7 +12,8 @@ import {
   Settings, 
   LogOut,
   Brain,
-  Route
+  Route,
+  TestTube
 } from "lucide-react";
 import { useAuth } from "@/context/auth";
 
@@ -68,6 +69,11 @@ export function Sidebar({ className }: { className?: string }) {
       icon: Brain,
       label: "AI Dashboard",
       path: "/agent-dashboard",
+    },
+    {
+      icon: TestTube,
+      label: "Testing",
+      path: "/testing",
     },
     {
       icon: Settings,
