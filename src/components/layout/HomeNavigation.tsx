@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   BookOpen, 
@@ -9,7 +9,8 @@ import {
   Brain, 
   Flame, 
   Menu,
-  X
+  X,
+  Home
 } from 'lucide-react';
 import { 
   Tabs, 
@@ -54,20 +55,54 @@ const navigationItems = [
 
 const HomeNavigation: React.FC = () => {
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState<string>(
-    navigationItems.find(item => item.path === location.pathname)?.name || navigationItems[0].name
-  );
+  const navigate = useNavigate();
+  
+  // Find the active tab based on the current path
+  const findActiveTab = () => {
+    const currentPath = location.pathname;
+    const currentItem = navigationItems.find(item => item.path === currentPath);
+    return currentItem ? currentItem.name : navigationItems[0].name;
+  };
+  
+  const [activeTab, setActiveTab] = useState<string>(findActiveTab());
+  const isOnHomePage = location.pathname === '/';
+
+  // Update active tab when location changes
+  useEffect(() => {
+    setActiveTab(findActiveTab());
+  }, [location.pathname]);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
+    const selectedItem = navigationItems.find(item => item.name === value);
+    if (selectedItem) {
+      navigate(selectedItem.path);
+    }
+  };
+
+  const handleHomeNavigation = () => {
+    navigate('/');
   };
 
   return (
-    <>
+    <div className="flex items-center">
+      {/* Back to Home button - only shown when not on homepage */}
+      {!isOnHomePage && (
+        <Button
+          onClick={handleHomeNavigation}
+          variant="ghost"
+          size="sm"
+          className="mr-2"
+        >
+          <Home className="h-4 w-4 mr-1" />
+          Home
+        </Button>
+      )}
+      
       {/* Desktop Navigation */}
-      <div className="hidden md:block">
+      <div className="hidden md:block flex-1">
         <Tabs 
-          defaultValue={activeTab} 
+          value={activeTab} 
           onValueChange={handleTabChange} 
           className="w-full"
         >
@@ -77,12 +112,9 @@ const HomeNavigation: React.FC = () => {
                 key={item.name}
                 value={item.name}
                 className="data-[state=active]:bg-primary/10"
-                asChild
               >
-                <Link to={item.path} className="flex items-center">
-                  {item.icon}
-                  {item.name}
-                </Link>
+                {item.icon}
+                {item.name}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -100,24 +132,39 @@ const HomeNavigation: React.FC = () => {
           </SheetTrigger>
           <SheetContent side="left">
             <div className="flex flex-col space-y-4 mt-6">
+              {/* Home navigation always included in mobile menu */}
+              <SheetClose asChild>
+                <Link
+                  to="/"
+                  className={`flex items-center px-4 py-2 rounded-md hover:bg-secondary ${
+                    location.pathname === "/" ? "bg-primary/10 text-primary" : ""
+                  }`}
+                >
+                  <Home className="h-4 w-4 mr-2" />
+                  Dashboard
+                </Link>
+              </SheetClose>
+              
               {navigationItems.map((item) => (
-                <SheetClose key={item.name} asChild>
-                  <Link
-                    to={item.path}
-                    className={`flex items-center px-4 py-2 rounded-md hover:bg-secondary ${
-                      location.pathname === item.path ? "bg-primary/10 text-primary" : ""
-                    }`}
-                  >
-                    {item.icon}
-                    {item.name}
-                  </Link>
-                </SheetClose>
+                item.path !== "/" && (
+                  <SheetClose key={item.name} asChild>
+                    <Link
+                      to={item.path}
+                      className={`flex items-center px-4 py-2 rounded-md hover:bg-secondary ${
+                        location.pathname === item.path ? "bg-primary/10 text-primary" : ""
+                      }`}
+                    >
+                      {item.icon}
+                      {item.name}
+                    </Link>
+                  </SheetClose>
+                )
               ))}
             </div>
           </SheetContent>
         </Sheet>
       </div>
-    </>
+    </div>
   );
 };
 

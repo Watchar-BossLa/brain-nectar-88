@@ -10,7 +10,7 @@ import {
   qualifications
 } from '@/components/qualifications';
 import { SimpleWalletButton } from '@/components/blockchain/WalletConnect';
-import { useSolana } from '@/context/SolanaContext';
+import { useSolana } from '@/context/blockchain/useSolana';
 import { Button } from '@/components/ui/button';
 import { Award, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';

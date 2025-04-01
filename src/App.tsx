@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from './context/auth';
 import { ThemeProvider } from './context/theme';
-import { SolanaProvider } from './context/blockchain';
+import { SolanaContextProvider } from './context/blockchain/SolanaContextProvider';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -31,11 +31,13 @@ function App() {
     <Router>
       <ThemeProvider defaultTheme="light" storageKey="study-bee-theme">
         <AuthProvider>
-          <SolanaProvider>
+          <SolanaContextProvider>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/signin" element={<Login />} /> {/* Alias for login */}
+              <Route path="/signup" element={<Register />} /> {/* Alias for register */}
               <Route path="/courses" element={<Courses />} />
               <Route path="/assessment" element={<Assessment />} />
               <Route path="/qualifications" element={<Qualifications />} />
@@ -48,9 +50,11 @@ function App() {
               <Route path="/quiz" element={<Quiz />} />
               <Route path="/adaptive-quiz" element={<AdaptiveQuiz />} />
               <Route path="/blockchain" element={<Blockchain />} />
+              <Route path="/dashboard" element={<Index />} />
+              <Route path="/profile" element={<Settings />} />
             </Routes>
             <Toaster />
-          </SolanaProvider>
+          </SolanaContextProvider>
         </AuthProvider>
       </ThemeProvider>
     </Router>

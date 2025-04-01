@@ -38,13 +38,28 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const handleSignOut = async () => {
     setIsSigningOut(true);
     await signOut();
-    navigate('/signin');
+    navigate('/login');
     setIsSigningOut(false);
+  };
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
   };
 
   const userInitials = user?.email 
     ? user.email.split('@')[0].substring(0, 2).toUpperCase() 
     : 'U';
+
+  const navItems = [
+    { icon: <Home size={18} />, label: 'Dashboard', path: '/' },
+    { icon: <BookOpen size={18} />, label: 'My Courses', path: '/courses' },
+    { icon: <Award size={18} />, label: 'Qualifications', path: '/qualifications' },
+    { icon: <GraduationCap size={18} />, label: 'Assessments', path: '/assessment' },
+    { icon: <BarChart2 size={18} />, label: 'Learning Path', path: '/learning-path' },
+    { icon: <Brain size={18} />, label: 'Cognitive Profile', path: '/cognitive-profile' },
+    { icon: <User size={18} />, label: 'Profile', path: '/profile' },
+    { icon: <Settings size={18} />, label: 'Settings', path: '/settings' },
+  ];
 
   return (
     <div className="h-screen w-screen flex flex-col md:flex-row overflow-hidden bg-background">
@@ -57,10 +72,11 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       >
         <div className="p-6">
           <motion.div 
-            className="flex items-center gap-3"
+            className="flex items-center gap-3 cursor-pointer"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
+            onClick={() => navigate('/')}
           >
             <div className="w-10 h-10 relative bg-transparent">
               <img 
@@ -76,16 +92,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         
         <nav className="mt-6 px-4">
           <ul className="space-y-2">
-            {[
-              { icon: <Home size={18} />, label: 'Dashboard', path: '/' },
-              { icon: <BookOpen size={18} />, label: 'My Courses', path: '/courses' },
-              { icon: <Award size={18} />, label: 'Qualifications', path: '/qualifications' },
-              { icon: <GraduationCap size={18} />, label: 'Assessments', path: '/assessment' },
-              { icon: <BarChart2 size={18} />, label: 'Learning Path', path: '/learning-path' },
-              { icon: <Brain size={18} />, label: 'Cognitive Profile', path: '/cognitive-profile' },
-              { icon: <User size={18} />, label: 'Profile', path: '/profile' },
-              { icon: <Settings size={18} />, label: 'Settings', path: '/settings' },
-            ].map((item, index) => (
+            {navItems.map((item, index) => (
               <motion.li 
                 key={item.path}
                 initial={{ x: -20, opacity: 0 }}
