@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { MultiAgentSystem } from '@/services/agents';
-import { TaskType } from '@/services/agents/types';
+import { TaskType } from '@/services/agents/types/agentTypes';
 import { TaskSubmissionOptions } from './types';
 
 /**

@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth';
-import { getDueFlashcards, getFlashcardsByTopic } from '@/services/spacedRepetition';
+import { fetchDueFlashcards, fetchFlashcardsByTopic } from '@/services/spacedRepetition';
 import { Topic, Flashcard } from '@/types/supabase';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from 'react-router-dom';
 
 interface AdaptiveLearningPathProps {

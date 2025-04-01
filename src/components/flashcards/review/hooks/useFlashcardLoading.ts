@@ -1,11 +1,11 @@
-
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { getDueFlashcards } from '@/services/spacedRepetition';
+import { useAuth } from '@/context/auth';
+import { Flashcard } from '@/types/supabase';
+import { fetchDueFlashcards } from '@/services/spacedRepetition';
 
 export const useFlashcardLoading = () => {
   const { user } = useAuth();
-  const [dueFlashcards, setDueFlashcards] = useState([]);
+  const [dueFlashcards, setDueFlashcards] = useState<Flashcard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [reviewCompleted, setReviewCompleted] = useState(false);
@@ -16,7 +16,7 @@ export const useFlashcardLoading = () => {
       
       try {
         setIsLoading(true);
-        const cards = await getDueFlashcards(user.id);
+        const cards = await fetchDueFlashcards(user.id);
         setDueFlashcards(cards);
       } catch (error) {
         console.error('Error loading due flashcards:', error);

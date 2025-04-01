@@ -1,5 +1,6 @@
 
-import { AgentTask, AgentType, TaskType } from '@/services/agents/types';
+import { AgentType } from '@/services/agents/types/agentTypes';
+import { TaskType } from '@/services/agents/types/agentTypes';
 
 /**
  * System state interface for multi-agent system

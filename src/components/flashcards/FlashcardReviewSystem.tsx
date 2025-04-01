@@ -1,88 +1,103 @@
-
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import FlashcardView from './review-page/FlashcardView';
-import { getDueFlashcards } from '@/services/spacedRepetition';
+import { useAuth } from '@/context/auth';
+import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { fetchDueFlashcards } from '@/services/spacedRepetition';
+import ReviewCard from './review/ReviewCard';
+import ReviewComplete from './review/ReviewComplete';
+import ReviewProgress from './review/ReviewProgress';
+import ReviewLoading from './review/ReviewLoading';
+import { Flashcard } from '@/types/supabase';
 
-interface FlashcardReviewSystemProps {
-  userId: string;
-}
-
-const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ userId }) => {
-  const [flashcards, setFlashcards] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+const FlashcardReviewSystem: React.FC = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const [reviewComplete, setReviewComplete] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [finished, setFinished] = useState(false);
 
   useEffect(() => {
-    const loadReviews = async () => {
+    if (!user) return;
+
+    const loadFlashcards = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
-        const flashcardsData = await getDueFlashcards(userId);
-        setFlashcards(flashcardsData || []);
+        const dueFlashcards = await fetchDueFlashcards(user.id);
+        setFlashcards(dueFlashcards);
+        setReviewComplete(dueFlashcards.length === 0);
       } catch (error) {
-        console.error('Error loading flashcards for review:', error);
+        console.error('Error fetching flashcards:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load flashcards for review.',
+          variant: 'destructive',
+        });
       } finally {
         setLoading(false);
       }
     };
 
-    loadReviews();
-  }, [userId]);
+    loadFlashcards();
+  }, [user, toast]);
 
-  const handleRate = (difficulty: number) => {
-    // Handle flashcard rating logic here
-    console.log(`Rated flashcard as ${difficulty}`);
-    
-    handleNext();
-  };
-
-  const handleNext = () => {
-    if (currentIndex < flashcards.length - 1) {
-      setCurrentIndex(currentIndex + 1);
+  const nextCard = () => {
+    if (currentCardIndex < flashcards.length - 1) {
+      setCurrentCardIndex(currentCardIndex + 1);
     } else {
-      setFinished(true);
+      setReviewComplete(true);
     }
   };
 
-  const handleRestart = () => {
-    setCurrentIndex(0);
-    setFinished(false);
+  const restartReview = () => {
+    setCurrentCardIndex(0);
+    setReviewComplete(false);
   };
 
   if (loading) {
-    return <div>Loading flashcards...</div>;
+    return <ReviewLoading />;
   }
 
-  if (flashcards.length === 0) {
-    return <div>No flashcards due for review.</div>;
-  }
-
-  if (finished) {
+  if (reviewComplete) {
     return (
-      <div className="text-center p-8">
-        <h2 className="text-2xl font-bold mb-4">Review Completed!</h2>
-        <p className="mb-6">You've reviewed all your due flashcards.</p>
-        <Button onClick={handleRestart}>Review Again</Button>
-      </div>
+      <ReviewComplete 
+        restartReview={restartReview} 
+        totalCards={flashcards.length}
+      />
     );
   }
 
-  const currentCard = flashcards[currentIndex];
+  if (!flashcards || flashcards.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>No Flashcards Available</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>You have no flashcards due for review at this time.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const currentCard = flashcards[currentCardIndex];
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="mb-4 text-sm text-muted-foreground">
-        Card {currentIndex + 1} of {flashcards.length}
-      </div>
-      
-      <FlashcardView 
-        flashcard={currentCard}
-        onRate={handleRate} 
-        onFlip={() => {}}
-        onNext={handleNext}
-      />
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Flashcard Review</CardTitle>
+      </CardHeader>
+      <CardContent className="relative">
+        <ReviewProgress
+          current={currentCardIndex + 1}
+          total={flashcards.length}
+        />
+        <ReviewCard
+          flashcard={currentCard}
+          nextCard={nextCard}
+        />
+      </CardContent>
+    </Card>
   );
 };
 

@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { MultiAgentSystem } from '@/services/agents';
-import { AgentType } from '@/services/agents/types';
+import { AgentType } from '@/services/agents/types/agentTypes';
 import { AgentSystemState } from './types';
 
 /**

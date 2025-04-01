@@ -1,32 +1,21 @@
 
-// Re-export specific functions with explicit names to avoid conflicts
-import {
-  calculateNextReviewDate,
-  calculateRetention,
-  INITIAL_EASINESS_FACTOR,
-  MIN_EASINESS_FACTOR
-} from './spacedRepetition/algorithm';
-
-// Export algorithm functions with their original names
-export {
-  calculateNextReviewDate,
-  calculateRetention,
-  INITIAL_EASINESS_FACTOR,
-  MIN_EASINESS_FACTOR
-};
-
-// Export flashcard services with unique names to avoid conflicts
-export {
-  getUserFlashcards as fetchUserFlashcards,
-  getDueFlashcards as fetchDueFlashcards,
-  getFlashcardsByTopic as fetchFlashcardsByTopic,
+// Fix for conflicting star exports - use named re-exports to avoid ambiguity
+export { 
   createFlashcard as createNewFlashcard,
-  updateFlashcard as modifyFlashcard,
-  deleteFlashcard as removeFlashcard
+  deleteFlashcard as removeFlashcard,
+  updateFlashcard as modifyFlashcard
 } from './spacedRepetition/flashcardService';
 
-// Export the flashcard review update functionality
-export { updateFlashcardAfterReview } from './spacedRepetition/reviewUpdate';
+export {
+  getDueFlashcards as fetchDueFlashcards,
+  getFlashcardsByTopic as fetchFlashcardsByTopic,
+  getUserFlashcards as fetchUserFlashcards
+} from './spacedRepetition/flashcardService';
 
-// Export flashcard stats functionality
-export * from './spacedRepetition/flashcardStats';
+// Re-export other non-conflicting functions and types
+export * from './spacedRepetition/algorithm';
+export * from './spacedRepetition/reviewService';
+export * from './spacedRepetition/reviewStats';
+export * from './spacedRepetition/reviewTypes';
+export * from './spacedRepetition/reviewUpdate';
+export * from './spacedRepetition/types';

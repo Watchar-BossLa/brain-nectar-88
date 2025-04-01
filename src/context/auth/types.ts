@@ -1,42 +1,13 @@
 
-import { Session, User, WeakPassword } from '@supabase/supabase-js';
-
-export type PlatformOwnerType = {
-  email: string;
-  name: string;
-  role: string;
-};
+import { User } from '@supabase/supabase-js';
 
 export interface AuthContextType {
   user: User | null;
-  session: Session | null;
   loading: boolean;
-  isAdmin: boolean;
-  isPlatformOwner: boolean;
-  platformOwner: PlatformOwnerType;
-  signIn: (email: string, password: string) => Promise<{
-    success: boolean;
-    data?: { user: User; session: Session } | any;
-    error?: Error;
-  }>;
-  signInWithGoogle: () => Promise<{
-    success: boolean;
-    data?: any;
-    error?: Error;
-  }>;
-  signUp: (
-    email: string,
-    password: string,
-    metadata?: { [key: string]: any }
-  ) => Promise<{
-    success: boolean;
-    data?: { user: User } | any;
-    error?: Error;
-  }>;
-  signOut: () => Promise<{
-    success: boolean;
-    error?: Error;
-  }>;
+  error: Error | null;
+  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, name: string) => Promise<{ error: Error | null }>;
+  signInWithGoogle: () => Promise<void>; // Add missing method
+  signOut: () => Promise<void>;
+  isAdmin: boolean; // Add missing property
 }
-
-export type AuthUser = User;

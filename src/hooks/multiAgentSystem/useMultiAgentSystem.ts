@@ -1,6 +1,6 @@
 
 import { useEffect } from 'react';
-import { TaskType } from '@/services/agents/types';
+import { TaskType } from '@/services/agents/types/agentTypes';
 import { useAgentInitialization } from './useAgentInitialization';
 import { useAgentStatus } from './useAgentStatus';
 import { useTaskSubmission } from './useTaskSubmission';

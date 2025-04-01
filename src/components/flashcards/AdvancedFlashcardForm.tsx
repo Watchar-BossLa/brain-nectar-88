@@ -1,198 +1,120 @@
-
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { createFlashcard } from '@/services/spacedRepetition';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
-import FlashcardPreview from './FlashcardPreview';
-
-// Import sub-components
-import TextContentInput from './form/TextContentInput';
-import FormulaContentInput from './form/FormulaContentInput';
-import FinancialContentInput from './form/FinancialContentInput';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { createNewFlashcard } from '@/services/spacedRepetition';
+import FlashcardFormInputs from './FlashcardFormInputs';
 import ContentTypeSelector from './form/ContentTypeSelector';
 import HelpContent from './form/HelpContent';
-import FormButtons from './form/FormButtons';
 
 interface AdvancedFlashcardFormProps {
-  onSuccess: () => void;
-  onCancel: () => void;
+  topicId?: string;
 }
 
-type FinancialStatementType = 'balance-sheet' | 'income-statement' | 'cash-flow' | 'ratio';
-
-const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({ onSuccess, onCancel }) => {
-  const [frontContent, setFrontContent] = useState('');
-  const [backContent, setBackContent] = useState('');
-  const [useLatex, setUseLatex] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [contentType, setContentType] = useState<'text' | 'formula' | 'financial'>('text');
-  const [financialType, setFinancialType] = useState<FinancialStatementType>('balance-sheet');
-  const { toast } = useToast();
+const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({ topicId }) => {
+  const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
+  const [front, setFront] = useState('');
+  const [back, setBack] = useState('');
+  const [contentTypeFront, setContentTypeFront] = useState('text');
+  const [contentTypeBack, setContentTypeBack] = useState('text');
+  const [loading, setLoading] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
-  const handleFinancialTypeChange = (value: FinancialStatementType) => {
-    setFinancialType(value);
-  };
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
 
+    if (!user) {
+      toast({
+        title: 'Not authenticated.',
+        description: 'You must be logged in to create flashcards.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!front.trim() || !back.trim()) {
+      toast({
+        title: 'Input Error',
+        description: 'Front and back cannot be empty.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setLoading(true);
     try {
-      // Process content based on type
-      let processedFrontContent = frontContent;
-      let processedBackContent = backContent;
+      await createNewFlashcard({
+        userId: user.id,
+        topicId: topicId || 'default',
+        front,
+        back,
+        contentTypeFront,
+        contentTypeBack,
+      });
 
-      // Add LaTeX delimiters if formula type is selected
-      if (contentType === 'formula' && !frontContent.includes('$$')) {
-        processedFrontContent = `$$${frontContent}$$`;
-      }
-      
-      if (contentType === 'formula' && !backContent.includes('$$')) {
-        processedBackContent = `$$${backContent}$$`;
-      }
-      
-      // Add financial statement token if financial type is selected
-      if (contentType === 'financial') {
-        processedBackContent = `${backContent}\n\n[fin:${financialType}]`;
-      }
+      toast({
+        title: 'Flashcard created!',
+        description: 'Your new flashcard has been successfully created.',
+      });
 
-      // Create the flashcard with processed content and user ID
-      if (user) {
-        await createFlashcard(user.id, processedFrontContent, processedBackContent);
+      setFront('');
+      setBack('');
+      setContentTypeFront('text');
+      setContentTypeBack('text');
 
-        toast({
-          title: 'Success',
-          description: 'Flashcard created successfully.'
-        });
-
-        onSuccess();
-      } else {
-        toast({
-          title: 'Error',
-          description: 'You must be logged in to create flashcards.',
-          variant: 'destructive',
-        });
-      }
-    } catch (error) {
+      navigate('/flashcards');
+    } catch (error: any) {
       console.error('Error creating flashcard:', error);
       toast({
         title: 'Error',
-        description: 'Failed to create flashcard. Please try again.',
-        variant: 'destructive'
+        description: error.message || 'Failed to create flashcard. Please try again.',
+        variant: 'destructive',
       });
     } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const renderContentInputs = () => {
-    switch (contentType) {
-      case 'text':
-        return (
-          <TextContentInput 
-            frontContent={frontContent}
-            setFrontContent={setFrontContent}
-            backContent={backContent}
-            setBackContent={setBackContent}
-          />
-        );
-      
-      case 'formula':
-        return (
-          <FormulaContentInput
-            frontContent={frontContent}
-            setFrontContent={setFrontContent}
-            backContent={backContent}
-            setBackContent={setBackContent}
-          />
-        );
-      
-      case 'financial':
-        return (
-          <FinancialContentInput
-            frontContent={frontContent}
-            setFrontContent={setFrontContent}
-            backContent={backContent}
-            setBackContent={setBackContent}
-            financialType={financialType}
-            setFinancialType={handleFinancialTypeChange}
-          />
-        );
-      
-      default:
-        return null;
+      setLoading(false);
     }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Create Advanced Flashcard</CardTitle>
-        <CardDescription>
-          Add a new flashcard with advanced formatting options
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit}>
-          <Tabs defaultValue="create" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-4">
-              <TabsTrigger value="create">Create</TabsTrigger>
-              <TabsTrigger value="preview">Preview</TabsTrigger>
-              <TabsTrigger value="help">Help</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="create" className="space-y-4">
-              <div className="flex flex-col space-y-4">
-                <ContentTypeSelector 
-                  contentType={contentType}
-                  setContentType={setContentType}
-                  setUseLatex={setUseLatex}
-                />
-                
-                <div className="flex items-center space-x-2 pt-2">
-                  <Switch
-                    id="use-latex"
-                    checked={useLatex}
-                    onCheckedChange={setUseLatex}
-                    disabled={contentType === 'formula'}
-                  />
-                  <Label htmlFor="use-latex">Enable LaTeX rendering</Label>
-                </div>
-                
-                {renderContentInputs()}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="preview">
-              <FlashcardPreview
-                frontContent={frontContent}
-                backContent={
-                  contentType === 'financial'
-                    ? `${backContent}\n\n[fin:${financialType}]`
-                    : backContent
-                }
-                useLatex={useLatex || contentType === 'formula'}
-              />
-            </TabsContent>
-            
-            <TabsContent value="help">
-              <HelpContent />
-            </TabsContent>
-          </Tabs>
-          
-          <FormButtons 
-            isSubmitting={isSubmitting}
-            onCancel={onCancel}
-            frontContent={frontContent}
-            backContent={backContent}
-          />
-        </form>
-      </CardContent>
+    <Card className="w-full">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <FlashcardFormInputs
+          front={front}
+          setFront={setFront}
+          back={back}
+          setBack={setBack}
+        />
+
+        <ContentTypeSelector
+          contentTypeFront={contentTypeFront}
+          setContentTypeFront={setContentTypeFront}
+          contentTypeBack={contentTypeBack}
+          setContentTypeBack={setContentTypeBack}
+        />
+
+        <div className="flex justify-between items-center">
+          <Button type="submit" disabled={loading}>
+            {loading ? 'Creating...' : 'Create Flashcard'}
+          </Button>
+          <Button type="button" variant="secondary" onClick={() => setShowHelp(!showHelp)}>
+            {showHelp ? 'Hide Help' : 'Show Help'}
+          </Button>
+        </div>
+      </form>
+
+      {showHelp && (
+        <HelpContent />
+      )}
     </Card>
   );
 };

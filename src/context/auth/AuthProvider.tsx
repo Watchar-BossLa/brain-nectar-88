@@ -1,220 +1,129 @@
+import React, { useState, useEffect, ReactNode } from 'react';
+import { User } from '@supabase/supabase-js';
+import { AuthContext } from './AuthContext';
+import { supabase } from '@/lib/supabase';
 
-import React, { createContext, useState, useEffect } from 'react';
-import { Session, User, WeakPassword } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import { AuthContextType, PlatformOwnerType } from './types';
+interface AuthProviderProps {
+  children: ReactNode;
+}
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const defaultPlatformOwner: PlatformOwnerType = {
-  email: '',
-  name: '',
-  role: ''
-};
-
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isPlatformOwner, setIsPlatformOwner] = useState(false);
-  const [platformOwner, setPlatformOwner] = useState<PlatformOwnerType>(defaultPlatformOwner);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false); // Add isAdmin state
 
   useEffect(() => {
-    // Get the initial session
-    async function getInitialSession() {
-      setLoading(true);
+    const session = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
 
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-
-        if (error) {
-          throw error;
-        }
-
-        if (session) {
-          setSession(session);
-          setUser(session.user);
-          await checkUserRole(session.user);
-        }
-      } catch (error) {
-        console.error('Error getting initial session:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    getInitialSession();
-
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-
-        if (session?.user) {
-          await checkUserRole(session.user);
-        } else {
-          setIsAdmin(false);
-          setIsPlatformOwner(false);
-          setPlatformOwner(defaultPlatformOwner);
-        }
-
-        setLoading(false);
-      }
-    );
-
-    // Clean up subscription
-    return () => {
-      subscription.unsubscribe();
+      setUser(session?.user || null);
+      setLoading(false);
     };
-  }, []);
 
-  const checkUserRole = async (user: User) => {
-    try {
-      // Check if user is admin
-      const { data: adminData } = await supabase
-        .from('admins')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+    session();
 
-      const isUserAdmin = !!adminData;
-      setIsAdmin(isUserAdmin);
+    supabase.auth.onAuthStateChange(async (_event, session) => {
+      setUser(session?.user || null);
+      setLoading(false);
 
-      // For demo purposes, let's check platform owner status
-      // In a real app, this might be a separate table or auth claim
-      const isPlatformOwnerEmail = user.email === 'demo@studybee.app';
-      setIsPlatformOwner(isPlatformOwnerEmail);
-
-      if (isPlatformOwnerEmail) {
-        setPlatformOwner({
-          email: user.email || '',
-          name: 'Demo Platform Owner',
-          role: 'owner'
-        });
+      // Check if user is admin on auth state change
+      if (session?.user) {
+        const { data: userData } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+          
+        setIsAdmin(userData?.role === 'admin');
       } else {
-        setPlatformOwner(defaultPlatformOwner);
+        setIsAdmin(false);
       }
-    } catch (error) {
-      console.error('Error checking user role:', error);
-      setIsAdmin(false);
-      setIsPlatformOwner(false);
-    }
-  };
+    });
+  }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) {
-        throw error;
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      
+      // Check if user is admin
+      if (data?.user) {
+        const { data: userData } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.user.id)
+          .single();
+          
+        setIsAdmin(userData?.role === 'admin');
       }
-
-      return {
-        success: true,
-        data
-      };
-    } catch (error) {
-      console.error('Error signing in:', error);
-      return {
-        success: false,
-        error: error as Error
-      };
+      
+      return { error: null };
+    } catch (err) {
+      console.error('Error signing in:', err);
+      return { error: err instanceof Error ? err : new Error('Unknown error occurred during sign in') };
     }
   };
 
-  const signInWithGoogle = async () => {
-    try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`
-        }
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      return {
-        success: true,
-        data
-      };
-    } catch (error) {
-      console.error('Error signing in with Google:', error);
-      return {
-        success: false,
-        error: error as Error
-      };
-    }
-  };
-
-  const signUp = async (
-    email: string, 
-    password: string, 
-    metadata?: { [key: string]: any }
-  ) => {
+  const signUp = async (email: string, password: string, name: string) => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: metadata,
-          emailRedirectTo: `${window.location.origin}/login`
+          data: {
+            name,
+            role: 'user', // Default role
+          },
+        },
+      });
+      if (error) throw error;
+      return { error: null };
+    } catch (err) {
+      console.error('Error signing up:', err);
+      return { error: err instanceof Error ? err : new Error('Unknown error occurred during sign up') };
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
         }
       });
-
-      if (error) {
-        throw error;
-      }
-
-      return {
-        success: true,
-        data
-      };
-    } catch (error) {
-      console.error('Error signing up:', error);
-      return {
-        success: false,
-        error: error as Error
-      };
+    } catch (err) {
+      console.error('Error signing in with Google:', err);
+      setError(err instanceof Error ? err : new Error('Unknown error occurred'));
     }
   };
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-
-      if (error) {
-        throw error;
-      }
-
-      return { success: true };
-    } catch (error) {
-      console.error('Error signing out:', error);
-      return {
-        success: false,
-        error: error as Error
-      };
+      await supabase.auth.signOut();
+      setUser(null);
+      setIsAdmin(false);
+    } catch (err) {
+      console.error('Error signing out:', err);
+      setError(err instanceof Error ? err : new Error('Unknown error occurred'));
     }
   };
 
-  const value: AuthContextType = {
-    user,
-    session,
-    loading,
-    isAdmin,
-    isPlatformOwner,
-    platformOwner,
-    signIn,
-    signInWithGoogle,
-    signUp,
-    signOut
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        error,
+        signIn,
+        signUp,
+        signInWithGoogle,
+        signOut,
+        isAdmin
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
