@@ -4,30 +4,19 @@ import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { clusterApiUrl } from '@solana/web3.js';
-import { useLocalStorage } from '@/hooks/use-local-storage';
-import { 
-  PhantomWalletAdapter, 
-  SolflareWalletAdapter 
-} from '@solana/wallet-adapter-wallets';
 
-// Import the styles directly with import statement instead of require
+// Import the required CSS
 import '@solana/wallet-adapter-react-ui/styles.css';
 
-export function SolanaProvider({ children }: { children: React.ReactNode }) {
-  // Use a stored network setting or default to devnet
-  const [network, setNetwork] = useLocalStorage<WalletAdapterNetwork>(
-    'solanaNetwork',
-    WalletAdapterNetwork.Devnet
-  );
+export const SolanaProvider = ({ children }: { children: React.ReactNode }) => {
+  // Can be set to 'devnet', 'testnet', or 'mainnet-beta'
+  const network = WalletAdapterNetwork.Devnet;
 
-  // Get the RPC endpoint for the selected network
+  // You can also provide a custom RPC endpoint
   const endpoint = useMemo(() => clusterApiUrl(network), [network]);
 
-  // Define wallet adapters properly with ES modules syntax
-  const wallets = useMemo(() => [
-    new PhantomWalletAdapter(),
-    new SolflareWalletAdapter()
-  ], [network]);
+  // Initialize empty wallets array - will be populated when adapters are available
+  const wallets = useMemo(() => [], []);
 
   return (
     <ConnectionProvider endpoint={endpoint}>
@@ -36,4 +25,4 @@ export function SolanaProvider({ children }: { children: React.ReactNode }) {
       </WalletProvider>
     </ConnectionProvider>
   );
-}
+};

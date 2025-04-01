@@ -1,5 +1,5 @@
 
-import type { Session } from '@supabase/supabase-js';
+import type { User } from '@supabase/supabase-js';
 
 // Define AuthUser interface
 export interface AuthUser {
@@ -23,7 +23,7 @@ export interface PlatformOwnerType {
 }
 
 export interface AuthContextType {
-  session: Session | null;
+  session: any | null; // Changed from Session to any
   user: AuthUser | null;
   loading: boolean;
   signIn: (email: string, password: string, callback?: (success: boolean) => void) => Promise<{ error: Error | null }>;

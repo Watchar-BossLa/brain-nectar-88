@@ -1,99 +1,51 @@
+import { AgentTask, TaskPriority, TaskType } from '@/services/agents/types';
+import { mcp } from '@/services/agents/mcp';
 
-import { supabase } from '@/integrations/supabase/client';
-import { QuizResults } from '@/types/quiz';
-import { analyzeQuizPerformance } from './quizPerformanceAnalyzer';
-
-/**
- * Update learning paths based on quiz results
- */
-export const updateLearningPathFromQuizResults = async (
-  userId: string,
-  results: QuizResults
-): Promise<void> => {
-  try {
-    if (!userId || !results) return;
-    
-    // Analyze quiz results to find weak topics
-    const weakTopics = analyzeQuizPerformance(results);
-    
-    console.log('Weak topics identified from quiz:', weakTopics);
-    
-    // If there are weak topics, submit a task to update the learning path
-    if (weakTopics.length > 0) {
-      // Modified to use a compatible task type
-      await submitTask(
-        userId,
-        'LEARNING_PATH_GENERATION',
-        'Update learning path based on quiz results',
-        {
-          weakTopics,
-          quizResults: results,
-          timestamp: new Date().toISOString()
-        },
-        'MEDIUM'
-      );
-      
-      console.log('Learning path update task submitted based on quiz results');
-    }
-  } catch (error) {
-    console.error('Error updating learning path from quiz results:', error);
+// Function to generate a learning path from quiz results
+export async function generatePathFromQuizResults(results: any): Promise<any> {
+  if (!results) {
+    throw new Error('Quiz results are required to generate a learning path.');
   }
-};
 
-/**
- * Get recommended topics for a user based on quiz performance
- */
-export const getRecommendedTopics = async (userId: string): Promise<string[]> => {
   try {
-    // Get recent quiz sessions to analyze performance
-    const { data, error } = await supabase
-      .from('quiz_sessions')
-      .select('*, topics')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(5);
-      
-    if (error || !data || data.length === 0) {
-      console.log('No quiz sessions found for user');
-      return [];
-    }
+    // Add type checking for results properties
+    const correctAnswers = typeof results.correct === 'number' ? results.correct : 0;
+    const totalQuestions = typeof results.total === 'number' ? results.total : 1;
     
-    // Combine topic performance from all sessions
-    const combinedTopicPerformance: Record<string, { correct: number; total: number }> = {};
-    
-    data.forEach(session => {
-      if (session.topics) {
-        Object.entries(session.topics).forEach(([topic, performance]) => {
-          if (!combinedTopicPerformance[topic]) {
-            combinedTopicPerformance[topic] = { correct: 0, total: 0 };
-          }
-          
-          combinedTopicPerformance[topic].correct += performance.correct;
-          combinedTopicPerformance[topic].total += performance.total;
-        });
-      }
-    });
-    
-    // Find topics with less than 70% accuracy
-    const recommendedTopics = Object.entries(combinedTopicPerformance)
-      .filter(([_, { correct, total }]) => (correct / total) < 0.7 && total >= 3)
-      .map(([topic]) => topic);
-      
-    return recommendedTopics;
-  } catch (error) {
-    console.error('Error getting recommended topics:', error);
-    return [];
-  }
-};
+    // Calculate scores and path with verified numbers
+    const score = (correctAnswers / totalQuestions) * 100;
 
-// Define a temporary submitTask function since we don't have access to the real one
-async function submitTask(
-  userId: string, 
-  taskType: string, 
-  description: string, 
-  data: any, 
-  priority: string
-): Promise<void> {
-  console.log(`Task submitted: ${taskType} - ${description}`);
-  // This would normally submit the task to the task queue
+    // Determine the task priority based on the quiz score
+    let priority: TaskPriority = 'MEDIUM';
+    if (score >= 80) {
+      priority = 'LOW';
+    } else if (score < 50) {
+      priority = 'HIGH';
+    }
+
+    // Define the learning path generation task
+    const learningPathTask: AgentTask = {
+      id: `learning-path-task-${Date.now()}`,
+      userId: 'user-quiz-results', // Replace with actual user ID
+      taskType: 'LEARNING_PATH_GENERATION' as TaskType,
+      description: `Generate a learning path based on quiz results with a score of ${score.toFixed(2)}%.`,
+      priority: priority,
+      targetAgentTypes: ['LEARNING_PATH'],
+      context: ['quiz', 'assessment', 'learning_path'],
+      data: {
+        quizResults: results,
+        score: score,
+      },
+      createdAt: new Date().toISOString(),
+    };
+
+    // Submit the learning path generation task to the MCP
+    await mcp.getTaskProcessor().submitTask(learningPathTask);
+
+    console.log('Learning path generation task submitted to MCP.');
+    return { success: true, message: 'Learning path generation task submitted.' };
+  } catch (error) {
+    console.error('Error generating learning path from quiz results:', error);
+    throw new Error('Failed to generate learning path from quiz results');
+  }
 }
