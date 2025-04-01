@@ -1,64 +1,51 @@
 
-// Constants for the SM-2 algorithm
-export const INITIAL_EASINESS_FACTOR = 2.5;
-export const MIN_EASINESS_FACTOR = 1.3;
-
 /**
- * Calculate the next review date based on the SM-2 algorithm
- * @param easinessFactor The easiness factor (EF)
- * @param repetitions The number of successful repetitions
- * @param interval The current interval in days
+ * Calculate the next review date based on SM-2 algorithm
+ * 
+ * @param difficulty - Rating from 0-5, where 0 is hardest and 5 is easiest
+ * @param easinessFactor - Current easiness factor (starts at 2.5)
+ * @param repetitionCount - Current repetition count
+ * @returns Object containing the next review date and new easiness factor
  */
 export const calculateNextReviewDate = (
+  difficulty: number,
   easinessFactor: number,
-  repetitions: number,
-  interval: number = 0
-): Date => {
-  let nextInterval: number;
+  repetitionCount: number
+): { nextReviewDate: Date; newEasinessFactor: number } => {
+  // Normalize difficulty from 0-5 to 0-1
+  const normalizedDifficulty = difficulty / 5;
   
-  if (repetitions <= 1) {
-    nextInterval = 1;  // 1 day
-  } else if (repetitions === 2) {
-    nextInterval = 6;  // 6 days
+  // Calculate new easiness factor using SM-2 algorithm
+  let newEF = easinessFactor + (0.1 - (5 - difficulty) * (0.08 + (5 - difficulty) * 0.02));
+  
+  // Ensure EF doesn't go below 1.3
+  newEF = Math.max(1.3, newEF);
+  
+  // Calculate interval
+  let interval: number;
+  if (repetitionCount === 1) {
+    interval = 1; // 1 day
+  } else if (repetitionCount === 2) {
+    interval = 6; // 6 days
   } else {
-    nextInterval = Math.round(interval * easinessFactor);
+    // For repetitions > 2, use the formula interval = interval * EF
+    interval = Math.round((repetitionCount - 1) * newEF);
   }
   
-  const nextDate = new Date();
-  nextDate.setDate(nextDate.getDate() + nextInterval);
+  // If difficulty is very low, reduce interval
+  if (difficulty <= 2) {
+    interval = 1; // Review again tomorrow if difficulty was high
+  }
   
-  return nextDate;
+  // Calculate the next review date
+  const nextReviewDate = new Date();
+  nextReviewDate.setDate(nextReviewDate.getDate() + interval);
+  
+  return {
+    nextReviewDate,
+    newEasinessFactor: newEF
+  };
 };
 
-/**
- * Calculate the memory retention based on elapsed time and memory strength
- * @param daysSinceReview Days since the last review
- * @param memoryStrength Memory strength factor (higher = stronger memory)
- */
-export const calculateRetention = (
-  daysSinceReview: number, 
-  memoryStrength: number
-): number => {
-  // Simple exponential decay model: R = e^(-t/s)
-  // where t is time since review and s is memory strength
-  const retention = Math.exp(-(daysSinceReview / (memoryStrength || 1)));
-  
-  // Convert to percentage and cap between 0-100
-  return Math.max(0, Math.min(100, Math.round(retention * 100)));
-};
-
-/**
- * Calculate mastery level based on repetitions and easiness factor
- * @param repetitions Number of successful repetitions
- * @param easinessFactor Easiness factor
- */
-export const calculateMasteryLevel = (
-  repetitions: number,
-  easinessFactor: number
-): number => {
-  // Simple formula that weighs repetitions and easiness
-  const rawMastery = (repetitions / 10) * 0.7 + ((easinessFactor - MIN_EASINESS_FACTOR) / 1.7) * 0.3;
-  
-  // Cap between 0 and 1
-  return Math.min(1, Math.max(0, rawMastery));
-};
+// Alias for backwards compatibility
+export const calculateNextReview = calculateNextReviewDate;

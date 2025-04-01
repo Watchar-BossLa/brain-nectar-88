@@ -12,14 +12,18 @@ export function useMultiAgentSystem() {
   const [initializing, setInitializing] = useState(false);
   const [agentStatuses, setAgentStatuses] = useState<Map<string, boolean>>(new Map());
   const [systemState, setSystemState] = useState<SystemState>({
-    activeAgents: [] as AgentType[],
-    globalVariables: {},
+    activeAgents: {} as Record<AgentType, boolean>,
+    taskQueue: [],
+    completedTasks: [],
     metrics: {
-      taskCompletionRate: 0.85,
+      completedTasks: 0,
       averageResponseTime: 230,
-      userSatisfactionScore: 0.92
+      successRate: 0.85,
+      taskCompletionRate: 0.85
     },
-    priorityMatrix: {}
+    globalVariables: {},
+    priorityMatrix: {},
+    lastUpdated: new Date().toISOString()
   });
   
   // Define TaskTypes object for the component to use
@@ -66,18 +70,26 @@ export function useMultiAgentSystem() {
     const system = MultiAgentSystem.getInstance();
     setAgentStatuses(system.getAgentStatuses());
     
+    // Create a proper object for activeAgents
+    const agentStatusMap = {} as Record<AgentType, boolean>;
+    Array.from(system.getAgentStatuses().keys()).forEach(key => {
+      agentStatusMap[key as AgentType] = system.getAgentStatuses().get(key) || false;
+    });
+    
     // Update system state with proper type casting
     setSystemState({
-      activeAgents: Array.from(system.getAgentStatuses().keys())
-        .filter(key => system.getAgentStatuses().get(key))
-        .map(key => key as AgentType),
-      globalVariables: {},
+      activeAgents: agentStatusMap,
+      taskQueue: [],
+      completedTasks: [],
       metrics: {
-        taskCompletionRate: 0.85,
+        completedTasks: 0,
         averageResponseTime: 230,
-        userSatisfactionScore: 0.92
+        successRate: 0.85,
+        taskCompletionRate: 0.85
       },
-      priorityMatrix: {}
+      globalVariables: {},
+      priorityMatrix: {},
+      lastUpdated: new Date().toISOString()
     });
   };
   

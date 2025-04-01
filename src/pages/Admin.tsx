@@ -12,12 +12,18 @@ import AdminSettings from '@/components/admin/AdminSettings';
 import AdminAdmins from '@/components/admin/AdminAdmins';
 
 export default function AdminPage() {
-  const { user, isAdmin, isPlatformOwner } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<string>("dashboard");
+  const [isOwner, setIsOwner] = useState(false);
   
   useEffect(() => {
+    // Check if current user is platform owner
+    if (user && user.email === "admin@studybee.com") {
+      setIsOwner(true);
+    }
+    
     // Restrict access to admin users only
     if (!user || !isAdmin) {
       toast({
@@ -44,7 +50,7 @@ export default function AdminPage() {
             <TabsTrigger value="users">User Management</TabsTrigger>
             <TabsTrigger value="payments">Payments</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
-            {isPlatformOwner && (
+            {isOwner && (
               <TabsTrigger value="admins">Admin Access</TabsTrigger>
             )}
           </TabsList>
@@ -65,7 +71,7 @@ export default function AdminPage() {
             <AdminSettings />
           </TabsContent>
           
-          {isPlatformOwner && (
+          {isOwner && (
             <TabsContent value="admins">
               <AdminAdmins />
             </TabsContent>

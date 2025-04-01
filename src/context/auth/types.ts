@@ -7,11 +7,15 @@ export type PlatformOwnerType = {
   role: string;
 };
 
+export type AuthUser = User;
+
 export interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
+  isPlatformOwner: boolean;
+  platformOwner: PlatformOwnerType;
   signIn: (email: string, password: string) => Promise<{
     success: boolean;
     data?: { user: User; session: Session; weakPassword?: WeakPassword };

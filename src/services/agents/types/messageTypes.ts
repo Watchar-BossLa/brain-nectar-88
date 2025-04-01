@@ -10,10 +10,14 @@ export type MessageType =
   | 'TASK';
 
 export interface AgentMessage {
-  type: MessageType;
+  id: string;
+  senderId: string;
+  receiverId: string;
+  messageType: MessageType;
+  type?: MessageType; // For compatibility with existing code
   content: string;
-  senderId?: AgentType;
-  targetId?: AgentType;
-  data?: Record<string, any>;
   timestamp: string;
+  data?: Record<string, any>;
+  priority?: string;
+  sender?: string; // For compatibility with existing code
 }

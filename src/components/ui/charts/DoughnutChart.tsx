@@ -1,25 +1,34 @@
 
 import React from 'react';
-import { PieChart } from './PieChart';
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from 'recharts';
 
 interface DoughnutChartProps {
-  data: Array<{ name: string; value: number }>;
-  colors?: string[];
+  data: { name: string; value: number }[];
+  colors: string[];
   height?: number;
 }
 
-export const DoughnutChart: React.FC<DoughnutChartProps> = ({ 
-  data, 
-  colors = ["#2563eb", "#16a34a", "#dc2626", "#9333ea", "#f59e0b"], 
-  height = 300 
-}) => {
+export function DoughnutChart({ data, colors, height = 300 }: DoughnutChartProps) {
   return (
-    <PieChart 
-      data={data} 
-      colors={colors} 
-      height={height}
-      innerRadius={60}
-      outerRadius={80}
-    />
+    <ResponsiveContainer width="100%" height={height}>
+      <PieChart>
+        <Pie
+          data={data}
+          cx="50%"
+          cy="50%"
+          outerRadius={80}
+          innerRadius={60}
+          fill="#8884d8"
+          dataKey="value"
+          nameKey="name"
+          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+        >
+          {data.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+          ))}
+        </Pie>
+        <Legend />
+      </PieChart>
+    </ResponsiveContainer>
   );
-};
+}

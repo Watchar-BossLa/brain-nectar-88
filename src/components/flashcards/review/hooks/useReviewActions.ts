@@ -24,7 +24,7 @@ export const useReviewActions = (
     const currentCard = flashcards[currentIndex];
     
     try {
-      await updateFlashcardAfterReview(currentCard.id, difficulty);
+      await updateFlashcardAfterReview(currentCard.id, user.id, difficulty);
       
       // Move to next card or complete review
       if (currentIndex < flashcards.length - 1) {

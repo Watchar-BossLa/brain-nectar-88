@@ -68,6 +68,7 @@ export interface AgentMessage {
   timestamp: string;
   priority: TaskPriority;
   data?: any;
+  type?: string; // For compatibility with existing code
 }
 
 export interface SystemState {
@@ -94,4 +95,8 @@ export interface CognitiveProfile {
   retentionPatterns: Record<string, number>;
   createdAt: string;
   updatedAt: string;
+  preferredContentFormats?: string[];
+  learningSpeed?: number;
+  knowledgeGraph?: Record<string, any>;
+  lastUpdated?: string;
 }

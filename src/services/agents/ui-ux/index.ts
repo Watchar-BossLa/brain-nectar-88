@@ -1,22 +1,29 @@
 
-import { AgentMessage, AgentTask, TaskType } from '../types';
-import { BaseAgent } from '../baseAgent';
+import { AgentMessage, AgentTask, TaskType, AgentType } from '../types';
 
 /**
  * UI/UX Agent
  * 
  * Optimizes interface presentation for learning effectiveness.
  */
-export class UiUxAgent extends BaseAgent {
+export class UiUxAgent {
+  id: string;
+  type: string;
+  
   constructor() {
-    super('UI_UX');
+    this.id = 'ui-ux-agent';
+    this.type = AgentType.UI_UX;
+  }
+  
+  getType(): string {
+    return this.type;
   }
   
   async processTask(task: AgentTask): Promise<any> {
     console.log(`UI/UX Agent processing task: ${task.taskType}`);
     
     switch (task.taskType) {
-      case 'UI_OPTIMIZATION':
+      case TaskType.UI_OPTIMIZATION:
         return this.optimizeUi(task.userId, task.data);
       default:
         console.warn(`UI/UX Agent received unknown task type: ${task.taskType}`);
@@ -25,7 +32,7 @@ export class UiUxAgent extends BaseAgent {
   }
   
   receiveMessage(message: AgentMessage): void {
-    console.log(`UI/UX Agent received message: ${message.type}`);
+    console.log(`UI/UX Agent received message: ${message.messageType}`);
     // Handle messages from other agents
   }
   
@@ -45,3 +52,6 @@ export class UiUxAgent extends BaseAgent {
     };
   }
 }
+
+// Export a singleton instance for convenience
+export const uiUxAgent = new UiUxAgent();

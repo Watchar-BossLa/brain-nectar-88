@@ -3,9 +3,10 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/auth';
 import { supabase } from '@/integrations/supabase/client';
+import { PLATFORM_OWNER } from '@/context/auth/constants';
 
 const WelcomeHeader = () => {
-  const { user, platformOwner } = useAuth();
+  const { user } = useAuth();
   const [firstName, setFirstName] = useState<string>("Kelvin"); // Default to platform owner
   
   useEffect(() => {
@@ -21,9 +22,9 @@ const WelcomeHeader = () => {
             
           if (data && data.first_name) {
             setFirstName(data.first_name);
-          } else if (user.email === platformOwner.email) {
+          } else if (user.email === PLATFORM_OWNER.email) {
             // If it's the admin, use their name from the platform owner constant
-            setFirstName(platformOwner.name.split(' ')[0]);
+            setFirstName(PLATFORM_OWNER.name.split(' ')[0]);
           }
         } catch (error) {
           console.error('Error fetching user profile:', error);
@@ -32,7 +33,7 @@ const WelcomeHeader = () => {
     };
     
     fetchUserProfile();
-  }, [user, platformOwner]);
+  }, [user]);
 
   return (
     <motion.div 
