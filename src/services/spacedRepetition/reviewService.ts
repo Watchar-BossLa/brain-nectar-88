@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export type FlashcardRetentionResult = {
@@ -7,12 +8,18 @@ export type FlashcardRetentionResult = {
 };
 
 export type FlashcardLearningStats = {
-  totalReviews: number;
-  retentionRate: number;
-  masteredCardCount: number;
-  averageEaseFactor: number;
-  learningEfficiency: number;
-  recommendedDailyReviews: number;
+  success?: boolean;
+  data?: {
+    totalCards: number;
+    masteredCards: number;
+    averageDifficulty: number;
+    learningCards: number;
+    retentionRate: number;
+    reviewsToday: number;
+    streakDays: number;
+    averageRetention: number;
+  };
+  error?: string;
 };
 
 /**
@@ -20,23 +27,24 @@ export type FlashcardLearningStats = {
  */
 export const updateFlashcardAfterReview = async (
   cardId: string, 
-  userId: string,
-  quality: number, // 0-5 where 5 is perfect recall
-  previousInterval: number = 0,
-  previousEaseFactor: number = 2.5
-): Promise<boolean> => {
+  difficulty: number,
+  userId?: string,
+  previousInterval?: number,
+  previousEaseFactor?: number
+): Promise<{ data?: any; error?: Error }> => {
   // Implementation goes here
-  return true;
+  return { data: true };
 };
 
 /**
  * Calculate retention statistics for a flashcard
  */
-export const calculateFlashcardRetention = (
-  lastReviewDate: Date, 
-  interval: number,
-  easeFactor: number
-): FlashcardRetentionResult => {
+export const calculateFlashcardRetention = async (
+  userId: string,
+  lastReviewDate?: Date, 
+  interval?: number,
+  easeFactor?: number
+): Promise<FlashcardRetentionResult> => {
   // Implementation would go here
   return {
     cardId: 'temp-id',
@@ -48,7 +56,7 @@ export const calculateFlashcardRetention = (
 /**
  * Get learning statistics for a user's flashcards
  */
-export const getFlashcardLearningStats = async (userId: string) => {
+export const getFlashcardLearningStats = async (userId: string): Promise<FlashcardLearningStats> => {
   try {
     // Get all flashcards for the user
     const { data: flashcards, error } = await supabase

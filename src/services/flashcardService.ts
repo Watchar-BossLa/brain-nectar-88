@@ -1,4 +1,3 @@
-
 /**
  * This file serves as a facade for backward compatibility.
  * It re-exports all flashcard-related functionality from the spacedRepetition module.
@@ -9,7 +8,7 @@ import {
   calculateNextReviewDate, 
   INITIAL_EASINESS_FACTOR,
   MIN_EASINESS_FACTOR,
-  updateFlashcardAfterReview as updateSpacedRepFlashcardAfterReview
+  updateFlashcardAfterReview as updateReview
 } from './spacedRepetition';
 
 // Export the constants
@@ -132,8 +131,12 @@ export const createSpacedRepFlashcard = async (
 };
 
 // Update flashcard after review
-export const updateFlashcardAfterReview = async (flashcardId: string, difficulty: number) => {
-  return updateSpacedRepFlashcardAfterReview(flashcardId, difficulty);
+export const updateFlashcardAfterReview = async (
+  flashcardId: string, 
+  difficulty: number,
+  userId?: string
+) => {
+  return updateReview(flashcardId, difficulty, userId);
 };
 
 // Delete a flashcard

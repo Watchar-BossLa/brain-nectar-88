@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,7 @@ import { calculateRetention } from '@/services/spacedRepetition/algorithm';
 import { MemoryRetentionIndicator } from './components/MemoryRetentionIndicator';
 import { DifficultyRatingButtons } from './components/DifficultyRatingButtons';
 import { AnimatedFlashcardContent } from './components/AnimatedFlashcardContent';
+import { useAuth } from '@/context/auth';
 
 interface SpacedRepetitionCardProps {
   flashcard: Flashcard;
@@ -28,22 +28,19 @@ const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({
   const [difficultyRating, setDifficultyRating] = useState<number | null>(null);
   const [retentionEstimate, setRetentionEstimate] = useState<number>(1);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
-    // Reset state when flashcard changes
     setIsFlipped(false);
     setDifficultyRating(null);
     
-    // Calculate estimated current retention
     if (flashcard.next_review_date && flashcard.repetition_count > 0) {
       const reviewDate = new Date(flashcard.next_review_date);
       const now = new Date();
       const daysSinceReview = Math.max(0, (now.getTime() - reviewDate.getTime()) / (1000 * 60 * 60 * 24));
       
-      // Estimate memory strength based on repetition count and difficulty
       const memoryStrength = flashcard.repetition_count * 0.2 * (flashcard.difficulty || 2.5);
       
-      // Calculate current retention
       const retention = calculateRetention(daysSinceReview, memoryStrength);
       setRetentionEstimate(retention);
     }
@@ -58,18 +55,20 @@ const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({
     setIsSubmitting(true);
 
     try {
-      const { data, error } = await updateFlashcardAfterReview(flashcard.id, difficulty);
-      
-      if (error) {
-        throw error;
+      if (!user) {
+        throw new Error("User not authenticated");
       }
       
-      // Update stats if callback is provided
+      const result = await updateFlashcardAfterReview(flashcard.id, difficulty, user.id);
+      
+      if (result.error) {
+        throw result.error;
+      }
+      
       if (onUpdateStats) {
         onUpdateStats();
       }
       
-      // Short delay to show the selected rating
       setTimeout(() => {
         onComplete();
         setIsSubmitting(false);
@@ -94,7 +93,6 @@ const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({
           How well did you remember this card? Be honest for best results.
         </CardDescription>
         
-        {/* Memory Retention Indicator */}
         <MemoryRetentionIndicator 
           retention={retentionEstimate}
           repetitionCount={flashcard.repetition_count}
