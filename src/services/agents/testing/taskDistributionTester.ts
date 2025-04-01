@@ -1,6 +1,5 @@
-
 import { v4 as uuidv4 } from 'uuid';
-import { AgentTask, AgentType, TaskStatus, ContextTag, TaskPriority } from '../types';
+import { AgentTask, AgentType, TaskStatus, ContextTag, TaskPriority, TaskType } from '../types';
 import { taskMonitor } from '../monitoring/taskMonitor';
 import { determineTargetAgents } from '../orchestration/agentSelector';
 
@@ -24,7 +23,7 @@ export class TaskDistributionTester {
     taskProcessor: any,
     options: {
       userId?: string;
-      taskType?: string;
+      taskType?: TaskType;
       targetAgents?: AgentType[];
       priority?: TaskPriority;
       context?: ContextTag[];
@@ -38,10 +37,10 @@ export class TaskDistributionTester {
     const task: AgentTask = {
       id: `test-task-${testId}`,
       userId: options.userId || 'test-user',
-      taskType: options.taskType || 'COGNITIVE_PROFILING',
+      taskType: options.taskType || 'COGNITIVE_PROFILING' as TaskType,
       description: `Test task distribution pipeline - ${testId}`,
       priority: options.priority || 'MEDIUM',
-      targetAgentTypes: options.targetAgents || [], // If empty, will be determined by the selector
+      targetAgentTypes: options.targetAgents || [],
       context: options.context || ['test'],
       data: {
         isTestTask: true,

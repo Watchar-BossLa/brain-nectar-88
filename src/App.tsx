@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from './context/auth';
@@ -24,6 +23,7 @@ import Blockchain from './pages/Blockchain';
 import UserProfile from './pages/UserProfile';
 import Profile from './pages/Profile';
 import { ErrorBoundary } from './components/ui/error-boundary';
+import TestingPage from './pages/TestingPage';
 
 function App() {
   useEffect(() => {
@@ -57,6 +57,7 @@ function App() {
                 <Route path="/dashboard" element={<Index />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/user-profile" element={<UserProfile />} />
+                <Route path="/testing" element={<TestingPage />} />
               </Routes>
               <Toaster />
             </SolanaContextProvider>

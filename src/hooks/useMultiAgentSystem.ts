@@ -19,7 +19,13 @@ export function useMultiAgentSystem() {
       averageProcessingTime: 230,
       systemLoad: 0.92,
     },
-    priorityMatrix: {}
+    priorityMatrix: {},
+    taskQueue: 0,
+    processingTasks: 0,
+    completedTasks: 0,
+    failedTasks: 0,
+    systemStatus: 'READY',
+    lastUpdated: new Date().toISOString()
   });
   
   // Define TaskTypes object for the component to use
@@ -66,7 +72,7 @@ export function useMultiAgentSystem() {
     const system = MultiAgentSystem.getInstance();
     setAgentStatuses(system.getAgentStatuses());
     
-    // Update system state with proper type casting
+    // Update system state with complete required properties
     setSystemState({
       activeAgents: Array.from(system.getAgentStatuses().keys())
         .filter(key => system.getAgentStatuses().get(key))
@@ -77,7 +83,13 @@ export function useMultiAgentSystem() {
         averageProcessingTime: 230,
         systemLoad: 0.92,
       },
-      priorityMatrix: {}
+      priorityMatrix: {},
+      taskQueue: 0,
+      processingTasks: 0,
+      completedTasks: 0,
+      failedTasks: 0,
+      systemStatus: 'READY',
+      lastUpdated: new Date().toISOString()
     });
   };
   

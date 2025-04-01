@@ -1,10 +1,9 @@
-
 import { AgentTask, TaskType } from '../types';
 import { createAgentRegistry } from './agentRegistry';
 import { agentIntegration } from '../../llm/agentIntegration';
 import { determineTargetAgents } from './taskRouting';
 import { TaskQueueManager } from './taskQueueManager';
-import { TaskStatus } from '../types/taskTypes';
+import { TaskStatus } from '../types';
 
 /**
  * TaskProcessor
