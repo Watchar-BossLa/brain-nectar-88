@@ -29,7 +29,7 @@ export const motion = {
 
 // Basic animation utility
 export const AnimatePresence = ({ children }: { children: React.ReactNode }) => {
-  return <>{children}</>;
+  return React.createElement(React.Fragment, null, children);
 };
 
 // Animation hooks
