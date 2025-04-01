@@ -19,9 +19,6 @@ export class SystemStateManager {
         taskSuccessRate: 0.98,
         averageProcessingTime: 150,
         systemLoad: 0.25,
-        taskCompletionRate: 0.95,
-        averageResponseTime: 200,
-        userSatisfactionScore: 0.9
       },
       priorityMatrix: {},
       taskQueue: 0,
@@ -55,9 +52,6 @@ export class SystemStateManager {
           metrics.taskSuccessRate * 0.9 + 0.1 : 
           metrics.taskSuccessRate * 0.9,
         systemLoad: Math.min(0.95, metrics.systemLoad + 0.05),
-        taskCompletionRate: success ? 
-          (metrics.taskCompletionRate || 0.9) * 0.9 + 0.1 : 
-          (metrics.taskCompletionRate || 0.9) * 0.9
       },
       lastUpdated: new Date().toISOString()
     };

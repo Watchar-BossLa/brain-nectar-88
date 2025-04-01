@@ -17,3 +17,14 @@ export interface ProfileUpdateOptions {
   userId: string;
   newData: Partial<CognitiveProfile>;
 }
+
+export interface ProfileAnalysisResult {
+  userId: string;
+  learningStyleStrengths: Record<string, number>;
+  recommendedContentFormats: string[];
+  attention: {
+    optimalSessionLength: number;
+    recommendedBreakFrequency: number;
+  };
+  timestamp: string;
+}

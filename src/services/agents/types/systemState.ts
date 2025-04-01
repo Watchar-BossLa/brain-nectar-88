@@ -1,19 +1,21 @@
 
+import { AgentType } from './agentTypes';
+
 /**
  * System State Interface
  * 
  * Represents the current state of the agent system
  */
 export interface SystemState {
-  activeAgents: import('./agentTypes').AgentType[];
+  activeAgents: AgentType[];
   globalVariables: Record<string, any>;
   metrics: {
-    taskCompletionRate?: number;
-    averageResponseTime?: number;
-    userSatisfactionScore?: number;
     taskSuccessRate: number;
     averageProcessingTime: number;
     systemLoad: number;
+    taskCompletionRate?: number;
+    averageResponseTime?: number;
+    userSatisfactionScore?: number;
   };
   priorityMatrix: Record<string, any>;
   taskQueue?: number;

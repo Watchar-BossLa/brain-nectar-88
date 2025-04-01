@@ -1,6 +1,6 @@
 
-import { AgentTask, AgentType, TaskType } from '../types';
-import { ContextTag } from '../types/taskTypes';
+import { AgentTask, AgentType } from '../types';
+import { ContextTag, TaskStatus } from '../types/taskTypes';
 
 /**
  * Agent Orchestrator
@@ -32,6 +32,84 @@ export class AgentOrchestrator {
         console.warn(`Agent ${agentType} not found for task distribution`);
       }
     }
+  }
+  
+  /**
+   * Generate an adaptive learning path
+   */
+  public async generateAdaptiveLearningPath(
+    userId: string,
+    qualificationId: string,
+    options?: {
+      priorityTopics?: string[];
+      timeConstraint?: number;
+      complexityPreference?: 'basic' | 'standard' | 'advanced';
+    }
+  ): Promise<any> {
+    const task = this.createLearningPathTask(userId);
+    task.data = {
+      ...task.data,
+      qualificationId,
+      options
+    };
+    
+    await this.distributeTask(task);
+    return {
+      taskId: task.id,
+      status: 'pending',
+      message: 'Learning path generation initiated'
+    };
+  }
+  
+  /**
+   * Create an adaptive assessment
+   */
+  public async createAdaptiveAssessment(
+    userId: string,
+    topicIds: string[],
+    options?: {
+      initialDifficulty?: number;
+      adaptationRate?: number;
+      questionCount?: number;
+      timeLimit?: number;
+    }
+  ): Promise<any> {
+    const difficulty = options?.initialDifficulty || 0.5;
+    const task = this.createAssessmentTask(userId, topicIds, difficulty);
+    task.data = {
+      ...task.data,
+      options
+    };
+    
+    await this.distributeTask(task);
+    return {
+      taskId: task.id,
+      status: 'pending',
+      message: 'Assessment generation initiated'
+    };
+  }
+  
+  /**
+   * Optimize study schedule
+   */
+  public async optimizeStudySchedule(
+    userId: string,
+    options?: {
+      dailyAvailableTime?: number;
+      priorityTopics?: string[];
+      startDate?: string;
+      endDate?: string;
+      goalDate?: string;
+    }
+  ): Promise<any> {
+    const task = this.createScheduleOptimizationTask(userId, options || {});
+    
+    await this.distributeTask(task);
+    return {
+      taskId: task.id,
+      status: 'pending',
+      message: 'Schedule optimization initiated'
+    };
   }
   
   /**
@@ -102,7 +180,7 @@ export class AgentOrchestrator {
       description: 'Generate initial learning path',
       priority: 'HIGH',
       targetAgentTypes: ['LEARNING_PATH', 'COGNITIVE_PROFILE'],
-      context: ['learning_path', 'qualification', 'adaptive'] as ContextTag[],
+      context: ['learning_path', 'qualification', 'adaptive'],
       data: {},
       createdAt: new Date().toISOString()
     };
@@ -119,7 +197,7 @@ export class AgentOrchestrator {
       description: 'Create initial cognitive profile',
       priority: 'HIGH',
       targetAgentTypes: ['COGNITIVE_PROFILE'],
-      context: ['cognitive_profile', 'qualification', 'adaptive'] as ContextTag[],
+      context: ['cognitive_profile', 'qualification', 'adaptive'],
       data: {},
       createdAt: new Date().toISOString()
     };
@@ -136,7 +214,7 @@ export class AgentOrchestrator {
       description: 'Adapt learning content to user profile',
       priority: 'MEDIUM',
       targetAgentTypes: ['CONTENT_ADAPTATION', 'COGNITIVE_PROFILE'],
-      context: ['learning_path', 'cognitive_profile', 'qualification'] as ContextTag[],
+      context: ['learning_path', 'cognitive_profile', 'qualification'],
       data: {
         topicIds
       },
@@ -155,7 +233,7 @@ export class AgentOrchestrator {
       description: 'Generate adaptive assessment',
       priority: 'MEDIUM',
       targetAgentTypes: ['ASSESSMENT'],
-      context: ['assessment', 'adaptive', 'difficulty'] as ContextTag[],
+      context: ['assessment', 'adaptive', 'difficulty'],
       data: {
         topicIds,
         difficulty,
@@ -193,7 +271,7 @@ export class AgentOrchestrator {
       description: 'Optimize study schedule',
       priority: 'MEDIUM',
       targetAgentTypes: ['SCHEDULING'],
-      context: ['schedule', 'optimization', 'study_plan'] as ContextTag[],
+      context: ['schedule', 'optimization', 'study_plan'],
       data: {
         options
       },
@@ -212,7 +290,7 @@ export class AgentOrchestrator {
       description: 'Optimize flashcard spaced repetition',
       priority: 'MEDIUM',
       targetAgentTypes: ['SCHEDULING'],
-      context: ['flashcards', 'spaced_repetition', 'optimization'] as ContextTag[],
+      context: ['flashcards', 'spaced_repetition', 'optimization'],
       data: {
         cardIds
       },

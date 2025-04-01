@@ -1,3 +1,4 @@
+
 import { LearningHistoryItem } from './types';
 
 /**
@@ -72,7 +73,7 @@ export class DataAnalysisUtils {
     const groups: Record<string, LearningHistoryItem[]> = {};
     
     items.forEach(item => {
-      const topicId = item.content?.topic_id || item.topic_id;
+      const topicId = item.content?.topic_id || item.topicId;
       if (topicId) {
         if (!groups[topicId]) {
           groups[topicId] = [];

@@ -38,3 +38,5 @@ export type ContextTag =
   | 'difficulty'
   | 'optimization'
   | 'flashcards';
+
+export type TaskStatus = 'pending' | 'processing' | 'completed' | 'failed';

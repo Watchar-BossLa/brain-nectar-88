@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/auth';
 import { MultiAgentSystem } from '@/services/agents';
@@ -17,9 +18,6 @@ export function useMultiAgentSystem() {
       taskSuccessRate: 0.85,
       averageProcessingTime: 230,
       systemLoad: 0.92,
-      taskCompletionRate: 0.85,
-      averageResponseTime: 230,
-      userSatisfactionScore: 0.92
     },
     priorityMatrix: {}
   });
@@ -78,9 +76,6 @@ export function useMultiAgentSystem() {
         taskSuccessRate: 0.85,
         averageProcessingTime: 230,
         systemLoad: 0.92,
-        taskCompletionRate: 0.85,
-        averageResponseTime: 230,
-        userSatisfactionScore: 0.92
       },
       priorityMatrix: {}
     });
