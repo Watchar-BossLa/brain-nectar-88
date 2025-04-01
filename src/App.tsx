@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from './context/auth';
@@ -19,7 +20,6 @@ import { useEffect } from 'react';
 import Index from './pages/Index';
 import Quiz from './pages/Quiz';
 import AdaptiveQuiz from './pages/AdaptiveQuiz';
-import Blockchain from './pages/Blockchain';
 import UserProfile from './pages/UserProfile';
 import Profile from './pages/Profile';
 import { ErrorBoundary } from './components/ui/error-boundary';
@@ -53,7 +53,6 @@ function App() {
                 <Route path="/agent-dashboard" element={<AgentDashboard />} />
                 <Route path="/quiz" element={<Quiz />} />
                 <Route path="/adaptive-quiz" element={<AdaptiveQuiz />} />
-                <Route path="/blockchain" element={<Blockchain />} />
                 <Route path="/dashboard" element={<Index />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/user-profile" element={<UserProfile />} />

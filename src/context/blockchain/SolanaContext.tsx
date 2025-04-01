@@ -11,7 +11,7 @@ export interface SolanaContextType {
   signMessage?: (message: Uint8Array) => Promise<{ signature: Uint8Array }>;
   sendTransaction?: any;
   
-  // Missing properties that components are trying to use
+  // Required properties for components
   mintAchievementNFT?: (achievementData: any) => Promise<string | null>;
   processPayment?: (amount: number, description: string) => Promise<boolean>;
   sendTokenReward?: (amount: number) => Promise<boolean>;

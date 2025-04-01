@@ -1,42 +1,31 @@
 
 import React from 'react';
-import { Loader2 } from 'lucide-react';
-import { Flashcard } from '@/types/supabase';
-import FlashcardGrid from '@/components/flashcards/FlashcardGrid';
-import FlashcardsEmptyState from '@/components/flashcards/FlashcardsEmptyState';
+import { FlashcardGrid } from '../FlashcardGrid';
+import { Flashcard } from '@/types/flashcards';
+import { EmptyFlashcardState } from '../EmptyFlashcardState';
 
-interface AllFlashcardsTabProps {
-  isLoading: boolean;
+export interface AllFlashcardsTabProps {
   flashcards: Flashcard[];
-  onDeleteFlashcard: (id: string) => Promise<void>;
-  onCardUpdated: () => void;
-  onCreateSimpleFlashcard: () => void;
-  onCreateAdvancedFlashcard: () => void;
+  isLoading: boolean;
+  onDelete?: (id: string) => Promise<void>;
+  onAddNew?: () => void;
+  onFlashcardsUpdated?: () => Promise<void>;
 }
 
-const AllFlashcardsTab = ({
+const AllFlashcardsTab = ({ 
+  flashcards, 
   isLoading,
-  flashcards,
-  onDeleteFlashcard,
-  onCardUpdated,
-  onCreateSimpleFlashcard,
-  onCreateAdvancedFlashcard
+  onDelete,
+  onAddNew,
+  onFlashcardsUpdated
 }: AllFlashcardsTabProps) => {
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-16">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
   
-  if (flashcards.length === 0) {
+  if (!isLoading && (!flashcards || flashcards.length === 0)) {
     return (
-      <FlashcardsEmptyState
-        title="No flashcards yet"
-        description="Start creating flashcards to help you learn and retain information more effectively with spaced repetition."
-        onCreateSimpleFlashcard={onCreateSimpleFlashcard}
-        onCreateAdvancedFlashcard={onCreateAdvancedFlashcard}
+      <EmptyFlashcardState 
+        title="No flashcards found" 
+        description="You haven't created any flashcards yet. Create your first flashcard to start learning!"
+        onAddNew={onAddNew}
       />
     );
   }
@@ -44,8 +33,9 @@ const AllFlashcardsTab = ({
   return (
     <FlashcardGrid 
       flashcards={flashcards} 
-      onDelete={onDeleteFlashcard}
-      onCardUpdated={onCardUpdated} 
+      isLoading={isLoading} 
+      onDelete={onDelete}
+      onFlashcardsUpdated={onFlashcardsUpdated}
     />
   );
 };

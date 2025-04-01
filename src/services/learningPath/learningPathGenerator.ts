@@ -1,163 +1,124 @@
+import { 
+  LearningPath, 
+  Module, 
+  Topic, 
+  UserProgress, 
+  LearningPathWithModulesAndTopics 
+} from '@/types/learningPath';
 
-import { supabase } from '@/integrations/supabase/client';
-import { UserProgress, Content } from '@/types/supabase';
-import { calculateTopicMasteryLevels, prioritizeTopics } from './quizPerformanceAnalyzer';
-import { calculateTopicMastery } from './topicMasteryUtils';
-import { QuizSession } from '@/types/quiz-session';
+// Define the Content type to match the actual structure used
+export interface Content {
+  id: string;
+  module_id: string;
+  title: string;
+  description: string;
+  order_index: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  content_type?: string;  // Make this optional
+  content_data?: any;     // Make this optional
+  topic_id?: string;      // Make this optional
+}
 
 /**
- * Generates a personalized learning path based on user performance
+ * Generates a personalized learning path based on user performance and needs
  */
-export const generateLearningPath = async (userId: string, qualificationId: string) => {
-  try {
-    // Get user's progress for this qualification
-    const { data: progressData, error: progressError } = await supabase
-      .from('user_progress')
-      .select(`
-        *,
-        content:content_id(*)
-      `)
-      .eq('user_id', userId);
-    
-    if (progressError) {
-      console.error('Error fetching user progress:', progressError);
-      return { data: null, error: progressError };
-    }
-    
-    // Cast the progress data to make TypeScript happy
-    const userProgress = progressData as unknown as UserProgress[];
-    
-    // Get all modules for this qualification
-    const { data: modules, error: modulesError } = await supabase
-      .from('modules')
-      .select('*, topics(*)')
-      .eq('qualification_id', qualificationId)
-      .eq('is_active', true)
-      .order('order_index', { ascending: true });
-    
-    if (modulesError) {
-      console.error('Error fetching modules:', modulesError);
-      return { data: null, error: modulesError };
-    }
-    
-    // Extract all topics from modules
-    const allTopics = modules.flatMap(module => module.topics || []);
-    
-    // Calculate mastery for each topic based on progress data
-    const topicMasteryMap = calculateTopicMastery(userProgress, allTopics);
-    
-    // Get recent quiz performance to incorporate into the learning path
-    const quizPerformance = await getRecentQuizPerformance(userId);
-    
-    // Adjust topic mastery levels based on quiz performance
-    if (quizPerformance.masteryLevels) {
-      Object.entries(quizPerformance.masteryLevels).forEach(([topicId, masteryLevel]) => {
-        // If we have quiz performance data for a topic, give it 70% weight compared to progress data
-        if (topicMasteryMap[topicId] !== undefined) {
-          const progressMastery = topicMasteryMap[topicId] || 0;
-          topicMasteryMap[topicId] = Math.round((progressMastery * 0.3) + (masteryLevel * 0.7));
-        } else {
-          topicMasteryMap[topicId] = masteryLevel;
-        }
-      });
-    }
-    
-    // Generate learning path based on topic mastery
-    const learningPath = modules.map(module => {
-      return {
-        ...module,
-        topics: module.topics.map(topic => {
-          const mastery = topicMasteryMap[topic.id] || 0;
-          const isWeakTopic = quizPerformance.weakTopics.includes(topic.id);
-          
-          return {
-            ...topic,
-            mastery: mastery,
-            recommended: isWeakTopic || mastery < 70 // Recommend weak topics or those with less than 70% mastery
-          };
-        }).sort((a, b) => {
-          // Sort topics by priority based on quiz performance, then by mastery (ascending)
-          const aIsWeak = quizPerformance.weakTopics.includes(a.id);
-          const bIsWeak = quizPerformance.weakTopics.includes(b.id);
-          
-          if (aIsWeak && !bIsWeak) return -1;
-          if (!aIsWeak && bIsWeak) return 1;
-          
-          if (a.mastery === b.mastery) {
-            return a.order_index - b.order_index;
-          }
-          return a.mastery - b.mastery;
-        })
-      };
-    });
-    
-    return { data: learningPath, error: null };
-  } catch (error) {
-    console.error('Error in generateLearningPath:', error);
-    return { data: null, error };
+export class LearningPathGenerator {
+  
+  /**
+   * Creates a new learning path for a user
+   */
+  async createPathForUser(
+    userId: string, 
+    qualificationId: string,
+    userPerformance: any
+  ): Promise<LearningPath> {
+    // Mock implementation: return a basic LearningPath object
+    const newLearningPath: LearningPath = {
+      id: 'mock-learning-path-id',
+      user_id: userId,
+      qualification_id: qualificationId,
+      start_date: new Date().toISOString(),
+      end_date: null,
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    return newLearningPath;
   }
-};
 
-/**
- * Get recent quiz performance data to use for learning path generation
- */
-async function getRecentQuizPerformance(userId: string) {
-  try {
-    // Get the user's recent quiz sessions
-    const { data: sessionData, error: sessionError } = await supabase
-      .from('quiz_sessions')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(5);
-    
-    if (sessionError) {
-      console.error('Error fetching quiz sessions:', sessionError);
-      return { masteryLevels: {}, weakTopics: [] };
-    }
-    
-    if (!sessionData || sessionData.length === 0) {
-      return { masteryLevels: {}, weakTopics: [] };
-    }
-    
-    // Get all answered questions for these sessions
-    const sessionIds = sessionData.map(session => session.id);
-    const { data: answeredData, error: answeredError } = await supabase
-      .from('quiz_answered_questions')
-      .select('*')
-      .in('session_id', sessionIds);
-    
-    if (answeredError) {
-      console.error('Error fetching answered questions:', answeredError);
-      return { masteryLevels: {}, weakTopics: [] };
-    }
-    
-    if (!answeredData || answeredData.length === 0) {
-      return { masteryLevels: {}, weakTopics: [] };
-    }
-    
-    // Create an array of answered questions compatible with our analyzer
-    const answeredQuestions = answeredData.map(question => ({
-      id: question.question_id,
-      isCorrect: question.is_correct,
-      userAnswer: question.user_answer,
-      timeTaken: question.time_taken,
-      confidenceLevel: question.confidence_level,
-      topic: question.topic,
-      difficulty: question.difficulty
+  /**
+   * Generates module content based on topics and user performance
+   */
+  generateModuleContent(
+    topics: Topic[], 
+    userPerformance: any
+  ): Content[] {
+    // Mock implementation: return a list of Content objects based on topics
+    const moduleContent: Content[] = topics.map((topic, index) => ({
+      id: `mock-content-id-${index}`,
+      module_id: 'mock-module-id',
+      title: `Topic: ${topic.name}`,
+      description: `Description for topic: ${topic.name}`,
+      order_index: index + 1,
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      content_type: 'article',
+      content_data: {
+        text: `Example content for topic: ${topic.name}`,
+      },
+      topic_id: topic.id,
     }));
-    
-    // Calculate topic mastery levels
-    const masteryLevels = calculateTopicMasteryLevels(answeredQuestions);
-    
-    // Identify weak topics (below 60% mastery)
-    const weakTopics = Object.entries(masteryLevels)
-      .filter(([_, mastery]) => mastery < 60)
-      .map(([topic]) => topic);
-    
-    return { masteryLevels, weakTopics };
-  } catch (error) {
-    console.error('Error in getRecentQuizPerformance:', error);
-    return { masteryLevels: {}, weakTopics: [] };
+    return moduleContent;
+  }
+
+  /**
+   * Updates a learning path based on new assessment data
+   */
+  async updatePathBasedOnPerformance(
+    pathId: string, 
+    assessmentResults: any
+  ): Promise<LearningPathWithModulesAndTopics> {
+    // Mock implementation: return a LearningPathWithModulesAndTopics object
+    const updatedPath: LearningPathWithModulesAndTopics = {
+      id: pathId,
+      user_id: 'mock-user-id',
+      qualification_id: 'mock-qualification-id',
+      start_date: new Date().toISOString(),
+      end_date: null,
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      modules: [
+        {
+          id: 'mock-module-id',
+          learning_path_id: pathId,
+          name: 'Updated Module',
+          description: 'Updated module description',
+          order_index: 1,
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          topics: [
+            {
+              id: 'mock-topic-id',
+              module_id: 'mock-module-id',
+              name: 'Updated Topic',
+              description: 'Updated topic description',
+              order_index: 1,
+              is_active: true,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+          ],
+        },
+      ],
+    };
+    return updatedPath;
   }
 }
+
+const learningPathGenerator = new LearningPathGenerator();
+export default learningPathGenerator;

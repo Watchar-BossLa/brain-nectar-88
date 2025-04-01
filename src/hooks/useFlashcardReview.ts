@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { spacedRepetitionService } from '@/services/flashcards/spacedRepetitionService';
+import { Flashcard } from '@/types/flashcards';
 
 /**
  * Hook for reviewing flashcards using spaced repetition
@@ -8,6 +9,9 @@ import { spacedRepetitionService } from '@/services/flashcards/spacedRepetitionS
  */
 export const useFlashcardReview = (onReviewComplete?: () => void) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [reviewCards, setReviewCards] = useState<Flashcard[]>([]);
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [reviewState, setReviewState] = useState<'reviewing' | 'answering' | 'complete'>('reviewing');
   const [currentCard, setCurrentCard] = useState<any>(null);
   const [reviewStats, setReviewStats] = useState({
@@ -77,15 +81,46 @@ export const useFlashcardReview = (onReviewComplete?: () => void) => {
     }
   };
 
+  // Handle flipping the card
+  const handleFlip = () => {
+    if (reviewState === 'reviewing') {
+      setReviewState('answering');
+    } else {
+      setReviewState('reviewing');
+    }
+  };
+
+  // Handle difficulty rating
+  const handleDifficultyRating = (rating: number) => {
+    rateCard(rating);
+  };
+
+  // Skip current card
+  const handleSkip = () => {
+    if (currentCardIndex < reviewCards.length - 1) {
+      setCurrentCardIndex(prevIndex => prevIndex + 1);
+      setCurrentCard(reviewCards[currentCardIndex + 1]);
+      setReviewState('reviewing');
+    } else {
+      setReviewState('complete');
+    }
+  };
+
   return {
     recordReview,
     isSubmitting,
+    isLoading,
+    reviewCards,
+    currentCardIndex,
     reviewState,
     currentCard,
     reviewStats,
     showAnswer,
     rateCard,
-    completeReview
+    completeReview,
+    handleFlip,
+    handleDifficultyRating,
+    handleSkip
   };
 };
 

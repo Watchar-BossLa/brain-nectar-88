@@ -11,18 +11,22 @@ import { Flashcard } from '@/types/flashcards';
 const FlashcardReview = () => {
   const {
     isLoading,
-    reviewCards,
-    currentCardIndex,
+    reviewCards = [], // Provide default empty array
+    currentCardIndex = 0, // Provide default value
     reviewStats,
     currentCard,
     reviewState,
-    handleFlip,
-    handleDifficultyRating,
-    handleSkip
+    showAnswer, // Use the existing methods from the hook
+    rateCard,
+    completeReview
   } = useFlashcardReview(() => {
     // Callback for when review is complete
     console.log("Review completed");
   });
+
+  const handleFlip = () => showAnswer();
+  const handleDifficultyRating = (rating: number) => rateCard(rating);
+  const handleSkip = () => completeReview(); // Fallback to complete review
 
   if (isLoading) {
     return <LoadingSkeleton />;

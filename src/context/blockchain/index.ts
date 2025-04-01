@@ -3,4 +3,4 @@
 export { SolanaContext } from './SolanaContext';
 export { SolanaContextProvider } from './SolanaContextProvider';
 export { useSolana } from './useSolana';
-export type { SolanaContextType } from './types';
+export type { SolanaContextType, AchievementData } from './types';
