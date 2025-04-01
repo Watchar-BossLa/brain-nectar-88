@@ -3,14 +3,10 @@ import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { MultiAgentSystem } from '@/services/agents';
 import { TaskSubmissionOptions } from './types';
+import { TaskTypes } from './types';
 
-// Create an enum for task types since there seems to be a type/value mismatch
-export enum TaskTypes {
-  LEARNING_PATH_GENERATION = 'LEARNING_PATH_GENERATION',
-  COGNITIVE_PROFILING = 'COGNITIVE_PROFILING',
-  SCHEDULE_OPTIMIZATION = 'SCHEDULE_OPTIMIZATION',
-  ASSESSMENT_GENERATION = 'ASSESSMENT_GENERATION'
-}
+// Re-export the TaskTypes enum for component usage
+export { TaskTypes };
 
 /**
  * Hook for managing task submissions to the multi-agent system

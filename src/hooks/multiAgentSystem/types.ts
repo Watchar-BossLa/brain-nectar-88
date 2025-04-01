@@ -1,31 +1,9 @@
 
-import { AgentType } from '@/services/agents/types/agentTypes';
-import { TaskType } from '@/services/agents/types/agentTypes';
+// Types for the multi-agent system
 
-/**
- * System state interface for multi-agent system
- */
-export interface AgentSystemState {
-  activeAgents: Record<AgentType, boolean>;
-  taskQueue: any[];
-  completedTasks: any[];
-  metrics: {
-    completedTasks: number;
-    averageResponseTime: number;
-    successRate: number;
-    taskCompletionRate: number;
-    userSatisfactionScore?: number;
-  };
-  globalVariables: Record<string, any>;
-  priorityMatrix: Record<string, number>;
-  lastUpdated: string;
-}
-
-/**
- * Task submission options
- */
-export interface TaskSubmissionOptions {
-  userId?: string;
-  priority?: string;
-  metadata?: Record<string, any>;
+export enum TaskTypes {
+  LEARNING_PATH_GENERATION = 'LEARNING_PATH_GENERATION',
+  COGNITIVE_PROFILING = 'COGNITIVE_PROFILING',
+  SCHEDULE_OPTIMIZATION = 'SCHEDULE_OPTIMIZATION',
+  ASSESSMENT_GENERATION = 'ASSESSMENT_GENERATION'
 }

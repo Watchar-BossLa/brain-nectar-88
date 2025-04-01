@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/auth';
 import { supabase } from '@/integrations/supabase/client';
-import { PLATFORM_OWNER } from '@/context/auth/constants';
+import { PLATFORM_OWNER } from '@/context/auth/types';
 
 const WelcomeHeader = () => {
   const { user } = useAuth();

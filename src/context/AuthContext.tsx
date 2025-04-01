@@ -1,7 +1,6 @@
 
 import React, { createContext, useContext } from 'react';
-import { AuthContextType } from './auth/types';
-import { PLATFORM_OWNER } from './auth/constants';
+import { AuthContextType, PLATFORM_OWNER } from './auth/types';
 
 // Create the auth context with default values
 export const AuthContext = createContext<AuthContextType>({

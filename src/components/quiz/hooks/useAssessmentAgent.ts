@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useMultiAgentSystem } from '@/hooks/useMultiAgentSystem';
 import { useToast } from '@/components/ui/use-toast';
-import { TaskTypes } from '@/hooks/multiAgentSystem/useTaskSubmission';
+import { TaskTypes } from '@/hooks/multiAgentSystem/types';
 
 export function useAssessmentAgent() {
   const { submitTask, isInitialized } = useMultiAgentSystem();

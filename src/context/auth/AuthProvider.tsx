@@ -37,7 +37,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             .eq('id', session.user.id)
             .single();
             
-          setIsAdmin(userData?.role === 'admin');
+          // Safely check if role exists and set admin status
+          if (userData) {
+            setIsAdmin(userData?.role === 'admin' || false);
+          } else {
+            setIsAdmin(false);
+          }
         } catch (error) {
           console.error('Error checking admin status:', error);
           setIsAdmin(false);
@@ -62,7 +67,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             .eq('id', data.user.id)
             .single();
             
-          setIsAdmin(userData?.role === 'admin');
+          // Safely check if role exists and set admin status
+          if (userData) {
+            setIsAdmin(userData?.role === 'admin' || false);
+          } else {
+            setIsAdmin(false);
+          }
         } catch (adminError) {
           console.error('Error checking admin status:', adminError);
           setIsAdmin(false);
