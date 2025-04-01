@@ -1,6 +1,5 @@
 
-import { AgentTask, AgentType, TaskPriority } from '../types';
-import { ContextTag } from '../types/taskTypes';
+import { AgentTask, AgentType, TaskPriority, ContextTag } from '../types';
 
 /**
  * Functions for creating different types of agent tasks

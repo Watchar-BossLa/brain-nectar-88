@@ -23,7 +23,13 @@ export type TaskType =
   | 'ENGAGEMENT_STRATEGIES'
   | 'FEEDBACK_GENERATION'
   | 'UI_ADAPTATION'
-  | 'SCHEDULE_OPTIMIZATION';
+  | 'SCHEDULE_OPTIMIZATION'
+  | 'LEARNING_PATH_GENERATION'
+  | 'LEARNING_PATH_UPDATE'
+  | 'FLASHCARD_OPTIMIZATION'
+  | 'FLASHCARD_SEQUENCE_OPTIMIZATION'
+  | 'UI_OPTIMIZATION'
+  | 'MULTI_AGENT_COORDINATION';
 
 // Task priority levels
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
@@ -36,7 +42,37 @@ export type ContextTag =
   | 'assessment_context'
   | 'feedback_loop'
   | 'adaptation_required'
-  | 'system_event';
+  | 'system_event'
+  | 'learning_path'
+  | 'study_plan'
+  | 'assessment'
+  | 'test'
+  | 'quiz'
+  | 'content'
+  | 'material'
+  | 'resources'
+  | 'cognitive'
+  | 'learning_style'
+  | 'feedback'
+  | 'review'
+  | 'evaluation'
+  | 'engagement'
+  | 'motivation'
+  | 'gamification'
+  | 'ui'
+  | 'interface'
+  | 'display'
+  | 'schedule'
+  | 'timing'
+  | 'planning'
+  | 'spaced_repetition'
+  | 'flashcard'
+  | 'cognitive_profile'
+  | 'qualification'
+  | 'adaptive'
+  | 'difficulty'
+  | 'optimization'
+  | 'flashcards';
 
 // Message types for agent communication
 export type MessageType = 'TASK' | 'RESULT' | 'REQUEST' | 'RESPONSE' | 'NOTIFICATION' | 'SYSTEM';
@@ -56,6 +92,7 @@ export interface AgentTask {
   createdAt: string;
   completedAt?: string;
   result?: Record<string, any>;
+  status?: TaskStatus;
 }
 
 /**
@@ -69,6 +106,10 @@ export interface AgentMessage {
   sender?: AgentType;
   recipient?: AgentType;
   taskId?: string;
+  id?: string;
+  senderId?: string;
+  receiverId?: string;
+  priority?: number;
 }
 
 /**
@@ -78,16 +119,20 @@ export interface AgentMessage {
  */
 export interface SystemState {
   activeAgents: AgentType[];
-  taskQueue: number;
-  processingTasks: number;
-  completedTasks: number;
-  failedTasks: number;
-  systemStatus: 'INITIALIZING' | 'READY' | 'DEGRADED' | 'ERROR';
-  lastUpdated: string;
+  taskQueue?: number;
+  processingTasks?: number;
+  completedTasks?: number;
+  failedTasks?: number;
+  systemStatus?: 'INITIALIZING' | 'READY' | 'DEGRADED' | 'ERROR';
+  lastUpdated?: string;
   metrics: {
     taskSuccessRate: number;
     averageProcessingTime: number;
     systemLoad: number;
   };
   globalVariables: Record<string, any>;
+  priorityMatrix: Record<string, any>;
 }
+
+// Task status enum
+export type TaskStatus = 'pending' | 'processing' | 'completed' | 'failed';
