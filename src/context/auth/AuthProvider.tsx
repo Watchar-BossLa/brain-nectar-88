@@ -1,97 +1,175 @@
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import * as authService from './authService';
-import { platformOwner } from '@/constants';
-import {
-  getSession,
-  getCurrentUser,
-  onAuthStateChange
-} from '@/lib/supabaseAuth';
-import { AuthContext } from './AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { Session, User, WeakPassword } from '@supabase/supabase-js';
+import { AuthContextType, PlatformOwnerType } from './types';
+import { PLATFORM_OWNER } from './constants';
 
-export type AuthContextType = {
-  user: User | null;
-  session: Session | null;
-  isAdmin: boolean;
-  loading: boolean;
-  signIn: typeof authService.signIn;
-  signUp: typeof authService.signUp;
-  signOut: typeof authService.signOut;
-  signInWithOAuth: typeof authService.signInWithOAuth;
-  platformOwner: typeof platformOwner;
-};
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // Get initial session
-    const initializeAuth = async () => {
+    // Check active sessions and sets the user
+    const getSession = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
+        const { data, error } = await supabase.auth.getSession();
         
-        // Get current session
-        const { data } = await getSession();
-        const session = data?.session;
-        
-        if (session) {
-          setSession(session);
-          setUser(session.user);
+        if (error) {
+          throw error;
         }
+        
+        setSession(data.session);
+        setUser(data.session?.user ?? null);
+        
+        if (data.session?.user) {
+          // Check if user is an admin
+          checkAdminStatus(data.session.user.id);
+        }
+        
       } catch (error) {
-        console.error('Error initializing auth:', error);
+        console.error('Error fetching session:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    // Initialize auth
-    initializeAuth();
-    
-    // Set up auth listener
-    const { data: authListener } = onAuthStateChange((event: string, session: Session | null) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-    
-    // Clean up auth listener on unmount
-    return () => {
-      if (authListener && typeof authListener.subscription?.unsubscribe === 'function') {
-        authListener.subscription.unsubscribe();
+    getSession();
+
+    // Set up auth state listener
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          checkAdminStatus(session.user.id);
+        } else {
+          setIsAdmin(false);
+        }
+        
+        setLoading(false);
       }
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
     };
   }, []);
-  
-  // Check if user is admin
-  const isAdmin = user?.email === platformOwner.email;
+
+  const checkAdminStatus = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('admins')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking admin status:', error);
+      }
+      
+      setIsAdmin(!!data);
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      setIsAdmin(false);
+    }
+  };
+
+  const signIn = async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        return { success: false, error };
+      }
+      
+      return { success: true, data };
+    } catch (error) {
+      console.error('Error signing in:', error);
+      return { success: false, error };
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+
+      if (error) {
+        return { success: false, error };
+      }
+      
+      return { success: true, data };
+    } catch (error) {
+      console.error('Error signing in with Google:', error);
+      return { success: false, error };
+    }
+  };
+
+  const signUp = async (email: string, password: string, metadata?: { [key: string]: any }) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: metadata,
+        },
+      });
+
+      if (error) {
+        return { success: false, error };
+      }
+      
+      return { success: true, data };
+    } catch (error) {
+      console.error('Error signing up:', error);
+      return { success: false, error };
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        throw error;
+      }
+      return { success: true };
+    } catch (error) {
+      console.error('Error signing out:', error);
+      return { success: false, error };
+    }
+  };
 
   const value = {
     user,
     session,
     loading,
     isAdmin,
-    signIn: authService.signIn,
-    signUp: authService.signUp,
-    signOut: authService.signOut,
-    signInWithOAuth: authService.signInWithOAuth,
-    platformOwner
+    signIn,
+    signInWithGoogle,
+    signUp,
+    signOut,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Export the useAuth hook from this file only
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;

@@ -1,38 +1,35 @@
 
-import { Session, User } from '@/types/supabase-types';
+import { Session, User, WeakPassword } from '@supabase/supabase-js';
 
-// Define AuthUser interface
-export interface AuthUser extends User {
-  id: string;
-  email?: string;
-  app_metadata: {
-    provider?: string;
-    [key: string]: any;
-  };
-  user_metadata: {
-    avatar_url?: string;
-    full_name?: string;
-    [key: string]: any;
-  };
-  aud: string;
-}
-
-export interface PlatformOwnerType {
+export type PlatformOwnerType = {
   email: string;
   name: string;
-  [key: string]: string;
-}
+  role: string;
+};
 
 export interface AuthContextType {
+  user: User | null;
   session: Session | null;
-  user: AuthUser | null;
   loading: boolean;
-  signIn: (email: string, password: string, callback?: (success: boolean) => void) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, callback?: (success: boolean) => void) => Promise<{ error: Error | null }>;
-  signInWithGoogle: (callback?: () => void) => Promise<{ error: Error | null }>;
-  signOut: (callback?: () => void) => Promise<void>;
-  platformOwner: PlatformOwnerType; // For backward compatibility
-  platformOwners?: PlatformOwnerType[]; // All platform owners
   isAdmin: boolean;
-  isPlatformOwner?: boolean;
+  signIn: (email: string, password: string) => Promise<{
+    success: boolean;
+    data?: { user: User; session: Session; weakPassword?: WeakPassword };
+    error?: any;
+  }>;
+  signInWithGoogle: () => Promise<{
+    success: boolean;
+    data?: any;
+    error?: any;
+  }>;
+  signUp: (
+    email: string,
+    password: string,
+    metadata?: { [key: string]: any }
+  ) => Promise<{
+    success: boolean;
+    data?: { user: User | null; session: Session | null };
+    error?: any;
+  }>;
+  signOut: () => Promise<{ success: boolean; error?: any }>;
 }

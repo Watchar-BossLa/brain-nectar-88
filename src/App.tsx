@@ -34,9 +34,8 @@ function App() {
     <Router>
       <ThemeProvider defaultTheme="light" storageKey="study-bee-theme">
         <AuthProvider>
-          {/* First wrap with SolanaProvider (wallet adapter) */}
+          {/* Set up Solana providers */}
           <SolanaProvider>
-            {/* Then wrap with our custom Solana Context */}
             <SolanaContextProvider>
               <Routes>
                 {/* Auth routes */}
