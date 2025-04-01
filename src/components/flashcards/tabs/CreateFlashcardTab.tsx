@@ -8,18 +8,21 @@ interface CreateFlashcardTabProps {
   isAdvancedForm: boolean;
   onFlashcardCreated: () => void;
   onCancel: () => void;
+  topicId?: string;
 }
 
 const CreateFlashcardTab = ({
   isAdvancedForm,
   onFlashcardCreated,
-  onCancel
+  onCancel,
+  topicId
 }: CreateFlashcardTabProps) => {
   if (isAdvancedForm) {
     return (
       <AdvancedFlashcardForm 
         onSuccess={onFlashcardCreated} 
         onCancel={onCancel}
+        topicId={topicId}
       />
     );
   }
@@ -27,7 +30,10 @@ const CreateFlashcardTab = ({
   return (
     <Card>
       <CardContent className="py-6">
-        <FlashcardForm onFlashcardCreated={onFlashcardCreated} />
+        <FlashcardForm 
+          onFlashcardCreated={onFlashcardCreated}
+          topicId={topicId}
+        />
       </CardContent>
     </Card>
   );

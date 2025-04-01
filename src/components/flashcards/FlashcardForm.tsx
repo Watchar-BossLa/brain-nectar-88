@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
@@ -27,10 +28,11 @@ import { flashcardSchema } from '@/lib/validators/flashcard';
 import * as z from "zod"
 
 interface FlashcardFormProps {
-  topicId: string;
+  topicId?: string;
+  onFlashcardCreated?: () => void;
 }
 
-const FlashcardForm: React.FC<FlashcardFormProps> = ({ topicId }) => {
+const FlashcardForm: React.FC<FlashcardFormProps> = ({ topicId, onFlashcardCreated }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -69,13 +71,18 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({ topicId }) => {
         next_review_date: new Date(),
       };
 
-      await createNewFlashcard(newFlashcard);
+      await createNewFlashcard(user.id, values.question, values.answer, topicId);
 
       toast({
         title: "Success",
         description: "Flashcard created successfully.",
       });
-      navigate('/flashcards');
+
+      if (onFlashcardCreated) {
+        onFlashcardCreated();
+      } else {
+        navigate('/flashcards');
+      }
     } catch (error: any) {
       console.error("Error creating flashcard:", error);
       toast({

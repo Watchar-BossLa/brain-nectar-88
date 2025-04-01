@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
@@ -11,9 +12,15 @@ import HelpContent from './form/HelpContent';
 
 interface AdvancedFlashcardFormProps {
   topicId?: string;
+  onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
-const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({ topicId }) => {
+const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({ 
+  topicId,
+  onSuccess,
+  onCancel
+}) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -53,14 +60,7 @@ const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({ topicId }
 
     setLoading(true);
     try {
-      await createNewFlashcard({
-        userId: user.id,
-        topicId: topicId || 'default',
-        front,
-        back,
-        contentTypeFront,
-        contentTypeBack,
-      });
+      await createNewFlashcard(user.id, front, back, topicId);
 
       toast({
         title: 'Flashcard created!',
@@ -72,7 +72,11 @@ const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({ topicId }
       setContentTypeFront('text');
       setContentTypeBack('text');
 
-      navigate('/flashcards');
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        navigate('/flashcards');
+      }
     } catch (error: any) {
       console.error('Error creating flashcard:', error);
       toast({
@@ -87,7 +91,7 @@ const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({ topicId }
 
   return (
     <Card className="w-full">
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4 p-6">
         <FlashcardFormInputs
           front={front}
           setFront={setFront}
@@ -102,10 +106,17 @@ const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({ topicId }
           setContentTypeBack={setContentTypeBack}
         />
 
-        <div className="flex justify-between items-center">
-          <Button type="submit" disabled={loading}>
-            {loading ? 'Creating...' : 'Create Flashcard'}
-          </Button>
+        <div className="flex justify-between items-center mt-6">
+          <div className="space-x-2">
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Creating...' : 'Create Flashcard'}
+            </Button>
+            {onCancel && (
+              <Button type="button" variant="outline" onClick={onCancel}>
+                Cancel
+              </Button>
+            )}
+          </div>
           <Button type="button" variant="secondary" onClick={() => setShowHelp(!showHelp)}>
             {showHelp ? 'Hide Help' : 'Show Help'}
           </Button>

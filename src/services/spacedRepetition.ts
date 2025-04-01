@@ -12,6 +12,13 @@ export {
   getUserFlashcards as fetchUserFlashcards
 } from './spacedRepetition/flashcardService';
 
+// Re-export for direct usage in existing components
+export { 
+  createFlashcard, 
+  deleteFlashcard, 
+  updateFlashcard 
+} from './spacedRepetition/flashcardMutation';
+
 // Re-export other non-conflicting functions and types
 export * from './spacedRepetition/algorithm';
 export * from './spacedRepetition/reviewService';
