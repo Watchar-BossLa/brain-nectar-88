@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
-import { TestResult, TestResultDetail } from '@/services/testing/AppTester';
+import { TestResult } from '@/services/testing/AppTester';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronDown, ChevronRight, CheckCircle2, XCircle } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Progress } from '@/components/ui/progress';
+import type { TestResultDetail as TestResultDetailType } from '@/services/testing/AppTester';
 
 export function TestResultsView({ 
   results, 
@@ -53,7 +54,7 @@ export function TestResultsView({
   );
 }
 
-function TestResultDetail({ detail }: { detail: TestResultDetail }) {
+function TestResultDetail({ detail }: { detail: TestResultDetailType }) {
   const [isOpen, setIsOpen] = useState(false);
   
   return (

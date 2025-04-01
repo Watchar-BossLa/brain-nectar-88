@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,7 +18,7 @@ const ReviewFlashcardsTab = ({ onComplete }: ReviewFlashcardsTabProps) => {
     reviewState,
     handleDifficultyRating,
     completeReview
-  } = useFlashcardReview(onComplete);
+  } = useFlashcardReview();
 
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [reviewStats, setReviewStats] = useState({
@@ -45,22 +44,18 @@ const ReviewFlashcardsTab = ({ onComplete }: ReviewFlashcardsTabProps) => {
   };
 
   const showAnswer = () => {
-    // This function replaces the missing showAnswer from useFlashcardReview
     console.log("Show answer clicked");
   };
 
   const rateCard = (rating: number) => {
-    // This function replaces the missing rateCard from useFlashcardReview
     handleDifficultyRating(rating);
     
-    // Update stats
     setReviewStats(prev => {
       const newStats = { ...prev, totalReviewed: prev.totalReviewed + 1 };
       if (rating <= 2) newStats.hard = prev.hard + 1;
       else if (rating === 3) newStats.medium = prev.medium + 1;
       else newStats.easy = prev.easy + 1;
       
-      // Calculate new average
       const totalRatings = newStats.easy + newStats.medium + newStats.hard;
       newStats.averageRating = ((newStats.easy * 5) + (newStats.medium * 3) + (newStats.hard * 1)) / totalRatings;
       

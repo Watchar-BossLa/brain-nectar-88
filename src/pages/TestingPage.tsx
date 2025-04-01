@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { MainLayout } from '@/components/layout/MainLayout';
+import MainLayout from '@/components/layout/MainLayout';
 import { appTester, TestResult } from '@/services/testing/AppTester';
 import { TestResultsView } from '@/components/testing/TestResultsView';
 import { Button } from '@/components/ui/button';
