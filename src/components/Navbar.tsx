@@ -74,7 +74,14 @@ const Navbar = () => {
             
             {user && (
               <li>
-                <Button variant="ghost" size="sm" onClick={signOut}>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    signOut();
+                  }}
+                >
                   <LogOut className="h-4 w-4 mr-2" />
                   Logout
                 </Button>
