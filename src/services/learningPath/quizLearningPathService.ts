@@ -1,5 +1,43 @@
+
 import { AgentTask, TaskPriority, TaskType } from '@/services/agents/types';
 import { mcp } from '@/services/agents/mcp';
+import { QuizResults } from '@/types/quiz';
+
+// Function to update learning path based on quiz results
+export async function updateLearningPathFromQuizResults(userId: string, results: QuizResults): Promise<any> {
+  if (!results || !userId) {
+    console.error('Quiz results or userId missing');
+    return { success: false, message: 'Quiz results or userId missing' };
+  }
+
+  try {
+    // Define the learning path update task
+    const learningPathTask: AgentTask = {
+      id: `learning-path-update-${Date.now()}`,
+      userId: userId,
+      taskType: 'LEARNING_PATH_UPDATE' as TaskType,
+      description: `Update learning path based on quiz results with a score of ${results.score}%.`,
+      priority: 'MEDIUM' as TaskPriority,
+      targetAgentTypes: ['LEARNING_PATH'],
+      context: ['quiz', 'assessment', 'learning_path'],
+      data: {
+        quizResults: results,
+        topicPerformance: results.performanceByTopic,
+        recommendedTopics: results.recommendedTopics || [],
+      },
+      createdAt: new Date().toISOString(),
+    };
+
+    // Submit the learning path update task to the MCP
+    await mcp.getTaskProcessor().submitTask(learningPathTask);
+
+    console.log('Learning path update task submitted to MCP.');
+    return { success: true, message: 'Learning path update task submitted.' };
+  } catch (error) {
+    console.error('Error updating learning path from quiz results:', error);
+    throw new Error('Failed to update learning path from quiz results');
+  }
+}
 
 // Function to generate a learning path from quiz results
 export async function generatePathFromQuizResults(results: any): Promise<any> {
@@ -47,5 +85,18 @@ export async function generatePathFromQuizResults(results: any): Promise<any> {
   } catch (error) {
     console.error('Error generating learning path from quiz results:', error);
     throw new Error('Failed to generate learning path from quiz results');
+  }
+}
+
+// Function to get recommended topics based on quiz results
+export async function getRecommendedTopics(userId: string): Promise<string[]> {
+  try {
+    // This would typically make a database query
+    // For now, return a placeholder
+    console.log(`Getting recommended topics for user ${userId}`);
+    return ['accounting-basics', 'financial-statements', 'tax-accounting'];
+  } catch (error) {
+    console.error('Error getting recommended topics:', error);
+    return [];
   }
 }
