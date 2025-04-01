@@ -1,81 +1,104 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { AlertCircle, Check, ChevronDown, ChevronUp, Clock } from 'lucide-react';
-import { TestResult } from '@/services/testing/AppTester';
+import React, { useState } from 'react';
+import { TestResult, TestResultDetail } from '@/services/testing/AppTester';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ChevronDown, ChevronRight, CheckCircle2, XCircle } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Progress } from '@/components/ui/progress';
 
-interface TestResultsViewProps {
-  results: TestResult;
+export function TestResultsView({ 
+  results, 
+  title 
+}: { 
+  results: TestResult; 
   title: string;
-}
-
-export function TestResultsView({ results, title }: TestResultsViewProps) {
+}) {
+  const passedTests = results.results.filter(r => r.success).length;
+  const totalTests = results.results.length;
+  const passPercentage = totalTests > 0 ? (passedTests / totalTests) * 100 : 0;
+  
   return (
-    <Card className="mb-4">
+    <Card>
       <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-medium">{title}</CardTitle>
-          <Badge variant={results.success ? "default" : "destructive"}>
-            {results.success ? "Passed" : "Failed"}
-          </Badge>
-        </div>
-        <div className="text-xs text-muted-foreground flex items-center">
-          <Clock className="h-3 w-3 mr-1" />
-          Executed in {results.duration}ms at {new Date(results.timestamp).toLocaleTimeString()}
-        </div>
+        <CardTitle className="text-base flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {results.success ? (
+              <CheckCircle2 className="h-4 w-4 text-green-500" />
+            ) : (
+              <XCircle className="h-4 w-4 text-red-500" />
+            )}
+            {title}
+          </div>
+          <span className="text-sm font-normal">
+            {passedTests}/{totalTests} passed
+          </span>
+        </CardTitle>
       </CardHeader>
-      <CardContent className="pt-0">
-        {results.results.map((result, index) => (
-          <Collapsible key={index} className="mb-2">
-            <div className="flex items-center justify-between border rounded-md px-3 py-2">
-              <div className="flex items-center gap-2">
-                {result.success ? (
-                  <Check className="h-4 w-4 text-green-500" />
-                ) : (
-                  <AlertCircle className="h-4 w-4 text-red-500" />
-                )}
-                <span className="text-sm font-medium">{result.name}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge variant={result.success ? "outline" : "destructive"} className="text-xs">
-                  {result.success ? "Pass" : "Fail"}
-                </Badge>
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                    <ChevronDown className="h-4 w-4" />
-                  </Button>
-                </CollapsibleTrigger>
-              </div>
-            </div>
-            <CollapsibleContent>
-              <div className="mt-1 pl-4 border-l-2 ml-2 text-sm">
-                <p className="text-muted-foreground text-xs mb-1">{result.message}</p>
-                
-                {result.data && (
-                  <div className="mt-2">
-                    <div className="text-xs font-semibold mb-1">Data:</div>
-                    <pre className="text-xs bg-muted p-2 rounded-md overflow-auto max-h-40">
-                      {JSON.stringify(result.data, null, 2)}
-                    </pre>
-                  </div>
-                )}
-                
-                {!result.success && result.error && (
-                  <Alert variant="destructive" className="mt-2">
-                    <AlertDescription className="text-xs">
-                      {result.error instanceof Error ? result.error.message : String(result.error)}
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        ))}
+      <CardContent>
+        <div className="mb-4">
+          <Progress value={passPercentage} className="h-2" />
+        </div>
+        
+        <div className="space-y-2">
+          {results.results.map((detail, index) => (
+            <TestResultDetail key={index} detail={detail} />
+          ))}
+        </div>
+        
+        <div className="mt-4 text-xs text-muted-foreground">
+          Completed in {results.duration}ms at {new Date(results.timestamp).toLocaleTimeString()}
+        </div>
       </CardContent>
     </Card>
+  );
+}
+
+function TestResultDetail({ detail }: { detail: TestResultDetail }) {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  return (
+    <Collapsible 
+      open={isOpen} 
+      onOpenChange={setIsOpen}
+      className={`border rounded-md ${detail.success ? 'bg-green-50/50' : 'bg-red-50/50'}`}
+    >
+      <div className="p-2 flex items-center justify-between">
+        <div className="flex items-center">
+          {detail.success ? (
+            <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
+          ) : (
+            <XCircle className="h-4 w-4 text-red-500 mr-2" />
+          )}
+          <span className={`text-sm ${detail.success ? 'text-green-700' : 'text-red-700'}`}>
+            {detail.name}
+          </span>
+        </div>
+        
+        <CollapsibleTrigger asChild>
+          <button className="p-1 rounded-md hover:bg-black/5">
+            {isOpen ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+          </button>
+        </CollapsibleTrigger>
+      </div>
+      
+      <CollapsibleContent>
+        <div className="px-4 py-2 border-t text-sm">
+          <p className="mb-2">{detail.message}</p>
+          
+          {(detail.data || detail.error) && (
+            <div className="mt-2">
+              <div className="text-xs font-medium mb-1">Details:</div>
+              <pre className="text-xs bg-black/5 p-2 rounded-md overflow-auto max-h-40">
+                {JSON.stringify(detail.data || detail.error, null, 2)}
+              </pre>
+            </div>
+          )}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

@@ -13,6 +13,7 @@ import QuizHistory from './pages/QuizHistory';
 import Standards from './pages/Standards';
 import AuthProvider from './context/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import TestingPage from './pages/TestingPage';
 
 const queryClient = new QueryClient();
 
@@ -25,13 +26,14 @@ function App() {
             <Routes>
               <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/cognitive-profile" element={<ProtectedRoute><CognitiveProfile /></ProtectedRoute>} />
-              <Route path="/quiz" element={<ProtectedRoute><AdaptiveQuiz /></ProtectedRoute>} />
+              <Route path="/quiz" element={<ProtectedRoute><AdaptiveQuiz topicIds={[]} /></ProtectedRoute>} />
               <Route path="/learning-paths" element={<ProtectedRoute><LearningPaths /></ProtectedRoute>} />
               <Route path="/qualifications" element={<ProtectedRoute><Qualifications /></ProtectedRoute>} />
               <Route path="/flashcards" element={<ProtectedRoute><Flashcards /></ProtectedRoute>} />
               <Route path="/flashcard-review" element={<ProtectedRoute><FlashcardReview /></ProtectedRoute>} />
               <Route path="/quiz-history" element={<ProtectedRoute><QuizHistory /></ProtectedRoute>} />
               <Route path="/standards" element={<ProtectedRoute><Standards /></ProtectedRoute>} />
+              <Route path="/testing" element={<ProtectedRoute><TestingPage /></ProtectedRoute>} />
             </Routes>
           </Router>
         </AuthProvider>
