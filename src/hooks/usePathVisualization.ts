@@ -1,5 +1,5 @@
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useLearningPath, LearningPath, LearningPathModule } from '@/hooks/useLearningPath';
 import { useToast } from '@/hooks/use-toast';
 
@@ -16,7 +16,29 @@ export interface PathAnalytics {
 export function usePathVisualization() {
   const { currentPath, loading, error, refreshPath } = useLearningPath();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastError, setLastError] = useState<Error | null>(null);
   const { toast } = useToast();
+
+  // Reset error state when path changes
+  useEffect(() => {
+    if (currentPath && !loading) {
+      setLastError(null);
+    }
+  }, [currentPath, loading]);
+
+  // Handle API errors
+  useEffect(() => {
+    if (error) {
+      console.error('Learning path error:', error);
+      setLastError(error instanceof Error ? error : new Error(String(error)));
+      
+      toast({
+        title: "Error loading learning path",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
+        variant: "destructive"
+      });
+    }
+  }, [error, toast]);
 
   const analytics = useMemo<PathAnalytics>(() => {
     if (!currentPath || !Array.isArray(currentPath.modules)) {
@@ -63,6 +85,7 @@ export function usePathVisualization() {
   const handleRefresh = useCallback(async () => {
     try {
       setIsRefreshing(true);
+      setLastError(null);
       await refreshPath();
       toast({
         title: "Learning path refreshed",
@@ -70,6 +93,7 @@ export function usePathVisualization() {
       });
     } catch (err) {
       console.error('Error refreshing path:', err);
+      setLastError(err instanceof Error ? err : new Error(String(err)));
       toast({
         title: "Refresh failed",
         description: "Could not refresh your learning path. Please try again.",
@@ -96,7 +120,7 @@ export function usePathVisualization() {
     path: currentPath,
     loading: loading || isRefreshing,
     isRefreshing,
-    error,
+    error: lastError || error,
     analytics,
     handleRefresh,
     getModuleAnalytics

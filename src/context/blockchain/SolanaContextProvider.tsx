@@ -12,7 +12,7 @@ interface SolanaContextProviderProps {
 
 export const SolanaContextProvider: FC<SolanaContextProviderProps> = ({ children }) => {
   const { toast } = useToast();
-  const [connecting, setConnecting] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
   
   // Wallets that you want to support
   const wallets = [
@@ -28,8 +28,8 @@ export const SolanaContextProvider: FC<SolanaContextProviderProps> = ({ children
       <WalletProvider wallets={wallets} autoConnect>
         <SolanaContext.Provider 
           value={{ 
-            connecting,
-            setConnecting,
+            isConnecting,
+            setIsConnecting,
             // Provide fallback methods that show appropriate messages
             connectWallet: async () => {
               toast({

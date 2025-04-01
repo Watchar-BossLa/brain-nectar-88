@@ -61,6 +61,11 @@ class ErrorBoundary extends Component<Props, State> {
             <p className="text-sm text-muted-foreground mb-4">
               {this.state.error?.message || 'An unexpected error occurred'}
             </p>
+            <div className="text-xs text-gray-500 mb-4 max-h-40 overflow-auto text-left p-2 bg-gray-100 rounded">
+              {this.state.error?.stack?.split('\n').map((line, i) => (
+                <div key={i}>{line}</div>
+              ))}
+            </div>
             <Button 
               onClick={this.reset}
               className="mx-auto"
