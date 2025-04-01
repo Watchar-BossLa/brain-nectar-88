@@ -30,4 +30,31 @@ export abstract class BaseAgent {
    * @param message The message to process
    */
   abstract receiveMessage(message: AgentMessage): Promise<void>;
+  
+  /**
+   * Utility method to log task processing events
+   */
+  protected logTaskEvent(task: AgentTask, message: string, data?: any): void {
+    console.log(`[Agent:${this.type}] ${message} (Task ID: ${task.id}, Type: ${task.taskType})`);
+    if (data) {
+      console.log(`[Agent:${this.type}] Task data:`, data);
+    }
+  }
+  
+  /**
+   * Utility method to log error events
+   */
+  protected logError(context: string, error: unknown): void {
+    console.error(`[Agent:${this.type}] ${context}:`, error instanceof Error ? error.message : 'Unknown error');
+    if (error instanceof Error && error.stack) {
+      console.debug(`[Agent:${this.type}] Stack:`, error.stack);
+    }
+  }
+  
+  /**
+   * Utility method to log message events
+   */
+  protected logMessageEvent(message: AgentMessage, context: string): void {
+    console.log(`[Agent:${this.type}] ${context} (Message Type: ${message.type}, Sender: ${message.sender || 'unknown'})`);
+  }
 }

@@ -1,3 +1,4 @@
+
 import { BaseAgent } from '../baseAgent';
 import { AgentMessage, AgentTask, AgentType } from '../types';
 
@@ -15,8 +16,24 @@ export class CognitiveProfileAgent extends BaseAgent {
    * @param task The task to process
    */
   async processTask(task: AgentTask): Promise<void> {
-    console.log(`Processing ${this.type} task:`, task.id);
-    // Implementation would go here
+    this.logTaskEvent(task, `Started processing task`);
+    
+    try {
+      // Implementation would go here
+      this.logTaskEvent(task, `Task processing steps:`, {
+        taskType: task.taskType,
+        context: task.context,
+        userId: task.userId
+      });
+      
+      // Simulating task processing time
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      this.logTaskEvent(task, `Completed processing task successfully`);
+    } catch (error) {
+      this.logError(`Error processing task ${task.id}`, error);
+      throw error; // Re-throw to let the TaskProcessor know the task failed
+    }
   }
   
   /**
@@ -24,7 +41,13 @@ export class CognitiveProfileAgent extends BaseAgent {
    * @param message The message to process
    */
   async receiveMessage(message: AgentMessage): Promise<void> {
-    console.log(`${this.type} agent received message:`, message.type);
-    // Implementation would go here
+    this.logMessageEvent(message, `Received message`);
+    
+    try {
+      // Implementation would go here
+      this.logMessageEvent(message, `Message processed`);
+    } catch (error) {
+      this.logError(`Error processing message of type ${message.type}`, error);
+    }
   }
 }
