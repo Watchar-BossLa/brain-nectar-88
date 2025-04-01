@@ -19,7 +19,9 @@ const FlashcardReview: React.FC = () => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [reviewStats, setReviewStats] = useState({
     totalReviewed: 0,
-    correctCount: 0,
+    easy: 0,
+    medium: 0,
+    hard: 0,
     averageRating: 0
   });
   const { toast } = useToast();
@@ -32,10 +34,10 @@ const FlashcardReview: React.FC = () => {
         throw new Error('User not authenticated');
       }
       
-      const dueCards = await spacedRepetitionService.getDueFlashcards(user.id);
-      setFlashcards(dueCards);
+      const dueCards = await getDueFlashcards(user.id);
+      setFlashcards(dueCards || []);
       setCurrentIndex(0);
-      setIsReviewing(dueCards.length > 0);
+      setIsReviewing(dueCards && dueCards.length > 0);
       setIsFlipped(false);
     } catch (error) {
       console.error('Error fetching due flashcards:', error);
@@ -60,22 +62,32 @@ const FlashcardReview: React.FC = () => {
   };
 
   const handleRating = async (rating: number) => {
-    if (!flashcards.length || currentIndex >= flashcards.length) return;
+    if (!flashcards.length || currentIndex >= flashcards.length || !user) return;
 
     const currentFlashcard = flashcards[currentIndex];
     
     try {
-      await spacedRepetitionService.recordReview(currentFlashcard.id, rating, user?.id || '');
+      // Call the correct function with all required parameters
+      await spacedRepetitionService.recordReview(currentFlashcard.id, rating, user.id);
       
       // Update statistics
       setReviewStats(prev => {
         const totalReviewed = prev.totalReviewed + 1;
-        const correctCount = rating <= 3 ? prev.correctCount + 1 : prev.correctCount;
+        let easy = prev.easy;
+        let medium = prev.medium;
+        let hard = prev.hard;
+        
+        if (rating >= 4) easy += 1;
+        else if (rating >= 2) medium += 1;
+        else hard += 1;
+        
         const totalRating = prev.averageRating * prev.totalReviewed + rating;
         
         return {
           totalReviewed,
-          correctCount,
+          easy,
+          medium,
+          hard,
           averageRating: totalRating / totalReviewed
         };
       });
@@ -108,7 +120,9 @@ const FlashcardReview: React.FC = () => {
     setIsReviewing(flashcards.length > 0);
     setReviewStats({
       totalReviewed: 0,
-      correctCount: 0,
+      easy: 0,
+      medium: 0,
+      hard: 0,
       averageRating: 0
     });
   };

@@ -54,7 +54,7 @@ const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({
       // Estimate memory strength based on repetition count and difficulty
       const memoryStrength = flashcard.repetition_count * 0.2 * (flashcard.difficulty || 2.5);
       
-      // Calculate current retention
+      // Calculate current retention using the algorithm
       const retention = calculateRetention(daysSinceReview, memoryStrength);
       setRetentionEstimate(retention);
     }

@@ -100,12 +100,13 @@ const ReviewFlashcardsTab: React.FC<ReviewFlashcardsTabProps> = ({ onComplete })
   };
 
   const handleRating = async (rating: number) => {
-    if (!flashcards.length || currentIndex >= flashcards.length) return;
+    if (!flashcards.length || currentIndex >= flashcards.length || !user) return;
 
     const currentFlashcard = flashcards[currentIndex];
     
     try {
-      await spacedRepetitionService.recordReview(currentFlashcard.id, rating, user?.id || '');
+      // Pass the user ID as the third parameter
+      await spacedRepetitionService.recordReview(currentFlashcard.id, rating, user.id);
       
       if (currentIndex < flashcards.length - 1) {
         setCurrentIndex(currentIndex + 1);

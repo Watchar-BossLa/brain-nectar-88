@@ -1,95 +1,105 @@
 
-import React, { createContext, useState, useEffect, useContext } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import React, { createContext, useState, useEffect } from 'react';
 import { Session, User, WeakPassword } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 import { AuthContextType, PlatformOwnerType } from './types';
-import { PLATFORM_OWNER } from './constants';
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const defaultPlatformOwner: PlatformOwnerType = {
+  email: '',
+  name: '',
+  role: ''
+};
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPlatformOwner, setIsPlatformOwner] = useState(false);
+  const [platformOwner, setPlatformOwner] = useState<PlatformOwnerType>(defaultPlatformOwner);
 
   useEffect(() => {
-    // Check active sessions and sets the user
-    const getSession = async () => {
+    // Get the initial session
+    async function getInitialSession() {
       setLoading(true);
+
       try {
-        const { data, error } = await supabase.auth.getSession();
-        
+        const { data: { session }, error } = await supabase.auth.getSession();
+
         if (error) {
           throw error;
         }
-        
-        setSession(data.session);
-        setUser(data.session?.user ?? null);
-        
-        if (data.session?.user) {
-          // Check if user is an admin
-          checkAdminStatus(data.session.user.id);
-          checkPlatformOwnerStatus(data.session.user.email);
+
+        if (session) {
+          setSession(session);
+          setUser(session.user);
+          await checkUserRole(session.user);
         }
-        
       } catch (error) {
-        console.error('Error fetching session:', error);
+        console.error('Error getting initial session:', error);
       } finally {
         setLoading(false);
       }
-    };
+    }
 
-    getSession();
+    getInitialSession();
 
-    // Set up auth state listener
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
-          checkAdminStatus(session.user.id);
-          checkPlatformOwnerStatus(session.user.email);
+          await checkUserRole(session.user);
         } else {
           setIsAdmin(false);
           setIsPlatformOwner(false);
+          setPlatformOwner(defaultPlatformOwner);
         }
-        
+
         setLoading(false);
       }
     );
 
+    // Clean up subscription
     return () => {
-      authListener.subscription.unsubscribe();
+      subscription.unsubscribe();
     };
   }, []);
 
-  const checkPlatformOwnerStatus = (email?: string): void => {
-    if (email && email === PLATFORM_OWNER.email) {
-      setIsPlatformOwner(true);
-    } else {
-      setIsPlatformOwner(false);
-    }
-  };
-
-  const checkAdminStatus = async (userId: string) => {
+  const checkUserRole = async (user: User) => {
     try {
-      const { data, error } = await supabase
+      // Check if user is admin
+      const { data: adminData } = await supabase
         .from('admins')
         .select('*')
-        .eq('user_id', userId)
+        .eq('user_id', user.id)
         .single();
-      
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error checking admin status:', error);
+
+      const isUserAdmin = !!adminData;
+      setIsAdmin(isUserAdmin);
+
+      // For demo purposes, let's check platform owner status
+      // In a real app, this might be a separate table or auth claim
+      const isPlatformOwnerEmail = user.email === 'demo@studybee.app';
+      setIsPlatformOwner(isPlatformOwnerEmail);
+
+      if (isPlatformOwnerEmail) {
+        setPlatformOwner({
+          email: user.email || '',
+          name: 'Demo Platform Owner',
+          role: 'owner'
+        });
+      } else {
+        setPlatformOwner(defaultPlatformOwner);
       }
-      
-      setIsAdmin(!!data);
     } catch (error) {
-      console.error('Error checking admin status:', error);
+      console.error('Error checking user role:', error);
       setIsAdmin(false);
+      setIsPlatformOwner(false);
     }
   };
 
@@ -97,17 +107,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password,
+        password
       });
 
       if (error) {
-        return { success: false, error };
+        throw error;
       }
-      
-      return { success: true, data };
+
+      return {
+        success: true,
+        data
+      };
     } catch (error) {
       console.error('Error signing in:', error);
-      return { success: false, error };
+      return {
+        success: false,
+        error: error as Error
+      };
     }
   };
 
@@ -116,52 +132,74 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: `${window.location.origin}/dashboard`
         }
       });
 
       if (error) {
-        return { success: false, error };
+        throw error;
       }
-      
-      return { success: true, data };
+
+      return {
+        success: true,
+        data
+      };
     } catch (error) {
       console.error('Error signing in with Google:', error);
-      return { success: false, error };
+      return {
+        success: false,
+        error: error as Error
+      };
     }
   };
 
-  const signUp = async (email: string, password: string, metadata?: { [key: string]: any }) => {
+  const signUp = async (
+    email: string, 
+    password: string, 
+    metadata?: { [key: string]: any }
+  ) => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: metadata,
-        },
+          emailRedirectTo: `${window.location.origin}/login`
+        }
       });
 
       if (error) {
-        return { success: false, error };
+        throw error;
       }
-      
-      return { success: true, data };
+
+      return {
+        success: true,
+        data
+      };
     } catch (error) {
       console.error('Error signing up:', error);
-      return { success: false, error };
+      return {
+        success: false,
+        error: error as Error
+      };
     }
   };
 
   const signOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
+
       if (error) {
         throw error;
       }
+
       return { success: true };
     } catch (error) {
       console.error('Error signing out:', error);
-      return { success: false, error };
+      return {
+        success: false,
+        error: error as Error
+      };
     }
   };
 
@@ -171,20 +209,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loading,
     isAdmin,
     isPlatformOwner,
-    platformOwner: PLATFORM_OWNER,
+    platformOwner,
     signIn,
     signInWithGoogle,
     signUp,
-    signOut,
+    signOut
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+}

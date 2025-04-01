@@ -1,66 +1,49 @@
 
-import { Task, TaskStatus } from '../types/taskTypes';
-import { agentRegistry } from './agentRegistry';
-import { masterControlProgram } from './MasterControlProgram';
+import { AgentTask, TaskPriority, TaskStatus } from '../types';
 
-// In-memory store for task assignments
-const taskAssignments: Record<string, string> = {};
-
-/**
- * Assign a task to the appropriate agent based on category
- */
-export const assignTaskToAgent = async (task: Task): Promise<string | null> => {
-  try {
-    // Find agents that can handle this task category
-    const agents = agentRegistry.getAgentsByType(task.category);
+// Task Processor for handling agent tasks
+export class TaskProcessor {
+  private processingQueue: AgentTask[] = [];
+  private isProcessing: boolean = false;
+  
+  constructor() {
+    // Initialize processor
+  }
+  
+  public async processTask(task: AgentTask): Promise<boolean> {
+    try {
+      // Process the task based on its type and target agents
+      
+      // For stub implementation
+      console.log(`Processing task: ${task.taskId}`);
+      console.log(`Task type: ${task.taskType}`);
+      console.log(`Target agents: ${task.targetAgentTypes.join(', ')}`);
+      
+      return true;
+    } catch (error) {
+      console.error("Error processing task:", error);
+      return false;
+    }
+  }
+  
+  public addToProcessingQueue(task: AgentTask) {
+    this.processingQueue.push(task);
     
-    if (!agents || agents.length === 0) {
-      console.warn(`No agent found for category ${task.category}`);
-      return null;
+    if (!this.isProcessing) {
+      this.startProcessing();
+    }
+  }
+  
+  private async startProcessing() {
+    this.isProcessing = true;
+    
+    while (this.processingQueue.length > 0) {
+      const currentTask = this.processingQueue.shift();
+      if (currentTask) {
+        await this.processTask(currentTask);
+      }
     }
     
-    // For now, just pick the first available agent
-    // In a more sophisticated implementation, we could consider agent load, etc.
-    const agent = agents[0];
-    
-    // Store the assignment in memory
-    taskAssignments[task.id] = agent.id;
-    
-    // Process the task with the agent
-    agent.processTask(task);
-    
-    console.log(`Task ${task.id} assigned to agent ${agent.id}`);
-    
-    return agent.id;
-  } catch (error) {
-    console.error('Error assigning task:', error);
-    return null;
+    this.isProcessing = false;
   }
-};
-
-/**
- * Process task result and update status
- */
-export const processTaskResult = async (taskId: string, result: any): Promise<boolean> => {
-  try {
-    // Update the task status in the MasterControlProgram
-    return await masterControlProgram.completeTask(taskId, result);
-  } catch (error) {
-    console.error('Error processing task result:', error);
-    return false;
-  }
-};
-
-/**
- * Mark a task as failed
- */
-export const markTaskAsFailed = async (taskId: string, error: string): Promise<boolean> => {
-  try {
-    // For now, just log it
-    console.log(`Task ${taskId} failed with error:`, error);
-    return true;
-  } catch (updateError) {
-    console.error('Error marking task as failed:', updateError);
-    return false;
-  }
-};
+}

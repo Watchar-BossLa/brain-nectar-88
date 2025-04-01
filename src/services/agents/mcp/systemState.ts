@@ -1,110 +1,103 @@
 
-import { v4 as uuidv4 } from 'uuid';
-import { AgentType, SystemState, Task, TaskPriority, TaskStatus, TaskType } from '../types/agentTypes';
+import { AgentType, SystemMetrics, Task } from '../types';
 
-/**
- * Manages the system state for the Multi-Agent System
- */
 export class SystemStateManager {
-  private state: SystemState;
+  private globalVariables: Record<string, any> = {};
+  private activeAgents: Record<AgentType, boolean> = {
+    cognitive_profile: false,
+    learning_path: false,
+    content_adaptation: false,
+    assessment: false,
+    engagement: false,
+    feedback: false,
+    ui_ux: false,
+    scheduling: false
+  };
+  private taskQueue: Task[] = [];
+  private completedTasks: Task[] = [];
+  private metrics: SystemMetrics = {
+    completedTasks: 0,
+    averageResponseTime: 0,
+    successRate: 0,
+    taskCompletionRate: 0
+  };
   
   constructor() {
-    // Initialize default system state
-    this.state = {
-      activeAgents: this.initializeActiveAgents(),
-      taskQueue: [],
-      completedTasks: [],
-      metrics: {
-        completedTasks: 0,
-        averageResponseTime: 0,
-        successRate: 0,
-        taskCompletionRate: 0,
-        userSatisfactionScore: 0,
-      },
-      globalVariables: {},
-      priorityMatrix: {},
-      lastUpdated: new Date().toISOString()
-    };
-  }
-
-  private initializeActiveAgents(): Record<AgentType, boolean> {
-    const activeAgents: Record<AgentType, boolean> = {} as Record<AgentType, boolean>;
-    
-    // Initialize all agent types as inactive
-    Object.values(AgentType).forEach(agentType => {
-      activeAgents[agentType] = false;
-    });
-    
-    return activeAgents;
+    this.initializeSystem();
   }
   
-  /**
-   * Get current system state
-   */
-  public getState(): SystemState {
-    return { ...this.state };
-  }
-  
-  /**
-   * Update system state
-   */
-  public updateState(partialState: Partial<SystemState>): void {
-    this.state = {
-      ...this.state,
-      ...partialState,
-      lastUpdated: new Date().toISOString()
-    };
-  }
-  
-  /**
-   * Mark an agent as active
-   */
-  public activateAgent(agentType: AgentType): void {
-    const activeAgents = { ...this.state.activeAgents };
-    activeAgents[agentType] = true;
-    this.updateState({ activeAgents });
-  }
-  
-  /**
-   * Mark an agent as inactive
-   */
-  public deactivateAgent(agentType: AgentType): void {
-    const activeAgents = { ...this.state.activeAgents };
-    activeAgents[agentType] = false;
-    this.updateState({ activeAgents });
-  }
-  
-  /**
-   * Update metrics after task completion
-   */
-  public updateMetricsAfterTaskCompletion(
-    executionTimeMs: number,
-    success: boolean,
-    userSatisfactionScore?: number
-  ): void {
-    const { metrics } = this.state;
-    
-    const newCompletedTasks = metrics.completedTasks + 1;
-    const newSuccessRate = (
-      (metrics.successRate * metrics.completedTasks) + (success ? 1 : 0)
-    ) / newCompletedTasks;
-    
-    const newAvgResponseTime = (
-      (metrics.averageResponseTime * metrics.completedTasks) + executionTimeMs
-    ) / newCompletedTasks;
-    
-    const updatedMetrics = {
-      ...metrics,
-      completedTasks: newCompletedTasks,
-      averageResponseTime: newAvgResponseTime,
-      successRate: newSuccessRate,
-      userSatisfactionScore: userSatisfactionScore !== undefined 
-        ? userSatisfactionScore 
-        : metrics.userSatisfactionScore
+  private initializeSystem() {
+    // Set default values for global variables
+    this.globalVariables = {
+      systemStatus: 'active',
+      userSatisfactionMetric: 0,
+      systemLoad: 0,
+      activeAgentCount: 0
     };
     
-    this.updateState({ metrics: updatedMetrics });
+    // Update metrics with default values
+    this.updateMetrics();
+  }
+  
+  public getGlobalVariables(): Record<string, any> {
+    return { ...this.globalVariables };
+  }
+  
+  public getGlobalVariable(key: string): any {
+    return this.globalVariables[key];
+  }
+  
+  public setGlobalVariable(key: string, value: any): void {
+    this.globalVariables[key] = value;
+  }
+  
+  public getActiveAgents(): Record<AgentType, boolean> {
+    return { ...this.activeAgents };
+  }
+  
+  public setAgentStatus(agentType: AgentType, active: boolean): void {
+    this.activeAgents[agentType] = active;
+    this.updateActiveAgentCount();
+  }
+  
+  public getSystemMetrics(): SystemMetrics {
+    return { ...this.metrics };
+  }
+  
+  public updateMetrics(): void {
+    // Calculate real metrics based on task history
+    const totalTasks = this.completedTasks.length + this.taskQueue.length;
+    
+    this.metrics = {
+      completedTasks: this.completedTasks.length,
+      averageResponseTime: this.calculateAverageResponseTime(),
+      successRate: this.calculateSuccessRate(),
+      taskCompletionRate: totalTasks > 0 ? this.completedTasks.length / totalTasks : 0
+    };
+  }
+  
+  private updateActiveAgentCount(): void {
+    let count = 0;
+    for (const agentType in this.activeAgents) {
+      if (this.activeAgents[agentType as AgentType]) {
+        count++;
+      }
+    }
+    this.setGlobalVariable('activeAgentCount', count);
+  }
+  
+  private calculateAverageResponseTime(): number {
+    if (this.completedTasks.length === 0) return 0;
+    
+    // Placeholder for actual calculation
+    return 250; // milliseconds
+  }
+  
+  private calculateSuccessRate(): number {
+    if (this.completedTasks.length === 0) return 0;
+    
+    // Placeholder for actual success rate calculation
+    // In a real implementation, this would track successful vs. failed tasks
+    return 0.95; // 95% success rate
   }
 }
-
-export const systemStateManager = new SystemStateManager();

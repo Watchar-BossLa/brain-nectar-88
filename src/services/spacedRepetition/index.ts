@@ -1,12 +1,12 @@
 
 // Re-export all spaced repetition related functions
-export * from './flashcardService';
-export * from './flashcardMutation';
-export * from './flashcardRetrieval';
-export * from './reviewService';
-export * from './reviewStats';
 export * from './algorithm';
+export * from './flashcardStats';
+export * from './reviewUpdate';
 
 // Re-export specific functions to avoid naming conflicts
 export { getFlashcardLearningStats } from './reviewService';
-export { getDueFlashcards } from './flashcardService';
+export { getUserFlashcards, getDueFlashcards, getFlashcardsByTopic } from './flashcardService';
+export { createFlashcard, updateFlashcard, deleteFlashcard } from './flashcardService';
+
+// Do not re-export duplicate named functions/constants

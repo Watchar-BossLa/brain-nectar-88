@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth';
-import { getUserFlashcards, getDueFlashcards, updateFlashcardAfterReview } from '@/services/flashcardService';
+import { getDueFlashcards, updateFlashcardAfterReview } from '@/services/spacedRepetition';
 import { useToast } from '@/hooks/use-toast';
 import { Flashcard } from '@/types/supabase';
 
@@ -22,9 +22,7 @@ export const useFlashcardReview = () => {
     
     setLoading(true);
     try {
-      const { data, error } = await getDueFlashcards(user.id);
-      
-      if (error) throw error;
+      const data = await getDueFlashcards(user.id);
       
       if (data && data.length > 0) {
         setFlashcards(data);

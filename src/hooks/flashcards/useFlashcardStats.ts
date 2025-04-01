@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth';
 import { useToast } from '@/hooks/use-toast';
-import { getFlashcardStats } from '@/services/spacedRepetition';
+import { getFlashcardStats } from '@/services/spacedRepetition/flashcardStats';
 
 interface FlashcardStats {
   totalCards: number;
@@ -45,7 +45,7 @@ export const useFlashcardStats = () => {
 
   useEffect(() => {
     fetchStats();
-  }, [user, toast]);
+  }, [user]);
 
   return { stats, loading, fetchStats };
 };

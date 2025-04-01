@@ -1,16 +1,14 @@
 
 import { supabase } from '@/integrations/supabase/client';
-
-// Constants for spaced repetition algorithm
-export const INITIAL_EASINESS_FACTOR = 2.5;
-export const MIN_EASINESS_FACTOR = 1.3;
+import { INITIAL_EASINESS_FACTOR, MIN_EASINESS_FACTOR, calculateNextReviewDate, calculateMasteryLevel } from './algorithm';
 
 /**
  * Update flashcard after review
  * @param flashcardId ID of the flashcard being reviewed
  * @param difficulty The difficulty rating (0-5 scale, 0 = hardest, 5 = easiest)
+ * @param userId ID of the user reviewing the flashcard
  */
-export const updateFlashcardAfterReview = async (flashcardId: string, difficulty: number) => {
+export const updateFlashcardAfterReview = async (flashcardId: string, difficulty: number, userId: string) => {
   try {
     // Get current flashcard data
     const { data: flashcard, error: fetchError } = await supabase
@@ -27,42 +25,27 @@ export const updateFlashcardAfterReview = async (flashcardId: string, difficulty
       return { data: null, error: new Error('Flashcard not found') };
     }
     
-    // Calculate new spaced repetition values
-    const easinessFactor = Math.max(MIN_EASINESS_FACTOR, 
-      (flashcard.easiness_factor || INITIAL_EASINESS_FACTOR) + 
-      (0.1 - (5 - difficulty) * (0.08 + (5 - difficulty) * 0.02)));
+    // Calculate new spaced repetition values using the algorithm
+    const { 
+      nextReviewDate, 
+      newRepetitionCount, 
+      newEasinessFactor 
+    } = calculateNextReviewDate(
+      flashcard.repetition_count || 0,
+      flashcard.easiness_factor || INITIAL_EASINESS_FACTOR,
+      difficulty
+    );
     
-    let repetitions = (flashcard.repetition_count || 0);
-    if (difficulty < 3) {
-      repetitions = 0;
-    } else {
-      repetitions += 1;
-    }
-    
-    // Calculate next review interval
-    let interval: number;
-    if (repetitions <= 1) {
-      interval = 1;
-    } else if (repetitions === 2) {
-      interval = 6;
-    } else {
-      interval = Math.round((flashcard.repetition_count || repetitions) * easinessFactor);
-    }
-    
-    // Calculate next review date
-    const nextReviewDate = new Date();
-    nextReviewDate.setDate(nextReviewDate.getDate() + interval);
-    
-    // Calculate mastery level - simple formula based on repetitions
-    const masteryLevel = Math.min(1.0, (repetitions / 10) + (easinessFactor - 1.3) / 2.5 * 0.5);
+    // Calculate mastery level
+    const masteryLevel = calculateMasteryLevel(newRepetitionCount, newEasinessFactor);
     
     // Update the flashcard
     const { data, error } = await supabase
       .from('flashcards')
       .update({
-        easiness_factor: easinessFactor,
-        repetition_count: repetitions,
-        interval: interval,
+        easiness_factor: newEasinessFactor,
+        repetition_count: newRepetitionCount,
+        interval: Math.round((nextReviewDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)), // interval in days
         last_reviewed_at: new Date().toISOString(),
         next_review_date: nextReviewDate.toISOString(),
         mastery_level: masteryLevel,
@@ -70,6 +53,14 @@ export const updateFlashcardAfterReview = async (flashcardId: string, difficulty
       })
       .eq('id', flashcardId)
       .select();
+
+    // Record the review in the flashcard_reviews table
+    await supabase.from('flashcard_reviews').insert({
+      flashcard_id: flashcardId,
+      user_id: userId,
+      difficulty_rating: difficulty,
+      retention_estimate: masteryLevel
+    });
       
     return { data, error };
   } catch (error) {

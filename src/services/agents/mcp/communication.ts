@@ -1,104 +1,57 @@
 
-import { v4 as uuidv4 } from 'uuid';
-import { AgentMessage } from '../types';
-import { AgentType, TaskPriority } from '../types/agentTypes';
+import { AgentType, AgentMessage, CommunicationManager } from '../types';
 
-/**
- * Manages communication between agents in the multi-agent system
- */
-export class CommunicationManager {
-  private static instance: CommunicationManager;
-  private messageHandlers: Map<string, (message: AgentMessage) => void>;
+class InternalCommunicationManager implements CommunicationManager {
+  private static instance: InternalCommunicationManager;
+  private messageHandlers: Map<AgentType | 'MCP', ((message: AgentMessage) => Promise<void>)[]>;
+  private messageLog: AgentMessage[];
   
   private constructor() {
     this.messageHandlers = new Map();
+    this.messageLog = [];
   }
   
-  public static getInstance(): CommunicationManager {
-    if (!CommunicationManager.instance) {
-      CommunicationManager.instance = new CommunicationManager();
+  public static getInstance(): InternalCommunicationManager {
+    if (!InternalCommunicationManager.instance) {
+      InternalCommunicationManager.instance = new InternalCommunicationManager();
     }
-    return CommunicationManager.instance;
+    return InternalCommunicationManager.instance;
   }
   
-  /**
-   * Send message from one agent to another
-   */
-  public sendMessage(
-    senderId: string | AgentType,
-    receiverId: string | AgentType,
-    messageType: string,
-    content: string,
-    data?: any
-  ): string {
-    const message: AgentMessage = {
-      id: uuidv4(),
-      senderId: senderId.toString(),
-      receiverId: receiverId.toString(),
-      messageType,
-      content,
-      timestamp: new Date().toISOString(),
-      priority: TaskPriority.MEDIUM, // Default priority
-      data
-    };
+  public async sendMessage(message: AgentMessage): Promise<boolean> {
+    // Log the message for debugging/history
+    this.messageLog.push(message);
     
-    this.deliverMessage(message);
-    return message.id;
+    // Get handlers for recipient
+    const handlers = this.messageHandlers.get(message.recipientId);
+    
+    if (!handlers || handlers.length === 0) {
+      console.warn(`No handlers registered for recipient: ${message.recipientId}`);
+      return false;
+    }
+    
+    try {
+      // Deliver message to all registered handlers
+      await Promise.all(handlers.map(handler => handler(message)));
+      return true;
+    } catch (error) {
+      console.error(`Error delivering message to ${message.recipientId}:`, error);
+      return false;
+    }
   }
   
-  /**
-   * Register a message handler for a specific agent
-   */
   public registerMessageHandler(
-    agentId: string | AgentType, 
-    handler: (message: AgentMessage) => void
+    agentType: AgentType | 'MCP',
+    handler: (message: AgentMessage) => Promise<void>
   ): void {
-    this.messageHandlers.set(agentId.toString(), handler);
+    const existingHandlers = this.messageHandlers.get(agentType) || [];
+    this.messageHandlers.set(agentType, [...existingHandlers, handler]);
   }
   
-  /**
-   * Deliver a message to its intended recipient
-   */
-  private deliverMessage(message: AgentMessage): void {
-    const handler = this.messageHandlers.get(message.receiverId);
-    
-    if (handler) {
-      // Deliver message to handler
-      setTimeout(() => handler(message), 0);
-    } else {
-      console.warn(`No handler registered for agent ${message.receiverId}`);
-    }
-  }
-  
-  /**
-   * Broadcast message to all agents except sender
-   */
-  public broadcastMessage(
-    senderId: string | AgentType,
-    messageType: string,
-    content: string,
-    data?: any
-  ): string[] {
-    const messageIds: string[] = [];
-    
-    this.messageHandlers.forEach((_, recipientId) => {
-      if (recipientId !== senderId.toString()) {
-        const messageId = this.sendMessage(
-          senderId,
-          recipientId,
-          messageType,
-          content,
-          data
-        );
-        messageIds.push(messageId);
-      }
-    });
-    
-    return messageIds;
+  public getMessageLog(): AgentMessage[] {
+    return [...this.messageLog];
   }
 }
 
-export const communicationManager = CommunicationManager.getInstance();
-
-// Re-export the types
-export type { AgentMessage };
+// Export singleton instance
+export const communicationManager = InternalCommunicationManager.getInstance();

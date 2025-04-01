@@ -1,105 +1,93 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { v4 as uuidv4 } from 'uuid';
-import { CommunicationManager } from './communication';
+// User Context Manager for MCP
 
-class UserContextManager {
-  private contextData: Map<string, Map<string, any>> = new Map();
-  private communicationManager: CommunicationManager;
+import { communicationManager } from './communication';
+import { AgentType } from '../types';
+
+export class UserContextManager {
+  private userId: string;
+  private userPreferences: Record<string, any> = {};
+  private learningHistory: any[] = [];
   
-  constructor() {
-    this.communicationManager = new CommunicationManager();
+  constructor(userId: string) {
+    this.userId = userId;
+    this.initialize();
   }
   
-  // Get user preferences
-  async getUserPreferences(userId: string): Promise<any> {
-    try {
-      // Get user profile from Supabase
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-        
-      if (error) {
-        console.error('Error fetching user profile:', error);
-        return {};
-      }
-      
-      // Mocked preferences, in a real app this would come from the database
-      return {
-        learningStyle: 'visual',
-        preferredDifficulty: 'adaptive',
-        preferredStudyTime: '20min',
-        notificationsEnabled: true,
-        dailyGoal: 3
-      };
-    } catch (error) {
-      console.error('Error in getUserPreferences:', error);
-      return {};
-    }
+  private async initialize() {
+    await this.loadUserPreferences();
+    await this.loadLearningHistory();
   }
   
-  // Get learning history
-  async getLearningHistory(userId: string): Promise<any> {
-    try {
-      // Get quiz session history
-      const { data: quizSessions, error: quizError } = await supabase
-        .from('quiz_sessions')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(10);
-        
-      if (quizError) {
-        console.error('Error fetching quiz sessions:', quizError);
-      }
-      
-      // Get flashcard review history
-      const { data: flashcardReviews, error: flashcardError } = await supabase
-        .from('flashcard_reviews')
-        .select('*')
-        .eq('user_id', userId)
-        .order('reviewed_at', { ascending: false })
-        .limit(10);
-        
-      if (flashcardError) {
-        console.error('Error fetching flashcard reviews:', flashcardError);
-      }
-      
-      return {
-        quizSessions: quizSessions || [],
-        flashcardReviews: flashcardReviews || []
-      };
-    } catch (error) {
-      console.error('Error in getLearningHistory:', error);
-      return {
-        quizSessions: [],
-        flashcardReviews: []
-      };
-    }
+  private async loadUserPreferences() {
+    // In a real implementation, this would load from database
+    this.userPreferences = {
+      studyTime: 'morning',
+      sessionLength: 30,
+      topics: ['accounting', 'finance'],
+      difficulty: 'intermediate'
+    };
   }
   
-  // Set context data for a user and specific context type
-  setContextData(userId: string, contextType: string, data: any): void {
-    if (!this.contextData.has(userId)) {
-      this.contextData.set(userId, new Map());
-    }
+  private async loadLearningHistory() {
+    // In a real implementation, this would load from database
+    this.learningHistory = [
+      {
+        date: new Date().toISOString(),
+        activity: 'flashcard-review',
+        duration: 15,
+        performance: 0.8
+      }
+    ];
+  }
+  
+  public getUserId(): string {
+    return this.userId;
+  }
+  
+  public getUserPreference(key: string): any {
+    return this.userPreferences[key];
+  }
+  
+  public getUserPreferences(): Record<string, any> {
+    return { ...this.userPreferences };
+  }
+  
+  public getLearningHistory(): any[] {
+    return [...this.learningHistory];
+  }
+  
+  public async updateUserPreference(key: string, value: any): Promise<void> {
+    this.userPreferences[key] = value;
+    // In a real implementation, this would save to database
     
-    const userContexts = this.contextData.get(userId)!;
-    userContexts.set(contextType, data);
+    // Notify agents about the preference change
+    await this.notifyPreferenceChange(key, value);
   }
   
-  // Get context data for a user and specific context type
-  getContextData(userId: string, contextType: string): any {
-    if (!this.contextData.has(userId)) {
-      return null;
-    }
+  private async notifyPreferenceChange(key: string, value: any): Promise<void> {
+    // Notify cognitive profile agent about the preference change
+    await communicationManager.sendMessage({
+      messageId: `pref-change-${Date.now()}`,
+      senderId: 'ui_ux' as AgentType,
+      recipientId: 'cognitive_profile' as AgentType,
+      timestamp: new Date(),
+      content: {
+        type: 'PREFERENCE_CHANGED',
+        preference: key,
+        value
+      }
+    });
+  }
+  
+  public async recordLearningActivity(activity: string, details: Record<string, any>): Promise<void> {
+    const learningEvent = {
+      date: new Date().toISOString(),
+      activity,
+      ...details
+    };
     
-    const userContexts = this.contextData.get(userId)!;
-    return userContexts.get(contextType) || null;
+    this.learningHistory.push(learningEvent);
+    // In a real implementation, this would save to database
   }
 }
-
-// Export an instance of the manager
-export const userContextManager = new UserContextManager();
