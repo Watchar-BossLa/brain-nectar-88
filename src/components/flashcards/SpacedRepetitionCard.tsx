@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,20 +40,16 @@ const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({
   const { toast } = useToast();
 
   useEffect(() => {
-    // Reset state when flashcard changes
     setIsFlipped(false);
     setDifficultyRating(null);
     
-    // Calculate estimated current retention
     if (flashcard.next_review_date && flashcard.repetition_count > 0) {
       const reviewDate = new Date(flashcard.next_review_date);
       const now = new Date();
       const daysSinceReview = Math.max(0, (now.getTime() - reviewDate.getTime()) / (1000 * 60 * 60 * 24));
       
-      // Estimate memory strength based on repetition count and difficulty
       const memoryStrength = flashcard.repetition_count * 0.2 * (flashcard.difficulty || 2.5);
       
-      // Calculate current retention using the algorithm
       const retention = calculateRetention(daysSinceReview, memoryStrength);
       setRetentionEstimate(retention);
     }
@@ -71,12 +66,10 @@ const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({
     try {
       await onComplete(difficulty);
       
-      // Update stats if callback is provided
       if (onUpdateStats) {
         onUpdateStats();
       }
       
-      // Short delay to show the selected rating
       setTimeout(() => {
         setIsSubmitting(false);
       }, 600);
@@ -100,7 +93,6 @@ const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({
           How well did you remember this card? Be honest for best results.
         </CardDescription>
         
-        {/* Memory Retention Indicator */}
         <RetentionIndicator value={retentionEstimate} />
       </CardHeader>
       

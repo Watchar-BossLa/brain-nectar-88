@@ -1,14 +1,18 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { INITIAL_EASINESS_FACTOR, MIN_EASINESS_FACTOR, calculateNextReviewDate, calculateMasteryLevel } from './algorithm';
+import { calculateNextReviewDate, INITIAL_EASINESS_FACTOR, MIN_EASINESS_FACTOR } from './algorithm';
 
 /**
- * Update flashcard after review
- * @param flashcardId ID of the flashcard being reviewed
- * @param difficulty The difficulty rating (0-5 scale, 0 = hardest, 5 = easiest)
- * @param userId ID of the user reviewing the flashcard
+ * Update a flashcard after review
+ * @param flashcardId - ID of the flashcard
+ * @param difficulty - Rating from 1 (hard) to 5 (easy)
+ * @param userId - User ID for security verification
  */
-export const updateFlashcardAfterReview = async (flashcardId: string, difficulty: number, userId: string) => {
+export const updateFlashcardAfterReview = async (
+  flashcardId: string, 
+  difficulty: number,
+  userId?: string
+) => {
   try {
     // Get current flashcard data
     const { data: flashcard, error: fetchError } = await supabase
@@ -18,52 +22,69 @@ export const updateFlashcardAfterReview = async (flashcardId: string, difficulty
       .single();
       
     if (fetchError) {
-      return { data: null, error: fetchError };
+      console.error('Error fetching flashcard:', fetchError);
+      return false;
     }
     
     if (!flashcard) {
-      return { data: null, error: new Error('Flashcard not found') };
+      console.error('Flashcard not found');
+      return false;
     }
     
-    // Calculate new spaced repetition values using the algorithm
+    // If userId is provided, check if the flashcard belongs to the user
+    if (userId && flashcard.user_id !== userId) {
+      console.error('Unauthorized: Flashcard does not belong to user');
+      return false;
+    }
+    
+    // Calculate new review parameters
+    const currentEasinessFactor = flashcard.easiness_factor || INITIAL_EASINESS_FACTOR;
+    const currentRepetitionCount = flashcard.repetition_count || 0;
+    
     const { 
       nextReviewDate, 
       newRepetitionCount, 
       newEasinessFactor 
-    } = calculateNextReviewDate(
-      flashcard.repetition_count || 0,
-      flashcard.easiness_factor || INITIAL_EASINESS_FACTOR,
-      difficulty
-    );
+    } = calculateNextReviewDate(difficulty, currentRepetitionCount, currentEasinessFactor);
     
-    // Calculate mastery level
-    const masteryLevel = calculateMasteryLevel(newRepetitionCount, newEasinessFactor);
+    // Calculate mastery level (simple formula based on repetitions)
+    const masteryLevel = Math.min(1.0, (newRepetitionCount / 10) + (newEasinessFactor - 1.3) / 2.5 * 0.5);
+    
+    // Record the review
+    const { error: reviewError } = await supabase
+      .from('flashcard_reviews')
+      .insert({
+        flashcard_id: flashcardId,
+        difficulty_rating: difficulty,
+        user_id: userId || flashcard.user_id,
+        retention_estimate: flashcard.last_retention || 0.85,
+      });
+      
+    if (reviewError) {
+      console.error('Error recording review:', reviewError);
+    }
     
     // Update the flashcard
-    const { data, error } = await supabase
+    const { error: updateError } = await supabase
       .from('flashcards')
       .update({
         easiness_factor: newEasinessFactor,
         repetition_count: newRepetitionCount,
-        interval: Math.round((nextReviewDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)), // interval in days
         last_reviewed_at: new Date().toISOString(),
         next_review_date: nextReviewDate.toISOString(),
         mastery_level: masteryLevel,
         difficulty: difficulty
       })
-      .eq('id', flashcardId)
-      .select();
-
-    // Record the review in the flashcard_reviews table
-    await supabase.from('flashcard_reviews').insert({
-      flashcard_id: flashcardId,
-      user_id: userId,
-      difficulty_rating: difficulty,
-      retention_estimate: masteryLevel
-    });
+      .eq('id', flashcardId);
       
-    return { data, error };
+    if (updateError) {
+      console.error('Error updating flashcard:', updateError);
+      return false;
+    }
+    
+    return true;
   } catch (error) {
-    return { data: null, error };
+    console.error('Error in updateFlashcardAfterReview:', error);
+    return false;
   }
 };

@@ -5,13 +5,13 @@ export type {
   AgentTask,
   AgentMessage,
   SystemState,
-  CognitiveProfile
+  CognitiveProfile,
+  TaskType,
+  TaskPriority,
+  TaskStatus
 } from './agentTypes';
 
 // Re-export enums
 export {
-  AgentType,
-  TaskType,
-  TaskPriority,
-  TaskStatus
+  AgentType
 } from './agentTypes';

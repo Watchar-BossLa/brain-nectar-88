@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/context/auth';
+import { useAuth } from '@/context/auth/AuthContext';
 import { getDueFlashcards, updateFlashcardAfterReview } from '@/services/spacedRepetition';
 import { useToast } from '@/hooks/use-toast';
 import { Flashcard } from '@/types/supabase';
@@ -51,7 +51,8 @@ export const useFlashcardReview = () => {
     if (!user) return;
     
     try {
-      await updateFlashcardAfterReview(flashcardId, difficulty, user.id);
+      // Convert numeric difficulty to string for API
+      await updateFlashcardAfterReview(flashcardId, difficulty);
       
       // Move to next card
       if (currentIndex < flashcards.length - 1) {
@@ -60,7 +61,7 @@ export const useFlashcardReview = () => {
       } else {
         // End of review session
         toast({
-          title: 'Review completed',
+          title: 'Review complete',
           description: 'You have completed this review session!',
         });
       }

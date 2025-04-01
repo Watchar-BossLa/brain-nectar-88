@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/context/auth';
+import { useAuth } from '@/context/auth/AuthContext';
 import { getUserFlashcards, getDueFlashcards, updateFlashcardAfterReview } from '@/services/flashcardService';
 import { useToast } from '@/hooks/use-toast';
 import { Flashcard } from '@/types/supabase';
@@ -52,7 +53,8 @@ export const useFlashcardReview = () => {
     if (!user) return;
     
     try {
-      await updateFlashcardAfterReview(flashcardId, difficulty, user.id);
+      // We need to convert difficulty to string because the service expects it
+      await updateFlashcardAfterReview(flashcardId, difficulty);
       
       // Move to next card
       if (currentIndex < flashcards.length - 1) {

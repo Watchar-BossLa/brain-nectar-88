@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, CheckCircle, RefreshCw } from 'lucide-react';
-import { useAuth } from '@/context/auth';
+import { useAuth } from '@/context/auth/AuthContext';
 import { Progress } from '@/components/ui/progress';
 
 const FlashcardReview: React.FC = () => {
@@ -67,7 +67,7 @@ const FlashcardReview: React.FC = () => {
     const currentFlashcard = flashcards[currentIndex];
     
     try {
-      // Call the correct function with all required parameters
+      // Pass rating as number, since the API function expects a number
       await spacedRepetitionService.recordReview(currentFlashcard.id, rating, user.id);
       
       // Update statistics

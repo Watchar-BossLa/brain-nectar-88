@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { useAuth } from '@/context/auth';
+import { useAuth } from '@/context/auth/AuthContext';
 import { spacedRepetitionService } from '@/services/flashcards/spacedRepetitionService';
 import { Flashcard } from '@/hooks/flashcards/types';
 
@@ -105,7 +105,7 @@ const ReviewFlashcardsTab: React.FC<ReviewFlashcardsTabProps> = ({ onComplete })
     const currentFlashcard = flashcards[currentIndex];
     
     try {
-      // Pass the user ID as the third parameter
+      // Pass the rating as a number, since the service expects a number
       await spacedRepetitionService.recordReview(currentFlashcard.id, rating, user.id);
       
       if (currentIndex < flashcards.length - 1) {
