@@ -1,5 +1,5 @@
 
-import { CognitiveProfile } from '../../types';
+import { CognitiveProfile } from '../../types/profileTypes';
 import { CognitiveProfileDbOperations } from './dbOperations';
 import { ProfileCacheService } from './cacheService';
 import { ProfileUpdateOptions } from '../types';

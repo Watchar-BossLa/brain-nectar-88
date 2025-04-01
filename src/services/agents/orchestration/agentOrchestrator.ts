@@ -1,3 +1,4 @@
+
 import { AgentTask, AgentType, TaskType } from '../types';
 import { ContextTag } from '../types/taskTypes';
 
@@ -219,3 +220,6 @@ export class AgentOrchestrator {
     };
   }
 }
+
+// Create and export an instance for use throughout the application
+export const agentOrchestrator = new AgentOrchestrator();

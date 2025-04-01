@@ -1,16 +1,15 @@
-
-import { LearningHistoryItem } from '../types';
+import { LearningHistoryItem } from './types';
 
 /**
- * Utility functions for analyzing user learning data
+ * Utilities for analyzing learning data
  */
 export class DataAnalysisUtils {
   /**
-   * Analyze content interactions to determine preferred content formats
+   * Analyze content interaction patterns
    */
-  public static analyzeContentInteractions(learningHistory: LearningHistoryItem[]): string[] {
+  public static analyzeContentInteractions(history: LearningHistoryItem[]): string[] {
     // Extract content types from progress data
-    const contentTypes = learningHistory
+    const contentTypes = history
       .filter(item => item.content && item.content.content_type)
       .map(item => item.content.content_type);
     
@@ -29,9 +28,9 @@ export class DataAnalysisUtils {
   }
   
   /**
-   * Estimate learning speed across different domains based on user history
+   * Estimate learning speed across different domains
    */
-  public static estimateLearningSpeed(learningHistory: LearningHistoryItem[]): Record<string, number> {
+  public static estimateLearningSpeed(history: LearningHistoryItem[]): Record<string, number> {
     // This is a simplified implementation
     // In a real system, this would analyze completion times, repeated attempts, etc.
     
@@ -39,7 +38,7 @@ export class DataAnalysisUtils {
     const defaultSpeed = 1.0; // Normal speed
     
     // Group by topic or subject area
-    const topicGroups = this.groupByTopic(learningHistory);
+    const topicGroups = this.groupByTopic(history);
     
     // Calculate speed for each topic
     for (const [topicId, items] of Object.entries(topicGroups)) {
@@ -107,11 +106,11 @@ export class DataAnalysisUtils {
   /**
    * Build initial knowledge graph from completed topics
    */
-  public static buildInitialKnowledgeGraph(learningHistory: LearningHistoryItem[]): Record<string, string[]> {
-    const graph: Record<string, string[]> = {};
+  public static buildInitialKnowledgeGraph(history: LearningHistoryItem[]): Record<string, any> {
+    const graph: Record<string, any> = {};
     
     // Extract completed topics from progress data
-    const completedItems = learningHistory.filter(item => 
+    const completedItems = history.filter(item => 
       item.status === 'completed' || item.progress_percentage >= 90
     );
     

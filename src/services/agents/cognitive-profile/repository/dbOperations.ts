@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { CognitiveProfile } from '../../types';
+import { CognitiveProfile } from '../../types/profileTypes';
 
 /**
  * Handles database operations for cognitive profiles

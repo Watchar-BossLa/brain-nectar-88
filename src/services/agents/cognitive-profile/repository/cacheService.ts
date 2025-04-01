@@ -1,5 +1,5 @@
 
-import { CognitiveProfile } from '../../types';
+import { CognitiveProfile } from '../../types/profileTypes';
 
 /**
  * Service for caching cognitive profiles in memory

@@ -5,7 +5,7 @@
  * Represents the current state of the agent system
  */
 export interface SystemState {
-  activeAgents: AgentType[];
+  activeAgents: import('./agentTypes').AgentType[];
   globalVariables: Record<string, any>;
   metrics: {
     taskCompletionRate?: number;

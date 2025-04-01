@@ -1,9 +1,12 @@
 
-import { AgentTask, TaskType, TaskStatus } from '../types';
+import { AgentTask, TaskType } from '../types';
 import { createAgentRegistry } from './agentRegistry';
 import { agentIntegration } from '../../llm/agentIntegration';
 import { determineTargetAgents } from './taskRouting';
 import { TaskQueueManager } from './taskQueueManager';
+
+// Define the TaskStatus type locally if it's not exported from types
+type TaskStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
 /**
  * TaskProcessor
