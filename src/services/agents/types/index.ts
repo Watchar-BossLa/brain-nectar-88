@@ -1,5 +1,7 @@
 
-// Re-export types from various files
+// Re-export all types from the sub-directories
 export * from './agentTypes';
+export * from './taskTypes';
+export * from './messageTypes';
+export * from './profileTypes';
 export * from './systemState';
-export type { ContextTag } from '../types';

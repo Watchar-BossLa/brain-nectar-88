@@ -12,3 +12,5 @@ export * from './systemState';
 export * from './communication';
 export * from './taskProcessor';
 export * from './taskQueueManager';
+export * from './llmIntegration';
+export * from './systemMonitoring';
