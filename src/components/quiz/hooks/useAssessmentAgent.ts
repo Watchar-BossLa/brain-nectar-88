@@ -2,9 +2,10 @@
 import { useState } from 'react';
 import { useMultiAgentSystem } from '@/hooks/useMultiAgentSystem';
 import { useToast } from '@/components/ui/use-toast';
+import { TaskTypes } from '@/hooks/multiAgentSystem/useTaskSubmission';
 
 export function useAssessmentAgent() {
-  const { submitTask, TaskTypes, isInitialized } = useMultiAgentSystem();
+  const { submitTask, isInitialized } = useMultiAgentSystem();
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedQuestions, setGeneratedQuestions] = useState<any[]>([]);

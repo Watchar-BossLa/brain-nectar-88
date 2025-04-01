@@ -1,9 +1,8 @@
 
 import { useEffect } from 'react';
-import { TaskType } from '@/services/agents/types/agentTypes';
 import { useAgentInitialization } from './useAgentInitialization';
 import { useAgentStatus } from './useAgentStatus';
-import { useTaskSubmission } from './useTaskSubmission';
+import { useTaskSubmission, TaskTypes } from './useTaskSubmission';
 
 /**
  * Main hook for interacting with the multi-agent system
@@ -55,6 +54,6 @@ export function useMultiAgentSystem() {
     generateAssessment,
     
     // Expose TaskTypes for component usage
-    TaskTypes: TaskType
+    TaskTypes
   };
 }

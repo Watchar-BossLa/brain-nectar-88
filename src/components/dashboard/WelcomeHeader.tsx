@@ -7,7 +7,7 @@ import { PLATFORM_OWNER } from '@/context/auth/constants';
 
 const WelcomeHeader = () => {
   const { user } = useAuth();
-  const [firstName, setFirstName] = useState<string>("Kelvin"); // Default to platform owner
+  const [firstName, setFirstName] = useState<string>("Kelvin"); // Default value
   
   useEffect(() => {
     const fetchUserProfile = async () => {

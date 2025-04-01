@@ -2,8 +2,15 @@
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { MultiAgentSystem } from '@/services/agents';
-import { TaskType } from '@/services/agents/types/agentTypes';
 import { TaskSubmissionOptions } from './types';
+
+// Create an enum for task types since there seems to be a type/value mismatch
+export enum TaskTypes {
+  LEARNING_PATH_GENERATION = 'LEARNING_PATH_GENERATION',
+  COGNITIVE_PROFILING = 'COGNITIVE_PROFILING',
+  SCHEDULE_OPTIMIZATION = 'SCHEDULE_OPTIMIZATION',
+  ASSESSMENT_GENERATION = 'ASSESSMENT_GENERATION'
+}
 
 /**
  * Hook for managing task submissions to the multi-agent system
@@ -15,7 +22,7 @@ export function useTaskSubmission() {
   /**
    * Submit a task to the multi-agent system
    */
-  const submitTask = async (taskType: TaskType, data: any = {}, options?: TaskSubmissionOptions) => {
+  const submitTask = async (taskType: string, data: any = {}, options?: TaskSubmissionOptions) => {
     if (!MultiAgentSystem.getInstance().isInitialized()) {
       toast({
         title: 'System Not Ready',
@@ -58,28 +65,28 @@ export function useTaskSubmission() {
    * Generate learning recommendations
    */
   const generateRecommendations = async () => {
-    return submitTask(TaskType.LEARNING_PATH_GENERATION);
+    return submitTask(TaskTypes.LEARNING_PATH_GENERATION);
   };
   
   /**
    * Generate cognitive profile
    */
   const generateCognitiveProfile = async () => {
-    return submitTask(TaskType.COGNITIVE_PROFILING);
+    return submitTask(TaskTypes.COGNITIVE_PROFILING);
   };
   
   /**
    * Optimize study schedule
    */
   const optimizeStudySchedule = async (options: any) => {
-    return submitTask(TaskType.SCHEDULE_OPTIMIZATION, options);
+    return submitTask(TaskTypes.SCHEDULE_OPTIMIZATION, options);
   };
   
   /**
    * Generate assessment
    */
   const generateAssessment = async (topicIds: string[]) => {
-    return submitTask(TaskType.ASSESSMENT_GENERATION, { topicIds });
+    return submitTask(TaskTypes.ASSESSMENT_GENERATION, { topicIds });
   };
 
   return {

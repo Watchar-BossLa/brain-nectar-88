@@ -12,4 +12,13 @@ export interface AuthContextType {
   isAdmin?: boolean;
 }
 
-export const PLATFORM_OWNER = 'admin@studybee.com';
+// Define the platform owner as an object with name and email properties
+export interface PlatformOwnerType {
+  email: string;
+  name: string;
+}
+
+export const PLATFORM_OWNER: PlatformOwnerType = {
+  email: 'admin@studybee.com',
+  name: 'Admin'
+};

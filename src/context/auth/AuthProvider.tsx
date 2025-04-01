@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, ReactNode } from 'react';
 import { User } from '@supabase/supabase-js';
 import { AuthContext } from './AuthContext';
@@ -29,13 +30,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Check if user is admin on auth state change
       if (session?.user) {
-        const { data: userData } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single();
-          
-        setIsAdmin(userData?.role === 'admin');
+        try {
+          const { data: userData } = await supabase
+            .from('profiles')
+            .select('*')  // Get all fields as role might not exist yet
+            .eq('id', session.user.id)
+            .single();
+            
+          setIsAdmin(userData?.role === 'admin');
+        } catch (error) {
+          console.error('Error checking admin status:', error);
+          setIsAdmin(false);
+        }
       } else {
         setIsAdmin(false);
       }
@@ -49,13 +55,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Check if user is admin
       if (data?.user) {
-        const { data: userData } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', data.user.id)
-          .single();
-          
-        setIsAdmin(userData?.role === 'admin');
+        try {
+          const { data: userData } = await supabase
+            .from('profiles')
+            .select('*')  // Get all fields as role might not exist yet
+            .eq('id', data.user.id)
+            .single();
+            
+          setIsAdmin(userData?.role === 'admin');
+        } catch (adminError) {
+          console.error('Error checking admin status:', adminError);
+          setIsAdmin(false);
+        }
       }
       
       return { error: null };
