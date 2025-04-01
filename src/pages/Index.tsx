@@ -9,7 +9,14 @@ import HeroSection from '@/components/landing/HeroSection';
 import { useAuth } from '@/context/auth';
 
 export default function Index() {
-  const { user } = useAuth();
+  let user;
+  try {
+    const auth = useAuth();
+    user = auth.user;
+  } catch (error) {
+    console.log('Auth not initialized yet, rendering without user data');
+    user = null;
+  }
   
   return (
     <MainLayout>

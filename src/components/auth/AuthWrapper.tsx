@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { useAuth } from '@/context/auth';
+import { useAuth } from '@/context/auth'; // Updated import path
 
 type AuthWrapperProps = {
   children: React.ReactNode;

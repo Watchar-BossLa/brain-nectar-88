@@ -8,6 +8,7 @@ import {
   getCurrentUser,
   onAuthStateChange
 } from '@/lib/supabaseAuth';
+import { AuthContext } from './AuthContext';
 
 export type AuthContextType = {
   user: User | null;
@@ -20,8 +21,6 @@ export type AuthContextType = {
   signInWithOAuth: typeof authService.signInWithOAuth;
   platformOwner: typeof platformOwner;
 };
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -89,6 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
+// Export the useAuth hook from this file only
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

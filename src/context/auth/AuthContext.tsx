@@ -2,14 +2,8 @@
 import React, { createContext, useContext } from 'react';
 import { AuthContextType } from './types';
 
+// Create the context but don't export a useAuth hook from this file
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
-
+// Only export the context itself
 export { AuthContext };
