@@ -1,51 +1,40 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth';
-import { useToast } from '@/hooks/use-toast';
 import { getFlashcardStats } from '@/services/spacedRepetition/flashcardStats';
-
-interface FlashcardStats {
-  totalCards: number;
-  masteredCards: number;
-  dueCards: number;
-  averageDifficulty: number;
-  reviewsToday: number;
-}
 
 export const useFlashcardStats = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const [stats, setStats] = useState<FlashcardStats>({
-    totalCards: 0,
-    masteredCards: 0,
-    dueCards: 0,
-    averageDifficulty: 0,
-    reviewsToday: 0
+  const [stats, setStats] = useState({
+    totalCount: 0,
+    reviewedCount: 0,
+    masteredCount: 0,
+    dueTodayCount: 0,
+    averageRetention: 0
   });
   const [loading, setLoading] = useState(true);
 
-  const fetchStats = async () => {
-    if (!user) return;
+  useEffect(() => {
+    if (user) {
+      loadStats();
+    }
+  }, [user]);
 
+  const loadStats = async () => {
     setLoading(true);
     try {
-      const data = await getFlashcardStats(user.id);
-      setStats(data);
+      const flashcardStats = await getFlashcardStats(user?.id);
+      setStats(flashcardStats);
     } catch (error) {
-      console.error('Error fetching flashcard stats:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load flashcard statistics',
-        variant: 'destructive'
-      });
+      console.error('Error loading flashcard stats:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchStats();
-  }, [user]);
-
-  return { stats, loading, fetchStats };
+  return {
+    stats,
+    loading,
+    refreshStats: loadStats
+  };
 };

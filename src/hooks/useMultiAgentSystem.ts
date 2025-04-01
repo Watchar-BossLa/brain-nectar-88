@@ -2,8 +2,41 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/auth';
 import { MultiAgentSystem } from '@/services/agents';
-import { useToast } from '@/components/ui/use-toast';
-import { TaskType, SystemState, AgentType } from '@/services/agents/types';
+import { useToast } from '@/hooks/use-toast';
+import { AgentType } from '@/services/agents/types/agentTypes';
+
+// Define SystemState interface locally
+interface SystemState {
+  activeAgents: Record<AgentType, boolean>;
+  taskQueue: any[];
+  completedTasks: any[];
+  metrics: {
+    completedTasks: number;
+    averageResponseTime: number;
+    successRate: number;
+    taskCompletionRate: number;
+    userSatisfactionScore?: number;
+  };
+  globalVariables: Record<string, any>;
+  priorityMatrix: Record<string, number>;
+  lastUpdated: string;
+}
+
+// Define TaskType enum locally
+enum TaskType {
+  COGNITIVE_PROFILING = "COGNITIVE_PROFILING",
+  LEARNING_PATH_GENERATION = "LEARNING_PATH_GENERATION",
+  LEARNING_PATH_UPDATE = "LEARNING_PATH_UPDATE",
+  CONTENT_ADAPTATION = "CONTENT_ADAPTATION",
+  ASSESSMENT_GENERATION = "ASSESSMENT_GENERATION",
+  ENGAGEMENT_OPTIMIZATION = "ENGAGEMENT_OPTIMIZATION",
+  FEEDBACK_GENERATION = "FEEDBACK_GENERATION",
+  UI_OPTIMIZATION = "UI_OPTIMIZATION",
+  SCHEDULE_OPTIMIZATION = "SCHEDULE_OPTIMIZATION",
+  FLASHCARD_OPTIMIZATION = "FLASHCARD_OPTIMIZATION",
+  MULTI_AGENT_COORDINATION = "MULTI_AGENT_COORDINATION",
+  TUTORING = "TUTORING"
+}
 
 export function useMultiAgentSystem() {
   const { user } = useAuth();
@@ -28,14 +61,14 @@ export function useMultiAgentSystem() {
   
   // Define TaskTypes object for the component to use
   const TaskTypes = {
-    COGNITIVE_PROFILING: 'COGNITIVE_PROFILING' as TaskType,
-    LEARNING_PATH_GENERATION: 'LEARNING_PATH_GENERATION' as TaskType,
-    CONTENT_ADAPTATION: 'CONTENT_ADAPTATION' as TaskType,
-    ASSESSMENT_GENERATION: 'ASSESSMENT_GENERATION' as TaskType,
-    ENGAGEMENT_OPTIMIZATION: 'ENGAGEMENT_OPTIMIZATION' as TaskType,
-    FEEDBACK_GENERATION: 'FEEDBACK_GENERATION' as TaskType,
-    SCHEDULE_OPTIMIZATION: 'SCHEDULE_OPTIMIZATION' as TaskType,
-    UI_OPTIMIZATION: 'UI_OPTIMIZATION' as TaskType
+    COGNITIVE_PROFILING: TaskType.COGNITIVE_PROFILING,
+    LEARNING_PATH_GENERATION: TaskType.LEARNING_PATH_GENERATION,
+    CONTENT_ADAPTATION: TaskType.CONTENT_ADAPTATION,
+    ASSESSMENT_GENERATION: TaskType.ASSESSMENT_GENERATION,
+    ENGAGEMENT_OPTIMIZATION: TaskType.ENGAGEMENT_OPTIMIZATION,
+    FEEDBACK_GENERATION: TaskType.FEEDBACK_GENERATION,
+    SCHEDULE_OPTIMIZATION: TaskType.SCHEDULE_OPTIMIZATION,
+    UI_OPTIMIZATION: TaskType.UI_OPTIMIZATION
   };
   
   /**

@@ -38,7 +38,12 @@ export class ProfileGenerator {
           connections: ['economics', 'accounting']
         }
       },
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
+      // Add compatibility properties
+      visual: 0.6,
+      auditory: 0.4,
+      reading: 0.5,
+      kinesthetic: 0.3
     };
   }
   
@@ -82,6 +87,15 @@ export class ProfileGenerator {
     }
     
     return updatedProfile;
+  }
+
+  /**
+   * Create initial cognitive profile
+   * Added for compatibility with existing code
+   */
+  public createInitialCognitiveProfile(userId: string): Promise<CognitiveProfile> {
+    const profile = this.generateInitialProfile(userId);
+    return Promise.resolve(profile);
   }
 }
 

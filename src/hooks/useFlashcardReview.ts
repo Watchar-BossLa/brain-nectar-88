@@ -1,7 +1,10 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth';
-import { getDueFlashcards, updateFlashcardAfterReview } from '@/services/spacedRepetition';
+import { 
+  fetchDueFlashcards, 
+  updateFlashcardAfterReview 
+} from '@/services/spacedRepetition';
 import { useToast } from '@/hooks/use-toast';
 import { Flashcard } from '@/types/supabase';
 
@@ -22,7 +25,7 @@ export const useFlashcardReview = () => {
     
     setLoading(true);
     try {
-      const data = await getDueFlashcards(user.id);
+      const data = await fetchDueFlashcards(user.id);
       
       if (data && data.length > 0) {
         setFlashcards(data);
@@ -52,6 +55,7 @@ export const useFlashcardReview = () => {
     
     try {
       // Update the flashcard with the provided difficulty rating
+      // Convert numerical difficulty to string if needed
       await updateFlashcardAfterReview(flashcardId, difficulty);
       
       // Move to next card

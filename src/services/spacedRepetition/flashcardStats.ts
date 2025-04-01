@@ -23,6 +23,69 @@ export const getFlashcardLearningStats = async (flashcardId: string) => {
 };
 
 /**
+ * Get flashcard stats for a user
+ */
+export const getFlashcardStats = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('flashcards')
+      .select('*')
+      .eq('user_id', userId);
+      
+    if (error) throw error;
+    
+    if (!data || data.length === 0) {
+      return {
+        totalCount: 0,
+        reviewedCount: 0,
+        masteredCount: 0,
+        dueTodayCount: 0,
+        averageRetention: 0
+      };
+    }
+    
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
+    
+    // Calculate stats
+    const totalCount = data.length;
+    const reviewedCount = data.filter(card => card.last_reviewed_at).length;
+    const masteredCount = data.filter(card => (card.mastery_level || 0) >= 0.9).length;
+    const dueTodayCount = data.filter(card => 
+      card.next_review_date && 
+      card.next_review_date >= today && 
+      card.next_review_date < tomorrow
+    ).length;
+    
+    // Calculate average retention
+    const cardsWithRetention = data.filter(card => card.last_reviewed_at);
+    const totalRetention = cardsWithRetention.reduce((sum, card) => {
+      return sum + calculateFlashcardRetention(card);
+    }, 0);
+    const averageRetention = cardsWithRetention.length > 0 ? 
+      totalRetention / cardsWithRetention.length : 0;
+    
+    return {
+      totalCount,
+      reviewedCount,
+      masteredCount,
+      dueTodayCount,
+      averageRetention
+    };
+  } catch (error) {
+    console.error('Error getting flashcard stats:', error);
+    return {
+      totalCount: 0,
+      reviewedCount: 0,
+      masteredCount: 0,
+      dueTodayCount: 0,
+      averageRetention: 0
+    };
+  }
+};
+
+/**
  * Calculate flashcard retention rate
  */
 export const calculateFlashcardRetention = (flashcard: any): number => {

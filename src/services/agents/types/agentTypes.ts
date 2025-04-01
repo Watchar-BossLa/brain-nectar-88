@@ -23,13 +23,17 @@ export enum TaskType {
   SCHEDULE_OPTIMIZATION = "SCHEDULE_OPTIMIZATION",
   FLASHCARD_OPTIMIZATION = "FLASHCARD_OPTIMIZATION",
   MULTI_AGENT_COORDINATION = "MULTI_AGENT_COORDINATION",
-  TUTORING = "TUTORING"
+  TUTORING = "TUTORING",
+  // Add missing types
+  ANALYSIS = "ANALYSIS",
+  CONTENT_GENERATION = "CONTENT_GENERATION",
+  PLANNING = "PLANNING"
 }
 
 export enum TaskPriority {
-  LOW = "LOW",
-  MEDIUM = "MEDIUM",
-  HIGH = "HIGH",
+  LOW = "low",
+  MEDIUM = "medium",
+  HIGH = "high",
   CRITICAL = "CRITICAL"
 }
 
@@ -57,6 +61,7 @@ export interface AgentTask extends Task {
   targetAgentTypes: AgentType[];
   context: Record<string, any>;
   data: any;
+  id: string;
 }
 
 export interface AgentMessage {
@@ -70,6 +75,8 @@ export interface AgentMessage {
   priority: TaskPriority;
   data?: any;
   sender?: string; // For compatibility with existing code
+  messageId?: string; // For compatibility
+  recipientId?: string; // For compatibility
 }
 
 export interface SystemState {
@@ -86,11 +93,13 @@ export interface SystemState {
   globalVariables: Record<string, any>;
   priorityMatrix: Record<string, number>;
   lastUpdated: string;
+  currentLoad?: number; // Added for compatibility
+  status?: 'idle' | 'processing' | 'overloaded'; // Added for compatibility
 }
 
 export interface CognitiveProfile {
   userId: string;
-  learningStyle: Record<string, number>;
+  learningStyle: Record<string, number> | string;
   strengths: string[];
   weaknesses: string[];
   recommendedTopics: string[];
@@ -101,4 +110,9 @@ export interface CognitiveProfile {
   learningSpeed?: number;
   knowledgeGraph?: Record<string, any>;
   lastUpdated?: string;
+  // Add compatibility with visual, auditory, reading, kinesthetic
+  visual?: number;
+  auditory?: number;
+  reading?: number;
+  kinesthetic?: number;
 }

@@ -1,58 +1,56 @@
 
-import { useAuth } from '@/context/auth';
-import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
 import { updateFlashcardAfterReview } from '@/services/spacedRepetition';
+import { Flashcard } from '@/hooks/flashcards/types';
+import { useToast } from '@/components/ui/use-toast';
 
 /**
- * Hook for flashcard review actions (rating, restarting)
+ * Hook for handling flashcard review actions
  */
 export const useReviewActions = (
-  flashcards: any[],
-  currentIndex: number,
-  setCurrentIndex: (index: number) => void,
-  setIsFlipped: (flipped: boolean) => void,
-  setReviewComplete: (complete: boolean) => void,
-  onComplete?: () => void
+  onReviewComplete?: () => void
 ) => {
-  const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  // Handle difficulty rating
-  const handleDifficultyRating = async (difficulty: number) => {
-    if (!user || currentIndex >= flashcards.length) return;
-    
-    const currentCard = flashcards[currentIndex];
-    
-    try {
-      await updateFlashcardAfterReview(currentCard.id, user.id, difficulty);
-      
-      // Move to next card or complete review
-      if (currentIndex < flashcards.length - 1) {
-        setCurrentIndex(currentIndex + 1);
-        setIsFlipped(false);
-      } else {
-        setReviewComplete(true);
-        if (onComplete) onComplete();
-      }
-    } catch (err) {
+  /**
+   * Submit flashcard review
+   */
+  const submitReview = async (flashcard: Flashcard, difficulty: number) => {
+    if (!flashcard?.id) {
       toast({
-        title: 'Error saving review',
-        description: 'There was a problem saving your review.',
+        title: 'Error',
+        description: 'Invalid flashcard data',
         variant: 'destructive',
       });
-      console.error('Error updating flashcard:', err);
+      return false;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Use updateFlashcardAfterReview from the service
+      await updateFlashcardAfterReview(flashcard.id, difficulty);
+      
+      if (onReviewComplete) {
+        onReviewComplete();
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to submit review',
+        variant: 'destructive',
+      });
+      return false;
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // Restart review
-  const handleRestart = () => {
-    setCurrentIndex(0);
-    setIsFlipped(false);
-    setReviewComplete(false);
-  };
-
   return {
-    handleDifficultyRating,
-    handleRestart
+    isSubmitting,
+    submitReview
   };
 };

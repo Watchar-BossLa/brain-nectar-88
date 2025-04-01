@@ -61,6 +61,7 @@ export const createFlashcardsInBulk = async (userId: string, flashcards: { front
       next_review_date: new Date().toISOString()
     }));
     
+    // Insert multiple flashcards as an array
     const { data, error } = await supabase
       .from('flashcards')
       .insert(formattedFlashcards)

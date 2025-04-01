@@ -77,3 +77,24 @@ export class ReviewService {
 }
 
 export const reviewService = new ReviewService();
+
+// Add these exported functions to fix import errors
+export const getFlashcardLearningStats = async (flashcardId: string): Promise<any> => {
+  return reviewService.getFlashcardLearningStats(flashcardId);
+};
+
+export const updateFlashcardAfterReview = async (
+  flashcardId: string, 
+  difficulty: number
+): Promise<boolean> => {
+  try {
+    return await reviewService.recordReview({
+      flashcardId,
+      difficulty,
+      reviewedAt: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error updating flashcard after review:', error);
+    return false;
+  }
+};

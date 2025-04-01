@@ -1,49 +1,57 @@
 
-import { AgentTask, TaskPriority, TaskStatus } from '../types';
+import { AgentTask, TaskStatus } from '../types';
+import { supabase } from '@/integrations/supabase/client';
 
-// Task Processor for handling agent tasks
-export class TaskProcessor {
-  private processingQueue: AgentTask[] = [];
-  private isProcessing: boolean = false;
+/**
+ * Assign a task to a specific agent
+ */
+export const assignTaskToAgent = async (task: AgentTask, agentId: string): Promise<void> => {
+  console.log(`Assigning task ${task.id} to agent ${agentId}`);
   
-  constructor() {
-    // Initialize processor
-  }
-  
-  public async processTask(task: AgentTask): Promise<boolean> {
-    try {
-      // Process the task based on its type and target agents
-      
-      // For stub implementation
-      console.log(`Processing task: ${task.taskId}`);
-      console.log(`Task type: ${task.taskType}`);
-      console.log(`Target agents: ${task.targetAgentTypes.join(', ')}`);
-      
-      return true;
-    } catch (error) {
-      console.error("Error processing task:", error);
-      return false;
-    }
-  }
-  
-  public addToProcessingQueue(task: AgentTask) {
-    this.processingQueue.push(task);
+  try {
+    // In a real implementation, this would update a database record
+    // For now, we'll just simulate the assignment
+    task.status = TaskStatus.PROCESSING;
     
-    if (!this.isProcessing) {
-      this.startProcessing();
-    }
+    // Log the assignment for debugging
+    console.log(`Task ${task.id} assigned to ${agentId} and status updated to ${task.status}`);
+  } catch (error) {
+    console.error(`Error assigning task ${task.id} to agent ${agentId}:`, error);
+    throw error;
   }
+};
+
+/**
+ * Process a task through the appropriate agent
+ */
+export const processTask = async (task: AgentTask): Promise<void> => {
+  console.log(`Processing task ${task.id} of type ${task.taskType}`);
   
-  private async startProcessing() {
-    this.isProcessing = true;
+  // Implementation would dispatch to the right agent based on task type
+  // This is a simplified version
+  try {
+    // Simulate processing delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
-    while (this.processingQueue.length > 0) {
-      const currentTask = this.processingQueue.shift();
-      if (currentTask) {
-        await this.processTask(currentTask);
-      }
-    }
-    
-    this.isProcessing = false;
+    // Mark task as completed
+    task.status = TaskStatus.COMPLETED;
+  } catch (error) {
+    console.error(`Error processing task ${task.id}:`, error);
+    task.status = TaskStatus.FAILED;
   }
-}
+};
+
+/**
+ * Update task status in the database
+ */
+export const updateTaskStatus = async (
+  taskId: string, 
+  status: TaskStatus, 
+  result?: any
+): Promise<void> => {
+  console.log(`Updating task ${taskId} status to ${status}`);
+  
+  // In a real implementation, this would update a database record
+  // For now, we'll just log the update
+  console.log(`Task ${taskId} updated to ${status}${result ? ' with result' : ''}`);
+};
