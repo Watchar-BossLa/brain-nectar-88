@@ -5,11 +5,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Clock, ArrowRight, Calendar, BookOpen } from 'lucide-react';
+import { CheckCircle, Clock, ArrowRight, Calendar, BookOpen, AlertTriangle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useNavigate } from 'react-router-dom';
+
+interface TopicInterface {
+  id: string;
+  title: string;
+  status: 'not_started' | 'in_progress' | 'completed';
+  mastery?: number;
+  position: number;
+}
+
+interface ModuleInterface {
+  id: string;
+  title: string;
+  description?: string | null;
+  status: 'not_started' | 'in_progress' | 'completed';
+  topics: TopicInterface[];
+  position: number;
+}
+
+interface LearningPathInterface {
+  id: string;
+  modules: ModuleInterface[];
+}
 
 interface LearningPathVisualizationProps {
-  learningPath: any;
+  learningPath: LearningPathInterface;
   loading: boolean;
 }
 
@@ -17,25 +40,34 @@ const LearningPathVisualization: React.FC<LearningPathVisualizationProps> = ({
   learningPath, 
   loading 
 }) => {
+  const navigate = useNavigate();
+  
   if (loading) {
     return <VisualizationSkeleton />;
   }
 
-  if (!learningPath || !learningPath.modules || learningPath.modules.length === 0) {
+  // Added safety check
+  if (!learningPath || !Array.isArray(learningPath.modules) || learningPath.modules.length === 0) {
     return (
       <Card>
         <CardContent className="py-10 text-center">
+          <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
           <p className="mb-4">No learning path available to visualize.</p>
-          <Button>Select a qualification</Button>
+          <Button onClick={() => navigate('/qualifications')}>Select a qualification</Button>
         </CardContent>
       </Card>
     );
   }
 
-  // Calculate overall progress
-  const totalTopics = learningPath.modules.reduce((acc: number, module: any) => acc + module.topics.length, 0);
-  const completedTopics = learningPath.modules.reduce((acc: number, module: any) => 
-    acc + module.topics.filter((topic: any) => topic.status === 'completed').length, 0);
+  // Calculate overall progress with safety checks
+  const totalTopics = learningPath.modules.reduce((acc, module) => 
+    acc + (Array.isArray(module.topics) ? module.topics.length : 0), 0);
+    
+  const completedTopics = learningPath.modules.reduce((acc, module) => 
+    acc + (Array.isArray(module.topics) 
+      ? module.topics.filter(topic => topic.status === 'completed').length 
+      : 0), 0);
+      
   const overallProgress = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
 
   return (
@@ -65,7 +97,7 @@ const LearningPathVisualization: React.FC<LearningPathVisualizationProps> = ({
                 <div>
                   <p className="text-xs text-muted-foreground">Completed Modules</p>
                   <p className="font-medium">
-                    {learningPath.modules.filter((m: any) => m.status === 'completed').length}/{learningPath.modules.length}
+                    {learningPath.modules.filter(m => m.status === 'completed').length}/{learningPath.modules.length}
                   </p>
                 </div>
               </div>
@@ -99,21 +131,25 @@ const LearningPathVisualization: React.FC<LearningPathVisualizationProps> = ({
             <h3 className="text-lg font-medium mb-6">Learning Journey Timeline</h3>
             <div className="absolute left-4 top-12 bottom-0 w-0.5 bg-border"></div>
             
-            {learningPath.modules.map((module: any, index: number) => {
+            {learningPath.modules.map((module, index) => {
+              if (!module || !Array.isArray(module.topics)) {
+                return null;
+              }
+              
               // Calculate module progress
               const moduleProgress = module.topics.length > 0 
-                ? Math.round((module.topics.filter((t: any) => t.status === 'completed').length / module.topics.length) * 100) 
+                ? Math.round((module.topics.filter(t => t.status === 'completed').length / module.topics.length) * 100) 
                 : 0;
                 
               // Determine status color
               let statusColor = "bg-muted";
               if (module.status === 'completed') statusColor = "bg-green-500";
               else if (module.status === 'in_progress') statusColor = "bg-blue-500";
-              else if (index === 0 || learningPath.modules[index-1]?.status === 'completed') statusColor = "bg-amber-500";
+              else if (index === 0 || (index > 0 && learningPath.modules[index-1]?.status === 'completed')) statusColor = "bg-amber-500";
 
               return (
                 <motion.div 
-                  key={module.id}
+                  key={module.id || `module-${index}`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
@@ -133,8 +169,8 @@ const LearningPathVisualization: React.FC<LearningPathVisualizationProps> = ({
                     <CardHeader className="pb-3">
                       <div className="flex justify-between items-start">
                         <div>
-                          <CardTitle className="text-base">{module.title}</CardTitle>
-                          <CardDescription>{module.topics.length} topics</CardDescription>
+                          <CardTitle className="text-base">{module.title || `Module ${index + 1}`}</CardTitle>
+                          <CardDescription>{module.topics?.length || 0} topics</CardDescription>
                         </div>
                         <Badge variant={module.status === 'completed' ? 'default' : 'secondary'}>
                           {module.status === 'completed' ? 'Completed' : module.status === 'in_progress' ? 'In Progress' : 'Upcoming'}
@@ -145,7 +181,7 @@ const LearningPathVisualization: React.FC<LearningPathVisualizationProps> = ({
                       <div className="mb-3">
                         <div className="flex justify-between mb-1 text-xs">
                           <span>{moduleProgress}% complete</span>
-                          <span>{module.topics.filter((t: any) => t.status === 'completed').length}/{module.topics.length} topics</span>
+                          <span>{module.topics?.filter(t => t.status === 'completed').length || 0}/{module.topics?.length || 0} topics</span>
                         </div>
                         <Progress value={moduleProgress} className="h-2" />
                       </div>
@@ -153,9 +189,14 @@ const LearningPathVisualization: React.FC<LearningPathVisualizationProps> = ({
                       <div className="flex mt-4 justify-between items-center">
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <BookOpen className="h-4 w-4" />
-                          <span>{module.topics.length * 0.5} hours estimated</span>
+                          <span>{(module.topics?.length || 0) * 0.5} hours estimated</span>
                         </div>
-                        <Button variant="outline" size="sm" className="text-xs">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-xs"
+                          disabled={module.status === 'not_started' && index > 0 && learningPath.modules[index-1]?.status !== 'completed'}
+                        >
                           {module.status === 'completed' ? 'Review' : 'Start Learning'}
                         </Button>
                       </div>

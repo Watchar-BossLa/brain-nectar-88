@@ -6,6 +6,7 @@ import LearningPathDisplay from '@/components/learning-path/LearningPathDisplay'
 import AIRecommendations from '@/components/learning-path/AIRecommendations';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BookOpen, Brain, Award } from 'lucide-react';
+import ErrorBoundary from '@/components/ui/error-boundary';
 
 const LearningPath = () => {
   return (
@@ -40,11 +41,15 @@ const LearningPath = () => {
           </TabsList>
           
           <TabsContent value="path">
-            <LearningPathDisplay />
+            <ErrorBoundary>
+              <LearningPathDisplay />
+            </ErrorBoundary>
           </TabsContent>
           
           <TabsContent value="ai-recommendations">
-            <AIRecommendations />
+            <ErrorBoundary>
+              <AIRecommendations />
+            </ErrorBoundary>
           </TabsContent>
           
           <TabsContent value="achievements">
