@@ -26,7 +26,7 @@ export interface AgentConfig {
   priorityMatrix: Record<string, number>;
 }
 
-export interface Task {
+export interface AgentTask {
   id: string;
   agentId: string;
   goalId: string;
@@ -36,6 +36,7 @@ export interface Task {
   priority: number;
   status: TaskStatus;
   context: Record<string, any>;
+  data?: any;
   createdAt: string;
   updatedAt: string;
   completedAt?: string;
@@ -74,4 +75,100 @@ export enum GoalStatus {
   ACTIVE = 'ACTIVE',
   COMPLETED = 'COMPLETED',
   FAILED = 'FAILED'
+}
+
+// Additional types needed for the agent system based on errors
+export interface AgentMessage {
+  id: string;
+  senderId: string;
+  recipientId: string;
+  messageId: string;
+  content: string;
+  type?: string;
+  data?: any;
+  timestamp: string;
+  priority: number;
+}
+
+export interface SystemState {
+  agents: Record<string, AgentStatus>;
+  taskQueue: AgentTask[];
+  activeTasks: Record<string, AgentTask>;
+  resources: Record<string, number>;
+  lastUpdated: string;
+}
+
+export interface CognitiveProfile {
+  userId: string;
+  learningStyle: string;
+  strengths: string[];
+  weaknesses: string[];
+  interests: string[];
+  preferredFormats: string[];
+  attention: number;
+  retention: number;
+  motivation: number;
+  updatedAt?: Date;
+  lastUpdated?: Date;
+}
+
+export type AgentType = 
+  | 'COGNITIVE_PROFILE'
+  | 'LEARNING_PATH'
+  | 'UI_UX'
+  | 'CONTENT_ADAPTATION'
+  | 'ASSESSMENT'
+  | 'FEEDBACK'
+  | 'ENGAGEMENT'
+  | 'SCHEDULING';
+
+export type TaskType =
+  | 'CREATE_LEARNING_PATH'
+  | 'ADAPT_CONTENT'
+  | 'GENERATE_ASSESSMENT'
+  | 'PROVIDE_FEEDBACK'
+  | 'SCHEDULE_STUDY'
+  | 'PROFILE_USER'
+  | 'OPTIMIZE_UI'
+  | 'INCREASE_ENGAGEMENT';
+
+export enum TaskPriority {
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+  CRITICAL = 'critical'
+}
+
+// Additional model types
+
+export interface ModelType {
+  id: string;
+  name: string;
+  provider: string;
+  capabilities: string[];
+  version: string;
+  maxTokens: number;
+  trainingCutoff: string;
+  apiEndpoint?: string;
+  resourceRequirements?: {
+    cpuUsage: number;
+    memoryUsage: number;
+    gpuUsage?: number;
+  };
+  defaultParameters?: {
+    temperature: number;
+    topP: number;
+    presencePenalty: number;
+    frequencyPenalty: number;
+  };
+}
+
+export interface ModelEvaluation {
+  modelId: string;
+  accuracy: number;
+  latency: number;
+  costEfficiency: number;
+  resourceEfficiency: number;
+  f1Score?: number;
+  userSatisfaction?: number;
 }

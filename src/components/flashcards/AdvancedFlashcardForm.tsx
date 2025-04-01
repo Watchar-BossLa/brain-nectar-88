@@ -26,16 +26,26 @@ const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({
   const { toast } = useToast();
   const [front, setFront] = useState('');
   const [back, setBack] = useState('');
+  const [selectedTopicId, setSelectedTopicId] = useState(topicId || '');
   const [contentTypeFront, setContentTypeFront] = useState('text');
   const [contentTypeBack, setContentTypeBack] = useState('text');
   const [loading, setLoading] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [topics, setTopics] = useState<Array<{ id: string; title: string }>>([]);
 
   useEffect(() => {
     if (!user) {
       navigate('/login');
     }
-  }, [user, navigate]);
+    
+    // Set the topicId whenever it changes externally
+    if (topicId) {
+      setSelectedTopicId(topicId);
+    }
+    
+    // Here you would typically fetch topics from your API
+    // For now we'll use empty array as default
+  }, [user, navigate, topicId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +70,7 @@ const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({
 
     setLoading(true);
     try {
-      await createNewFlashcard(user.id, front, back, topicId);
+      await createNewFlashcard(user.id, front, back, selectedTopicId || undefined);
 
       toast({
         title: 'Flashcard created!',
@@ -97,6 +107,9 @@ const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({
           setFront={setFront}
           back={back}
           setBack={setBack}
+          topicId={selectedTopicId}
+          setTopicId={setSelectedTopicId}
+          topics={topics}
         />
 
         <ContentTypeSelector

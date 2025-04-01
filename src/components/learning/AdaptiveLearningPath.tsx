@@ -29,10 +29,10 @@ const AdaptiveLearningPath: React.FC<AdaptiveLearningPathProps> = ({ topics }) =
       for (const topic of topics) {
         try {
           // Get due flashcards for this topic
-          const dueCardsInTopic = await getDueFlashcards(user.id, topic.id);
+          const dueCardsInTopic = await fetchDueFlashcards(user.id, topic.id);
           
           // Get all flashcards for this topic
-          const allCardsForTopic = await getFlashcardsByTopic(user.id, topic.id);
+          const allCardsForTopic = await fetchFlashcardsByTopic(user.id, topic.id);
 
           const totalCardsInTopic = allCardsForTopic.length;
           const reviewedCards = totalCardsInTopic - dueCardsInTopic.length;
@@ -75,10 +75,13 @@ const AdaptiveLearningPath: React.FC<AdaptiveLearningPathProps> = ({ topics }) =
                   </p>
                 </>
               )}
+              <Button 
+                onClick={() => navigateToReview(topic.id)}
+                className="mt-4"
+              >
+                Review Flashcards
+              </Button>
             </CardContent>
-            <Button onClick={() => navigateToReview(topic.id)}>
-              Review Flashcards
-            </Button>
           </Card>
         ))}
       </div>

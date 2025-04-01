@@ -5,23 +5,23 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface FlashcardFormInputsProps {
-  frontContent: string;
-  setFrontContent: (value: string) => void;
-  backContent: string;
-  setBackContent: (value: string) => void;
-  topicId: string;
-  setTopicId: (value: string) => void;
-  topics: Array<{ id: string; title: string }>;
+  front: string;
+  setFront: (value: string) => void;
+  back: string;
+  setBack: (value: string) => void;
+  topicId?: string;
+  setTopicId?: (value: string) => void;
+  topics?: Array<{ id: string; title: string }>;
 }
 
 const FlashcardFormInputs: React.FC<FlashcardFormInputsProps> = ({
-  frontContent,
-  setFrontContent,
-  backContent,
-  setBackContent,
+  front,
+  setFront,
+  back,
+  setBack,
   topicId,
   setTopicId,
-  topics
+  topics = []
 }) => {
   return (
     <div className="space-y-4">
@@ -30,8 +30,8 @@ const FlashcardFormInputs: React.FC<FlashcardFormInputsProps> = ({
         <Textarea
           id="front-content"
           placeholder="Enter the question or prompt (use $$formula$$ for math formulas)"
-          value={frontContent}
-          onChange={(e) => setFrontContent(e.target.value)}
+          value={front}
+          onChange={(e) => setFront(e.target.value)}
           rows={3}
           required
         />
@@ -41,14 +41,14 @@ const FlashcardFormInputs: React.FC<FlashcardFormInputsProps> = ({
         <Textarea
           id="back-content"
           placeholder="Enter the answer or explanation (use $$formula$$ for math formulas)"
-          value={backContent}
-          onChange={(e) => setBackContent(e.target.value)}
+          value={back}
+          onChange={(e) => setBack(e.target.value)}
           rows={3}
           required
         />
       </div>
       
-      {topics.length > 0 && (
+      {topics && topics.length > 0 && setTopicId && (
         <div className="space-y-2">
           <Label htmlFor="topic">Topic (Optional)</Label>
           <Select value={topicId} onValueChange={setTopicId}>
