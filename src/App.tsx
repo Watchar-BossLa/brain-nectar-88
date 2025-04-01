@@ -21,6 +21,9 @@ import Index from './pages/Index';
 import Quiz from './pages/Quiz';
 import AdaptiveQuiz from './pages/AdaptiveQuiz';
 import Blockchain from './pages/Blockchain';
+import UserProfile from './pages/UserProfile';
+import Profile from './pages/Profile';
+import { ErrorBoundary } from './components/ui/error-boundary';
 
 function App() {
   useEffect(() => {
@@ -28,36 +31,39 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <ThemeProvider defaultTheme="light" storageKey="study-bee-theme">
-        <AuthProvider>
-          <SolanaContextProvider>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/signin" element={<Login />} /> {/* Alias for login */}
-              <Route path="/signup" element={<Register />} /> {/* Alias for register */}
-              <Route path="/courses" element={<Courses />} />
-              <Route path="/assessment" element={<Assessment />} />
-              <Route path="/qualifications" element={<Qualifications />} />
-              <Route path="/flashcards" element={<FlashcardsPage />} />
-              <Route path="/study-planner" element={<StudyPlannerPage />} />
-              <Route path="/learning-path" element={<LearningPath />} />
-              <Route path="/cognitive-profile" element={<CognitiveProfile />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/agent-dashboard" element={<AgentDashboard />} />
-              <Route path="/quiz" element={<Quiz />} />
-              <Route path="/adaptive-quiz" element={<AdaptiveQuiz />} />
-              <Route path="/blockchain" element={<Blockchain />} />
-              <Route path="/dashboard" element={<Index />} />
-              <Route path="/profile" element={<Settings />} />
-            </Routes>
-            <Toaster />
-          </SolanaContextProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <ThemeProvider defaultTheme="light" storageKey="study-bee-theme">
+          <AuthProvider>
+            <SolanaContextProvider>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/signin" element={<Login />} /> {/* Alias for login */}
+                <Route path="/signup" element={<Register />} /> {/* Alias for register */}
+                <Route path="/courses" element={<Courses />} />
+                <Route path="/assessment" element={<Assessment />} />
+                <Route path="/qualifications" element={<Qualifications />} />
+                <Route path="/flashcards" element={<FlashcardsPage />} />
+                <Route path="/study-planner" element={<StudyPlannerPage />} />
+                <Route path="/learning-path" element={<LearningPath />} />
+                <Route path="/cognitive-profile" element={<CognitiveProfile />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/agent-dashboard" element={<AgentDashboard />} />
+                <Route path="/quiz" element={<Quiz />} />
+                <Route path="/adaptive-quiz" element={<AdaptiveQuiz />} />
+                <Route path="/blockchain" element={<Blockchain />} />
+                <Route path="/dashboard" element={<Index />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/user-profile" element={<UserProfile />} />
+              </Routes>
+              <Toaster />
+            </SolanaContextProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </Router>
+    </ErrorBoundary>
   );
 }
 

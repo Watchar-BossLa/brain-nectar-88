@@ -1,6 +1,7 @@
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useLearningPath, LearningPath, LearningPathModule } from '@/hooks/useLearningPath';
+import { useToast } from '@/hooks/use-toast';
 
 export interface PathAnalytics {
   totalTopics: number;
@@ -15,6 +16,7 @@ export interface PathAnalytics {
 export function usePathVisualization() {
   const { currentPath, loading, error, refreshPath } = useLearningPath();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { toast } = useToast();
 
   const analytics = useMemo<PathAnalytics>(() => {
     if (!currentPath || !Array.isArray(currentPath.modules)) {
@@ -42,7 +44,10 @@ export function usePathVisualization() {
     const estimatedTimeRemaining = Math.round((totalTopics - completedTopics) * 0.5);
     const completedModules = currentPath.modules.filter(m => m.status === 'completed').length;
     const totalModules = currentPath.modules.length;
-    const targetCompletionDate = new Date(Date.now() + estimatedTimeRemaining * 60 * 60 * 1000 * 24);
+    
+    // Calculate target completion date
+    const targetCompletionDate = new Date();
+    targetCompletionDate.setDate(targetCompletionDate.getDate() + Math.max(1, estimatedTimeRemaining));
 
     return {
       totalTopics,
@@ -55,18 +60,27 @@ export function usePathVisualization() {
     };
   }, [currentPath]);
 
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     try {
       setIsRefreshing(true);
       await refreshPath();
+      toast({
+        title: "Learning path refreshed",
+        description: "Your learning path has been updated with the latest data.",
+      });
     } catch (err) {
       console.error('Error refreshing path:', err);
+      toast({
+        title: "Refresh failed",
+        description: "Could not refresh your learning path. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsRefreshing(false);
     }
-  };
+  }, [refreshPath, toast]);
 
-  const getModuleAnalytics = (module: LearningPathModule) => {
+  const getModuleAnalytics = useCallback((module: LearningPathModule) => {
     if (!module || !Array.isArray(module.topics)) {
       return { progress: 0, completedTopics: 0, totalTopics: 0 };
     }
@@ -76,7 +90,7 @@ export function usePathVisualization() {
     const progress = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
 
     return { progress, completedTopics, totalTopics };
-  };
+  }, []);
 
   return {
     path: currentPath,
