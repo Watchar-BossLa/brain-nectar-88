@@ -1,73 +1,84 @@
 
-import { useState, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/context/auth';
+import { useToast } from '@/components/ui/use-toast';
+import { getFlashcardLearningStats } from '@/services/flashcards/flashcardLearningStatsStub';
 
-export function useFlashcardsStats() {
-  const [stats, setStats] = useState({
+interface FlashcardStats {
+  totalCards: number;
+  masteredCards: number;
+  dueCards: number;
+  averageDifficulty: number;
+  reviewsToday: number;
+}
+
+export const useFlashcardsStats = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [stats, setStats] = useState<FlashcardStats>({
     totalCards: 0,
     masteredCards: 0,
     dueCards: 0,
     averageDifficulty: 0,
     reviewsToday: 0
   });
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(true);
 
-  const fetchStats = useCallback(async () => {
+  const fetchStats = async () => {
+    if (!user) return;
+
+    setLoading(true);
     try {
-      setLoading(true);
-      // Fetch user session
-      const { data: sessionData } = await supabase.auth.getSession();
+      const { data, error } = await getFlashcardLearningStats(user.id);
       
-      if (!sessionData?.session?.user?.id) {
-        throw new Error('No authenticated user');
+      if (error) {
+        throw new Error(error.message);
       }
-      
-      const userId = sessionData.session.user.id;
-      
-      // Get total cards count
-      const { count: totalCards, error: totalError } = await supabase
-        .from('flashcards')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId);
-      
-      // Get mastered cards count
-      const { count: masteredCards, error: masteredError } = await supabase
-        .from('flashcard_learning_stats')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .gte('easiness_factor', 2.5)
-        .gte('repetition_count', 3);
-      
-      // Get due cards count
-      const now = new Date().toISOString();
-      const { count: dueCards, error: dueError } = await supabase
-        .from('flashcard_learning_stats')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .lte('next_review_date', now);
-      
-      // Calculate reviews done today
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const { count: reviewsToday, error: reviewsError } = await supabase
-        .from('flashcard_reviews')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .gte('reviewed_at', today.toISOString());
-      
-      setStats({
-        totalCards: totalCards || 0,
-        masteredCards: masteredCards || 0,
-        dueCards: dueCards || 0,
-        averageDifficulty: 0, // This would require additional calculation
-        reviewsToday: reviewsToday || 0
-      });
+
+      if (data) {
+        // Process data to calculate stats
+        const totalCards = data.length;
+        const masteredCards = data.filter(card => (card.mastery_level || 0) >= 0.8).length;
+        const now = new Date();
+        const dueCards = data.filter(card => {
+          const nextReview = card.next_review_at ? new Date(card.next_review_at) : null;
+          return nextReview && nextReview <= now;
+        }).length;
+        
+        const totalDifficulty = data.reduce((sum, card) => sum + (card.easiness_factor || 2.5), 0);
+        const averageDifficulty = totalCards > 0 ? totalDifficulty / totalCards : 0;
+        
+        const today = new Date().toISOString().split('T')[0];
+        const reviewsToday = data.filter(card => {
+          const lastReview = card.last_reviewed_at ? new Date(card.last_reviewed_at) : null;
+          return lastReview && lastReview.toISOString().split('T')[0] === today;
+        }).length;
+        
+        setStats({
+          totalCards,
+          masteredCards,
+          dueCards,
+          averageDifficulty,
+          reviewsToday
+        });
+      }
     } catch (error) {
       console.error('Error fetching flashcard stats:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load flashcard statistics',
+        variant: 'destructive'
+      });
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
-  return { stats, fetchStats, loading };
-}
+  useEffect(() => {
+    if (user) {
+      fetchStats();
+    }
+  }, [user]);
+
+  return { stats, loading, fetchStats };
+};

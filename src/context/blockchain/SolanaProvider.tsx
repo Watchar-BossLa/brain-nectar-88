@@ -35,10 +35,11 @@ export const SolanaProvider: FC<SolanaProviderProps> = ({ children }) => {
     []
   );
 
-  // @ts-ignore - Using stubs for development
+  // We're using type assertion here to work around the type error
+  // since we're using stubs for development purposes
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect>
+      <WalletProvider wallets={wallets as any} autoConnect>
         <WalletModalProvider>{children}</WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>

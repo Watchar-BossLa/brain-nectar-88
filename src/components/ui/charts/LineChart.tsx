@@ -1,21 +1,23 @@
 
 import React from 'react';
-import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { ResponsiveContainer, LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 interface LineChartProps {
   data: any[];
   dataKeys: string[];
-  xAxisKey?: string;
-  colors?: string[];
+  xAxisKey: string;
   height?: number;
+  colors?: string[];
 }
+
+const defaultColors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'];
 
 export const LineChart: React.FC<LineChartProps> = ({ 
   data, 
   dataKeys, 
-  xAxisKey = "name",
-  colors = ["#2563eb", "#16a34a", "#dc2626", "#9333ea", "#f59e0b"], 
-  height = 300 
+  xAxisKey, 
+  height = 300,
+  colors = defaultColors 
 }) => {
   return (
     <ResponsiveContainer width="100%" height={height}>
@@ -28,9 +30,9 @@ export const LineChart: React.FC<LineChartProps> = ({
           bottom: 5,
         }}
       >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey={xAxisKey} />
-        <YAxis />
+        <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+        <XAxis dataKey={xAxisKey} tick={{ fontSize: 12 }} />
+        <YAxis tick={{ fontSize: 12 }} />
         <Tooltip />
         <Legend />
         {dataKeys.map((key, index) => (
@@ -38,8 +40,8 @@ export const LineChart: React.FC<LineChartProps> = ({
             key={key}
             type="monotone" 
             dataKey={key} 
-            stroke={colors[index % colors.length]} 
-            activeDot={{ r: 8 }} 
+            stroke={colors[index % colors.length]}
+            activeDot={{ r: 8 }}
           />
         ))}
       </RechartsLineChart>
