@@ -1,257 +1,221 @@
-
-import { MasterControlProgram } from '../mcp';
-import { AgentTask, AgentType, TaskType, TaskPriority } from '../types';
-import { modelOrchestration } from '../../llm/modelOrchestration';
+import { AgentTask, AgentType, TaskType } from '../types';
+import { ContextTag } from '../types/taskTypes';
 
 /**
  * Agent Orchestrator
  * 
- * Advanced orchestration layer for coordinating complex multi-agent operations.
- * This manages complex task dependencies, parallel execution, and optimization
- * of agent resource allocation.
+ * Handles the coordination between agents, determining which agents should handle 
+ * specific tasks and managing inter-agent communication.
  */
 export class AgentOrchestrator {
-  private static instance: AgentOrchestrator;
-  private mcp: MasterControlProgram;
+  private agentRegistry: Map<AgentType, any> = new Map();
   
-  private constructor() {
-    this.mcp = MasterControlProgram.getInstance();
-    console.log('Agent Orchestrator initialized');
+  /**
+   * Register an agent with the orchestrator
+   */
+  public registerAgent(type: AgentType, agent: any): void {
+    this.agentRegistry.set(type, agent);
   }
   
   /**
-   * Get the singleton instance
+   * Distribute a task to the appropriate agents
    */
-  public static getInstance(): AgentOrchestrator {
-    if (!AgentOrchestrator.instance) {
-      AgentOrchestrator.instance = new AgentOrchestrator();
+  public async distributeTask(task: AgentTask): Promise<void> {
+    const targetAgents = this.determineTargetAgents(task);
+    
+    for (const agentType of targetAgents) {
+      const agent = this.agentRegistry.get(agentType);
+      if (agent) {
+        await agent.processTask(task);
+      } else {
+        console.warn(`Agent ${agentType} not found for task distribution`);
+      }
     }
-    return AgentOrchestrator.instance;
   }
   
   /**
-   * Generate an adaptive learning path for a user
+   * Determine which agents should handle a specific task
    */
-  public async generateAdaptiveLearningPath(
-    userId: string, 
-    qualificationId: string,
-    options?: {
-      priorityTopics?: string[];
-      timeConstraint?: number;
-      complexityPreference?: 'basic' | 'standard' | 'advanced';
+  private determineTargetAgents(task: AgentTask): AgentType[] {
+    // If the task already specifies target agents, use those
+    if (task.targetAgentTypes && task.targetAgentTypes.length > 0) {
+      return task.targetAgentTypes;
     }
-  ): Promise<any> {
-    console.log(`Generating adaptive learning path for user ${userId}`);
     
-    // Create a dependency chain of tasks for generating adaptive learning path
-    const taskId = `learning-path-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    
-    // 1. First task: Cognitive profiling to understand user's learning style
-    const profilingTask: AgentTask = {
-      id: `${taskId}-profiling`,
+    // Otherwise, determine based on task type and context
+    switch (task.taskType) {
+      case 'LEARNING_PATH_GENERATION':
+        // For learning path generation, include cognitive profile agent for context
+        return ['LEARNING_PATH', 'COGNITIVE_PROFILE'];
+        
+      case 'LEARNING_PATH_UPDATE':
+        // For learning path updates, we only need the learning path agent
+        return ['LEARNING_PATH'];
+        
+      case 'COGNITIVE_PROFILING':
+        // For cognitive profiling, we need to analyze user data
+        return ['COGNITIVE_PROFILE'];
+        
+      case 'CONTENT_ADAPTATION':
+        // Content adaptation needs both learning path and cognitive profile context
+        return ['CONTENT_ADAPTATION', 'LEARNING_PATH', 'COGNITIVE_PROFILE'];
+        
+      case 'ASSESSMENT_GENERATION':
+        // Assessment generation needs to know about learning paths
+        return ['ASSESSMENT', 'LEARNING_PATH'];
+        
+      case 'ENGAGEMENT_OPTIMIZATION':
+        // Engagement strategies should consider cognitive profile
+        return ['ENGAGEMENT', 'COGNITIVE_PROFILE'];
+        
+      case 'FEEDBACK_GENERATION':
+        // Feedback generation should adapt based on cognitive profile
+        return ['FEEDBACK', 'COGNITIVE_PROFILE'];
+        
+      case 'SCHEDULE_OPTIMIZATION':
+        // Schedule optimization needs to know learning paths and cognitive profile
+        return ['SCHEDULING', 'LEARNING_PATH', 'COGNITIVE_PROFILE'];
+        
+      case 'UI_OPTIMIZATION':
+        // UI adaptation should consider cognitive profile
+        return ['UI_UX', 'COGNITIVE_PROFILE'];
+        
+      case 'FLASHCARD_OPTIMIZATION':
+        // Flashcard optimization should consider spacing effect
+        return ['SCHEDULING'];
+        
+      default:
+        console.warn(`No specific agent mapping for task type: ${task.taskType}`);
+        return [];
+    }
+  }
+  
+  /**
+   * Create a learning path generation task
+   */
+  public createLearningPathTask(userId: string): AgentTask {
+    return {
+      id: `learning-path-${Date.now()}`,
+      userId,
+      taskType: 'LEARNING_PATH_GENERATION',
+      description: 'Generate initial learning path',
+      priority: 'HIGH',
+      targetAgentTypes: ['LEARNING_PATH', 'COGNITIVE_PROFILE'],
+      context: ['learning_path', 'qualification', 'adaptive'] as ContextTag[],
+      data: {},
+      createdAt: new Date().toISOString()
+    };
+  }
+  
+  /**
+   * Create a cognitive profiling task
+   */
+  public createCognitiveProfilingTask(userId: string): AgentTask {
+    return {
+      id: `cognitive-profile-${Date.now()}`,
       userId,
       taskType: 'COGNITIVE_PROFILING',
-      description: 'Generate cognitive profile for learning path adaptation',
+      description: 'Create initial cognitive profile',
       priority: 'HIGH',
       targetAgentTypes: ['COGNITIVE_PROFILE'],
-      context: ['learning_path', 'qualification', 'adaptive'],
-      data: { 
-        qualificationId,
+      context: ['cognitive_profile', 'qualification', 'adaptive'] as ContextTag[],
+      data: {},
+      createdAt: new Date().toISOString()
+    };
+  }
+  
+  /**
+   * Create a content adaptation task
+   */
+  public createContentAdaptationTask(userId: string, topicIds: string[]): AgentTask {
+    return {
+      id: `content-adaptation-${Date.now()}`,
+      userId,
+      taskType: 'CONTENT_ADAPTATION',
+      description: 'Adapt learning content to user profile',
+      priority: 'MEDIUM',
+      targetAgentTypes: ['CONTENT_ADAPTATION', 'COGNITIVE_PROFILE'],
+      context: ['learning_path', 'cognitive_profile', 'qualification'] as ContextTag[],
+      data: {
+        topicIds
+      },
+      createdAt: new Date().toISOString()
+    };
+  }
+  
+  /**
+   * Create an assessment generation task
+   */
+  public createAssessmentTask(userId: string, topicIds: string[], difficulty: number): AgentTask {
+    return {
+      id: `assessment-${Date.now()}`,
+      userId,
+      taskType: 'ASSESSMENT_GENERATION',
+      description: 'Generate adaptive assessment',
+      priority: 'MEDIUM',
+      targetAgentTypes: ['ASSESSMENT'],
+      context: ['assessment', 'adaptive', 'difficulty'] as ContextTag[],
+      data: {
+        topicIds,
+        difficulty,
+        questionCount: 10
+      },
+      createdAt: new Date().toISOString()
+    };
+  }
+  
+  /**
+   * Create an engagement optimization task
+   */
+  public createEngagementTask(userId: string): AgentTask {
+    return {
+      id: `engagement-${Date.now()}`,
+      userId,
+      taskType: 'ENGAGEMENT_OPTIMIZATION',
+      description: 'Optimize user engagement strategies',
+      priority: 'LOW',
+      targetAgentTypes: ['ENGAGEMENT', 'COGNITIVE_PROFILE'],
+      context: ['engagement', 'user_profile'],
+      data: {},
+      createdAt: new Date().toISOString()
+    };
+  }
+  
+  /**
+   * Create a schedule optimization task
+   */
+  public createScheduleOptimizationTask(userId: string, options: any): AgentTask {
+    return {
+      id: `schedule-${Date.now()}`,
+      userId,
+      taskType: 'SCHEDULE_OPTIMIZATION',
+      description: 'Optimize study schedule',
+      priority: 'MEDIUM',
+      targetAgentTypes: ['SCHEDULING'],
+      context: ['schedule', 'optimization', 'study_plan'] as ContextTag[],
+      data: {
         options
       },
       createdAt: new Date().toISOString()
     };
-    
-    // Submit the first task in the chain
-    await this.mcp.submitTask(profilingTask);
-    
-    // 2. Second task: Create adaptive learning path based on cognitive profile
-    const pathGenerationTask: AgentTask = {
-      id: `${taskId}-generation`,
-      userId,
-      taskType: 'LEARNING_PATH_GENERATION',
-      description: 'Generate personalized learning path',
-      priority: 'HIGH',
-      targetAgentTypes: ['LEARNING_PATH'],
-      context: ['cognitive_profile', 'qualification', 'adaptive'],
-      data: { 
-        qualificationId,
-        options,
-        previousTaskId: profilingTask.id
-      },
-      createdAt: new Date().toISOString(),
-    };
-    
-    // Submit the second task in the chain
-    await this.mcp.submitTask(pathGenerationTask);
-    
-    // 3. Third task: Create content adaptations for the learning path
-    const contentAdaptationTask: AgentTask = {
-      id: `${taskId}-content-adaptation`,
-      userId,
-      taskType: 'CONTENT_ADAPTATION',
-      description: 'Adapt content for personalized learning path',
-      priority: 'MEDIUM',
-      targetAgentTypes: ['CONTENT_ADAPTATION'],
-      context: ['learning_path', 'cognitive_profile', 'qualification'],
-      data: { 
-        qualificationId,
-        options,
-        previousTaskId: pathGenerationTask.id
-      },
-      createdAt: new Date().toISOString(),
-    };
-    
-    // Submit the third task in the chain
-    await this.mcp.submitTask(contentAdaptationTask);
-    
-    return {
-      status: 'processing',
-      taskIds: [profilingTask.id, pathGenerationTask.id, contentAdaptationTask.id]
-    };
   }
   
   /**
-   * Create an assessment with adaptive difficulty
+   * Create a flashcard optimization task
    */
-  public async createAdaptiveAssessment(
-    userId: string,
-    topicIds: string[],
-    options?: {
-      initialDifficulty?: number;
-      adaptationRate?: number;
-      questionCount?: number;
-      timeLimit?: number;
-    }
-  ): Promise<any> {
-    console.log(`Creating adaptive assessment for user ${userId} on topics: ${topicIds.join(', ')}`);
-    
-    // Generate a unique task ID for this assessment
-    const taskId = `assessment-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    
-    // Create task for assessment generation
-    const assessmentTask: AgentTask = {
-      id: taskId,
-      userId,
-      taskType: 'ASSESSMENT_GENERATION',
-      description: 'Generate adaptive difficulty assessment',
-      priority: 'HIGH',
-      targetAgentTypes: ['ASSESSMENT', 'COGNITIVE_PROFILE'],
-      context: ['assessment', 'adaptive', 'difficulty'],
-      data: { 
-        topicIds,
-        options: options || {
-          initialDifficulty: 0.5,
-          adaptationRate: 0.1,
-          questionCount: 10,
-          timeLimit: 20 
-        }
-      },
-      createdAt: new Date().toISOString(),
-    };
-    
-    // Submit the assessment generation task
-    await this.mcp.submitTask(assessmentTask);
-    
+  public createFlashcardOptimizationTask(userId: string, cardIds: string[]): AgentTask {
     return {
-      status: 'processing',
-      taskId: assessmentTask.id
-    };
-  }
-  
-  /**
-   * Optimize study schedule based on user's learning patterns
-   */
-  public async optimizeStudySchedule(
-    userId: string,
-    options?: {
-      dailyAvailableTime?: number;
-      priorityTopics?: string[];
-      startDate?: string;
-      endDate?: string;
-      goalDate?: string;
-    }
-  ): Promise<any> {
-    console.log(`Optimizing study schedule for user ${userId}`);
-    
-    // Generate a unique task ID for this schedule optimization
-    const taskId = `schedule-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    
-    // Create team of agents for schedule optimization
-    const schedulingTask: AgentTask = {
-      id: taskId,
-      userId,
-      taskType: 'SCHEDULE_OPTIMIZATION',
-      description: 'Generate optimized study schedule',
-      priority: 'MEDIUM',
-      targetAgentTypes: ['SCHEDULING', 'COGNITIVE_PROFILE', 'ENGAGEMENT'],
-      context: ['schedule', 'optimization', 'study_plan'],
-      data: { 
-        options: options || {
-          dailyAvailableTime: 60, // minutes
-          startDate: new Date().toISOString(),
-          endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
-        }
-      },
-      createdAt: new Date().toISOString(),
-    };
-    
-    // Submit the scheduling task
-    await this.mcp.submitTask(schedulingTask);
-    
-    return {
-      status: 'processing',
-      taskId: schedulingTask.id
-    };
-  }
-  
-  /**
-   * Generate a sequence of flashcards with spaced repetition optimization
-   */
-  public async generateOptimizedFlashcards(
-    userId: string,
-    topicIds: string[],
-    options?: {
-      count?: number;
-      includeFormulas?: boolean;
-      difficultyRange?: [number, number];
-      prioritizeWeakAreas?: boolean;
-    }
-  ): Promise<any> {
-    console.log(`Generating optimized flashcards for user ${userId} on topics: ${topicIds.join(', ')}`);
-    
-    // Create task for flashcard generation and optimization
-    const taskId = `flashcards-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    
-    const flashcardTask: AgentTask = {
-      id: taskId,
+      id: `flashcard-${Date.now()}`,
       userId,
       taskType: 'FLASHCARD_OPTIMIZATION',
-      description: 'Generate optimized flashcard sequence',
+      description: 'Optimize flashcard spaced repetition',
       priority: 'MEDIUM',
-      targetAgentTypes: ['LEARNING_PATH', 'COGNITIVE_PROFILE'],
-      context: ['flashcards', 'spaced_repetition', 'optimization'],
-      data: { 
-        topicIds,
-        options: options || {
-          count: 20,
-          includeFormulas: true,
-          difficultyRange: [0.3, 0.8],
-          prioritizeWeakAreas: true
-        }
+      targetAgentTypes: ['SCHEDULING'],
+      context: ['flashcards', 'spaced_repetition', 'optimization'] as ContextTag[],
+      data: {
+        cardIds
       },
-      createdAt: new Date().toISOString(),
-    };
-    
-    // Submit the flashcard optimization task
-    await this.mcp.submitTask(flashcardTask);
-    
-    return {
-      status: 'processing',
-      taskId: flashcardTask.id
+      createdAt: new Date().toISOString()
     };
   }
 }
-
-// Export singleton instance
-export const agentOrchestrator = AgentOrchestrator.getInstance();

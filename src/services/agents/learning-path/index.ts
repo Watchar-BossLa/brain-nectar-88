@@ -1,11 +1,12 @@
+
 import { BaseAgent } from '../baseAgent';
 import { AgentMessage, AgentTask, AgentType } from '../types';
 
 /**
  * Learning Path Agent
  * 
- * Specialized agent responsible for creating and managing personalized learning paths
- * based on user goals, cognitive profile, and performance data.
+ * Specialized agent responsible for generating and adapting personalized 
+ * learning paths based on user cognitive profile and goals.
  */
 export class LearningPathAgent extends BaseAgent {
   type: AgentType = 'LEARNING_PATH';

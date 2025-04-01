@@ -50,8 +50,8 @@ export class CommunicationManager {
         content,
         data,
         timestamp: new Date().toISOString(),
-        senderId: fromAgent,
-        targetId: toAgent
+        sender: fromAgent,  // Use sender instead of senderId
+        recipient: toAgent  // Use recipient instead of targetId
       });
     } else {
       console.warn(`Target agent ${toAgent} not found for direct message`);
