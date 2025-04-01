@@ -12,6 +12,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isPlatformOwner, setIsPlatformOwner] = useState(false);
 
   useEffect(() => {
     // Check active sessions and sets the user
@@ -30,6 +31,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (data.session?.user) {
           // Check if user is an admin
           checkAdminStatus(data.session.user.id);
+          checkPlatformOwnerStatus(data.session.user.email);
         }
         
       } catch (error) {
@@ -49,8 +51,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (session?.user) {
           checkAdminStatus(session.user.id);
+          checkPlatformOwnerStatus(session.user.email);
         } else {
           setIsAdmin(false);
+          setIsPlatformOwner(false);
         }
         
         setLoading(false);
@@ -61,6 +65,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       authListener.subscription.unsubscribe();
     };
   }, []);
+
+  const checkPlatformOwnerStatus = (email?: string): void => {
+    if (email && email === PLATFORM_OWNER.email) {
+      setIsPlatformOwner(true);
+    } else {
+      setIsPlatformOwner(false);
+    }
+  };
 
   const checkAdminStatus = async (userId: string) => {
     try {
@@ -153,11 +165,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const value = {
+  const value: AuthContextType = {
     user,
     session,
     loading,
     isAdmin,
+    isPlatformOwner,
+    platformOwner: PLATFORM_OWNER,
     signIn,
     signInWithGoogle,
     signUp,

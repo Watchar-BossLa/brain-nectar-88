@@ -1,74 +1,104 @@
 
-import { AgentMessage } from '../types/agentTypes'; 
-import { agentRegistry } from './agentRegistry';
+import { v4 as uuidv4 } from 'uuid';
+import { AgentMessage } from '../types';
+import { AgentType, TaskPriority } from '../types/agentTypes';
 
 /**
- * Send a message to an agent
+ * Manages communication between agents in the multi-agent system
  */
-export async function sendMessageToAgent(message: AgentMessage): Promise<boolean> {
-  const { receiverId } = message;
-  const agent = agentRegistry.getAgent(receiverId);
+export class CommunicationManager {
+  private static instance: CommunicationManager;
+  private messageHandlers: Map<string, (message: AgentMessage) => void>;
   
-  if (!agent) {
-    console.error(`Agent ${receiverId} not found for message delivery`);
-    return false;
+  private constructor() {
+    this.messageHandlers = new Map();
   }
   
-  try {
-    // Process the message asynchronously
-    agent.receiveMessage(message);
-    return true;
-  } catch (error) {
-    console.error(`Error delivering message to agent ${receiverId}:`, error);
-    return false;
+  public static getInstance(): CommunicationManager {
+    if (!CommunicationManager.instance) {
+      CommunicationManager.instance = new CommunicationManager();
+    }
+    return CommunicationManager.instance;
   }
-}
-
-/**
- * Broadcast a message to all agents
- */
-export async function broadcastMessage(
-  senderId: string, 
-  content: string, 
-  data: Record<string, any> = {}
-): Promise<void> {
-  const agents = agentRegistry.getAllAgents();
   
-  for (const agent of agents) {
-    if (agent.id !== senderId) { // Don't send to self
-      const message: AgentMessage = {
-        id: `broadcast-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
-        senderId,
-        receiverId: agent.id,
-        messageType: 'NOTIFICATION',
-        content,
-        timestamp: new Date().toISOString(),
-        data,
-        priority: 'MEDIUM'
-      };
-      
-      sendMessageToAgent(message);
+  /**
+   * Send message from one agent to another
+   */
+  public sendMessage(
+    senderId: string | AgentType,
+    receiverId: string | AgentType,
+    messageType: string,
+    content: string,
+    data?: any
+  ): string {
+    const message: AgentMessage = {
+      id: uuidv4(),
+      senderId: senderId.toString(),
+      receiverId: receiverId.toString(),
+      messageType,
+      content,
+      timestamp: new Date().toISOString(),
+      priority: TaskPriority.MEDIUM, // Default priority
+      data
+    };
+    
+    this.deliverMessage(message);
+    return message.id;
+  }
+  
+  /**
+   * Register a message handler for a specific agent
+   */
+  public registerMessageHandler(
+    agentId: string | AgentType, 
+    handler: (message: AgentMessage) => void
+  ): void {
+    this.messageHandlers.set(agentId.toString(), handler);
+  }
+  
+  /**
+   * Deliver a message to its intended recipient
+   */
+  private deliverMessage(message: AgentMessage): void {
+    const handler = this.messageHandlers.get(message.receiverId);
+    
+    if (handler) {
+      // Deliver message to handler
+      setTimeout(() => handler(message), 0);
+    } else {
+      console.warn(`No handler registered for agent ${message.receiverId}`);
     }
   }
+  
+  /**
+   * Broadcast message to all agents except sender
+   */
+  public broadcastMessage(
+    senderId: string | AgentType,
+    messageType: string,
+    content: string,
+    data?: any
+  ): string[] {
+    const messageIds: string[] = [];
+    
+    this.messageHandlers.forEach((_, recipientId) => {
+      if (recipientId !== senderId.toString()) {
+        const messageId = this.sendMessage(
+          senderId,
+          recipientId,
+          messageType,
+          content,
+          data
+        );
+        messageIds.push(messageId);
+      }
+    });
+    
+    return messageIds;
+  }
 }
 
-/**
- * Create a new agent message
- */
-export function createAgentMessage(
-  senderId: string,
-  receiverId: string,
-  content: string,
-  data: Record<string, any> = {}
-): AgentMessage {
-  return {
-    id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
-    senderId,
-    receiverId,
-    messageType: 'NOTIFICATION',
-    content,
-    timestamp: new Date().toISOString(),
-    data,
-    priority: 'MEDIUM'
-  };
-}
+export const communicationManager = CommunicationManager.getInstance();
+
+// Re-export the types
+export type { AgentMessage };

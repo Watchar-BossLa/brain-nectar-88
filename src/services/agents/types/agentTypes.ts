@@ -64,11 +64,12 @@ export interface AgentMessage {
   senderId: string;
   receiverId: string;
   messageType: string;
+  type?: string; // For compatibility with existing code
   content: string;
   timestamp: string;
   priority: TaskPriority;
   data?: any;
-  type?: string; // For compatibility with existing code
+  sender?: string; // For compatibility with existing code
 }
 
 export interface SystemState {
@@ -80,6 +81,7 @@ export interface SystemState {
     averageResponseTime: number;
     successRate: number;
     taskCompletionRate: number;
+    userSatisfactionScore?: number; // Added for compatibility
   };
   globalVariables: Record<string, any>;
   priorityMatrix: Record<string, number>;

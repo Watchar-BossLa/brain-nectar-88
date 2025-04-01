@@ -1,7 +1,11 @@
 
-// Re-export MasterControlProgram and related functionality
-export { masterControlProgram, MasterControlProgram } from './MasterControlProgram';
-export { agentRegistry } from './agentRegistry';
-// Use 'export type' for type-only exports
-export { BaseAgent } from './BaseAgent';
-export type { AgentMessage } from './BaseAgent';
+// Export MCP core functionality
+export { default as MasterControlProgram } from './MCP';
+export { SystemStateManager } from './systemState';
+export { TaskQueueManager } from './taskQueueManager';
+export { TaskProcessor } from './taskProcessor';
+export { TaskRouter } from './taskRouting';
+export { communicationManager } from './communication';
+
+// Re-export type definitions
+export type * from './BaseAgent';

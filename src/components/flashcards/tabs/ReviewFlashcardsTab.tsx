@@ -105,7 +105,7 @@ const ReviewFlashcardsTab: React.FC<ReviewFlashcardsTabProps> = ({ onComplete })
     const currentFlashcard = flashcards[currentIndex];
     
     try {
-      await spacedRepetitionService.recordReview(currentFlashcard.id, rating);
+      await spacedRepetitionService.recordReview(currentFlashcard.id, rating, user?.id || '');
       
       if (currentIndex < flashcards.length - 1) {
         setCurrentIndex(currentIndex + 1);

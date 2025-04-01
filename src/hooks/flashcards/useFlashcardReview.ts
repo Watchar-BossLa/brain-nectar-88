@@ -1,33 +1,92 @@
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/context/auth';
+import { getUserFlashcards, getDueFlashcards, updateFlashcardAfterReview } from '@/services/flashcardService';
+import { useToast } from '@/hooks/use-toast';
+import { Flashcard } from '@/types/supabase';
 
-import { useState } from 'react';
-import { spacedRepetitionService } from '@/services/flashcards/spacedRepetitionService';
+export const useFlashcardReview = () => {
+  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-/**
- * Hook for reviewing flashcards using spaced repetition
- */
-export const useFlashcardReview = (onReviewComplete?: () => void) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  useEffect(() => {
+    loadDueFlashcards();
+  }, [user]);
 
-  const recordReview = async (flashcardId: string, difficulty: number) => {
+  const loadDueFlashcards = async () => {
+    if (!user) return;
+    
+    setLoading(true);
     try {
-      setIsSubmitting(true);
-      const success = await spacedRepetitionService.recordReview(flashcardId, difficulty);
+      const { data, error } = await getDueFlashcards(user.id);
       
-      if (success && onReviewComplete) {
-        onReviewComplete();
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        setFlashcards(data);
+        setCurrentIndex(0);
+        setIsFlipped(false);
+      } else {
+        setFlashcards([]);
       }
-      
-      return success;
     } catch (error) {
-      console.error('Error recording review:', error);
-      return false;
+      console.error('Error loading flashcards:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load flashcards for review',
+        variant: 'destructive'
+      });
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
+  const flipCard = () => {
+    setIsFlipped(!isFlipped);
+  };
+
+  const reviewFlashcard = async (flashcardId: string, difficulty: number) => {
+    if (!user) return;
+    
+    try {
+      await updateFlashcardAfterReview(flashcardId, difficulty, user.id);
+      
+      // Move to next card
+      if (currentIndex < flashcards.length - 1) {
+        setCurrentIndex(currentIndex + 1);
+        setIsFlipped(false);
+      } else {
+        // End of review session
+        toast({
+          title: 'Review completed',
+          description: 'You have completed this review session!',
+        });
+      }
+    } catch (error) {
+      console.error('Error updating flashcard review:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to record your review',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const refreshCards = async () => {
+    await loadDueFlashcards();
+  };
+
   return {
-    recordReview,
-    isSubmitting
+    flashcards,
+    currentFlashcard: flashcards.length > 0 ? flashcards[currentIndex] : null,
+    currentIndex,
+    isFlipped,
+    loading,
+    flipCard,
+    reviewFlashcard,
+    refreshCards
   };
 };

@@ -65,7 +65,7 @@ const FlashcardReview: React.FC = () => {
     const currentFlashcard = flashcards[currentIndex];
     
     try {
-      await spacedRepetitionService.recordReview(currentFlashcard.id, rating);
+      await spacedRepetitionService.recordReview(currentFlashcard.id, rating, user?.id || '');
       
       // Update statistics
       setReviewStats(prev => {

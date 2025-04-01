@@ -7,8 +7,6 @@ export type PlatformOwnerType = {
   role: string;
 };
 
-export type AuthUser = User;
-
 export interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -18,13 +16,13 @@ export interface AuthContextType {
   platformOwner: PlatformOwnerType;
   signIn: (email: string, password: string) => Promise<{
     success: boolean;
-    data?: { user: User; session: Session; weakPassword?: WeakPassword };
-    error?: any;
+    data?: { user: User; session: Session } | any;
+    error?: Error;
   }>;
   signInWithGoogle: () => Promise<{
     success: boolean;
     data?: any;
-    error?: any;
+    error?: Error;
   }>;
   signUp: (
     email: string,
@@ -32,8 +30,13 @@ export interface AuthContextType {
     metadata?: { [key: string]: any }
   ) => Promise<{
     success: boolean;
-    data?: { user: User | null; session: Session | null };
-    error?: any;
+    data?: { user: User } | any;
+    error?: Error;
   }>;
-  signOut: () => Promise<{ success: boolean; error?: any }>;
+  signOut: () => Promise<{
+    success: boolean;
+    error?: Error;
+  }>;
 }
+
+export type AuthUser = User;

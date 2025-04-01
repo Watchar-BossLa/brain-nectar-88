@@ -50,8 +50,10 @@ export const useFlashcardReview = () => {
   };
 
   const reviewFlashcard = async (flashcardId: string, difficulty: number) => {
+    if (!user) return;
+    
     try {
-      await updateFlashcardAfterReview(flashcardId, difficulty);
+      await updateFlashcardAfterReview(flashcardId, difficulty, user.id);
       
       // Move to next card
       if (currentIndex < flashcards.length - 1) {

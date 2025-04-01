@@ -1,6 +1,9 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { INITIAL_EASINESS_FACTOR, MIN_EASINESS_FACTOR } from './algorithm';
+
+// Constants for spaced repetition algorithm
+export const INITIAL_EASINESS_FACTOR = 2.5;
+export const MIN_EASINESS_FACTOR = 1.3;
 
 /**
  * Update flashcard after review

@@ -1,73 +1,110 @@
 
-import { AgentType, SystemState } from '../types';
+import { v4 as uuidv4 } from 'uuid';
+import { AgentType, SystemState, Task, TaskPriority, TaskStatus, TaskType } from '../types/agentTypes';
 
 /**
- * SystemStateManager
- * 
- * Manages the system state including active agents, metrics, and global variables.
+ * Manages the system state for the Multi-Agent System
  */
 export class SystemStateManager {
-  private systemState: SystemState;
-
-  constructor(activeAgents: AgentType[]) {
-    this.systemState = {
-      activeAgents,
-      taskQueue: 0,
-      completedTasks: 0,
-      failedTasks: 0,
-      uptime: 0,
-      globalVariables: {},
-      lastUpdated: new Date().toISOString(),
+  private state: SystemState;
+  
+  constructor() {
+    // Initialize default system state
+    this.state = {
+      activeAgents: this.initializeActiveAgents(),
+      taskQueue: [],
+      completedTasks: [],
       metrics: {
-        taskCompletionRate: 0,
+        completedTasks: 0,
         averageResponseTime: 0,
+        successRate: 0,
+        taskCompletionRate: 0,
         userSatisfactionScore: 0,
       },
+      globalVariables: {},
       priorityMatrix: {},
+      lastUpdated: new Date().toISOString()
     };
   }
 
-  /**
-   * Get the current system state
-   */
-  public getSystemState(): SystemState {
-    return { ...this.systemState };
-  }
-
-  /**
-   * Update system metrics based on task outcomes
-   */
-  public updateMetrics(success: boolean): void {
-    // This is a simplified metrics update
-    // In a real system, this would be much more sophisticated
-    if (!this.systemState.metrics) {
-      this.systemState.metrics = {
-        taskCompletionRate: 0,
-        averageResponseTime: 0,
-        userSatisfactionScore: 0
-      };
-    }
+  private initializeActiveAgents(): Record<AgentType, boolean> {
+    const activeAgents: Record<AgentType, boolean> = {} as Record<AgentType, boolean>;
     
-    // Update task completion rate
-    const currentRate = this.systemState.metrics.taskCompletionRate;
-    const newRate = success
-      ? currentRate + (1 - currentRate) * 0.1  // Slight increase for success
-      : currentRate - currentRate * 0.1;       // Slight decrease for failure
+    // Initialize all agent types as inactive
+    Object.values(AgentType).forEach(agentType => {
+      activeAgents[agentType] = false;
+    });
     
-    this.systemState.metrics.taskCompletionRate = Math.max(0, Math.min(1, newRate));
+    return activeAgents;
   }
-
+  
   /**
-   * Set a global variable in the system state
+   * Get current system state
    */
-  public setGlobalVariable(key: string, value: any): void {
-    this.systemState.globalVariables[key] = value;
+  public getState(): SystemState {
+    return { ...this.state };
   }
-
+  
   /**
-   * Get a global variable from the system state
+   * Update system state
    */
-  public getGlobalVariable(key: string): any {
-    return this.systemState.globalVariables[key];
+  public updateState(partialState: Partial<SystemState>): void {
+    this.state = {
+      ...this.state,
+      ...partialState,
+      lastUpdated: new Date().toISOString()
+    };
+  }
+  
+  /**
+   * Mark an agent as active
+   */
+  public activateAgent(agentType: AgentType): void {
+    const activeAgents = { ...this.state.activeAgents };
+    activeAgents[agentType] = true;
+    this.updateState({ activeAgents });
+  }
+  
+  /**
+   * Mark an agent as inactive
+   */
+  public deactivateAgent(agentType: AgentType): void {
+    const activeAgents = { ...this.state.activeAgents };
+    activeAgents[agentType] = false;
+    this.updateState({ activeAgents });
+  }
+  
+  /**
+   * Update metrics after task completion
+   */
+  public updateMetricsAfterTaskCompletion(
+    executionTimeMs: number,
+    success: boolean,
+    userSatisfactionScore?: number
+  ): void {
+    const { metrics } = this.state;
+    
+    const newCompletedTasks = metrics.completedTasks + 1;
+    const newSuccessRate = (
+      (metrics.successRate * metrics.completedTasks) + (success ? 1 : 0)
+    ) / newCompletedTasks;
+    
+    const newAvgResponseTime = (
+      (metrics.averageResponseTime * metrics.completedTasks) + executionTimeMs
+    ) / newCompletedTasks;
+    
+    const updatedMetrics = {
+      ...metrics,
+      completedTasks: newCompletedTasks,
+      averageResponseTime: newAvgResponseTime,
+      successRate: newSuccessRate,
+      userSatisfactionScore: userSatisfactionScore !== undefined 
+        ? userSatisfactionScore 
+        : metrics.userSatisfactionScore
+    };
+    
+    this.updateState({ metrics: updatedMetrics });
   }
 }
+
+export const systemStateManager = new SystemStateManager();
