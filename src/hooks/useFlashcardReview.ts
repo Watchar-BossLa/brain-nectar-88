@@ -13,7 +13,7 @@ export const useFlashcardReview = (onReviewComplete?: () => void) => {
   const [reviewCards, setReviewCards] = useState<Flashcard[]>([]);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [reviewState, setReviewState] = useState<'reviewing' | 'answering' | 'complete'>('reviewing');
-  const [currentCard, setCurrentCard] = useState<any>(null);
+  const [currentCard, setCurrentCard] = useState<Flashcard | null>(null);
   const [reviewStats, setReviewStats] = useState({
     totalReviewed: 0,
     easy: 0,
@@ -47,7 +47,7 @@ export const useFlashcardReview = (onReviewComplete?: () => void) => {
   };
 
   // Rate the current card and proceed to the next one
-  const rateCard = (rating: number) => {
+  const rateCard = async (rating: number) => {
     // Update stats based on rating
     setReviewStats(prev => {
       const newTotalReviewed = prev.totalReviewed + 1;
@@ -67,7 +67,7 @@ export const useFlashcardReview = (onReviewComplete?: () => void) => {
     
     // If currentCard exists and has an id, record the review
     if (currentCard && currentCard.id) {
-      recordReview(currentCard.id, rating);
+      await recordReview(currentCard.id, rating);
     }
     
     // Set state to complete or get next card
@@ -91,8 +91,8 @@ export const useFlashcardReview = (onReviewComplete?: () => void) => {
   };
 
   // Handle difficulty rating
-  const handleDifficultyRating = (rating: number) => {
-    rateCard(rating);
+  const handleDifficultyRating = async (rating: number) => {
+    await rateCard(rating);
   };
 
   // Skip current card
@@ -123,13 +123,3 @@ export const useFlashcardReview = (onReviewComplete?: () => void) => {
     handleSkip
   };
 };
-
-export interface Flashcard {
-  id: string;
-  front: string;
-  back: string;
-  topic?: string;
-  tags?: string[];
-  mastery: number;
-  audioUrl?: string;
-}

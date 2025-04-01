@@ -1,124 +1,78 @@
-import { 
-  LearningPath, 
-  Module, 
-  Topic, 
-  UserProgress, 
-  LearningPathWithModulesAndTopics 
-} from '@/types/learningPath';
 
-// Define the Content type to match the actual structure used
-export interface Content {
-  id: string;
-  module_id: string;
-  title: string;
-  description: string;
-  order_index: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-  content_type?: string;  // Make this optional
-  content_data?: any;     // Make this optional
-  topic_id?: string;      // Make this optional
-}
+import { LearningPath, LearningPathTopic } from '@/types/learningPath';
 
 /**
- * Generates a personalized learning path based on user performance and needs
+ * Generates a personalized learning path based on the user's quiz performance
+ * @param userId The ID of the user
+ * @param topicIds The IDs of the topics to include in the learning path
+ * @param difficulty The difficulty level of the learning path
+ * @returns A new learning path object
  */
-export class LearningPathGenerator {
+export const generateLearningPath = async (
+  userId: string,
+  topicIds: string[],
+  difficulty: 'beginner' | 'intermediate' | 'advanced' = 'intermediate'
+): Promise<LearningPath> => {
+  console.log(`Generating learning path for user ${userId} with topics ${topicIds.join(', ')}`);
   
-  /**
-   * Creates a new learning path for a user
-   */
-  async createPathForUser(
-    userId: string, 
-    qualificationId: string,
-    userPerformance: any
-  ): Promise<LearningPath> {
-    // Mock implementation: return a basic LearningPath object
-    const newLearningPath: LearningPath = {
-      id: 'mock-learning-path-id',
-      user_id: userId,
-      qualification_id: qualificationId,
-      start_date: new Date().toISOString(),
-      end_date: null,
-      is_active: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    return newLearningPath;
-  }
-
-  /**
-   * Generates module content based on topics and user performance
-   */
-  generateModuleContent(
-    topics: Topic[], 
-    userPerformance: any
-  ): Content[] {
-    // Mock implementation: return a list of Content objects based on topics
-    const moduleContent: Content[] = topics.map((topic, index) => ({
-      id: `mock-content-id-${index}`,
-      module_id: 'mock-module-id',
-      title: `Topic: ${topic.name}`,
-      description: `Description for topic: ${topic.name}`,
-      order_index: index + 1,
-      is_active: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      content_type: 'article',
-      content_data: {
-        text: `Example content for topic: ${topic.name}`,
+  // This would typically be a call to a backend service or LLM
+  // For now, we're generating a mock learning path
+  const mockTopics: LearningPathTopic[] = topicIds.map((topicId, index) => ({
+    id: `topic-${topicId}`,
+    name: `Topic ${index + 1}`,
+    description: `Description for topic ${index + 1}`,
+    resources: [
+      {
+        id: `resource-${index}-1`,
+        title: `Resource 1 for Topic ${index + 1}`,
+        type: 'article',
+        url: '#',
+        durationMinutes: 15,
       },
-      topic_id: topic.id,
-    }));
-    return moduleContent;
-  }
+      {
+        id: `resource-${index}-2`,
+        title: `Resource 2 for Topic ${index + 1}`,
+        type: 'video',
+        url: '#',
+        durationMinutes: 30,
+      },
+    ],
+    quizzes: [
+      {
+        id: `quiz-${index}-1`,
+        title: `Quiz for Topic ${index + 1}`,
+        description: 'Test your knowledge',
+        questions: [
+          {
+            id: `question-${index}-1`,
+            question: 'Sample question 1?',
+            options: ['Option A', 'Option B', 'Option C', 'Option D'],
+            correctAnswerIndex: 0,
+          },
+          {
+            id: `question-${index}-2`,
+            question: 'Sample question 2?',
+            options: ['Option A', 'Option B', 'Option C', 'Option D'],
+            correctAnswerIndex: 1,
+          },
+        ],
+      },
+    ],
+    order: index,
+  }));
+  
+  return {
+    id: `path-${Date.now()}`,
+    name: 'Personalized Learning Path',
+    description: `A ${difficulty} learning path created based on your quiz performance`,
+    topics: mockTopics,
+    difficulty,
+    estimatedHours: mockTopics.length * 2,
+    userId,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    progress: 0,
+  };
+};
 
-  /**
-   * Updates a learning path based on new assessment data
-   */
-  async updatePathBasedOnPerformance(
-    pathId: string, 
-    assessmentResults: any
-  ): Promise<LearningPathWithModulesAndTopics> {
-    // Mock implementation: return a LearningPathWithModulesAndTopics object
-    const updatedPath: LearningPathWithModulesAndTopics = {
-      id: pathId,
-      user_id: 'mock-user-id',
-      qualification_id: 'mock-qualification-id',
-      start_date: new Date().toISOString(),
-      end_date: null,
-      is_active: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      modules: [
-        {
-          id: 'mock-module-id',
-          learning_path_id: pathId,
-          name: 'Updated Module',
-          description: 'Updated module description',
-          order_index: 1,
-          is_active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          topics: [
-            {
-              id: 'mock-topic-id',
-              module_id: 'mock-module-id',
-              name: 'Updated Topic',
-              description: 'Updated topic description',
-              order_index: 1,
-              is_active: true,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            },
-          ],
-        },
-      ],
-    };
-    return updatedPath;
-  }
-}
-
-const learningPathGenerator = new LearningPathGenerator();
-export default learningPathGenerator;
+export default generateLearningPath;

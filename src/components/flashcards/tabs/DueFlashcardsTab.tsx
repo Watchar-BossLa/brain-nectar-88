@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { FlashcardGrid } from '../FlashcardGrid';
+import FlashcardGrid from '../FlashcardGrid';
 import { Flashcard } from '@/types/flashcards';
-import { EmptyFlashcardState } from '../EmptyFlashcardState';
+import EmptyFlashcardState from '../EmptyFlashcardState';
 
 export interface DueFlashcardsTabProps {
   flashcards: Flashcard[];
