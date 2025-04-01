@@ -18,7 +18,18 @@ export const useProfileStats = () => {
       try {
         setIsLoading(true);
         const stats = await getFlashcardLearningStats(user.id);
-        setLearningStats(stats);
+        
+        // Convert the stats to match our LearningStats interface
+        const convertedStats: LearningStats = {
+          totalReviews: stats.data?.reviewsToday || 0,
+          retentionRate: stats.data?.retentionRate || 0,
+          masteredCardCount: stats.data?.masteredCards || 0,
+          averageEaseFactor: stats.data?.averageDifficulty || 0,
+          learningEfficiency: stats.data?.averageRetention ? stats.data.averageRetention / 100 : 0,
+          recommendedDailyReviews: stats.data?.learningCards || 10
+        };
+        
+        setLearningStats(convertedStats);
       } catch (err) {
         console.error('Error fetching learning stats:', err);
         toast({

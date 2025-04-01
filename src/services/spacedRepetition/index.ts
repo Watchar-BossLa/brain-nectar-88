@@ -30,7 +30,7 @@ import {
 import type { 
   FlashcardRetentionResult,
   FlashcardLearningStats
-} from './reviewTypes';
+} from './reviewService';
 
 export {
   // Algorithm
