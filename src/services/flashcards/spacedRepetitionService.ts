@@ -123,6 +123,27 @@ export const spacedRepetitionService = {
   },
   
   /**
+   * Calculate the review interval in days based on easiness factor and mastery level
+   * using a modified version of the SM-2 algorithm
+   * @param easinessFactor The easiness factor
+   * @param masteryLevel The mastery level
+   * @param repetitionCount The number of times the card has been reviewed
+   * @returns The number of days until the next review
+   */
+  calculateReviewInterval: (easinessFactor: number, masteryLevel: number, repetitionCount: number): number => {
+    // Default values if undefined
+    const ef = easinessFactor || 2.5;
+    const level = masteryLevel || 0;
+    const repCount = repetitionCount || 0;
+    
+    if (repCount === 0) return 1; // First review after 1 day
+    if (repCount === 1) return 3; // Second review after 6 days
+    
+    // For subsequent reviews, use exponential backoff with easiness factor
+    return Math.round(Math.pow(ef, repCount - 1) * 3);
+  },
+  
+  /**
    * Get statistics for a user's flashcards
    * @param userId The user ID
    * @returns Object with flashcard statistics

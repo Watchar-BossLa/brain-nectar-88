@@ -16,6 +16,7 @@ export interface Flashcard {
   last_reviewed_at?: string;
   created_at?: string;
   updated_at?: string;
+  interval?: number;  // Added the interval property
   
   // UI field names (for backward compatibility)
   userId?: string;
@@ -33,7 +34,6 @@ export interface Flashcard {
   dueDate?: string;
   repetitionCount?: number;
   easinessFactor?: number;
-  interval?: number;
   mastery?: number;
 }
 
