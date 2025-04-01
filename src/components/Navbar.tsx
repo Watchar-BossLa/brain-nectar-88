@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
@@ -6,7 +7,7 @@ import { LogOut } from 'lucide-react';
 import { Code } from 'lucide-react';
 
 const Navbar = () => {
-  const { logout, user } = useAuth();
+  const { signOut, user } = useAuth();
   
   return (
     <nav className="bg-card border-b shadow-sm">
@@ -73,7 +74,7 @@ const Navbar = () => {
             
             {user && (
               <li>
-                <Button variant="ghost" size="sm" onClick={logout}>
+                <Button variant="ghost" size="sm" onClick={signOut}>
                   <LogOut className="h-4 w-4 mr-2" />
                   Logout
                 </Button>
