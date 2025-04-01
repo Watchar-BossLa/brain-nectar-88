@@ -207,8 +207,9 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         setLoading(false);
         
-        // Handle case when a new user signs up - load default flashcards
-        if (event === 'SIGNED_IN' || event === 'SIGNED_UP') {
+        // Handle case when a new user signs in or signs up - load default flashcards
+        // Using USER_UPDATED instead of SIGNED_UP since it's in the supported event types
+        if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
           console.log('User signed in or signed up - loading default flashcards if needed');
           // Add code here to preload flashcards for new users
         }

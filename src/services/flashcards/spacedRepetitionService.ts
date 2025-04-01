@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { Flashcard } from '@/types/flashcards';
 
 /**
  * Service for handling spaced repetition functionality for flashcards
@@ -45,7 +46,9 @@ export const spacedRepetitionService = {
       } else if (repetitionCount === 2) {
         interval = 6; // 6 days
       } else {
-        interval = Math.round(flashcard.interval * newEasinessFactor);
+        // Ensure we have a valid interval value, even if it's not stored on flashcard
+        const currentInterval = flashcard.interval || repetitionCount - 1;
+        interval = Math.round(currentInterval * newEasinessFactor);
       }
       
       // Calculate next review date
@@ -89,6 +92,33 @@ export const spacedRepetitionService = {
     } catch (error) {
       console.error('Error in recordReview:', error);
       return false;
+    }
+  },
+  
+  /**
+   * Get due flashcards for a user
+   * @param userId The user ID
+   * @returns Array of flashcards due for review
+   */
+  getDueFlashcards: async (userId: string): Promise<Flashcard[]> => {
+    try {
+      const now = new Date().toISOString();
+      const { data, error } = await supabase
+        .from('flashcards')
+        .select('*')
+        .eq('user_id', userId)
+        .lte('next_review_date', now)
+        .order('next_review_date', { ascending: true });
+        
+      if (error) {
+        console.error('Error fetching due flashcards:', error);
+        return [];
+      }
+      
+      return data || [];
+    } catch (error) {
+      console.error('Error in getDueFlashcards:', error);
+      return [];
     }
   },
   

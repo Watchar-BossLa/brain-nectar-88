@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import { getDueFlashcards } from '@/services/spacedRepetition';
 import { spacedRepetitionService } from '@/services/flashcards/spacedRepetitionService';
 import { Flashcard } from '@/types/supabase';
 import ReviewCard from './review/ReviewCard';
@@ -32,6 +31,7 @@ const FlashcardReview: React.FC = () => {
         throw new Error('User not authenticated');
       }
       
+      // Use the newly implemented getDueFlashcards method
       const dueCards = await spacedRepetitionService.getDueFlashcards(user.id);
       setFlashcards(dueCards);
       setCurrentIndex(0);
