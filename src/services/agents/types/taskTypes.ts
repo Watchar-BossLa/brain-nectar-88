@@ -40,3 +40,4 @@ export type ContextTag =
   | 'flashcards';
 
 export type TaskStatus = 'pending' | 'processing' | 'completed' | 'failed';
+
