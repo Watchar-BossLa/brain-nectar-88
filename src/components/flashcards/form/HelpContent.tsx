@@ -16,19 +16,19 @@ const HelpContent: React.FC = () => {
 
         <div>
           <h4 className="font-medium">Math Formulas</h4>
-          <p>Use TeX syntax with <code>$$formula$$</code> for inline formulas or <code>$$formula$$</code> for display formulas.</p>
-          <p className="text-muted-foreground">Example: <code>$$E = mc^2$$</code></p>
+          <p>Use TeX syntax with <code>{'$$formula$$'}</code> for inline formulas or <code>{'$$formula$$'}</code> for display formulas.</p>
+          <p className="text-muted-foreground">Example: <code>{'$$E = mc^2$$'}</code></p>
         </div>
 
         <div>
           <h4 className="font-medium">Code Snippets</h4>
           <p>Use code blocks with triple backticks and specify the language:</p>
           <pre className="bg-muted p-2 rounded text-xs overflow-x-auto">
-            ```javascript
-            function example() {
-              return "Hello World";
-            }
-            ```
+            {`\`\`\`javascript
+function example() {
+  return "Hello World";
+}
+\`\`\``}
           </pre>
         </div>
 
