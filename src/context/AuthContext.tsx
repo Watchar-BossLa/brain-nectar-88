@@ -1,9 +1,9 @@
-import React, { useState, useEffect, createContext } from 'react';
+
+import React, { useState, useEffect, createContext, useContext } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { PLATFORM_OWNER } from './auth/constants';
 import { AuthUser } from './auth/types';
-import { useAuthService } from './authService';
 
 interface AuthContextProps {
   session: any | null;
@@ -29,13 +29,166 @@ const AuthContext = createContext<AuthContextProps>({
   isAdmin: false,
 });
 
+// Export the useAuth hook
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<any | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
-  const authService = useAuthService();
+
+  // Implementation of auth methods without the separate service
+  const signIn = async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (error) {
+        console.error('Sign in error:', error.message);
+        toast({
+          title: 'Sign in failed',
+          description: error.message,
+          variant: 'destructive',
+        });
+        return { error };
+      }
+      
+      toast({
+        title: 'Welcome back!',
+        description: 'You have successfully signed in.',
+      });
+        
+      return { error: null };
+    } catch (error) {
+      console.error('Unexpected sign in error:', error);
+      toast({
+        title: 'Sign in failed',
+        description: 'An unexpected error occurred.',
+        variant: 'destructive',
+      });
+      return { error: error as Error };
+    }
+  };
+
+  const signUp = async (email: string, password: string, options?: any) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({ 
+        email, 
+        password,
+        options: {
+          emailRedirectTo: window.location.origin,
+          ...options
+        }
+      });
+      
+      if (error) {
+        console.error('Sign up error:', error.message);
+        toast({
+          title: 'Sign up failed',
+          description: error.message,
+          variant: 'destructive',
+        });
+        return { error };
+      }
+      
+      if (data.user) {
+        toast({
+          title: 'Welcome to Study Bee!',
+          description: 'Your account has been created successfully. Please check your email for verification.',
+        });
+        
+        return { error: null };
+      } else {
+        toast({
+          title: 'Sign up failed',
+          description: 'No user was created.',
+          variant: 'destructive',
+        });
+        return { error: new Error('No user created') };
+      }
+    } catch (error) {
+      console.error('Unexpected sign up error:', error);
+      toast({
+        title: 'Sign up failed',
+        description: 'An unexpected error occurred.',
+        variant: 'destructive',
+      });
+      return { error: error as Error };
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      // Determine the correct redirect URL based on environment
+      const redirectTo = window.location.hostname === 'localhost' 
+        ? `${window.location.origin}`
+        : `${window.location.origin}`;
+      
+      console.log('Google sign in with redirect to:', redirectTo);
+      
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo,
+        }
+      });
+      
+      if (error) {
+        console.error('Google sign in error:', error.message);
+        toast({
+          title: 'Google sign in failed',
+          description: error.message,
+          variant: 'destructive',
+        });
+        return { error };
+      }
+      
+      return { error: null };
+    } catch (error) {
+      console.error('Unexpected Google sign in error:', error);
+      toast({
+        title: 'Google sign in failed',
+        description: 'An unexpected error occurred.',
+        variant: 'destructive',
+      });
+      return { error: error as Error };
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Sign out error:', error.message);
+        toast({
+          title: 'Sign out failed',
+          description: error.message,
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      toast({
+        title: 'Signed out',
+        description: 'You have been successfully signed out.',
+      });
+    } catch (error) {
+      console.error('Unexpected sign out error:', error);
+      toast({
+        title: 'Sign out failed',
+        description: 'An error occurred while signing out.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -107,24 +260,16 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, [toast]);
 
-  // Create wrapped versions of auth methods that handle navigation within components
-  const wrappedAuthMethods = {
-    signIn: authService.signIn,
-    signUp: authService.signUp,
-    signInWithGoogle: authService.signInWithGoogle,
-    signOut: authService.signOut
-  };
-
   return (
     <AuthContext.Provider 
       value={{
         session,
         user,
         loading,
-        signIn: wrappedAuthMethods.signIn,
-        signUp: wrappedAuthMethods.signUp,
-        signInWithGoogle: wrappedAuthMethods.signInWithGoogle,
-        signOut: wrappedAuthMethods.signOut,
+        signIn,
+        signUp,
+        signInWithGoogle,
+        signOut,
         platformOwner: PLATFORM_OWNER,
         isAdmin,
       }}

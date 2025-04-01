@@ -1,226 +1,162 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  calculateNextReviewDate, 
-  updateEasinessFactor, 
-  calculateRetention, 
-  calculateMasteryLevel,
-  INITIAL_EASINESS_FACTOR 
-} from '@/services/spacedRepetition/algorithm';
-import { FlashcardLearningStats } from '@/services/spacedRepetition/reviewTypes';
 
 /**
- * Service for managing flashcards using a spaced repetition algorithm
+ * Service for handling spaced repetition functionality for flashcards
  */
-export class SpacedRepetitionService {
+export const spacedRepetitionService = {
   /**
-   * Record a flashcard review and update the next review date
-   * 
-   * @param flashcardId The ID of the reviewed flashcard
-   * @param difficultyRating The user's difficulty rating (1-5) or an object containing the rating
-   * @returns The updated flashcard or null if error
+   * Records a review for a flashcard
+   * @param flashcardId The ID of the flashcard being reviewed
+   * @param difficulty The difficulty rating (1-5)
+   * @returns True if successful, false otherwise
    */
-  public async recordReview(
-    flashcardId: string, 
-    difficultyRating: number | { difficulty: number; reviewedAt: string }
-  ): Promise<any | null> {
+  recordReview: async (flashcardId: string, difficulty: number): Promise<boolean> => {
     try {
-      // Extract difficulty from the parameter, which can be a number or an object
-      const difficulty = typeof difficultyRating === 'number' 
-        ? difficultyRating 
-        : difficultyRating.difficulty;
-
-      // Get current flashcard data
-      const { data: flashcard, error } = await supabase
+      // Get the current flashcard data
+      const { data: flashcard, error: fetchError } = await supabase
         .from('flashcards')
         .select('*')
         .eq('id', flashcardId)
         .single();
         
-      if (error || !flashcard) {
-        console.error('Error fetching flashcard:', error);
-        return null;
+      if (fetchError || !flashcard) {
+        console.error('Error fetching flashcard for review:', fetchError);
+        return false;
       }
       
-      // Calculate retention based on difficulty and current easiness factor
-      const retention = calculateRetention(
-        flashcard.difficulty || 3,
-        flashcard.easiness_factor || INITIAL_EASINESS_FACTOR
-      );
+      // Calculate new values based on the SM-2 algorithm
+      const repetitionCount = (flashcard.repetition_count || 0) + 1;
+      const oldEasinessFactor = flashcard.easiness_factor || 2.5;
       
-      // Update easiness factor based on difficulty rating
-      const easinessFactor = updateEasinessFactor(
-        flashcard.easiness_factor || INITIAL_EASINESS_FACTOR,
-        6 - difficulty // Convert 1-5 difficulty to 5-1 quality (SM-2 uses 0-5 quality)
-      );
+      // Convert difficulty rating (1-5) to SM-2 quality (0-5)
+      // In SM-2, 5 is perfect response, 0 is complete blackout
+      // In our app, 1 is very hard, 5 is very easy
+      const quality = difficulty - 1;
       
-      // Calculate mastery level
-      const masteryLevel = calculateMasteryLevel(
-        flashcard.mastery_level || 0,
-        retention,
-        difficulty
-      );
+      // Calculate new easiness factor using SM-2 formula
+      let newEasinessFactor = oldEasinessFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+      newEasinessFactor = Math.max(1.3, newEasinessFactor); // Minimum 1.3
+      
+      // Calculate interval
+      let interval;
+      if (repetitionCount === 1) {
+        interval = 1; // 1 day
+      } else if (repetitionCount === 2) {
+        interval = 6; // 6 days
+      } else {
+        interval = Math.round(flashcard.interval * newEasinessFactor);
+      }
       
       // Calculate next review date
-      const nextReviewDate = calculateNextReviewDate(
-        easinessFactor,
-        (flashcard.repetition_count || 0) + 1
-      );
+      const nextReviewDate = new Date();
+      nextReviewDate.setDate(nextReviewDate.getDate() + interval);
       
       // Update the flashcard
-      const { data, error: updateError } = await supabase
+      const { error: updateError } = await supabase
         .from('flashcards')
         .update({
           difficulty: difficulty,
-          easiness_factor: easinessFactor,
-          last_retention: retention,
-          mastery_level: masteryLevel,
-          repetition_count: (flashcard.repetition_count || 0) + 1,
-          last_reviewed_at: new Date().toISOString(),
-          next_review_date: nextReviewDate
+          repetition_count: repetitionCount,
+          easiness_factor: newEasinessFactor,
+          interval: interval,
+          next_review_date: nextReviewDate.toISOString(),
+          last_reviewed_at: new Date().toISOString()
         })
-        .eq('id', flashcardId)
-        .select('*')
-        .single();
+        .eq('id', flashcardId);
         
       if (updateError) {
-        console.error('Error updating flashcard:', updateError);
-        return null;
+        console.error('Error updating flashcard after review:', updateError);
+        return false;
       }
       
       // Record the review
       const { error: reviewError } = await supabase
         .from('flashcard_reviews')
         .insert({
-          user_id: flashcard.user_id,
           flashcard_id: flashcardId,
+          user_id: flashcard.user_id,
           difficulty_rating: difficulty,
-          retention_estimate: retention
+          reviewed_at: new Date().toISOString()
         });
         
       if (reviewError) {
         console.error('Error recording flashcard review:', reviewError);
+        // Continue anyway since the flashcard was updated
       }
       
-      return data;
+      return true;
     } catch (error) {
-      console.error('Error recording flashcard review:', error);
-      return null;
+      console.error('Error in recordReview:', error);
+      return false;
     }
-  }
+  },
   
   /**
-   * Get due flashcards for a user
-   * 
+   * Get statistics for a user's flashcards
    * @param userId The user ID
-   * @param limit Maximum number of flashcards to return
-   * @returns Array of due flashcards
+   * @returns Object with flashcard statistics
    */
-  public async getDueFlashcards(userId: string, limit: number = 20): Promise<any[]> {
+  getFlashcardStats: async (userId: string) => {
     try {
-      const now = new Date().toISOString();
-      
-      // Get cards due for review (with next_review_date before or equal to now)
-      const { data, error } = await supabase
+      // Get all flashcards for the user
+      const { data: flashcards, error } = await supabase
         .from('flashcards')
         .select('*')
-        .eq('user_id', userId)
-        .lte('next_review_date', now)
-        .order('next_review_date', { ascending: true })
-        .limit(limit);
-        
-      if (error) {
-        console.error('Error fetching due flashcards:', error);
-        return [];
-      }
-      
-      return data || [];
-    } catch (error) {
-      console.error('Error getting due flashcards:', error);
-      return [];
-    }
-  }
-  
-  /**
-   * Get flashcard statistics for a user
-   * 
-   * @param userId The user ID
-   * @returns Statistics about the user's flashcard learning
-   */
-  public async getFlashcardStats(userId: string): Promise<{
-    totalCards: number;
-    masteredCards: number;
-    dueCards: number;
-    averageDifficulty: number;
-    reviewsToday: number;
-  }> {
-    try {
-      // Get count of all flashcards
-      const { count: totalCount, error: countError } = await supabase
-        .from('flashcards')
-        .select('*', { count: 'exact', head: true })
         .eq('user_id', userId);
         
-      if (countError) {
-        throw countError;
+      if (error) {
+        throw error;
       }
       
-      // Get due cards
-      const now = new Date().toISOString();
-      const { count: dueCount, error: dueError } = await supabase
+      // Get flashcards due today
+      const now = new Date();
+      const endOfDay = new Date(now);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      const { data: dueCards, error: dueError } = await supabase
         .from('flashcards')
-        .select('*', { count: 'exact', head: true })
+        .select('id')
         .eq('user_id', userId)
-        .lte('next_review_date', now);
+        .lte('next_review_date', endOfDay.toISOString());
         
       if (dueError) {
         throw dueError;
       }
       
-      // Get mastered cards (mastery level >= 0.8)
-      const { count: masteredCount, error: masteredError } = await supabase
-        .from('flashcards')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .gte('mastery_level', 0.8);
-        
-      if (masteredError) {
-        throw masteredError;
-      }
+      // Get reviews done today
+      const startOfDay = new Date(now);
+      startOfDay.setHours(0, 0, 0, 0);
       
-      // Get average difficulty
-      const { data: allCards, error: cardsError } = await supabase
-        .from('flashcards')
-        .select('difficulty')
-        .eq('user_id', userId);
-        
-      if (cardsError) {
-        throw cardsError;
-      }
-      
-      const avgDifficulty = allCards && allCards.length > 0
-        ? allCards.reduce((sum, card) => sum + (card.difficulty || 3), 0) / allCards.length
-        : 3;
-      
-      // Get reviews today
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const { count: reviewsToday, error: reviewsError } = await supabase
+      const { data: reviewsToday, error: reviewError } = await supabase
         .from('flashcard_reviews')
-        .select('*', { count: 'exact', head: true })
+        .select('id')
         .eq('user_id', userId)
-        .gte('reviewed_at', today.toISOString());
+        .gte('reviewed_at', startOfDay.toISOString());
         
-      if (reviewsError) {
-        throw reviewsError;
+      if (reviewError) {
+        throw reviewError;
       }
+      
+      // Calculate statistics
+      const totalCards = flashcards?.length || 0;
+      const masteredCards = flashcards?.filter(card => (card.mastery_level || 0) >= 0.8).length || 0;
+      const dueCount = dueCards?.length || 0;
+      const reviewCount = reviewsToday?.length || 0;
+      
+      // Calculate average difficulty
+      let totalDifficulty = 0;
+      flashcards?.forEach(card => {
+        totalDifficulty += card.difficulty || 3;
+      });
+      const averageDifficulty = totalCards > 0 ? totalDifficulty / totalCards : 0;
       
       return {
-        totalCards: totalCount || 0,
-        masteredCards: masteredCount || 0,
-        dueCards: dueCount || 0,
-        averageDifficulty: avgDifficulty,
-        reviewsToday: reviewsToday || 0
+        totalCards,
+        masteredCards,
+        dueCards: dueCount,
+        averageDifficulty,
+        reviewsToday: reviewCount
       };
     } catch (error) {
       console.error('Error getting flashcard stats:', error);
@@ -228,73 +164,9 @@ export class SpacedRepetitionService {
         totalCards: 0,
         masteredCards: 0,
         dueCards: 0,
-        averageDifficulty: 3,
+        averageDifficulty: 0,
         reviewsToday: 0
       };
     }
   }
-  
-  /**
-   * Calculate optimal study schedule for flashcard review
-   * 
-   * @param userId The user's ID
-   * @returns An object with the optimal review schedule
-   */
-  public async calculateOptimalReviewSchedule(userId: string): Promise<{
-    recommendedBatchSize: number;
-    optimalTimeOfDay: string;
-    priorityFlashcards: string[];
-  }> {
-    try {
-      // Get due flashcards
-      const dueCards = await this.getDueFlashcards(userId, 100);
-      
-      // Sort by priority (lowest retention first)
-      const sortedCards = dueCards.sort((a, b) => 
-        (a.last_retention || 0.5) - (b.last_retention || 0.5)
-      );
-      
-      // Get priority flashcards (lowest retention)
-      const priorityFlashcards = sortedCards.slice(0, 10).map(card => card.id);
-      
-      // Calculate recommended batch size based on due card count
-      let recommendedBatchSize = 20;
-      if (dueCards.length <= 5) {
-        recommendedBatchSize = dueCards.length;
-      } else if (dueCards.length <= 20) {
-        recommendedBatchSize = Math.max(5, Math.min(15, Math.floor(dueCards.length * 0.75)));
-      } else if (dueCards.length <= 50) {
-        recommendedBatchSize = 20;
-      } else {
-        recommendedBatchSize = 25;
-      }
-      
-      // Determine optimal time of day (this could be personalized based on user's history)
-      const hour = new Date().getHours();
-      let optimalTimeOfDay: string;
-      
-      if (hour >= 5 && hour < 9) optimalTimeOfDay = 'morning';
-      else if (hour >= 9 && hour < 12) optimalTimeOfDay = 'mid-morning';
-      else if (hour >= 12 && hour < 15) optimalTimeOfDay = 'early afternoon';
-      else if (hour >= 15 && hour < 18) optimalTimeOfDay = 'late afternoon';
-      else if (hour >= 18 && hour < 21) optimalTimeOfDay = 'evening';
-      else optimalTimeOfDay = 'night';
-      
-      return {
-        recommendedBatchSize,
-        optimalTimeOfDay,
-        priorityFlashcards
-      };
-    } catch (error) {
-      console.error('Error calculating optimal review schedule:', error);
-      return {
-        recommendedBatchSize: 10,
-        optimalTimeOfDay: 'evening',
-        priorityFlashcards: []
-      };
-    }
-  }
-}
-
-// Export a singleton instance
-export const spacedRepetitionService = new SpacedRepetitionService();
+};

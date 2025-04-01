@@ -1,572 +1,350 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Flashcard } from '@/types/supabase';
-
-export interface DefaultFlashcard {
-  front_content: string;
-  back_content: string;
-  topic: string;
-  difficulty: number;
-}
-
-// Default accounting flashcards for new users
-export const accountingFlashcards: DefaultFlashcard[] = [
-  {
-    front_content: "What is the Accounting Equation?",
-    back_content: "Assets = Liabilities + Equity",
-    topic: "Fundamentals",
-    difficulty: 1
-  },
-  {
-    front_content: "Define 'Accounts Receivable'",
-    back_content: "Money owed to a company by its debtors (customers)",
-    topic: "Fundamentals",
-    difficulty: 1
-  },
-  {
-    front_content: "What is 'Depreciation'?",
-    back_content: "The systematic allocation of an asset's cost over its useful life",
-    topic: "Fundamentals",
-    difficulty: 2
-  },
-  {
-    front_content: "Explain 'FIFO' inventory method",
-    back_content: "First-In, First-Out: Assumes that the oldest inventory items are sold first",
-    topic: "Inventory",
-    difficulty: 2
-  },
-  {
-    front_content: "What does 'GAAP' stand for?",
-    back_content: "Generally Accepted Accounting Principles",
-    topic: "Standards",
-    difficulty: 1
-  },
-  {
-    front_content: "Define 'Net Income'",
-    back_content: "Total revenues minus total expenses for a given period",
-    topic: "Financial Statements",
-    difficulty: 1
-  },
-  {
-    front_content: "What is a 'Balance Sheet'?",
-    back_content: "A financial statement that reports a company's assets, liabilities, and equity at a specific point in time",
-    topic: "Financial Statements",
-    difficulty: 2
-  },
-  {
-    front_content: "What does 'ROI' stand for?",
-    back_content: "Return On Investment",
-    topic: "Financial Analysis",
-    difficulty: 1
-  },
-  {
-    front_content: "Define 'Accrual Accounting'",
-    back_content: "An accounting method where revenue and expenses are recorded when they are earned or incurred, regardless of when cash is received or paid",
-    topic: "Fundamentals",
-    difficulty: 3
-  },
-  {
-    front_content: "What is 'Working Capital'?",
-    back_content: "Current Assets minus Current Liabilities; represents a company's operational liquidity",
-    topic: "Financial Analysis",
-    difficulty: 2
-  },
-  {
-    front_content: "What is 'Double-Entry Bookkeeping'?",
-    back_content: "An accounting system where every transaction affects at least two accounts, with debits equaling credits",
-    topic: "Fundamentals",
-    difficulty: 2
-  },
-  {
-    front_content: "Define 'Gross Profit'",
-    back_content: "Revenue minus Cost of Goods Sold (COGS)",
-    topic: "Financial Statements",
-    difficulty: 1
-  },
-  {
-    front_content: "What is a 'Journal Entry'?",
-    back_content: "A record of a financial transaction that shows the accounts affected and the amounts",
-    topic: "Fundamentals",
-    difficulty: 1
-  },
-  {
-    front_content: "Explain 'Accounts Payable'",
-    back_content: "Money owed by a company to its creditors (suppliers)",
-    topic: "Fundamentals",
-    difficulty: 1
-  },
-  {
-    front_content: "What is 'Revenue Recognition'?",
-    back_content: "The process of recording revenue when it is earned, rather than when payment is received",
-    topic: "Fundamentals",
-    difficulty: 2
-  }
-];
-
-// Default finance flashcards for new users
-export const financeFlashcards: DefaultFlashcard[] = [
-  {
-    front_content: "What is the Time Value of Money?",
-    back_content: "The concept that money available now is worth more than the same amount in the future due to its potential earning capacity",
-    topic: "Fundamentals",
-    difficulty: 2
-  },
-  {
-    front_content: "Define 'Net Present Value' (NPV)",
-    back_content: "The difference between the present value of cash inflows and the present value of cash outflows over a period of time",
-    topic: "Capital Budgeting",
-    difficulty: 3
-  },
-  {
-    front_content: "What is 'Beta' in finance?",
-    back_content: "A measure of volatility or systematic risk of a security or portfolio compared to the market as a whole",
-    topic: "Investments",
-    difficulty: 3
-  },
-  {
-    front_content: "Explain the 'Efficient Market Hypothesis'",
-    back_content: "A theory stating that asset prices reflect all available information, making it impossible to consistently outperform the market",
-    topic: "Market Theory",
-    difficulty: 3
-  },
-  {
-    front_content: "What is 'Compound Interest'?",
-    back_content: "Interest calculated on the initial principal and on the accumulated interest over previous periods",
-    topic: "Fundamentals",
-    difficulty: 1
-  },
-  {
-    front_content: "Define 'Diversification'",
-    back_content: "The practice of spreading investments among different assets to reduce risk",
-    topic: "Investments",
-    difficulty: 1
-  },
-  {
-    front_content: "What is a 'Derivative'?",
-    back_content: "A financial security whose value depends on an underlying asset or group of assets",
-    topic: "Investments",
-    difficulty: 2
-  },
-  {
-    front_content: "Explain 'Liquidity'",
-    back_content: "The degree to which an asset can be quickly bought or sold without affecting its price",
-    topic: "Fundamentals",
-    difficulty: 1
-  },
-  {
-    front_content: "What is 'CAPM'?",
-    back_content: "Capital Asset Pricing Model: A model describing the relationship between systematic risk and expected return for assets",
-    topic: "Investments",
-    difficulty: 3
-  },
-  {
-    front_content: "Define 'Arbitrage'",
-    back_content: "The practice of taking advantage of price differences in different markets for the same asset",
-    topic: "Trading",
-    difficulty: 2
-  },
-  {
-    front_content: "What is 'Internal Rate of Return' (IRR)?",
-    back_content: "The discount rate that makes the net present value (NPV) of all cash flows equal to zero",
-    topic: "Capital Budgeting",
-    difficulty: 3
-  },
-  {
-    front_content: "Define 'Leverage'",
-    back_content: "The use of borrowed money to increase the potential return of an investment",
-    topic: "Fundamentals",
-    difficulty: 2
-  },
-  {
-    front_content: "What is a 'Mutual Fund'?",
-    back_content: "An investment vehicle made up of a pool of money from many investors to invest in securities like stocks, bonds, etc.",
-    topic: "Investments",
-    difficulty: 1
-  },
-  {
-    front_content: "Explain 'P/E Ratio'",
-    back_content: "Price-to-Earnings Ratio: A company's share price divided by its earnings per share",
-    topic: "Investments",
-    difficulty: 2
-  },
-  {
-    front_content: "What is 'Foreign Exchange Risk'?",
-    back_content: "The risk that an investment's value may change due to changes in currency exchange rates",
-    topic: "Risk Management",
-    difficulty: 2
-  }
-];
-
-// Default flashcards for topics like IFRS, GAAP, etc.
-export const standardsFlashcards: DefaultFlashcard[] = [
-  {
-    front_content: "What is 'IFRS'?",
-    back_content: "International Financial Reporting Standards: A set of accounting standards developed by the International Accounting Standards Board (IASB)",
-    topic: "Standards",
-    difficulty: 2
-  },
-  {
-    front_content: "Define 'Materiality' in accounting",
-    back_content: "Information is material if omitting, misstating or obscuring it could reasonably be expected to influence decisions of primary users of financial statements",
-    topic: "Standards",
-    difficulty: 2
-  },
-  {
-    front_content: "What is 'Fair Value' according to IFRS 13?",
-    back_content: "The price that would be received to sell an asset or paid to transfer a liability in an orderly transaction between market participants at the measurement date",
-    topic: "IFRS",
-    difficulty: 3
-  },
-  {
-    front_content: "Explain 'Revenue Recognition' under IFRS 15",
-    back_content: "A five-step model recognizing revenue when control of goods or services transfers to a customer, at an amount that reflects the consideration to which the entity expects to be entitled",
-    topic: "IFRS",
-    difficulty: 3
-  },
-  {
-    front_content: "What is 'Asset Impairment'?",
-    back_content: "The reduction in value of an asset below its carrying amount on the balance sheet",
-    topic: "Standards",
-    difficulty: 2
-  },
-  {
-    front_content: "Define 'Goodwill' in accounting",
-    back_content: "An intangible asset that arises when a company acquires another business for a price higher than the fair value of its identifiable assets",
-    topic: "Standards",
-    difficulty: 2
-  },
-  {
-    front_content: "What is 'LIFO' and is it allowed under IFRS?",
-    back_content: "Last-In, First-Out: An inventory valuation method. It is not allowed under IFRS but is permitted under US GAAP",
-    topic: "Standards",
-    difficulty: 2
-  },
-  {
-    front_content: "What are 'Contingent Liabilities'?",
-    back_content: "Potential obligations that may arise depending on the outcome of an uncertain future event",
-    topic: "Standards",
-    difficulty: 2
-  },
-  {
-    front_content: "Explain 'Substance Over Form' principle",
-    back_content: "Transactions should be accounted for and presented in accordance with their substance and economic reality, not merely their legal form",
-    topic: "Standards",
-    difficulty: 3
-  },
-  {
-    front_content: "What is 'Going Concern' assumption?",
-    back_content: "The assumption that an entity will continue to operate for the foreseeable future, with no intention or necessity to liquidate or significantly curtail operations",
-    topic: "Standards",
-    difficulty: 2
-  },
-  {
-    front_content: "What is 'IAS 1'?",
-    back_content: "International Accounting Standard 1: Presentation of Financial Statements - Sets out the overall requirements for financial statements",
-    topic: "IFRS",
-    difficulty: 2
-  },
-  {
-    front_content: "Define 'IFRS 9'",
-    back_content: "Financial Instruments - Standard that specifies how an entity should classify and measure financial assets, liabilities, and some contracts to buy or sell non-financial items",
-    topic: "IFRS",
-    difficulty: 3
-  },
-  {
-    front_content: "What is 'IFRS 16'?",
-    back_content: "Leases - Specifies how to recognize, measure, present and disclose leases",
-    topic: "IFRS",
-    difficulty: 3
-  },
-  {
-    front_content: "Explain the difference between IFRS and US GAAP",
-    back_content: "IFRS is principles-based and used internationally; US GAAP is rules-based and used primarily in the United States",
-    topic: "Standards",
-    difficulty: 2
-  },
-  {
-    front_content: "What is 'Conservatism' in accounting?",
-    back_content: "A principle that requires recognition of expenses and liabilities as soon as possible when uncertain, but recognition of revenues and assets only when they are assured",
-    topic: "Standards",
-    difficulty: 2
-  }
-];
-
-// Adding taxation flashcards
-export const taxationFlashcards: DefaultFlashcard[] = [
-  {
-    front_content: "What is 'Income Tax'?",
-    back_content: "A tax levied on the financial income of individuals, corporations, or other legal entities",
-    topic: "Taxation",
-    difficulty: 1
-  },
-  {
-    front_content: "Define 'Capital Gains Tax'",
-    back_content: "A tax on profits from the sale of certain types of assets, such as stocks, bonds, or real estate",
-    topic: "Taxation",
-    difficulty: 2
-  },
-  {
-    front_content: "What is 'VAT' (Value-Added Tax)?",
-    back_content: "A consumption tax placed on a product whenever value is added at each stage of the supply chain, from production to point of sale",
-    topic: "Taxation",
-    difficulty: 2
-  },
-  {
-    front_content: "Explain 'Tax Deduction' vs 'Tax Credit'",
-    back_content: "Tax deduction reduces taxable income, while tax credit reduces the tax owed dollar-for-dollar",
-    topic: "Taxation",
-    difficulty: 2
-  },
-  {
-    front_content: "What is 'Withholding Tax'?",
-    back_content: "Tax deducted at source from payments made to non-residents of a country",
-    topic: "Taxation",
-    difficulty: 2
-  },
-  {
-    front_content: "Define 'Tax Avoidance'",
-    back_content: "Legal arrangement of one's financial affairs to minimize tax liability",
-    topic: "Taxation",
-    difficulty: 2
-  },
-  {
-    front_content: "What is 'Tax Evasion'?",
-    back_content: "The illegal non-payment or underpayment of taxes, usually by deliberately making a false declaration",
-    topic: "Taxation",
-    difficulty: 2
-  },
-  {
-    front_content: "Explain 'Double Taxation'",
-    back_content: "When income is taxed twice, e.g., corporate profits taxed at corporate level and then dividends taxed at shareholder level",
-    topic: "Taxation",
-    difficulty: 3
-  },
-  {
-    front_content: "What is a 'Tax Haven'?",
-    back_content: "A country or territory where taxes are levied at a low rate or not at all",
-    topic: "Taxation",
-    difficulty: 2
-  },
-  {
-    front_content: "Define 'Property Tax'",
-    back_content: "A tax assessed on real estate by the local government, based on the value of the property",
-    topic: "Taxation",
-    difficulty: 1
-  },
-  {
-    front_content: "What is 'Transfer Pricing'?",
-    back_content: "The setting of prices for transactions between related entities, such as divisions of the same company",
-    topic: "Taxation",
-    difficulty: 3
-  },
-  {
-    front_content: "Explain 'Tax Base'",
-    back_content: "The total amount of assets or income that can be taxed by a taxing authority",
-    topic: "Taxation",
-    difficulty: 2
-  },
-  {
-    front_content: "What is 'Tax Incidence'?",
-    back_content: "The analysis of who ultimately bears the economic burden of a tax",
-    topic: "Taxation",
-    difficulty: 3
-  },
-  {
-    front_content: "Define 'Progressive Taxation'",
-    back_content: "A tax system where the tax rate increases as the taxable income increases",
-    topic: "Taxation",
-    difficulty: 2
-  },
-  {
-    front_content: "What is 'Regressive Taxation'?",
-    back_content: "A tax system where the tax rate decreases as the taxable income increases",
-    topic: "Taxation",
-    difficulty: 2
-  }
-];
-
-// Adding audit flashcards
-export const auditFlashcards: DefaultFlashcard[] = [
-  {
-    front_content: "What is an 'Audit'?",
-    back_content: "A systematic examination of financial records, documents, and processes to determine their accuracy, consistency, and compliance with established rules",
-    topic: "Audit",
-    difficulty: 1
-  },
-  {
-    front_content: "Define 'Internal Audit'",
-    back_content: "An independent, objective assurance and consulting activity designed to add value and improve an organization's operations",
-    topic: "Audit",
-    difficulty: 1
-  },
-  {
-    front_content: "What is 'External Audit'?",
-    back_content: "An audit conducted by an independent third party to provide an opinion on the fairness of financial statements",
-    topic: "Audit",
-    difficulty: 1
-  },
-  {
-    front_content: "Explain 'Audit Risk'",
-    back_content: "The risk that the auditor expresses an inappropriate opinion when the financial statements are materially misstated",
-    topic: "Audit",
-    difficulty: 2
-  },
-  {
-    front_content: "What is 'Materiality' in auditing?",
-    back_content: "A concept relating to the significance of transactions, balances and errors that could influence the economic decisions of users of financial statements",
-    topic: "Audit",
-    difficulty: 2
-  },
-  {
-    front_content: "Define 'Audit Evidence'",
-    back_content: "Information used by the auditor to arrive at the conclusions on which the audit opinion is based",
-    topic: "Audit",
-    difficulty: 1
-  },
-  {
-    front_content: "What is an 'Unqualified Opinion'?",
-    back_content: "An auditor's opinion that financial statements are fairly presented, in all material respects, in accordance with applicable financial reporting framework",
-    topic: "Audit",
-    difficulty: 2
-  },
-  {
-    front_content: "Explain 'Substantive Testing'",
-    back_content: "Audit procedures designed to detect material misstatements at the assertion level",
-    topic: "Audit",
-    difficulty: 2
-  },
-  {
-    front_content: "What are 'Controls Tests'?",
-    back_content: "Tests performed to obtain audit evidence about the effectiveness of the design and operation of internal controls",
-    topic: "Audit",
-    difficulty: 2
-  },
-  {
-    front_content: "Define 'Sampling Risk'",
-    back_content: "The risk that the auditor's conclusion based on a sample may be different from the conclusion if the entire population were subjected to the same audit procedure",
-    topic: "Audit",
-    difficulty: 3
-  },
-  {
-    front_content: "What is 'Audit Trail'?",
-    back_content: "A chronological record that provides documentary evidence of the sequence of activities that have affected a specific operation, procedure, or event",
-    topic: "Audit",
-    difficulty: 2
-  },
-  {
-    front_content: "Explain 'Analytical Procedures'",
-    back_content: "Evaluations of financial information through analysis of plausible relationships among both financial and non-financial data",
-    topic: "Audit",
-    difficulty: 2
-  },
-  {
-    front_content: "What is 'Audit Documentation'?",
-    back_content: "The record of audit procedures performed, relevant audit evidence obtained, and conclusions the auditor reached",
-    topic: "Audit",
-    difficulty: 1
-  },
-  {
-    front_content: "Define 'Fraud Risk'",
-    back_content: "The risk of material misstatement due to fraud – an intentional act by one or more individuals involving deception to obtain an unjust or illegal advantage",
-    topic: "Audit",
-    difficulty: 3
-  },
-  {
-    front_content: "What is the 'Auditor's Independence'?",
-    back_content: "The state of mind that permits the provision of an opinion without being affected by influences that compromise professional judgment",
-    topic: "Audit",
-    difficulty: 2
-  }
-];
 
 /**
- * Load default flashcards for a new user
- * @param userId - The ID of the user to load flashcards for
- * @returns Promise resolving to a boolean indicating success or failure
+ * Triggers the loading of default flashcards for a user
+ * 
+ * @param userId The ID of the user to load default flashcards for
+ * @returns Promise resolving to true if successful, false otherwise
  */
-export async function loadDefaultFlashcardsForUser(userId: string): Promise<boolean> {
+export const triggerDefaultFlashcardsLoad = async (userId: string): Promise<boolean> => {
   try {
-    const { data: existingCards, error: fetchError } = await supabase
-      .from('flashcards')
-      .select('id')
-      .eq('user_id', userId);
+    // Define default flashcard categories and their content
+    const defaultFlashcards = [
+      // Accounting
+      { 
+        front_content: "What is the accounting equation?", 
+        back_content: "Assets = Liabilities + Equity"
+      },
+      {
+        front_content: "What is the difference between accrual accounting and cash accounting?",
+        back_content: "Accrual accounting records revenue when earned and expenses when incurred, regardless of cash flow. Cash accounting records transactions only when cash is exchanged."
+      },
+      {
+        front_content: "What are the four main financial statements?",
+        back_content: "1. Balance Sheet\n2. Income Statement\n3. Cash Flow Statement\n4. Statement of Changes in Equity"
+      },
+      {
+        front_content: "What is depreciation?",
+        back_content: "Depreciation is the systematic allocation of the cost of a tangible asset over its useful life."
+      },
+      {
+        front_content: "What is the matching principle?",
+        back_content: "Expenses should be recognized in the same period as the revenues they helped to generate."
+      },
+      {
+        front_content: "What is goodwill in accounting?",
+        back_content: "Goodwill is an intangible asset representing the excess of purchase price over the fair value of net assets acquired in a business combination."
+      },
+      {
+        front_content: "What is the difference between FIFO and LIFO?",
+        back_content: "FIFO (First In, First Out): Oldest inventory items are sold first.\nLIFO (Last In, First Out): Newest inventory items are sold first."
+      },
+      {
+        front_content: "What is the purpose of a trial balance?",
+        back_content: "A trial balance is prepared to verify that the total of all debit balances equals the total of all credit balances, confirming mathematical accuracy."
+      },
+      {
+        front_content: "What is the difference between gross profit and net profit?",
+        back_content: "Gross profit = Revenue - Cost of goods sold.\nNet profit = Revenue - All expenses (COGS, operating expenses, taxes, etc.)"
+      },
+      {
+        front_content: "What is a contra asset account?",
+        back_content: "A contra asset account has a credit balance and offsets an asset account. Example: Accumulated Depreciation reduces the value of the related asset."
+      },
+      {
+        front_content: "What is the conservatism principle?",
+        back_content: "When in doubt, choose the accounting method that is least likely to overstate assets and income."
+      },
+      {
+        front_content: "What is the difference between revenue and income?",
+        back_content: "Revenue is the total amount of money received from sales before expenses are deducted. Income (or profit) is what remains after all expenses are subtracted from revenue."
+      },
+      {
+        front_content: "What is the purpose of closing entries?",
+        back_content: "Closing entries are made at the end of an accounting period to zero out temporary accounts and transfer their balances to permanent accounts."
+      },
+      {
+        front_content: "What is the difference between a journal and a ledger?",
+        back_content: "Journal is the book of original entry where transactions are recorded chronologically. Ledger is where transactions are classified and posted from journals by account."
+      },
+      {
+        front_content: "What is the accounting cycle?",
+        back_content: "The accounting cycle is a series of steps performed each accounting period, including: 1. Identifying transactions 2. Recording journal entries 3. Posting to ledger 4. Preparing trial balance 5. Adjusting entries 6. Adjusted trial balance 7. Financial statements 8. Closing entries 9. Post-closing trial balance"
+      },
       
-    if (fetchError) {
-      console.error('Error checking for existing flashcards:', fetchError);
-      return false;
-    }
-    
-    // Only load default flashcards if user has no flashcards
-    if (existingCards && existingCards.length > 0) {
-      console.log('User already has flashcards, skipping default flashcards load');
-      return true;
-    }
-    
-    const now = new Date().toISOString();
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    // Combine all flashcards
-    const allDefaultFlashcards = [
-      ...accountingFlashcards, 
-      ...financeFlashcards, 
-      ...standardsFlashcards,
-      ...taxationFlashcards,
-      ...auditFlashcards
+      // Finance
+      {
+        front_content: "What is the time value of money?",
+        back_content: "The concept that money available now is worth more than the same amount in the future due to its potential earning capacity."
+      },
+      {
+        front_content: "What is the formula for calculating Net Present Value (NPV)?",
+        back_content: "NPV = Σ [CF_t / (1+r)^t] - Initial Investment\nWhere: CF_t = Cash flow in period t, r = discount rate, t = time period"
+      },
+      {
+        front_content: "What is the Capital Asset Pricing Model (CAPM)?",
+        back_content: "Expected Return = Risk-Free Rate + β(Market Risk Premium)\nWhere β represents the asset's correlation with the market."
+      },
+      {
+        front_content: "What is the difference between systematic and unsystematic risk?",
+        back_content: "Systematic risk affects the entire market and cannot be diversified away (e.g., inflation, interest rates). Unsystematic risk is specific to individual companies or sectors and can be reduced through diversification."
+      },
+      {
+        front_content: "What is the efficient market hypothesis?",
+        back_content: "The theory that asset prices reflect all available information, making it impossible to consistently outperform the market through stock selection or market timing."
+      },
+      {
+        front_content: "What is the difference between stocks and bonds?",
+        back_content: "Stocks represent ownership in a company, with potential for dividends and capital appreciation. Bonds are debt instruments where the investor lends money to an entity for a fixed period with regular interest payments."
+      },
+      {
+        front_content: "What is the formula for calculating IRR (Internal Rate of Return)?",
+        back_content: "IRR is the discount rate that makes the NPV of all cash flows equal to zero: 0 = Σ [CF_t / (1+IRR)^t] - Initial Investment"
+      },
+      {
+        front_content: "What is the difference between operating leverage and financial leverage?",
+        back_content: "Operating leverage is the ratio of fixed costs to variable costs. Financial leverage refers to the use of debt to finance assets."
+      },
+      {
+        front_content: "What is the Gordon Growth Model?",
+        back_content: "P = D₁ / (k - g)\nWhere P = stock price, D₁ = expected dividend next year, k = required rate of return, g = constant dividend growth rate"
+      },
+      {
+        front_content: "What is the formula for calculating WACC (Weighted Average Cost of Capital)?",
+        back_content: "WACC = (E/V × Re) + (D/V × Rd × (1-T))\nWhere E = market value of equity, D = market value of debt, V = total market value, Re = cost of equity, Rd = cost of debt, T = tax rate"
+      },
+      {
+        front_content: "What is the Black-Scholes option pricing model used for?",
+        back_content: "It's a mathematical model used to calculate the theoretical price of European-style options, considering factors like stock price, strike price, time to expiration, risk-free rate, and volatility."
+      },
+      {
+        front_content: "What is the difference between futures and options contracts?",
+        back_content: "Futures are obligations to buy/sell at a future date at a predetermined price. Options give the right, but not obligation, to buy/sell at a specified price before expiration."
+      },
+      {
+        front_content: "What is arbitrage?",
+        back_content: "The simultaneous purchase and sale of an asset to profit from price differences in different markets without risk."
+      },
+      {
+        front_content: "What is the Modigliani-Miller theorem?",
+        back_content: "In perfect markets, a firm's value is unaffected by how it is financed (equity vs. debt). Capital structure is irrelevant to firm value."
+      },
+      {
+        front_content: "What is duration in bond pricing?",
+        back_content: "A measure of a bond's sensitivity to interest rate changes. It represents the weighted average time until all cash flows are received."
+      },
+
+      // Standards
+      {
+        front_content: "What is IFRS?",
+        back_content: "International Financial Reporting Standards - a set of accounting standards developed by the International Accounting Standards Board (IASB) for financial reporting globally."
+      },
+      {
+        front_content: "What is GAAP?",
+        back_content: "Generally Accepted Accounting Principles - the standard framework of guidelines for financial accounting used in the United States."
+      },
+      {
+        front_content: "What is the objective of IFRS 15?",
+        back_content: "IFRS 15 establishes principles for reporting useful information about the nature, amount, timing, and uncertainty of revenue and cash flows from contracts with customers."
+      },
+      {
+        front_content: "What is the difference between IAS and IFRS?",
+        back_content: "IAS (International Accounting Standards) were issued between 1973 and 2001. IFRS replaced IAS in 2001, though some IAS remain in effect until superseded by IFRS."
+      },
+      {
+        front_content: "What are the key components of IFRS 9?",
+        back_content: "IFRS 9 addresses: 1. Classification and measurement of financial instruments 2. Impairment methodology 3. Hedge accounting"
+      },
+      {
+        front_content: "What is the primary focus of IFRS 16?",
+        back_content: "IFRS 16 focuses on lease accounting, requiring lessees to recognize assets and liabilities for most leases on their balance sheets."
+      },
+      {
+        front_content: "What is the purpose of IAS 1?",
+        back_content: "IAS 1 prescribes the basis for presentation of general-purpose financial statements to ensure comparability with the entity's financial statements of previous periods and with financial statements of other entities."
+      },
+      {
+        front_content: "What is the conceptual framework in accounting standards?",
+        back_content: "The conceptual framework sets out the concepts that underlie the preparation and presentation of financial statements. It is not a standard itself but provides guidance for developing accounting standards."
+      },
+      {
+        front_content: "What is the difference between principles-based and rules-based accounting standards?",
+        back_content: "Principles-based standards (like IFRS) provide general guidelines that require professional judgment. Rules-based standards (like US GAAP) give specific, detailed rules to follow."
+      },
+      {
+        front_content: "What is the primary objective of IFRS 3?",
+        back_content: "IFRS 3 focuses on business combinations, requiring the acquisition method of accounting for all business combinations and identifying the acquirer in all business combinations."
+      },
+      {
+        front_content: "What is IFRS 13 about?",
+        back_content: "IFRS 13 establishes a single framework for measuring fair value and requires disclosures about fair value measurements."
+      },
+      {
+        front_content: "What is IAS 36 and when is it applied?",
+        back_content: "IAS 36 (Impairment of Assets) ensures assets are carried at no more than their recoverable amount and is applied to most non-financial assets."
+      },
+      {
+        front_content: "What is the purpose of IAS 12?",
+        back_content: "IAS 12 prescribes the accounting treatment for income taxes, including current and deferred tax."
+      },
+      {
+        front_content: "What is the difference between IFRS for SMEs and full IFRS?",
+        back_content: "IFRS for SMEs is a simplified version of full IFRS designed for small and medium-sized entities, with reduced disclosure requirements and simplified accounting treatments."
+      },
+      {
+        front_content: "What is the Conceptual Framework's definition of an asset?",
+        back_content: "An asset is a present economic resource controlled by the entity as a result of past events. An economic resource is a right that has the potential to produce economic benefits."
+      },
+
+      // Taxation
+      {
+        front_content: "What is the difference between tax avoidance and tax evasion?",
+        back_content: "Tax avoidance is legal minimization of taxes through legal means. Tax evasion is illegal non-payment or underpayment of taxes."
+      },
+      {
+        front_content: "What is double taxation?",
+        back_content: "When the same income is taxed twice, often occurring when income is taxed at both the corporate level and again at the personal level when distributed as dividends."
+      },
+      {
+        front_content: "What is a double taxation treaty?",
+        back_content: "An agreement between two countries to avoid taxing the same income twice and to prevent tax evasion."
+      },
+      {
+        front_content: "What is the purpose of withholding tax?",
+        back_content: "To collect tax directly from the source of income before the recipient receives it, ensuring tax compliance."
+      },
+      {
+        front_content: "What is a tax haven?",
+        back_content: "A jurisdiction offering little or no tax liability and limited financial transparency, often used for tax avoidance."
+      },
+      {
+        front_content: "What is transfer pricing?",
+        back_content: "The setting of prices for transactions between related entities, often subject to strict regulations to prevent tax base erosion."
+      },
+      {
+        front_content: "What is VAT (Value Added Tax)?",
+        back_content: "A consumption tax placed on products at each stage of production where value is added, ultimately paid by the end consumer."
+      },
+      {
+        front_content: "What is capital gains tax?",
+        back_content: "Tax on the profit realized from the sale of non-inventory assets like stocks, bonds, property, or other capital assets."
+      },
+      {
+        front_content: "What is the difference between direct and indirect taxes?",
+        back_content: "Direct taxes are levied on income and wealth of individuals or organizations (e.g., income tax, corporate tax). Indirect taxes are levied on goods and services (e.g., VAT, sales tax)."
+      },
+      {
+        front_content: "What is a progressive tax system?",
+        back_content: "A tax system where the tax rate increases as the taxable income increases, designed to distribute tax burden based on ability to pay."
+      },
+      {
+        front_content: "What is tax depreciation?",
+        back_content: "The allocation of the cost of tangible assets over their useful lives for tax purposes, often following different rules than accounting depreciation."
+      },
+      {
+        front_content: "What is the BEPS Action Plan?",
+        back_content: "Base Erosion and Profit Shifting Action Plan by OECD - a set of measures to tackle tax avoidance strategies that exploit gaps in tax rules to artificially shift profits."
+      },
+      {
+        front_content: "What is the arm's length principle in taxation?",
+        back_content: "The principle that transactions between related entities should be priced as if they were between independent entities under comparable circumstances."
+      },
+      {
+        front_content: "What is a tax credit?",
+        back_content: "A direct reduction in tax liability (dollar-for-dollar reduction), as opposed to a tax deduction which reduces taxable income."
+      },
+      {
+        front_content: "What is the difference between tax residency and tax domicile?",
+        back_content: "Tax residency typically depends on physical presence in a country, while tax domicile relates to a person's permanent home or where they have their closest ties."
+      },
+
+      // Audit
+      {
+        front_content: "What is the purpose of an audit?",
+        back_content: "To provide an independent opinion on whether financial statements are presented fairly, in all material respects, in accordance with the applicable financial reporting framework."
+      },
+      {
+        front_content: "What is audit materiality?",
+        back_content: "The threshold above which missing or incorrect information could influence the economic decisions of users taken on the basis of the financial statements."
+      },
+      {
+        front_content: "What is the difference between internal and external audit?",
+        back_content: "Internal audit focuses on evaluating and improving an organization's risk management, controls, and governance processes. External audit provides an independent opinion on financial statements."
+      },
+      {
+        front_content: "What are the three phases of an audit?",
+        back_content: "1. Planning - understanding the entity and risk assessment\n2. Execution - performing audit procedures\n3. Reporting - forming and communicating an opinion"
+      },
+      {
+        front_content: "What are audit assertions?",
+        back_content: "Claims or representations by management that are embodied in financial statements. Main categories include: Existence/Occurrence, Completeness, Rights/Obligations, Valuation, Presentation/Disclosure."
+      },
+      {
+        front_content: "What is an unqualified audit opinion?",
+        back_content: "A clean opinion indicating that financial statements present fairly, in all material respects, the financial position of the entity in accordance with applicable accounting standards."
+      },
+      {
+        front_content: "What is sampling in auditing?",
+        back_content: "The application of audit procedures to less than 100% of items to form conclusions about the entire population."
+      },
+      {
+        front_content: "What is the concept of professional skepticism in auditing?",
+        back_content: "An attitude that includes a questioning mind, being alert to conditions that may indicate possible misstatement, and critical assessment of audit evidence."
+      },
+      {
+        front_content: "What is an audit trail?",
+        back_content: "A chronological record that provides documentary evidence of the sequence of activities that have affected a specific operation, procedure, or event."
+      },
+      {
+        front_content: "What is a management letter in auditing?",
+        back_content: "A letter from auditors to management highlighting deficiencies in internal control or other issues noted during the audit, along with recommendations for improvement."
+      },
+      {
+        front_content: "What is substantive testing in auditing?",
+        back_content: "Audit procedures designed to detect material misstatements at the assertion level, including tests of details and substantive analytical procedures."
+      },
+      {
+        front_content: "What is a walkthrough in auditing?",
+        back_content: "Tracing a transaction from origin through the entity's information systems until it is reflected in financial reports, used to confirm understanding of systems and controls."
+      },
+      {
+        front_content: "What is the purpose of engagement quality control review?",
+        back_content: "An objective evaluation of significant judgments made and conclusions reached by the engagement team before the auditor's report is issued."
+      },
+      {
+        front_content: "What is the auditor's responsibility regarding fraud?",
+        back_content: "To obtain reasonable assurance that financial statements are free from material misstatement, whether due to fraud or error, by identifying and assessing risks and responding appropriately."
+      },
+      {
+        front_content: "What is the expectation gap in auditing?",
+        back_content: "The difference between what the public and users of financial statements believe auditors are responsible for and what auditors actually are responsible for according to professional standards."
+      }
     ];
-    
-    // Map to Supabase format
-    const flashcardsToInsert = allDefaultFlashcards.map(card => ({
-      user_id: userId,
-      front_content: card.front_content,
-      back_content: card.back_content,
-      topic_id: null, // We don't have topic IDs for default cards
-      difficulty: card.difficulty,
-      next_review_date: tomorrow.toISOString(),
-      repetition_count: 0,
-      mastery_level: 0,
-      easiness_factor: 2.5, // Default easiness factor
-      created_at: now,
-      updated_at: now,
-      last_retention: 0.85 // Default retention
-    }));
-    
-    // Insert all flashcards
-    const { error: insertError } = await supabase
-      .from('flashcards')
-      .insert(flashcardsToInsert);
-      
-    if (insertError) {
-      console.error('Error inserting default flashcards:', insertError);
-      return false;
+
+    // Batch insert default flashcards for the user
+    const batchSize = 20;
+    for (let i = 0; i < defaultFlashcards.length; i += batchSize) {
+      const batch = defaultFlashcards.slice(i, i + batchSize).map(card => ({
+        ...card,
+        user_id: userId,
+        difficulty: 3, // Medium difficulty by default
+        repetition_count: 0,
+        next_review_date: new Date().toISOString(),
+        mastery_level: 0,
+        easiness_factor: 2.5 // Default easiness factor
+      }));
+
+      const { error } = await supabase.from('flashcards').insert(batch);
+      if (error) {
+        console.error('Error inserting default flashcards batch:', error);
+        return false;
+      }
     }
-    
-    console.log(`Successfully loaded ${flashcardsToInsert.length} default flashcards for user ${userId}`);
+
     return true;
   } catch (error) {
     console.error('Error loading default flashcards:', error);
     return false;
   }
-}
-
-// Create a function to manually trigger loading default flashcards
-export async function triggerDefaultFlashcardsLoad(userId: string): Promise<boolean> {
-  // First, delete any existing flashcards for the user to ensure a clean slate
-  try {
-    const { error: deleteError } = await supabase
-      .from('flashcards')
-      .delete()
-      .eq('user_id', userId);
-      
-    if (deleteError) {
-      console.error('Error deleting existing flashcards:', deleteError);
-      return false;
-    }
-    
-    // Load the default flashcards
-    return await loadDefaultFlashcardsForUser(userId);
-  } catch (error) {
-    console.error('Error triggering default flashcards load:', error);
-    return false;
-  }
-}
+};
