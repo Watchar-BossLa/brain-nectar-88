@@ -1,7 +1,8 @@
 
 import { generateLearningPath as generatePath } from './learningPath/learningPathGenerator';
+import { LearningPath } from '@/types/learningPath';
 
-export const generateLearningPath = async (userId: string, topicIds: string[], difficulty = 'intermediate') => {
+export const generateLearningPath = async (userId: string, topicIds: string[], difficulty: "beginner" | "intermediate" | "advanced" = 'intermediate'): Promise<LearningPath> => {
   return generatePath(userId, topicIds, difficulty);
 };
 

@@ -10,11 +10,11 @@ interface EmptyFlashcardStateProps {
   description?: string;
 }
 
-const EmptyFlashcardState: React.FC<EmptyFlashcardStateProps> = ({ 
+const EmptyFlashcardState = ({ 
   onAddNew,
   title = "No flashcards yet", 
   description = "Create your first flashcard to start your spaced repetition learning journey."
-}) => {
+}: EmptyFlashcardStateProps) => {
   return (
     <Card className="border-dashed">
       <CardContent className="pt-6 pb-8 text-center">

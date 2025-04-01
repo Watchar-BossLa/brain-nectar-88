@@ -1,7 +1,7 @@
 
 import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import EmptyReviewState from '@/components/flashcards/review-page/EmptyReviewState';
+import EmptyFlashcardState from '@/components/flashcards/EmptyFlashcardState';
 import { useFlashcardReview } from '@/hooks/useFlashcardReview';
 import SpacedRepetitionCard from '@/components/flashcards/SpacedRepetitionCard';
 
@@ -16,7 +16,10 @@ const FlashcardReview = () => {
   if (!currentCard && reviewState !== 'complete') {
     return (
       <MainLayout>
-        <EmptyReviewState />
+        <EmptyFlashcardState 
+          title="No flashcards to review"
+          description="You've caught up with all your flashcard reviews. Well done!"
+        />
       </MainLayout>
     );
   }
@@ -33,7 +36,10 @@ const FlashcardReview = () => {
             onUpdateStats={completeReview}
           />
         ) : (
-          <EmptyReviewState />
+          <EmptyFlashcardState 
+            title="Review Complete"
+            description="You've completed all your flashcard reviews for now. Come back later for more!"
+          />
         )}
       </div>
     </MainLayout>
