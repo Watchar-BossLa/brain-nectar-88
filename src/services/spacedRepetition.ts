@@ -17,7 +17,7 @@ export {
   createFlashcard, 
   deleteFlashcard, 
   updateFlashcard 
-} from './spacedRepetition/flashcardMutation';
+} from './spacedRepetition/flashcardService';
 
 // Re-export other non-conflicting functions and types
 export * from './spacedRepetition/algorithm';

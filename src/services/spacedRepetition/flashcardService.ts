@@ -45,37 +45,6 @@ export const getDueFlashcards = async (userId: string, topicId?: string) => {
 };
 
 /**
- * Create multiple flashcards for a user
- */
-export const createFlashcardsInBulk = async (userId: string, flashcards: { front_content: string; back_content: string; topic_id?: string }[]) => {
-  try {
-    const formattedFlashcards = flashcards.map(card => ({
-      user_id: userId,
-      front_content: card.front_content,
-      back_content: card.back_content,
-      topic_id: card.topic_id || null,
-      difficulty: 1,
-      repetition_count: 0,
-      mastery_level: 0,
-      easiness_factor: INITIAL_EASINESS_FACTOR,
-      next_review_date: new Date().toISOString()
-    }));
-    
-    // Insert multiple flashcards as an array
-    const { data, error } = await supabase
-      .from('flashcards')
-      .insert(formattedFlashcards)
-      .select();
-      
-    if (error) throw error;
-    return data || [];
-  } catch (error) {
-    console.error('Error creating flashcards in bulk:', error);
-    return [];
-  }
-};
-
-/**
  * Create a new flashcard
  */
 export const createFlashcard = async (userId: string, frontContent: string, backContent: string, topicId?: string) => {
@@ -99,7 +68,7 @@ export const createFlashcard = async (userId: string, frontContent: string, back
     return data?.[0] || null;
   } catch (error) {
     console.error('Error creating flashcard:', error);
-    return null;
+    throw error;
   }
 };
 
