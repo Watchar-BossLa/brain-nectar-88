@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Flashcard } from '@/types/supabase';
+import { Flashcard } from '@/types/flashcards';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -62,8 +62,21 @@ export function useFlashcardsPage(): FlashcardHookResult {
           description: "Failed to load flashcards.",
           variant: "destructive",
         });
-      } else {
-        setFlashcards(data as Flashcard[]);
+      } else if (data) {
+        // Convert to the unified Flashcard type (including both DB and UI field names)
+        const convertedFlashcards: Flashcard[] = data.map(card => ({
+          ...card,
+          // Add UI field names for backward compatibility
+          front: card.front_content,
+          back: card.back_content,
+          userId: card.user_id,
+          topicId: card.topic_id,
+          repetitionCount: card.repetition_count,
+          masteryLevel: card.mastery_level || 0,
+          easinessFactor: card.easiness_factor || 2.5,
+        }));
+        
+        setFlashcards(convertedFlashcards);
         
         // Also update stats
         setStats({
@@ -75,7 +88,19 @@ export function useFlashcardsPage(): FlashcardHookResult {
         
         // Get due flashcards
         const dueCards = data.filter(card => new Date(card.next_review_date || '') <= new Date());
-        setDueFlashcards(dueCards as Flashcard[]);
+        const convertedDueCards: Flashcard[] = dueCards.map(card => ({
+          ...card,
+          // Add UI field names for backward compatibility
+          front: card.front_content,
+          back: card.back_content,
+          userId: card.user_id,
+          topicId: card.topic_id,
+          repetitionCount: card.repetition_count,
+          masteryLevel: card.mastery_level || 0,
+          easinessFactor: card.easiness_factor || 2.5,
+        }));
+        
+        setDueFlashcards(convertedDueCards);
       }
     } catch (error) {
       console.error("Unexpected error:", error);
@@ -102,3 +127,5 @@ export function useFlashcardsPage(): FlashcardHookResult {
     refreshFlashcards: loadUserFlashcards
   };
 }
+
+export type { Flashcard }; // Re-export the Flashcard type

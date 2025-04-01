@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFlashcardsPage } from '@/hooks/useFlashcardsPage';
 import AddFlashcardForm from '@/components/flashcards/AddFlashcardForm';
 import FlashcardGrid from '@/components/flashcards/FlashcardGrid';
-import { deleteFlashcard } from '@/services/flashcardService';
+import { deleteFlashcard } from '@/services/spacedRepetition';
 import { useToast } from '@/components/ui/use-toast';
 import AllFlashcardsTab from '@/components/flashcards/tabs/AllFlashcardsTab';
 import DueFlashcardsTab from '@/components/flashcards/tabs/DueFlashcardsTab';
@@ -72,7 +73,7 @@ const Flashcards = () => {
           <TabsContent value="all" className="mt-4">
             <AllFlashcardsTab 
               flashcards={flashcards || []} 
-              loading={loading} 
+              isLoading={loading} 
               onDelete={handleFlashcardDeleted}
               onAddNew={() => setIsDialogOpen(true)}
               onFlashcardsUpdated={reloadFlashcards}
@@ -81,7 +82,7 @@ const Flashcards = () => {
           <TabsContent value="due" className="mt-4">
             <DueFlashcardsTab 
               flashcards={dueFlashcards || []}
-              loading={loading}
+              isLoading={loading}
               onDelete={handleFlashcardDeleted}
               onAddNew={() => setIsDialogOpen(true)}
               onFlashcardsUpdated={reloadFlashcards}

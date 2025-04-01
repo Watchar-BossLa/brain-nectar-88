@@ -1,6 +1,5 @@
 
-export * from './SolanaContext';
-export * from './SolanaProvider';
-export * from './SolanaContextProvider';
-export * from './useSolana';
-export * from './types';
+export { SolanaContext } from './SolanaContext';
+export { SolanaContextProvider } from './SolanaContextProvider';
+export { useSolana } from './SolanaContext';
+export type { SolanaContextType } from './types';
