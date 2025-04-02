@@ -1,7 +1,8 @@
 
-import type { User } from '@supabase/supabase-js';
+// Re-export types from supabase-js
+import { type User as SupabaseUser } from '@supabase/supabase-js';
 
-export type { User }; // Re-export User type from supabase-js
+export type User = SupabaseUser; // Re-export as User for backward compatibility
 
 export interface Profile {
   id: string;
