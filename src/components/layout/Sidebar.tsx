@@ -1,79 +1,127 @@
 
-import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import {
-  LayoutDashboard,
-  GraduationCap,
-  BookOpen,
-  FileQuestion,
-  Map,
-  BrainCircuit,
-  UserCircle,
-  Settings,
-  Menu,
-  X
-} from 'lucide-react';
-import LanguageSwitcher from '@/components/language/LanguageSwitcher';
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { useLocation, useNavigate } from "react-router-dom";
+import { 
+  Home, 
+  BookOpen, 
+  Flame, 
+  GraduationCap, 
+  PenTool, 
+  Calendar, 
+  Settings, 
+  LogOut,
+  Brain,
+  Route,
+  TestTube
+} from "lucide-react";
+import { useAuth } from "@/context/auth";
 
-interface SidebarProps {
-  isOpen: boolean;
-  toggleSidebar: () => void;
-}
+export function Sidebar({ className }: { className?: string }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
-  const { t } = useTranslation();
+  const isActive = (path: string) => location.pathname === path;
 
-  const menuItems = [
-    { path: '/dashboard', icon: <LayoutDashboard size={20} />, label: t('navigation.dashboard') },
-    { path: '/quiz', icon: <FileQuestion size={20} />, label: t('navigation.quiz') },
-    { path: '/flashcards', icon: <BookOpen size={20} />, label: t('navigation.flashcards') },
-    { path: '/qualifications', icon: <GraduationCap size={20} />, label: t('navigation.qualifications') },
-    { path: '/learning-paths', icon: <Map size={20} />, label: t('navigation.learningPaths') },
-    { path: '/cognitive-profile', icon: <BrainCircuit size={20} />, label: 'Cognitive Profile' },
-    { path: '/profile', icon: <UserCircle size={20} />, label: t('navigation.profile') },
-    { path: '/settings', icon: <Settings size={20} />, label: t('navigation.settings') }
+  const handleNavigate = (path: string) => {
+    navigate(path);
+  };
+
+  const navItems = [
+    {
+      icon: Home,
+      label: "Home",
+      path: "/",
+    },
+    {
+      icon: GraduationCap,
+      label: "Qualifications",
+      path: "/qualifications",
+    },
+    {
+      icon: Route,
+      label: "Learning Path",
+      path: "/learning-path",
+    },
+    {
+      icon: BookOpen,
+      label: "Courses",
+      path: "/courses",
+    },
+    {
+      icon: Flame,
+      label: "Flashcards",
+      path: "/flashcards",
+      isPriority: true, // Mark as priority for styling
+    },
+    {
+      icon: PenTool,
+      label: "Assessment",
+      path: "/assessment",
+    },
+    {
+      icon: Calendar,
+      label: "Study Planner",
+      path: "/study-planner",
+    },
+    {
+      icon: Brain,
+      label: "AI Dashboard",
+      path: "/agent-dashboard",
+    },
+    {
+      icon: TestTube,
+      label: "Testing",
+      path: "/testing",
+    },
+    {
+      icon: Settings,
+      label: "Settings",
+      path: "/settings",
+    },
   ];
 
   return (
-    <aside
-      className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-gray-200 overflow-y-auto transition-all duration-300 w-64 dark:bg-gray-950 dark:border-gray-800 
-        ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0 md:w-16'}`}
-    >
-      <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-800">
-        <span className={`text-lg font-semibold ${!isOpen && 'md:hidden'}`}>Study Bee</span>
-        <button
-          onClick={toggleSidebar}
-          className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-900 md:hidden"
-        >
-          {isOpen ? <X size={22} /> : <Menu size={22} />}
-        </button>
-      </div>
-
-      <nav className="flex flex-col flex-1 p-2 space-y-1">
-        {menuItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              `px-3 py-2.5 rounded-md flex items-center space-x-3 transition-colors ${
-                isActive
-                  ? 'bg-gray-100 text-black dark:bg-gray-800 dark:text-white'
-                  : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-900'
-              } ${!isOpen && 'md:justify-center md:px-2'}`
-            }
+    <div className={cn("pb-12 min-h-screen", className)}>
+      <div className="space-y-4 py-4">
+        <div className="px-4 py-2">
+          <h2 
+            className="mb-2 px-2 text-xl font-semibold tracking-tight cursor-pointer"
+            onClick={() => handleNavigate('/')}
           >
-            {item.icon}
-            <span className={`${!isOpen && 'md:hidden'}`}>{item.label}</span>
-          </NavLink>
-        ))}
-      </nav>
-
-      <div className="p-4 border-t border-gray-200 dark:border-gray-800">
-        <LanguageSwitcher />
+            Study Bee
+          </h2>
+          <div className="space-y-1">
+            {navItems.map((item) => (
+              <Button
+                key={item.path}
+                variant={isActive(item.path) ? "default" : "ghost"}
+                className={cn(
+                  "w-full justify-start",
+                  isActive(item.path) && "bg-primary text-primary-foreground",
+                  item.isPriority && !isActive(item.path) && "border border-yellow-300/50" // Special styling for priority items
+                )}
+                onClick={() => handleNavigate(item.path)}
+              >
+                <item.icon className={cn("mr-2 h-4 w-4", item.isPriority && "text-yellow-500")} />
+                {item.label}
+                {item.isPriority && <span className="ml-auto text-xs bg-yellow-500/10 text-yellow-600 px-1.5 py-0.5 rounded-full">New</span>}
+              </Button>
+            ))}
+          </div>
+        </div>
       </div>
-    </aside>
+      <div className="px-4 absolute bottom-4 w-full">
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
+          onClick={() => signOut()}
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Log out
+        </Button>
+      </div>
+    </div>
   );
-};
-
-export default Sidebar;
+}

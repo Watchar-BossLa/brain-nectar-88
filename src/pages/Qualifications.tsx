@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useTranslation } from 'react-i18next';
 import MainLayout from '@/components/layout/MainLayout';
 import { 
   QualificationsHeader,
@@ -12,8 +11,6 @@ import {
 } from '@/components/qualifications';
 
 const Qualifications = () => {
-  const { t } = useTranslation();
-  
   const container = {
     hidden: { opacity: 0 },
     show: {

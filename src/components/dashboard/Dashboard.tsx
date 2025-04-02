@@ -2,8 +2,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/auth';
-import { useTranslation } from 'react-i18next';
 import QuizBasedLearningPath from '@/components/learning/QuizBasedLearningPath';
+
+// Import your existing components
 import StudyProgress from './StudyProgress';
 import UpcomingAssessments from './UpcomingAssessments';
 import RecommendedStudy from './RecommendedStudy';
@@ -11,7 +12,6 @@ import RecentActivity from './RecentActivity';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const { t } = useTranslation();
   
   // Animation variants for staggered animation
   const container = {
@@ -35,9 +35,9 @@ const Dashboard: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className="text-3xl font-bold">{t('dashboard.welcome')}, {user?.user_metadata?.name || t('common.student')}</h1>
+        <h1 className="text-3xl font-bold">Welcome back, {user?.user_metadata?.name || 'Student'}</h1>
         <p className="text-muted-foreground mt-1">
-          {t('dashboard.progress')}
+          Track your progress and continue your learning journey
         </p>
       </motion.div>
       

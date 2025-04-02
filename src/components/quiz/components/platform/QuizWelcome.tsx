@@ -1,19 +1,16 @@
 
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { ChevronRight, Settings } from 'lucide-react';
 import { QuizWelcomeProps } from '../../types/platform-types';
 
 const QuizWelcome: React.FC<QuizWelcomeProps> = ({ setShowSettings, handleStartQuiz }) => {
-  const { t } = useTranslation();
-
   return (
     <div className="flex flex-col items-center justify-center py-4">
       <div className="text-center space-y-2 mb-6">
-        <h2 className="text-xl font-semibold">{t('quiz.ready')}</h2>
+        <h2 className="text-xl font-semibold">Ready to test your knowledge?</h2>
         <p className="text-muted-foreground">
-          {t('quiz.adaptive')}
+          This adaptive quiz will adjust to your skill level as you progress.
         </p>
       </div>
       
@@ -22,7 +19,7 @@ const QuizWelcome: React.FC<QuizWelcomeProps> = ({ setShowSettings, handleStartQ
           className="w-full"
           onClick={handleStartQuiz}
         >
-          {t('quiz.start')}
+          Start Quiz
           <ChevronRight className="h-4 w-4 ml-1" />
         </Button>
         <Button 
@@ -30,7 +27,7 @@ const QuizWelcome: React.FC<QuizWelcomeProps> = ({ setShowSettings, handleStartQ
           className="w-full"
           onClick={() => setShowSettings(true)}
         >
-          {t('quiz.customize')}
+          Customize
           <Settings className="h-4 w-4 ml-1" />
         </Button>
       </div>

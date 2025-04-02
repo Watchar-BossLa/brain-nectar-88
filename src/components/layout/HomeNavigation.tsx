@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { 
   BookOpen, 
   GraduationCap, 
@@ -46,27 +47,15 @@ const navigationItems = [
     path: '/flashcards'
   },
   {
-    name: 'Assessment',
+    name: 'Adaptive Learning',
     icon: <Brain className="h-4 w-4 mr-2" />,
-    path: '/assessment'
+    path: '/adaptive-quiz'
   }
 ];
 
 const HomeNavigation: React.FC = () => {
-  // Use React Router hooks safely with try/catch to handle when not in Router context
-  let location;
-  let navigate;
-  
-  try {
-    location = useLocation();
-    navigate = useNavigate();
-  } catch (error) {
-    console.warn("Router hooks not available, navigation might be limited");
-    location = { pathname: '/' };
-    navigate = (path: string) => {
-      window.location.href = path;
-    };
-  }
+  const location = useLocation();
+  const navigate = useNavigate();
   
   // Find the active tab based on the current path
   const findActiveTab = () => {

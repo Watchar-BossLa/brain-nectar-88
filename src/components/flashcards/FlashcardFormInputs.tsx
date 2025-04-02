@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -24,15 +23,13 @@ const FlashcardFormInputs: React.FC<FlashcardFormInputsProps> = ({
   setTopicId,
   topics
 }) => {
-  const { t } = useTranslation();
-  
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="front-content">{t('flashcards.front')}</Label>
+        <Label htmlFor="front-content">Front (Question)</Label>
         <Textarea
           id="front-content"
-          placeholder={t('flashcards.front')}
+          placeholder="Enter the question or prompt (use $$formula$$ for math formulas)"
           value={frontContent}
           onChange={(e) => setFrontContent(e.target.value)}
           rows={3}
@@ -40,10 +37,10 @@ const FlashcardFormInputs: React.FC<FlashcardFormInputsProps> = ({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="back-content">{t('flashcards.back')}</Label>
+        <Label htmlFor="back-content">Back (Answer)</Label>
         <Textarea
           id="back-content"
-          placeholder={t('flashcards.back')}
+          placeholder="Enter the answer or explanation (use $$formula$$ for math formulas)"
           value={backContent}
           onChange={(e) => setBackContent(e.target.value)}
           rows={3}
