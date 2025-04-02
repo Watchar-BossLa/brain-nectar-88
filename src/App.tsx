@@ -15,6 +15,10 @@ import { AuthProvider } from './context/auth';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import TestingPage from './pages/TestingPage';
 import Index from './pages/Index';
+import { LanguageProvider } from './context/language/LanguageContext';
+
+// Import i18n configuration
+import './i18n/i18n';
 
 const queryClient = new QueryClient();
 
@@ -22,23 +26,25 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="study-bee-theme">
-        <AuthProvider>
-          <Router>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/cognitive-profile" element={<ProtectedRoute><CognitiveProfile /></ProtectedRoute>} />
-              <Route path="/quiz" element={<ProtectedRoute><AdaptiveQuiz topicIds={[]} /></ProtectedRoute>} />
-              <Route path="/learning-paths" element={<ProtectedRoute><LearningPaths /></ProtectedRoute>} />
-              <Route path="/qualifications" element={<ProtectedRoute><Qualifications /></ProtectedRoute>} />
-              <Route path="/flashcards" element={<ProtectedRoute><Flashcards /></ProtectedRoute>} />
-              <Route path="/flashcard-review" element={<ProtectedRoute><FlashcardReview /></ProtectedRoute>} />
-              <Route path="/quiz-history" element={<ProtectedRoute><QuizHistory /></ProtectedRoute>} />
-              <Route path="/standards" element={<ProtectedRoute><Standards /></ProtectedRoute>} />
-              <Route path="/testing" element={<ProtectedRoute><TestingPage /></ProtectedRoute>} />
-            </Routes>
-          </Router>
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <Router>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/cognitive-profile" element={<ProtectedRoute><CognitiveProfile /></ProtectedRoute>} />
+                <Route path="/quiz" element={<ProtectedRoute><AdaptiveQuiz topicIds={[]} /></ProtectedRoute>} />
+                <Route path="/learning-paths" element={<ProtectedRoute><LearningPaths /></ProtectedRoute>} />
+                <Route path="/qualifications" element={<ProtectedRoute><Qualifications /></ProtectedRoute>} />
+                <Route path="/flashcards" element={<ProtectedRoute><Flashcards /></ProtectedRoute>} />
+                <Route path="/flashcard-review" element={<ProtectedRoute><FlashcardReview /></ProtectedRoute>} />
+                <Route path="/quiz-history" element={<ProtectedRoute><QuizHistory /></ProtectedRoute>} />
+                <Route path="/standards" element={<ProtectedRoute><Standards /></ProtectedRoute>} />
+                <Route path="/testing" element={<ProtectedRoute><TestingPage /></ProtectedRoute>} />
+              </Routes>
+            </Router>
+          </AuthProvider>
+        </LanguageProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
