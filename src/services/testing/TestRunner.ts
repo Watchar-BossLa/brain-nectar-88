@@ -1,7 +1,7 @@
-// Update the section with getSession call
+
 import { supabase } from '@/integrations/supabase/client';
 
-interface TestResult {
+export interface TestResult {
   success: boolean;
   message: string;
   details?: any;
@@ -13,6 +13,22 @@ export interface TestSuite {
   tests: {
     [testName: string]: () => Promise<TestResult>;
   };
+}
+
+export interface TestIssue {
+  component: string;
+  description: string;
+  severity: 'critical' | 'high' | 'moderate' | 'low';
+  recommendation: string;
+}
+
+export interface TestSummary {
+  totalTests: number;
+  passedTests: number;
+  duration: number;
+  timestamp: string;
+  issues: TestIssue[];
+  results: Record<string, any>;
 }
 
 export class TestRunner {
@@ -54,10 +70,45 @@ export class TestRunner {
     return results;
   }
   
+  async runAll(): Promise<TestSummary> {
+    const startTime = Date.now();
+    const results = await this.runAllTests();
+    const endTime = Date.now();
+    
+    let totalTests = 0;
+    let passedTests = 0;
+    const issues: TestIssue[] = [];
+    
+    // Process results to generate summary
+    Object.entries(results).forEach(([suiteName, suiteResults]) => {
+      Object.entries(suiteResults).forEach(([testName, result]) => {
+        totalTests++;
+        if (result.success) {
+          passedTests++;
+        } else {
+          // Create an issue for each failed test
+          issues.push({
+            component: suiteName,
+            description: `Test "${testName}" failed: ${result.message}`,
+            severity: result.details?.severity || 'moderate',
+            recommendation: result.details?.recommendation || 'Review the test output and fix the underlying issue.'
+          });
+        }
+      });
+    });
+    
+    return {
+      totalTests,
+      passedTests,
+      duration: endTime - startTime,
+      timestamp: new Date().toISOString(),
+      issues,
+      results
+    };
+  }
+  
   private async initializeTests(): Promise<void> {
-    // Update this section to use the correct Supabase API
     try {
-      // Replace getSession with the correct API call
       const { data, error } = await supabase.auth.getSession();
       
       if (error) {
@@ -78,3 +129,6 @@ export class TestRunner {
     }
   }
 }
+
+// Create and export a singleton instance
+export const testRunner = new TestRunner();

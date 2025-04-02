@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { appTester, TestResult } from '@/services/testing/AppTester';
@@ -8,7 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { toast } from '@/components/ui/use-toast';
 import { Loader2, PlayCircle, AlertCircle, Check, BugPlay } from 'lucide-react';
-import { testRunner, TestSummary } from '@/services/testing/TestRunner';
+import { TestRunner, TestSummary, testRunner } from '@/services/testing/TestRunner';
 import { TestResults } from '@/components/testing/TestResults';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
