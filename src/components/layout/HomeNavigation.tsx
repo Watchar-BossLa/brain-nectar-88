@@ -29,7 +29,7 @@ const navigationItems = [
   {
     name: 'Dashboard',
     icon: <BarChart2 className="h-4 w-4 mr-2" />,
-    path: '/'
+    path: '/dashboard'
   },
   {
     name: 'Courses',
@@ -49,7 +49,7 @@ const navigationItems = [
   {
     name: 'Adaptive Learning',
     icon: <Brain className="h-4 w-4 mr-2" />,
-    path: '/adaptive-quiz'
+    path: '/quiz'
   }
 ];
 
@@ -81,7 +81,7 @@ const HomeNavigation: React.FC = () => {
   };
 
   const handleHomeNavigation = () => {
-    navigate('/');
+    navigate('/dashboard');
   };
 
   return (
@@ -135,9 +135,9 @@ const HomeNavigation: React.FC = () => {
               {/* Home navigation always included in mobile menu */}
               <SheetClose asChild>
                 <Link
-                  to="/"
+                  to="/dashboard"
                   className={`flex items-center px-4 py-2 rounded-md hover:bg-secondary ${
-                    location.pathname === "/" ? "bg-primary/10 text-primary" : ""
+                    location.pathname === "/dashboard" ? "bg-primary/10 text-primary" : ""
                   }`}
                 >
                   <Home className="h-4 w-4 mr-2" />
@@ -146,7 +146,7 @@ const HomeNavigation: React.FC = () => {
               </SheetClose>
               
               {navigationItems.map((item) => (
-                item.path !== "/" && (
+                item.path !== "/dashboard" && (
                   <SheetClose key={item.name} asChild>
                     <Link
                       to={item.path}
