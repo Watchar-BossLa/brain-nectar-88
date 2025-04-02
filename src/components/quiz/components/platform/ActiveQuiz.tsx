@@ -3,21 +3,47 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import ActiveQuizCard from '../ActiveQuizCard';
 import ConfidenceSlider from '../ConfidenceSlider';
-import { ActiveQuizProps } from '../../types/platform-types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Brain, TrendingUp, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import FeedbackDialog from '../feedback/FeedbackDialog';
 import { useToast } from '@/components/ui/use-toast';
 
+// Define the correct props interface for ActiveQuiz
+interface ActiveQuizProps {
+  currentQuestion: any;
+  currentIndex: number;
+  totalQuestions: number;
+  selectedAnswer: string;
+  setSelectedAnswer: (answer: string) => void;
+  isAnswerSubmitted: boolean;
+  isCorrect: boolean | null;
+  userConfidence: number;
+  handleConfidenceChange: (value: number) => void;
+  submitAnswer: () => void;
+  nextQuestion: () => void;
+  previousQuestion: () => void;
+  skipQuestion: () => void;
+  availableQuestions: any[];
+}
+
 // Update the component to use the correct props
 const ActiveQuiz: React.FC<ActiveQuizProps> = ({ 
-  quiz, 
-  filteredQuestions, 
-  questionCount,
+  currentQuestion,
+  currentIndex,
+  totalQuestions,
+  selectedAnswer,
+  setSelectedAnswer,
+  isAnswerSubmitted,
+  isCorrect,
   userConfidence,
-  handleConfidenceChange
+  handleConfidenceChange,
+  submitAnswer,
+  nextQuestion,
+  previousQuestion,
+  skipQuestion,
+  availableQuestions
 }) => {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const { toast } = useToast();
@@ -45,9 +71,9 @@ const ActiveQuiz: React.FC<ActiveQuizProps> = ({
     >
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">Question {quiz.currentIndex + 1}</h2>
-          <p className="text-muted-foreground">
-            {Math.round((quiz.currentIndex / questionCount) * 100)}% complete
+          <h2 className="text-2xl font-bold">Question {currentIndex + 1}</h2>
+          <p className="text-muted-foreground mt-1">
+            {Math.round((currentIndex / totalQuestions) * 100)}% complete
           </p>
         </div>
         
@@ -63,33 +89,33 @@ const ActiveQuiz: React.FC<ActiveQuizProps> = ({
       </div>
       
       <ActiveQuizCard
-        currentQuestion={quiz.currentQuestion}
-        currentIndex={quiz.currentIndex}
-        availableQuestions={filteredQuestions.slice(0, questionCount)}
-        selectedAnswer={quiz.selectedAnswer}
-        setSelectedAnswer={quiz.setSelectedAnswer}
-        isAnswerSubmitted={quiz.isAnswerSubmitted}
-        isCorrect={quiz.isCorrect}
-        submitAnswer={quiz.submitAnswer}
-        nextQuestion={quiz.nextQuestion}
-        previousQuestion={quiz.previousQuestion}
-        skipQuestion={quiz.skipQuestion}
+        currentQuestion={currentQuestion}
+        currentIndex={currentIndex}
+        availableQuestions={availableQuestions.slice(0, totalQuestions)}
+        selectedAnswer={selectedAnswer}
+        setSelectedAnswer={setSelectedAnswer}
+        isAnswerSubmitted={isAnswerSubmitted}
+        isCorrect={isCorrect}
+        submitAnswer={submitAnswer}
+        nextQuestion={nextQuestion}
+        previousQuestion={previousQuestion}
+        skipQuestion={skipQuestion}
       />
       
-      {!quiz.isAnswerSubmitted && (
+      {!isAnswerSubmitted && (
         <div>
           <ConfidenceSlider
             value={userConfidence}
             onChange={handleConfidenceChange}
-            disabled={quiz.isAnswerSubmitted}
+            disabled={isAnswerSubmitted}
           />
         </div>
       )}
 
       {/* Feedback Dialog */}
       <FeedbackDialog
-        questionId={quiz.currentQuestion?.id || 'general'}
-        questionText={quiz.currentQuestion?.text || 'Overall quiz feedback'}
+        questionId={currentQuestion?.id || 'general'}
+        questionText={currentQuestion?.text || 'Overall quiz feedback'}
         isOpen={isFeedbackOpen}
         onClose={() => setIsFeedbackOpen(false)}
         onSubmitFeedback={handleSubmitFeedback}

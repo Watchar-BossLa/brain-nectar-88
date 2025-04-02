@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -78,10 +77,10 @@ const AITutorAssistant: React.FC<AITutorAssistantProps> = ({
       // In a real implementation, you'd send the image to a service that can process it
       // For now, we'll simulate using the LLM orchestration
       
-      if (isInitialized) {
+      if (isInitialized && TaskCategory) {
         const result = await generateText(
           `${contextPrompt}\n\nMedia content: [Image of ${subject || 'academic'} equation/problem]`, 
-          TaskCategory.TUTORING,
+          TaskCategory.TEXT_GENERATION, // Using TEXT_GENERATION instead of TUTORING
           0.8, // Higher complexity for educational content
           subject ? [subject] : []
         );
@@ -130,10 +129,10 @@ const AITutorAssistant: React.FC<AITutorAssistantProps> = ({
     const previousResponse = response;
     
     try {
-      if (isInitialized) {
+      if (isInitialized && TaskCategory) {
         const result = await generateText(
           `Previous context: ${previousResponse}\n\nUser question: ${userInput}`,
-          TaskCategory.TUTORING,
+          TaskCategory.TEXT_GENERATION, // Using TEXT_GENERATION instead of TUTORING
           0.8,
           subject ? [subject] : []
         );

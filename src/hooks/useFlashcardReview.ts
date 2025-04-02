@@ -53,6 +53,9 @@ export const useFlashcardReview = (onComplete?: () => void) => {
     setReviewState('answering');
   };
 
+  // Alias for showAnswer to match component expectations
+  const handleFlip = showAnswer;
+
   const rateCard = async (difficulty: number) => {
     if (!currentCard) return;
     
@@ -129,6 +132,22 @@ export const useFlashcardReview = (onComplete?: () => void) => {
     }
   };
   
+  // Alias for rateCard to match component expectations
+  const handleDifficultyRating = rateCard;
+
+  const handleSkip = () => {
+    // Skip the current card and move to the next one
+    const currentIndex = reviewCards.findIndex(card => card.id === currentCard.id);
+    if (currentIndex < reviewCards.length - 1) {
+      setCurrentCard(reviewCards[currentIndex + 1]);
+      setReviewState('reviewing');
+    } else {
+      setReviewState('complete');
+      setCurrentCard(null);
+      if (onComplete) onComplete();
+    }
+  };
+  
   const completeReview = () => {
     if (onComplete) onComplete();
   };
@@ -141,6 +160,11 @@ export const useFlashcardReview = (onComplete?: () => void) => {
     rateCard,
     completeReview,
     isLoading,
-    reviewCards
+    reviewCards,
+    // Add these methods to match the expected interface
+    handleFlip,
+    handleDifficultyRating,
+    handleSkip,
+    currentCardIndex: reviewCards.findIndex(card => card && currentCard && card.id === currentCard.id)
   };
 };

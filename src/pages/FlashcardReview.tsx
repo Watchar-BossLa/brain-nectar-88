@@ -17,7 +17,7 @@ const FlashcardReview = () => {
     currentCard,
     reviewState,
     handleFlip,
-    handleDifficultyRating,
+    rateCard,
     handleSkip
   } = useFlashcardReview(() => {
     // Callback for when review is complete
@@ -71,7 +71,7 @@ const FlashcardReview = () => {
       
       <RatingButtons 
         isFlipped={isFlipped}
-        onRating={handleDifficultyRating}
+        onRating={rateCard}
         onSkip={handleSkip}
         onRevealAnswer={handleFlip}
       />
