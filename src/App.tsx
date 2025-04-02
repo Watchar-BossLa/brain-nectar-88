@@ -11,9 +11,10 @@ import Flashcards from './pages/Flashcards';
 import FlashcardReview from './pages/FlashcardReview';
 import QuizHistory from './pages/QuizHistory';
 import Standards from './pages/Standards';
-import AuthProvider from './context/AuthContext';
+import { AuthProvider } from './context/auth';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import TestingPage from './pages/TestingPage';
+import Index from './pages/Index';
 
 const queryClient = new QueryClient();
 
@@ -24,7 +25,8 @@ function App() {
         <AuthProvider>
           <Router>
             <Routes>
-              <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/" element={<Index />} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/cognitive-profile" element={<ProtectedRoute><CognitiveProfile /></ProtectedRoute>} />
               <Route path="/quiz" element={<ProtectedRoute><AdaptiveQuiz topicIds={[]} /></ProtectedRoute>} />
               <Route path="/learning-paths" element={<ProtectedRoute><LearningPaths /></ProtectedRoute>} />
