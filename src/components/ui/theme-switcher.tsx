@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import { Sun, Moon, Monitor, Contrast } from 'lucide-react';
-import { useTheme } from '@/context/theme';
+import { useTheme } from '@/context/theme/ThemeContext'; // Update import to use the ThemeContext from the correct path
 import { cn } from '@/lib/utils';
 
 export function ThemeSwitcher({ className }: { className?: string }) {
