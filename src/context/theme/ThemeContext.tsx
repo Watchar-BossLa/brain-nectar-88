@@ -1,87 +1,98 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useMediaQuery } from '@/hooks/useMediaQuery';
 
-type Theme = {
-  mode: 'light' | 'dark' | 'system';
+type ThemeMode = 'light' | 'dark' | 'system';
+type ThemeState = {
+  mode: ThemeMode;
   highContrast: boolean;
 };
 
 interface ThemeContextType {
-  theme: Theme;
-  setMode: (mode: 'light' | 'dark' | 'system') => void;
+  theme: ThemeState;
+  setTheme: (theme: ThemeState) => void;
+  setMode: (mode: ThemeMode) => void;
   toggleHighContrast: () => void;
 }
 
+const initialTheme: ThemeState = {
+  mode: 'system',
+  highContrast: false,
+};
+
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export function useTheme(): ThemeContextType {
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setTheme] = useState<ThemeState>(() => {
+    // Try to get the theme from localStorage
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme ? JSON.parse(savedTheme) : initialTheme;
+  });
+
+  // Update theme in localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('theme', JSON.stringify(theme));
+  }, [theme]);
+
+  // Apply the theme to the document
+  useEffect(() => {
+    const root = window.document.documentElement;
+    
+    // Remove all previous theme classes
+    root.classList.remove('light', 'dark', 'high-contrast');
+    
+    // Apply mode
+    if (theme.mode === 'system') {
+      const systemPreference = window.matchMedia('(prefers-color-scheme: dark)').matches 
+        ? 'dark' 
+        : 'light';
+      root.classList.add(systemPreference);
+    } else {
+      root.classList.add(theme.mode);
+    }
+    
+    // Apply high contrast if enabled
+    if (theme.highContrast) {
+      root.classList.add('high-contrast');
+    }
+  }, [theme]);
+
+  // Listen for system preference changes
+  useEffect(() => {
+    if (theme.mode !== 'system') return;
+    
+    const handleSystemPreferenceChange = (e: MediaQueryListEvent) => {
+      const root = window.document.documentElement;
+      root.classList.remove('light', 'dark');
+      root.classList.add(e.matches ? 'dark' : 'light');
+    };
+    
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    mediaQuery.addEventListener('change', handleSystemPreferenceChange);
+    
+    return () => {
+      mediaQuery.removeEventListener('change', handleSystemPreferenceChange);
+    };
+  }, [theme.mode]);
+
+  const setMode = (mode: ThemeMode) => {
+    setTheme({ ...theme, mode });
+  };
+
+  const toggleHighContrast = () => {
+    setTheme({ ...theme, highContrast: !theme.highContrast });
+  };
+
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme, setMode, toggleHighContrast }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+export function useTheme() {
   const context = useContext(ThemeContext);
   if (context === undefined) {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
   return context;
 }
-
-export interface ThemeProviderProps {
-  children: React.ReactNode;
-}
-
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>({
-    mode: 'system',
-    highContrast: false,
-  });
-
-  const prefersDark = useMediaQuery('(prefers-color-scheme: dark)');
-
-  useEffect(() => {
-    // Load theme settings from localStorage if available
-    const savedTheme = localStorage.getItem('study-bee-theme');
-    if (savedTheme) {
-      try {
-        const parsedTheme = JSON.parse(savedTheme);
-        setTheme(parsedTheme);
-      } catch (e) {
-        console.error('Error parsing saved theme:', e);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    // Update HTML element class based on theme settings
-    const root = window.document.documentElement;
-    
-    // Remove existing theme classes
-    root.classList.remove('light', 'dark', 'high-contrast');
-    
-    // Apply appropriate theme
-    if (theme.mode === 'system') {
-      root.classList.add(prefersDark ? 'dark' : 'light');
-    } else {
-      root.classList.add(theme.mode);
-    }
-    
-    // Apply high contrast if needed
-    if (theme.highContrast) {
-      root.classList.add('high-contrast');
-    }
-    
-    // Save settings to localStorage
-    localStorage.setItem('study-bee-theme', JSON.stringify(theme));
-  }, [theme, prefersDark]);
-
-  const setMode = (mode: 'light' | 'dark' | 'system') => {
-    setTheme(prev => ({ ...prev, mode }));
-  };
-
-  const toggleHighContrast = () => {
-    setTheme(prev => ({ ...prev, highContrast: !prev.highContrast }));
-  };
-
-  return (
-    <ThemeContext.Provider value={{ theme, setMode, toggleHighContrast }}>
-      {children}
-    </ThemeContext.Provider>
-  );
-};
