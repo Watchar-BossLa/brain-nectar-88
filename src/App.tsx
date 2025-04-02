@@ -1,7 +1,7 @@
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
-import { AuthProvider } from './context/auth';
+import { AuthProvider } from '@/context/auth';
 import { ThemeProvider } from './context/theme';
 import { SolanaContextProvider } from './context/blockchain/SolanaContextProvider';
 import Login from './pages/Login';
