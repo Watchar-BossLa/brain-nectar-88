@@ -10,7 +10,7 @@ import Flashcards from './pages/Flashcards';
 import FlashcardReview from './pages/FlashcardReview';
 import QuizHistory from './pages/QuizHistory';
 import Standards from './pages/Standards';
-import { AuthProvider } from './context/auth/AuthProvider';
+import { AuthProvider } from './context/auth';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import TestingPage from './pages/TestingPage';
 import Index from './pages/Index';
