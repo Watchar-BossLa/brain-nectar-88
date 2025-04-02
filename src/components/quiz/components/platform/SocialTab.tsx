@@ -7,6 +7,8 @@ import Leaderboard from '../social/Leaderboard';
 import ChallengeCard from '../social/ChallengeCard';
 
 const SocialTab: React.FC = () => {
+  const [activeTab, setActiveTab] = React.useState("leaderboard");
+  
   return (
     <Card className="w-full">
       <CardHeader>
@@ -17,7 +19,7 @@ const SocialTab: React.FC = () => {
       </CardHeader>
       
       <CardContent>
-        <Tabs defaultValue="leaderboard">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-4">
             <TabsTrigger value="leaderboard" className="flex items-center gap-1">
               <Trophy className="h-4 w-4" />

@@ -1,158 +1,93 @@
+
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart, LineChart, PieChart, Activity } from 'lucide-react';
-import { AnsweredQuestion } from '../../types';
-import FeedbackSummary from '../analytics/FeedbackSummary';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BarChart, LineChart, PieChart } from '@/components/ui/charts';
+import PerformanceMetrics from '../metrics/PerformanceMetrics';
+import { useAuth } from '@/context/auth';
 
-// Create component
-interface AnalyticsTabProps {
-  answeredQuestions: AnsweredQuestion[];
-  setActiveTab: (tab: string) => void;
-}
+const AnalyticsTab: React.FC = () => {
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = React.useState("performance");
 
-const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ answeredQuestions, setActiveTab }) => {
-  // Calculate overall performance
-  const totalQuestions = answeredQuestions.length;
-  const correctAnswers = answeredQuestions.filter(q => q.isCorrect).length;
-  const incorrectAnswers = totalQuestions - correctAnswers;
+  // Sample data - in a real app, this would be fetched from an API
+  const accuracyTrendData = [
+    { date: 'Jan', accuracy: 65 },
+    { date: 'Feb', accuracy: 68 },
+    { date: 'Mar', accuracy: 75 },
+    { date: 'Apr', accuracy: 80 },
+    { date: 'May', accuracy: 82 },
+    { date: 'Jun', accuracy: 78 },
+    { date: 'Jul', accuracy: 85 },
+  ];
 
-  // Calculate performance by topic
-  const performanceByTopic: Record<string, { correct: number; total: number }> = {};
-  answeredQuestions.forEach(q => {
-    if (q.topic) {
-      if (!performanceByTopic[q.topic]) {
-        performanceByTopic[q.topic] = { correct: 0, total: 0 };
-      }
-      performanceByTopic[q.topic].total++;
-      if (q.isCorrect) {
-        performanceByTopic[q.topic].correct++;
-      }
-    }
-  });
+  const topicAccuracyData = [
+    { topic: 'Accounting', correct: 25, incorrect: 5 },
+    { topic: 'Taxation', correct: 18, incorrect: 7 },
+    { topic: 'Finance', correct: 22, incorrect: 3 },
+    { topic: 'Auditing', correct: 15, incorrect: 10 },
+    { topic: 'Law', correct: 20, incorrect: 5 },
+  ];
 
-  // Calculate trends over time (simplified)
-  const calculateTrends = () => {
-    // Group questions by date (simplified: just count per question)
-    const trendData = answeredQuestions.reduce((acc: Record<string, number>, question) => {
-      const date = question.id; // Using question ID as a placeholder for date
-      acc[date] = (acc[date] || 0) + (question.isCorrect ? 1 : 0);
-      return acc;
-    }, {});
-
-    return Object.entries(trendData).map(([date, correctCount]) => ({
-      date,
-      correctCount,
-    }));
-  };
-
-  const trendsData = calculateTrends();
+  const difficultyDistribution = [
+    { name: 'Easy', value: 25 },
+    { name: 'Medium', value: 45 },
+    { name: 'Hard', value: 30 },
+  ];
 
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="text-xl flex items-center gap-2">
-          <Activity className="h-6 w-6" />
-          Performance Analytics
-        </CardTitle>
+        <CardTitle className="text-xl">Performance Analytics</CardTitle>
       </CardHeader>
       
       <CardContent>
-        <Tabs defaultValue="overview">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-4">
-            <TabsTrigger value="overview" className="flex items-center gap-1">
-              <PieChart className="h-4 w-4" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="trends" className="flex items-center gap-1">
-              <LineChart className="h-4 w-4" />
-              Trends
-            </TabsTrigger>
-            <TabsTrigger value="breakdown" className="flex items-center gap-1">
-              <BarChart className="h-4 w-4" />
-              Breakdown
-            </TabsTrigger>
+            <TabsTrigger value="performance">Overall Performance</TabsTrigger>
+            <TabsTrigger value="topics">Topics Breakdown</TabsTrigger>
+            <TabsTrigger value="time">Time Analysis</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="overview">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Overall Performance</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex justify-around">
-                    <div>
-                      <div className="text-2xl font-bold">{correctAnswers}</div>
-                      <div className="text-sm text-muted-foreground">Correct</div>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-bold">{incorrectAnswers}</div>
-                      <div className="text-sm text-muted-foreground">Incorrect</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+          <TabsContent value="performance">
+            {user && <PerformanceMetrics userId={user.id} />}
+          </TabsContent>
+          
+          <TabsContent value="topics">
+            <div className="space-y-8">
+              <div>
+                <h3 className="text-lg font-medium mb-4">Topic Accuracy</h3>
+                <BarChart 
+                  data={topicAccuracyData}
+                  dataKeys={['correct', 'incorrect']}
+                  xAxisKey="topic"
+                  height={300}
+                />
+              </div>
               
-              <Card>
-                <CardHeader>
-                  <CardTitle>Topic Performance</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {Object.entries(performanceByTopic).map(([topic, data]) => (
-                    <div key={topic} className="mb-2">
-                      <div className="font-medium">{topic}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {data.correct} / {data.total} correct
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
-            
-            {/* Add the feedback summary */}
-            <div className="mt-6">
-              <FeedbackSummary />
+              <div>
+                <h3 className="text-lg font-medium mb-4">Question Difficulty Distribution</h3>
+                <PieChart 
+                  data={difficultyDistribution}
+                  height={300}
+                />
+              </div>
             </div>
           </TabsContent>
           
-          <TabsContent value="trends">
-            <Card>
-              <CardHeader>
-                <CardTitle>Performance Trends</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {trendsData.length > 0 ? (
-                  <ul>
-                    {trendsData.map((trend, index) => (
-                      <li key={index}>
-                        {trend.date}: {trend.correctCount} correct
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div>No trends available.</div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="breakdown">
-            <Card>
-              <CardHeader>
-                <CardTitle>Detailed Breakdown</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul>
-                  {answeredQuestions.map((question) => (
-                    <li key={question.id}>
-                      Question: {question.id}, Correct: {question.isCorrect ? 'Yes' : 'No'}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+          <TabsContent value="time">
+            <div>
+              <h3 className="text-lg font-medium mb-4">Accuracy Trend Over Time</h3>
+              <LineChart 
+                data={accuracyTrendData}
+                dataKeys={['accuracy']}
+                xAxisKey="date"
+                height={300}
+              />
+              <p className="text-sm text-muted-foreground mt-4">
+                Your accuracy has improved by 20% over the last 6 months.
+              </p>
+            </div>
           </TabsContent>
         </Tabs>
       </CardContent>

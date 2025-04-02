@@ -15,17 +15,11 @@ export function useMultiAgentSystem() {
     activeAgents: [] as AgentType[],
     globalVariables: {},
     metrics: {
-      taskSuccessRate: 0.85,
-      averageProcessingTime: 230,
-      systemLoad: 0.92,
+      taskCompletionRate: 0.85,
+      averageResponseTime: 230,
+      userSatisfactionScore: 0.92
     },
-    priorityMatrix: {},
-    taskQueue: 0,
-    processingTasks: 0,
-    completedTasks: 0,
-    failedTasks: 0,
-    systemStatus: 'READY',
-    lastUpdated: new Date().toISOString()
+    priorityMatrix: {}
   });
   
   // Define TaskTypes object for the component to use
@@ -72,24 +66,18 @@ export function useMultiAgentSystem() {
     const system = MultiAgentSystem.getInstance();
     setAgentStatuses(system.getAgentStatuses());
     
-    // Update system state with complete required properties
+    // Update system state with proper type casting
     setSystemState({
       activeAgents: Array.from(system.getAgentStatuses().keys())
         .filter(key => system.getAgentStatuses().get(key))
         .map(key => key as AgentType),
       globalVariables: {},
       metrics: {
-        taskSuccessRate: 0.85,
-        averageProcessingTime: 230,
-        systemLoad: 0.92,
+        taskCompletionRate: 0.85,
+        averageResponseTime: 230,
+        userSatisfactionScore: 0.92
       },
-      priorityMatrix: {},
-      taskQueue: 0,
-      processingTasks: 0,
-      completedTasks: 0,
-      failedTasks: 0,
-      systemStatus: 'READY',
-      lastUpdated: new Date().toISOString()
+      priorityMatrix: {}
     });
   };
   

@@ -1,130 +1,155 @@
 
-import { AgentType, SystemState } from '../types';
-import { createAgentRegistry } from './agentRegistry';
-import { TaskProcessor } from './taskProcessor';
-import { SystemStateManager } from './systemState';
-import { SystemMonitoring } from './systemMonitoring';
-import { LLMIntegration } from './llmIntegration';
+import { v4 as uuidv4 } from 'uuid';
+import { supabase } from '@/integrations/supabase/client';
+import { Task, TaskCategory, TaskPriority, TaskStatus } from '../types/taskTypes';
+import { agentRegistry } from './agentRegistry';
+import { assignTaskToAgent } from './taskProcessor';
 
-/**
- * MasterControlProgram (MCP)
- * 
- * The central coordinator for the Study Bee multi-agent system.
- * Manages agent registration, task distribution, and system state.
- */
+// In-memory store for tasks since agent_tasks table doesn't exist
+const inMemoryTasks: Record<string, Task> = {};
+
 export class MasterControlProgram {
-  private static instance: MasterControlProgram;
-  private taskProcessor: TaskProcessor;
-  private agentRegistry: ReturnType<typeof createAgentRegistry>;
-  private systemStateManager: SystemStateManager;
-  private systemMonitoring: SystemMonitoring;
-  private llmIntegration: LLMIntegration;
-  private systemState = {
-    initialized: false,
-    activeAgents: [] as AgentType[]
-  };
+  private isEnabled: boolean = false;
   
   constructor() {
-    console.info('[MCP] Initializing Master Control Program');
-    
-    this.taskProcessor = new TaskProcessor();
-    this.agentRegistry = createAgentRegistry();
-    
-    // Register available agents
-    const availableAgents = this.agentRegistry.getRegisteredAgentTypes();
-    console.info('[MCP] Registered agents:', availableAgents);
-    
-    // Initialize system state manager
-    this.systemStateManager = new SystemStateManager(availableAgents);
-    this.systemMonitoring = new SystemMonitoring(this.systemStateManager);
-    this.llmIntegration = new LLMIntegration(this.systemStateManager, this.systemMonitoring);
-    
-    // Initialize LLM system
-    console.info('[MCP] Initializing LLM system');
-    this.initializeLLMSystem();
-    
-    console.info('[MCP] MCP initialized');
-    console.info('LLM orchestration system initialized successfully');
-    console.info('[MCP] LLM system initialized successfully');
-    
-    this.systemState.initialized = true;
-    this.systemState.activeAgents = availableAgents;
-    
-    // Setup system monitoring
-    this.systemMonitoring.setupSystemMonitoring();
+    console.log('MasterControlProgram initialized');
   }
-  
-  /**
-   * Initialize the LLM system
-   */
-  private async initializeLLMSystem(): Promise<void> {
-    try {
-      await this.llmIntegration.initializeLLMSystem();
-    } catch (error) {
-      console.error('[MCP] Failed to initialize LLM system:', error);
-    }
+
+  public async initialize(): Promise<void> {
+    // Initialize the system state
+    this.isEnabled = true;
+    console.log('MasterControlProgram enabled');
   }
-  
-  /**
-   * Get the MasterControlProgram singleton instance
-   */
-  public static getInstance(): MasterControlProgram {
-    if (!MasterControlProgram.instance) {
-      MasterControlProgram.instance = new MasterControlProgram();
-    }
-    return MasterControlProgram.instance;
-  }
-  
-  /**
-   * Get the task processor
-   */
-  public getTaskProcessor(): TaskProcessor {
-    return this.taskProcessor;
-  }
-  
-  /**
-   * Get the agent registry
-   */
-  public getAgentRegistry(): ReturnType<typeof createAgentRegistry> {
-    return this.agentRegistry;
-  }
-  
-  /**
-   * Check if the system is initialized
-   */
-  public isInitialized(): boolean {
-    return this.systemState.initialized;
-  }
-  
-  /**
-   * Get the active agents
-   */
-  public getActiveAgents(): AgentType[] {
-    return [...this.systemState.activeAgents];
-  }
-  
-  /**
-   * Get the system state
-   */
-  public getSystemState(): SystemState {
-    return this.systemStateManager.getSystemState();
-  }
-  
-  /**
-   * Enable or disable LLM orchestration
-   */
+
   public setLLMOrchestrationEnabled(enabled: boolean): void {
-    this.taskProcessor.setLLMOrchestrationEnabled(enabled);
-    this.llmIntegration.setLLMOrchestrationEnabled(enabled);
+    this.isEnabled = enabled;
+    console.log(`MasterControlProgram ${enabled ? 'enabled' : 'disabled'}`);
   }
   
-  /**
-   * Check if LLM orchestration is enabled
-   */
   public isLLMOrchestrationEnabled(): boolean {
-    return this.taskProcessor.isLLMOrchestrationEnabled();
+    return this.isEnabled;
+  }
+
+  public getSystemState(): Record<string, any> {
+    return {
+      isEnabled: this.isEnabled,
+      agents: agentRegistry.getAllAgents().map(agent => ({
+        id: agent.id,
+        type: agent.getType(),
+      })),
+      tasksCount: Object.keys(inMemoryTasks).length
+    };
+  }
+
+  public async submitTask(
+    category: TaskCategory,
+    description: string,
+    payload?: Record<string, any>,
+    priority: TaskPriority = TaskPriority.MEDIUM
+  ): Promise<string | null> {
+    if (!this.isEnabled) {
+      console.warn('MasterControlProgram is disabled. Task not submitted.');
+      return null;
+    }
+    
+    try {
+      const taskId = uuidv4();
+      const now = new Date().toISOString();
+      
+      const task: Task = {
+        id: taskId,
+        category,
+        priority,
+        status: TaskStatus.CREATED,
+        description,
+        payload,
+        createdAt: now,
+        updatedAt: now,
+      };
+      
+      // Store task in memory
+      inMemoryTasks[taskId] = task;
+      
+      console.log('Creating task:', task);
+      
+      // Assign the task to an agent
+      const agentId = await assignTaskToAgent(task);
+      
+      if (!agentId) {
+        console.warn('No agent available to process this task');
+        return null;
+      }
+      
+      return taskId;
+    } catch (error) {
+      console.error('Error submitting task:', error);
+      return null;
+    }
+  }
+
+  public async getTaskStatus(taskId: string): Promise<TaskStatus | null> {
+    if (!this.isEnabled) {
+      console.warn('MasterControlProgram is disabled. Cannot get task status.');
+      return null;
+    }
+    
+    try {
+      // Check in-memory tasks
+      const task = inMemoryTasks[taskId];
+      if (task) {
+        return task.status;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error getting task status:', error);
+      return null;
+    }
+  }
+
+  public async getTaskResult(taskId: string): Promise<Record<string, any> | null> {
+    if (!this.isEnabled) {
+      console.warn('MasterControlProgram is disabled. Cannot get task result.');
+      return null;
+    }
+    
+    try {
+      // Check in-memory tasks
+      const task = inMemoryTasks[taskId];
+      if (task) {
+        return task.result || null;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error getting task result:', error);
+      return null;
+    }
+  }
+  
+  public async completeTask(taskId: string, result: Record<string, any>): Promise<boolean> {
+    if (!this.isEnabled) {
+      console.warn('MasterControlProgram is disabled. Cannot complete task.');
+      return false;
+    }
+    
+    try {
+      // Check in-memory tasks
+      const task = inMemoryTasks[taskId];
+      if (task) {
+        task.status = TaskStatus.COMPLETED;
+        task.result = result;
+        task.completedAt = new Date().toISOString();
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error completing task:', error);
+      return false;
+    }
   }
 }
 
-// Export a singleton instance for use throughout the application
-export const mcp = MasterControlProgram.getInstance();
+// Export a singleton instance
+export const masterControlProgram = new MasterControlProgram();

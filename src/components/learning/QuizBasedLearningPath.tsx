@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth';
 import { useToast } from '@/components/ui/use-toast';
@@ -5,9 +6,8 @@ import { CardTitle, CardDescription, CardHeader, CardContent, Card } from "@/com
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Book, Brain, Lightbulb, ArrowRight } from 'lucide-react';
-import { generateLearningPath } from '@/services/learningPathService';
+import { generateLearningPath } from '@/services/learningPath/learningPathGenerator';
 import { useNavigate } from 'react-router-dom';
-import { LearningPath } from '@/types/learningPath';
 
 const QuizBasedLearningPath: React.FC = () => {
   const { user } = useAuth();
@@ -24,18 +24,20 @@ const QuizBasedLearningPath: React.FC = () => {
       try {
         // In a real app, you would get the qualification ID from user preferences or context
         const mockQualificationId = '123';
-        const data = await generateLearningPath(user.id, [mockQualificationId]);
+        const { data, error } = await generateLearningPath(user.id, mockQualificationId);
         
-        if (data) {
+        if (error) {
+          console.error('Error fetching learning path:', error);
+          toast({
+            title: 'Failed to load learning path',
+            description: 'There was an error loading your personalized learning path',
+            variant: 'destructive',
+          });
+        } else {
           setLearningPath(data);
         }
       } catch (err) {
         console.error('Error in fetchLearningPath:', err);
-        toast({
-          title: 'Failed to load learning path',
-          description: 'There was an error loading your personalized learning path',
-          variant: 'destructive',
-        });
       } finally {
         setLoading(false);
       }

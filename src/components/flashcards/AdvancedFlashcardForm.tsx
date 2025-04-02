@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -58,12 +59,8 @@ const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({ onSuccess
         processedBackContent = `${backContent}\n\n[fin:${financialType}]`;
       }
 
-      // Passing null for the topicId (third parameter is optional)
-      const { data, error } = await createFlashcard(processedFrontContent, processedBackContent, null);
-
-      if (error) {
-        throw new Error(error.message);
-      }
+      // Create the flashcard with processed content
+      await createFlashcard(processedFrontContent, processedBackContent);
 
       toast({
         title: 'Success',

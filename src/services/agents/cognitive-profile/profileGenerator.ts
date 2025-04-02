@@ -1,5 +1,5 @@
 
-import { CognitiveProfile } from '../types/profileTypes';
+import { CognitiveProfile } from '../types';
 import { DataAnalysisUtils } from './utils/dataAnalysis';
 import { LearningHistoryService } from './utils/historyService';
 import { supabase } from '@/integrations/supabase/client';

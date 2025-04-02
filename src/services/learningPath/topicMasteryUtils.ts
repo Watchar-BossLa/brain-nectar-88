@@ -1,49 +1,46 @@
 
-import { UserProgress, Content } from '@/types/supabase';
-
-interface TopicMastery {
-  topicId: string;
-  completionPercentage: number;
-  lastAccessedAt: string;
-}
+import { UserProgress } from '@/types/supabase';
 
 /**
- * Calculate mastery level for a specific topic based on user progress
- * 
- * @param userProgress Array of UserProgress objects
- * @param topicContent Array of Content objects for the topic
- * @returns Topic mastery metrics
+ * Calculate mastery level for each topic based on user progress
  */
-export function calculateTopicMastery(
-  userProgress: UserProgress[], 
-  topicContent: Content[]
-): TopicMastery | null {
-  if (!userProgress?.length || !topicContent?.length) {
-    return null;
+export const calculateTopicMastery = (
+  userProgress: UserProgress[],
+  topics: any[]
+): Record<string, number> => {
+  const result: Record<string, number> = {};
+  
+  // Initial setup - all topics start at 0 mastery
+  topics.forEach(topic => {
+    result[topic.id] = 0;
+  });
+  
+  // Process user progress data
+  if (userProgress && userProgress.length > 0) {
+    // Group progress by topic
+    const progressByTopic: Record<string, UserProgress[]> = {};
+    
+    userProgress.forEach(progress => {
+      if (progress.content && progress.content.topic_id) {
+        const topicId = progress.content.topic_id;
+        if (!progressByTopic[topicId]) {
+          progressByTopic[topicId] = [];
+        }
+        progressByTopic[topicId].push(progress);
+      }
+    });
+    
+    // Calculate mastery for each topic with progress
+    Object.entries(progressByTopic).forEach(([topicId, progressItems]) => {
+      // Mastery is based on average completion percentage and completion status
+      const avgCompletion = progressItems.reduce((sum, item) => sum + item.progress_percentage, 0) / progressItems.length;
+      const completedItems = progressItems.filter(item => item.status === 'completed').length;
+      const completionRatio = progressItems.length > 0 ? completedItems / progressItems.length : 0;
+      
+      // Weighted score: 60% from completion percentage, 40% from completion status
+      result[topicId] = Math.round(avgCompletion * 0.6 + completionRatio * 100 * 0.4);
+    });
   }
-
-  // Match user progress with topic content
-  const relevantProgress = userProgress.filter(progress => 
-    topicContent.some(content => content.id === progress.content_id)
-  );
-
-  if (!relevantProgress.length) {
-    return null;
-  }
-
-  // Calculate mastery metrics
-  const completedItems = relevantProgress.filter(p => p.progress_percentage >= 100).length;
-  const totalItems = topicContent.length;
-  const completionPercentage = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
-
-  // Find most recent access timestamp
-  const lastAccessed = relevantProgress
-    .map(p => new Date(p.last_accessed_at))
-    .sort((a, b) => b.getTime() - a.getTime())[0] || new Date();
-
-  return {
-    topicId: topicContent[0].topic_id,
-    completionPercentage,
-    lastAccessedAt: lastAccessed.toISOString()
-  };
-}
+  
+  return result;
+};

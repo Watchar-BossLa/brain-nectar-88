@@ -1,33 +1,49 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { LearningHistoryItem } from './types';
+import { LearningHistoryItem } from '../types';
 
 /**
- * Service for retrieving user learning history
+ * Service for fetching user learning history 
  */
 export class LearningHistoryService {
   /**
-   * Fetch user learning history from the database
+   * Fetch a user's learning history to inform their cognitive profile
    */
   public static async fetchUserLearningHistory(userId: string): Promise<LearningHistoryItem[]> {
-    console.log(`Fetching learning history for user ${userId}`);
-    
-    // In a real implementation, we would query the database for the user's learning history
-    /*
-    const { data, error } = await supabase
-      .from('learning_history')
-      .select('*')
-      .eq('user_id', userId);
+    try {
+      // Get user progress data
+      const { data: progressData, error: progressError } = await supabase
+        .from('user_progress')
+        .select(`
+          *,
+          content:content_id(*)
+        `)
+        .eq('user_id', userId);
       
-    if (error) {
-      console.error('Error fetching learning history:', error);
+      if (progressError) {
+        console.error('Error fetching user progress:', progressError);
+        return [];
+      }
+      
+      // Get flashcard data
+      const { data: flashcardData, error: flashcardError } = await supabase
+        .from('flashcards')
+        .select('*')
+        .eq('user_id', userId);
+      
+      if (flashcardError) {
+        console.error('Error fetching flashcards:', flashcardError);
+        return [];
+      }
+      
+      // Combine all learning history data
+      return [
+        ...(progressData || []),
+        ...(flashcardData || [])
+      ];
+    } catch (error) {
+      console.error('Error fetching user learning history:', error);
       return [];
     }
-    
-    return data as LearningHistoryItem[];
-    */
-    
-    // For now, return an empty array (mock implementation)
-    return [];
   }
 }

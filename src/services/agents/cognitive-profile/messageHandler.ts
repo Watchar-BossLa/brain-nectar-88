@@ -28,12 +28,12 @@ export class MessageHandler {
    * Handle an incoming message
    */
   public async handleMessage(message: AgentMessage): Promise<void> {
-    const { type, content, data, sender } = message;
+    const { type, content, data, senderId } = message;
     
     switch (content) {
       case 'INITIALIZE_FOR_USER':
         // Handle initialization for a new user
-        if (data?.userId) {
+        if (data.userId) {
           try {
             await this.profileGenerator.createInitialCognitiveProfile(data.userId);
           } catch (error) {
@@ -44,11 +44,11 @@ export class MessageHandler {
         
       case 'REQUEST_COGNITIVE_PROFILE':
         // Handle requests for cognitive profile data
-        if (data?.userId && sender) {
+        if (data.userId && senderId) {
           try {
             const profile = await this.profileRepository.getCognitiveProfile(data.userId);
             if (profile) {
-              this.sendMessageCallback(sender, 'COGNITIVE_PROFILE_DATA', { profile });
+              this.sendMessageCallback(senderId, 'COGNITIVE_PROFILE_DATA', { profile });
             }
           } catch (error) {
             this.logCallback('Error fetching cognitive profile:', error);

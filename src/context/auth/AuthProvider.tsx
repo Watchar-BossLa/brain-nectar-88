@@ -1,104 +1,98 @@
 
-import React, { createContext, useEffect, useState } from 'react';
-import { AuthContextType, AuthUser } from './types';
-import { supabase } from '@/integrations/supabase/client';
+import React, { createContext, useState, useEffect, useContext } from 'react';
+import { User, Session } from '@supabase/supabase-js';
+import * as authService from './authService';
+import { platformOwner } from '@/constants';
+import {
+  getSession,
+  getCurrentUser,
+  onAuthStateChange
+} from '@/lib/supabaseAuth';
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export type AuthContextType = {
+  user: User | null;
+  session: Session | null;
+  isAdmin: boolean;
+  loading: boolean;
+  signIn: typeof authService.signIn;
+  signUp: typeof authService.signUp;
+  signOut: typeof authService.signOut;
+  signInWithOAuth: typeof authService.signInWithOAuth;
+  platformOwner: typeof platformOwner;
+};
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [session, setSession] = useState<any | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Listen for auth changes
   useEffect(() => {
-    // Set up auth state listener first
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
-        setSession(currentSession);
-        setUser(currentSession?.user as AuthUser | null || null);
+    // Get initial session
+    const initializeAuth = async () => {
+      try {
+        setLoading(true);
+        
+        // Get current session
+        const { data } = await getSession();
+        const session = data?.session;
+        
+        if (session) {
+          setSession(session);
+          setUser(session.user);
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+      } finally {
         setLoading(false);
       }
-    );
+    };
 
-    // Then check for existing session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      setUser(currentSession?.user as AuthUser | null || null);
+    // Initialize auth
+    initializeAuth();
+    
+    // Set up auth listener
+    const { data: authListener } = onAuthStateChange((event: string, session: Session | null) => {
+      setSession(session);
+      setUser(session?.user ?? null);
       setLoading(false);
     });
-
-    // Cleanup subscription
+    
+    // Clean up auth listener on unmount
     return () => {
-      subscription.unsubscribe();
+      if (authListener && typeof authListener.subscription?.unsubscribe === 'function') {
+        authListener.subscription.unsubscribe();
+      }
     };
   }, []);
-
-  // Define auth methods
-  const signIn = async (email: string, password: string, callback?: (success: boolean) => void) => {
-    try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (callback) callback(!error);
-      return { error };
-    } catch (error) {
-      console.error("Sign in error:", error);
-      if (callback) callback(false);
-      return { error: error as Error };
-    }
-  };
-
-  const signUp = async (email: string, password: string, callback?: (success: boolean) => void) => {
-    try {
-      const { error } = await supabase.auth.signUp({ email, password });
-      if (callback) callback(!error);
-      return { error };
-    } catch (error) {
-      console.error("Sign up error:", error);
-      if (callback) callback(false);
-      return { error: error as Error };
-    }
-  };
-
-  const signInWithGoogle = async (callback?: () => void) => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: window.location.origin }
-      });
-      if (!error && callback) callback();
-      return { error };
-    } catch (error) {
-      console.error("Google sign in error:", error);
-      return { error: error as Error };
-    }
-  };
-
-  const signOut = async (callback?: () => void) => {
-    await supabase.auth.signOut();
-    if (callback) callback();
-  };
-
-  // Platform owner info - hardcoded for simplicity
-  const platformOwner = {
-    email: 'admin@study-bee.com',
-    name: 'Kelvin Administrator',
-    role: 'admin'
-  };
-
-  // Check if current user is admin
+  
+  // Check if user is admin
   const isAdmin = user?.email === platformOwner.email;
 
   const value = {
-    session,
     user,
+    session,
     loading,
-    signIn,
-    signUp,
-    signInWithGoogle,
-    signOut,
-    platformOwner,
-    isAdmin
+    isAdmin,
+    signIn: authService.signIn,
+    signUp: authService.signUp,
+    signOut: authService.signOut,
+    signInWithOAuth: authService.signInWithOAuth,
+    platformOwner
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };

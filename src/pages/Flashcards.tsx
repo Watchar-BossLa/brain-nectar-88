@@ -1,103 +1,205 @@
 
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useFlashcardsPage } from '@/hooks/useFlashcardsPage';
-import AddFlashcardForm from '@/components/flashcards/AddFlashcardForm';
-import FlashcardGrid from '@/components/flashcards/FlashcardGrid';
-import { deleteFlashcard } from '@/services/spacedRepetition';
 import { useToast } from '@/components/ui/use-toast';
+import { useFlashcardsPage } from '@/hooks/useFlashcardsPage';
+import { deleteFlashcard } from '@/services/spacedRepetition';
+import { convertToSupabaseFlashcard } from '@/components/flashcards/utils/flashcardTypeConverter';
+import { loadDefaultFlashcardsForUser } from '@/services/flashcards/defaultFlashcards';
+import { useAuth } from '@/context/auth';
+
+// Component imports
+import FlashcardStats from '@/components/flashcards/FlashcardStats';
+import FlashcardsHeader from '@/components/flashcards/FlashcardsHeader';
 import AllFlashcardsTab from '@/components/flashcards/tabs/AllFlashcardsTab';
 import DueFlashcardsTab from '@/components/flashcards/tabs/DueFlashcardsTab';
+import CreateFlashcardTab from '@/components/flashcards/tabs/CreateFlashcardTab';
 import ReviewFlashcardsTab from '@/components/flashcards/tabs/ReviewFlashcardsTab';
-import FlashcardStatsOverview from '@/components/flashcards/stats/FlashcardStatsOverview';
 
 const Flashcards = () => {
   const [activeTab, setActiveTab] = useState('all');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { toast } = useToast();
+  const [isCreating, setIsCreating] = useState(false);
+  const [loadingDefaults, setLoadingDefaults] = useState(false);
   
-  const { 
-    flashcards, 
-    loading, 
-    reloadFlashcards,
+  const {
+    flashcards,
     dueFlashcards,
-    stats
+    stats,
+    loading: isLoading,
+    refreshFlashcards
   } = useFlashcardsPage();
-
-  const handleFlashcardDeleted = async (id: string) => {
-    try {
-      await deleteFlashcard(id);
-      toast({
-        title: "Flashcard deleted",
-        description: "The flashcard has been successfully deleted.",
-      });
-      // Use reloadFlashcards instead of refreshFlashcards
-      if (reloadFlashcards) {
-        reloadFlashcards();
+  
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const [isAdvancedForm, setIsAdvancedForm] = useState(false);
+  
+  useEffect(() => {
+    const checkAndLoadDefaultFlashcards = async () => {
+      if (!user) return;
+      
+      if (user && !isLoading && flashcards.length === 0 && !loadingDefaults) {
+        console.log('No flashcards found, attempting to load defaults...');
+        setLoadingDefaults(true);
+        
+        try {
+          const loaded = await loadDefaultFlashcardsForUser(user.id);
+          if (loaded) {
+            console.log('Default flashcards loaded successfully');
+            toast({
+              title: "Default flashcards loaded",
+              description: "We've added some starter flashcards to help you get started!",
+              duration: 5000,
+            });
+            await refreshFlashcards();
+          } else {
+            console.error("Failed to load default flashcards");
+            toast({
+              title: "Error",
+              description: "Could not load default flashcards. Please try refreshing the page.",
+              variant: "destructive",
+              duration: 5000,
+            });
+          }
+        } catch (error) {
+          console.error("Error loading default flashcards:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load default flashcards. Please try again later.",
+            variant: "destructive",
+            duration: 5000,
+          });
+        } finally {
+          setLoadingDefaults(false);
+        }
       }
-    } catch (error) {
-      console.error("Error deleting flashcard:", error);
+    };
+    
+    checkAndLoadDefaultFlashcards();
+  }, [user, isLoading, flashcards.length, toast, refreshFlashcards]);
+  
+  const handleDeleteFlashcard = async (id: string) => {
+    try {
+      const success = await deleteFlashcard(id);
+      if (!success) throw new Error('Failed to delete flashcard');
+      
       toast({
-        title: "Error",
-        description: "Failed to delete the flashcard.",
-        variant: "destructive",
+        title: 'Success',
+        description: 'Flashcard deleted successfully.'
+      });
+      
+      handleUpdateStats();
+    } catch (error) {
+      console.error('Error deleting flashcard:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete flashcard',
+        variant: 'destructive'
       });
     }
   };
 
+  const handleUpdateStats = () => {
+    refreshFlashcards();
+  };
+
+  const handleCreateFlashcard = () => {
+    setIsCreating(true);
+    setActiveTab('create');
+  };
+
+  const handleFlashcardCreated = () => {
+    setIsCreating(false);
+    setActiveTab('all');
+    handleUpdateStats();
+  };
+
+  const handleStartReview = () => {
+    setActiveTab('review');
+  };
+
+  const handleCreateSimpleFlashcard = () => {
+    setIsAdvancedForm(false);
+    handleCreateFlashcard();
+  };
+
+  const handleCreateAdvancedFlashcard = () => {
+    setIsAdvancedForm(true);
+    handleCreateFlashcard();
+  };
+
+  const supabaseFlashcards = flashcards.map(convertToSupabaseFlashcard);
+  const supaDueFlashcards = dueFlashcards.map(convertToSupabaseFlashcard);
+
   return (
     <MainLayout>
-      <div className="container mx-auto py-6">
-        <div className="mb-4">
-          <h1 className="text-2xl font-semibold">Your Flashcards</h1>
-          <p className="text-muted-foreground">
-            Manage and review your flashcards to improve retention.
-          </p>
-        </div>
-
-        <FlashcardStatsOverview 
-          total={stats?.total || 0}
-          mastered={stats?.mastered || 0}
-          learning={stats?.learning || 0}
-          due={stats?.due || 0}
-          isLoading={loading}
+      <div className="flex flex-col space-y-6">
+        <FlashcardsHeader 
+          isCreating={isCreating}
+          onCreateSimpleFlashcard={handleCreateSimpleFlashcard}
+          onCreateAdvancedFlashcard={handleCreateAdvancedFlashcard}
         />
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-          <TabsList>
-            <TabsTrigger value="all">All Flashcards</TabsTrigger>
-            <TabsTrigger value="due">Due Flashcards</TabsTrigger>
+        
+        <FlashcardStats stats={stats} />
+        
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="all">All Cards</TabsTrigger>
+            <TabsTrigger value="due" disabled={dueFlashcards.length === 0}>
+              Due ({dueFlashcards.length})
+            </TabsTrigger>
+            <TabsTrigger value="create" disabled={!isCreating}>Create</TabsTrigger>
             <TabsTrigger value="review">Review</TabsTrigger>
           </TabsList>
-          <TabsContent value="all" className="mt-4">
+          
+          {loadingDefaults && flashcards.length === 0 && (
+            <div className="mt-6 p-6 text-center">
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-muted-foreground">Loading starter flashcards...</p>
+              </div>
+            </div>
+          )}
+          
+          <TabsContent value="all" className="mt-6">
             <AllFlashcardsTab 
-              flashcards={flashcards || []} 
-              isLoading={loading} 
-              onDelete={handleFlashcardDeleted}
-              onAddNew={() => setIsDialogOpen(true)}
-              onFlashcardsUpdated={reloadFlashcards}
+              isLoading={isLoading || loadingDefaults}
+              flashcards={supabaseFlashcards}
+              onDeleteFlashcard={handleDeleteFlashcard}
+              onCardUpdated={handleUpdateStats}
+              onCreateSimpleFlashcard={handleCreateSimpleFlashcard}
+              onCreateAdvancedFlashcard={handleCreateAdvancedFlashcard}
             />
           </TabsContent>
-          <TabsContent value="due" className="mt-4">
+          
+          <TabsContent value="due" className="mt-6">
             <DueFlashcardsTab 
-              flashcards={dueFlashcards || []}
-              isLoading={loading}
-              onDelete={handleFlashcardDeleted}
-              onAddNew={() => setIsDialogOpen(true)}
-              onFlashcardsUpdated={reloadFlashcards}
+              flashcards={supaDueFlashcards}
+              onStartReview={handleStartReview}
+              onDeleteFlashcard={handleDeleteFlashcard}
+              onCardUpdated={handleUpdateStats}
+              onCreateSimpleFlashcard={handleCreateSimpleFlashcard}
+              onCreateAdvancedFlashcard={handleCreateAdvancedFlashcard}
             />
           </TabsContent>
-          <TabsContent value="review" className="mt-4">
-            <ReviewFlashcardsTab onComplete={reloadFlashcards} />
+          
+          <TabsContent value="create" className="mt-6">
+            <CreateFlashcardTab 
+              isAdvancedForm={isAdvancedForm}
+              onFlashcardCreated={handleFlashcardCreated}
+              onCancel={() => setIsCreating(false)}
+            />
+          </TabsContent>
+          
+          <TabsContent value="review" className="mt-6">
+            <ReviewFlashcardsTab 
+              onComplete={() => {
+                handleUpdateStats();
+                setActiveTab('all');
+              }}
+            />
           </TabsContent>
         </Tabs>
-
-        <AddFlashcardForm
-          open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
-          onFlashcardCreated={reloadFlashcards}
-        />
       </div>
     </MainLayout>
   );

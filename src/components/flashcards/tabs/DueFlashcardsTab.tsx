@@ -1,42 +1,54 @@
 
 import React from 'react';
-import FlashcardGrid from '../FlashcardGrid';
-import { Flashcard } from '@/types/flashcards';
-import EmptyFlashcardState from '../EmptyFlashcardState';
+import { Brain } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Flashcard } from '@/types/supabase';
+import FlashcardGrid from '@/components/flashcards/FlashcardGrid';
+import FlashcardsEmptyState from '@/components/flashcards/FlashcardsEmptyState';
 
-export interface DueFlashcardsTabProps {
+interface DueFlashcardsTabProps {
   flashcards: Flashcard[];
-  isLoading?: boolean;
-  onDelete?: (id: string) => Promise<void>;
-  onAddNew?: () => void;
-  onFlashcardsUpdated?: () => Promise<void>;
+  onStartReview: () => void;
+  onDeleteFlashcard: (id: string) => Promise<void>;
+  onCardUpdated: () => void;
+  onCreateSimpleFlashcard: () => void;
+  onCreateAdvancedFlashcard: () => void;
 }
 
-const DueFlashcardsTab = ({ 
-  flashcards, 
-  isLoading = false,
-  onDelete,
-  onAddNew,
-  onFlashcardsUpdated 
+const DueFlashcardsTab = ({
+  flashcards,
+  onStartReview,
+  onDeleteFlashcard,
+  onCardUpdated,
+  onCreateSimpleFlashcard,
+  onCreateAdvancedFlashcard
 }: DueFlashcardsTabProps) => {
-  
-  if (!isLoading && (!flashcards || flashcards.length === 0)) {
+  if (flashcards.length === 0) {
     return (
-      <EmptyFlashcardState 
-        title="No due flashcards" 
-        description="You've caught up with all your flashcard reviews. Well done!"
-        onAddNew={onAddNew}
+      <FlashcardsEmptyState
+        title="No cards due for review"
+        description="Great job! You've reviewed all your due flashcards. Check back later or create new cards."
+        onCreateSimpleFlashcard={onCreateSimpleFlashcard}
+        onCreateAdvancedFlashcard={onCreateAdvancedFlashcard}
       />
     );
   }
   
   return (
-    <FlashcardGrid 
-      flashcards={flashcards} 
-      isLoading={isLoading}
-      onDelete={onDelete}
-      onFlashcardsUpdated={onFlashcardsUpdated}
-    />
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-medium">Cards Due for Review</h3>
+        <Button onClick={onStartReview}>
+          <Brain className="mr-2 h-4 w-4" />
+          Start Review
+        </Button>
+      </div>
+      <FlashcardGrid 
+        flashcards={flashcards} 
+        onDelete={onDeleteFlashcard}
+        onCardUpdated={onCardUpdated} 
+      />
+    </div>
   );
 };
 

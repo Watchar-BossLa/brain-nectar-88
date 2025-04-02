@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth';
 import { getDueFlashcards, getFlashcardsByTopic } from '@/services/spacedRepetition';
@@ -27,22 +28,12 @@ const AdaptiveLearningPath: React.FC<AdaptiveLearningPathProps> = ({ topics }) =
 
       for (const topic of topics) {
         try {
-          const topicCards = await getDueFlashcards(user.id);
-          const allCardsForTopicResult = await getFlashcardsByTopic(user.id, topic.id);
+          // Get due flashcards for this topic
+          const dueCardsInTopic = await getDueFlashcards(user.id, topic.id);
+          
+          // Get all flashcards for this topic
+          const allCardsForTopic = await getFlashcardsByTopic(user.id, topic.id);
 
-          if (allCardsForTopicResult.error) {
-            console.error("Error fetching flashcards by topic:", allCardsForTopicResult.error);
-            continue;
-          }
-
-          const allCardsForTopic = allCardsForTopicResult.data || [];
-
-          if (topicCards.error) {
-            console.error("Error fetching due flashcards:", topicCards.error);
-            continue;
-          }
-
-          const dueCardsInTopic = topicCards.data?.filter(card => card.topic_id === topic.id) || [];
           const totalCardsInTopic = allCardsForTopic.length;
           const reviewedCards = totalCardsInTopic - dueCardsInTopic.length;
 

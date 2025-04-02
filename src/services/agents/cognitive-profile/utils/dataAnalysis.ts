@@ -1,16 +1,16 @@
 
-import { LearningHistoryItem } from './types';
+import { LearningHistoryItem } from '../types';
 
 /**
- * Utilities for analyzing learning data
+ * Utility functions for analyzing user learning data
  */
 export class DataAnalysisUtils {
   /**
-   * Analyze content interaction patterns
+   * Analyze content interactions to determine preferred content formats
    */
-  public static analyzeContentInteractions(history: LearningHistoryItem[]): string[] {
+  public static analyzeContentInteractions(learningHistory: LearningHistoryItem[]): string[] {
     // Extract content types from progress data
-    const contentTypes = history
+    const contentTypes = learningHistory
       .filter(item => item.content && item.content.content_type)
       .map(item => item.content.content_type);
     
@@ -29,9 +29,9 @@ export class DataAnalysisUtils {
   }
   
   /**
-   * Estimate learning speed across different domains
+   * Estimate learning speed across different domains based on user history
    */
-  public static estimateLearningSpeed(history: LearningHistoryItem[]): Record<string, number> {
+  public static estimateLearningSpeed(learningHistory: LearningHistoryItem[]): Record<string, number> {
     // This is a simplified implementation
     // In a real system, this would analyze completion times, repeated attempts, etc.
     
@@ -39,7 +39,7 @@ export class DataAnalysisUtils {
     const defaultSpeed = 1.0; // Normal speed
     
     // Group by topic or subject area
-    const topicGroups = this.groupByTopic(history);
+    const topicGroups = this.groupByTopic(learningHistory);
     
     // Calculate speed for each topic
     for (const [topicId, items] of Object.entries(topicGroups)) {
@@ -73,7 +73,7 @@ export class DataAnalysisUtils {
     const groups: Record<string, LearningHistoryItem[]> = {};
     
     items.forEach(item => {
-      const topicId = item.content?.topic_id || item.topicId;
+      const topicId = item.content?.topic_id || item.topic_id;
       if (topicId) {
         if (!groups[topicId]) {
           groups[topicId] = [];
@@ -107,11 +107,11 @@ export class DataAnalysisUtils {
   /**
    * Build initial knowledge graph from completed topics
    */
-  public static buildInitialKnowledgeGraph(history: LearningHistoryItem[]): Record<string, any> {
-    const graph: Record<string, any> = {};
+  public static buildInitialKnowledgeGraph(learningHistory: LearningHistoryItem[]): Record<string, string[]> {
+    const graph: Record<string, string[]> = {};
     
     // Extract completed topics from progress data
-    const completedItems = history.filter(item => 
+    const completedItems = learningHistory.filter(item => 
       item.status === 'completed' || item.progress_percentage >= 90
     );
     

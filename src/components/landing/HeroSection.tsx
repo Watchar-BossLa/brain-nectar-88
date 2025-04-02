@@ -29,12 +29,12 @@ const HeroSection = () => {
             </div>
 
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-b from-[#f5d742] to-[#1e3a8a] text-transparent bg-clip-text">
-              Master Accounting With Study Bee
+              Master Various Subjects With Study Bee
             </h1>
             
             <p className="text-lg md:text-xl text-muted-foreground max-w-[800px]">
               Personalized learning paths, spaced repetition, and AI-powered assessments
-              to help you succeed in professional accounting qualifications.
+              to help you succeed in professional qualifications.
             </p>
           </motion.div>
 

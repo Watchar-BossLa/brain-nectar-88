@@ -1,45 +1,70 @@
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import Dashboard from './pages/Dashboard';
-import CognitiveProfile from './pages/CognitiveProfile';
-import AdaptiveQuiz from './components/quiz/AdaptiveQuiz';
-import LearningPaths from './pages/LearningPaths';
-import Qualifications from './pages/Qualifications';
-import Flashcards from './pages/Flashcards';
-import FlashcardReview from './pages/FlashcardReview';
-import QuizHistory from './pages/QuizHistory';
-import Standards from './pages/Standards';
+import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from './context/auth';
-import ProtectedRoute from './components/auth/ProtectedRoute';
-import TestingPage from './pages/TestingPage';
+import { ThemeProvider } from './context/theme';
+import { SolanaContextProvider } from './context/blockchain/SolanaContextProvider';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import Courses from './pages/Courses';
+import Assessment from './pages/Assessment';
+import Qualifications from './pages/Qualifications';
+import FlashcardsPage from './pages/Flashcards';
+import Settings from './pages/Settings';
+import StudyPlannerPage from './pages/StudyPlannerPage';
+import AgentDashboard from './pages/AgentDashboard';
+import LearningPath from './pages/LearningPath';
+import CognitiveProfile from './pages/CognitiveProfile';
+import { useEffect } from 'react';
 import Index from './pages/Index';
-import { Toaster } from './components/ui/sonner';
-
-const queryClient = new QueryClient();
+import Quiz from './pages/Quiz';
+import AdaptiveQuiz from './pages/AdaptiveQuiz';
+import Blockchain from './pages/Blockchain';
+import Admin from './pages/Admin';
+import FlashcardReview from './pages/FlashcardReview';
 
 function App() {
+  useEffect(() => {
+    console.log('Study Bee - Adaptive Learning Platform');
+  }, []);
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/cognitive-profile" element={<ProtectedRoute><CognitiveProfile /></ProtectedRoute>} />
-            <Route path="/quiz" element={<ProtectedRoute><AdaptiveQuiz topicIds={[]} /></ProtectedRoute>} />
-            <Route path="/learning-paths" element={<ProtectedRoute><LearningPaths /></ProtectedRoute>} />
-            <Route path="/qualifications" element={<ProtectedRoute><Qualifications /></ProtectedRoute>} />
-            <Route path="/flashcards" element={<ProtectedRoute><Flashcards /></ProtectedRoute>} />
-            <Route path="/flashcard-review" element={<ProtectedRoute><FlashcardReview /></ProtectedRoute>} />
-            <Route path="/quiz-history" element={<ProtectedRoute><QuizHistory /></ProtectedRoute>} />
-            <Route path="/standards" element={<ProtectedRoute><Standards /></ProtectedRoute>} />
-            <Route path="/testing" element={<ProtectedRoute><TestingPage /></ProtectedRoute>} />
-          </Routes>
-        </Router>
-        <Toaster />
-      </AuthProvider>
-    </QueryClientProvider>
+    <Router>
+      <ThemeProvider defaultTheme="light" storageKey="study-bee-theme">
+        <AuthProvider>
+          <SolanaContextProvider>
+            <Routes>
+              {/* Auth routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/signin" element={<Login />} /> {/* Alias for login */}
+              <Route path="/signup" element={<Register />} /> {/* Alias for register */}
+              
+              {/* Main app routes */}
+              <Route path="/" element={<Index />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/courses" element={<Courses />} />
+              <Route path="/assessment" element={<Assessment />} />
+              <Route path="/qualifications" element={<Qualifications />} />
+              <Route path="/flashcards" element={<FlashcardsPage />} />
+              <Route path="/flashcard-review" element={<FlashcardReview />} />
+              <Route path="/study-planner" element={<StudyPlannerPage />} />
+              <Route path="/learning-path" element={<LearningPath />} />
+              <Route path="/cognitive-profile" element={<CognitiveProfile />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/profile" element={<Settings />} /> {/* Alias for settings */}
+              <Route path="/agent-dashboard" element={<AgentDashboard />} />
+              <Route path="/quiz" element={<Quiz />} />
+              <Route path="/adaptive-quiz" element={<AdaptiveQuiz />} />
+              <Route path="/blockchain" element={<Blockchain />} />
+              <Route path="/admin" element={<Admin />} />
+            </Routes>
+            <Toaster />
+          </SolanaContextProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </Router>
   );
 }
 

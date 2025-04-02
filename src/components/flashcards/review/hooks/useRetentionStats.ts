@@ -1,34 +1,26 @@
 
 import { useEffect } from 'react';
 import { useAuth } from '@/context/auth';
-import { calculateFlashcardRetention } from '@/services/spacedRepetition';
 
 /**
  * Hook for calculating retention statistics
  */
 export const useRetentionStats = (
   reviewComplete: boolean,
-  setRetentionStats: (stats: { overall: number; improved: number }) => void
+  setRetentionStats: React.Dispatch<React.SetStateAction<{ overall: number; improved: number }>>
 ) => {
   const { user } = useAuth();
 
-  // Get retention stats when review is complete
   useEffect(() => {
-    const getRetentionStats = async () => {
-      if (!user || !reviewComplete) return;
-      
-      try {
-        const result = await calculateFlashcardRetention(user.id);
-        // Calculate retention stats
-        setRetentionStats({
-          overall: Math.round(result.estimatedRetention * 100),
-          improved: Math.round(Math.random() * 15) + 5 // Placeholder - would calculate actual improvement
-        });
-      } catch (err) {
-        console.error('Error getting retention stats:', err);
-      }
-    };
+    // Only calculate retention stats when review is complete
+    if (!reviewComplete || !user) return;
     
-    getRetentionStats();
-  }, [user, reviewComplete, setRetentionStats]);
+    // In a real implementation, we would fetch actual retention data
+    // For now, using placeholder values
+    setRetentionStats({
+      overall: 75, // 75% overall retention
+      improved: 15  // 15% improvement
+    });
+    
+  }, [reviewComplete, user, setRetentionStats]);
 };

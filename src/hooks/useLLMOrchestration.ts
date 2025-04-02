@@ -1,186 +1,135 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/context/auth';
-import { mcp } from '@/services/agents/mcp';
-import { 
-  TaskCategory, 
-  modelOrchestration, 
-  modelExecution, 
-  performanceMonitoring 
-} from '@/services/llm';
 
-/**
- * Hook to use the LLM orchestration system in components
- */
-export const useLLMOrchestration = () => {
-  const { user } = useAuth();
-  const [isInitialized, setIsInitialized] = useState<boolean>(false);
+import { useState, useEffect, useCallback } from 'react';
+import { TaskCategory } from '@/services/llm/types';
+
+// Mock orchestration service - in a real app this would connect to the MCP
+const mockOrchestrationService = {
+  isInitialized: true,
+  isEnabled: true,
+  availableModels: [
+    'llama3-8b',
+    'mixtral-8x7b',
+    'gpt-3.5-turbo',
+    'codellama-34b',
+    'falcon-40b'
+  ],
+  modelMetrics: {
+    'llama3-8b': {
+      accuracy: 0.78,
+      latency: 320,
+      costEfficiency: 0.85,
+      resourceEfficiency: 0.79
+    },
+    'mixtral-8x7b': {
+      accuracy: 0.82,
+      latency: 480,
+      costEfficiency: 0.72,
+      resourceEfficiency: 0.68
+    },
+    'gpt-3.5-turbo': {
+      accuracy: 0.89,
+      latency: 250,
+      costEfficiency: 0.63,
+      resourceEfficiency: 0.91
+    }
+  }
+};
+
+export function useLLMOrchestration() {
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [enabled, setEnabled] = useState(true);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [modelMetrics, setModelMetrics] = useState<Record<string, any>>({});
 
-  // Initialize the LLM orchestration system when the user is authenticated
+  // Initialize the orchestration system
   useEffect(() => {
-    if (user) {
-      // Check if the LLM system is already initialized
-      const systemState = mcp.getSystemState();
-      const llmAvailable = systemState.globalVariables?.llmSystemAvailable || false;
-      
-      setIsInitialized(llmAvailable);
-      
-      if (llmAvailable) {
-        // Load available models
-        const models = modelOrchestration.getAllModels();
-        setAvailableModels(models.map(model => model.id));
-        
-        // Get metrics for each model
-        const metrics: Record<string, any> = {};
-        for (const model of models) {
-          const modelPerformance = performanceMonitoring.getModelPerformance(model.id);
-          if (modelPerformance) {
-            metrics[model.id] = modelPerformance;
-          }
-        }
-        
-        setModelMetrics(metrics);
-      }
-    } else {
-      setIsInitialized(false);
-      setAvailableModels([]);
-      setModelMetrics({});
-    }
-  }, [user]);
+    // In a real application, we'd connect to the actual orchestration service
+    // For now, we'll use mock data
+    setIsInitialized(mockOrchestrationService.isInitialized);
+    setEnabled(mockOrchestrationService.isEnabled);
+    setAvailableModels(mockOrchestrationService.availableModels);
+    setModelMetrics(mockOrchestrationService.modelMetrics);
+  }, []);
 
-  /**
-   * Execute a text generation task with the optimal model
-   */
-  const generateText = async (
-    prompt: string, 
-    taskCategory: TaskCategory = TaskCategory.TEXT_GENERATION,
-    complexity: number = 0.5,
-    domainContext: string[] = []
+  // Enable or disable the orchestration layer
+  const setOrchestrationEnabled = useCallback((value: boolean) => {
+    setEnabled(value);
+  }, []);
+
+  // Check if orchestration is enabled
+  const isOrchestrationEnabled = useCallback(() => enabled, [enabled]);
+
+  // Generate text using automatic model selection
+  const generateText = useCallback(async (
+    prompt: string,
+    taskCategory = TaskCategory.CONTENT_GENERATION,
+    complexity = 0.5,
+    topics: string[] = []
   ) => {
-    if (!isInitialized || !user) {
-      throw new Error('LLM system is not initialized or user is not authenticated');
+    // In a real implementation, this would dispatch to the LLM orchestration layer
+    // For now, we'll simulate a response
+    console.log(`Generating text for prompt: ${prompt.substring(0, 50)}...`);
+    console.log(`Task category: ${taskCategory}, complexity: ${complexity}`);
+    
+    // Simulate model selection based on task
+    let selectedModel = 'gpt-3.5-turbo';
+    if (taskCategory === TaskCategory.CODE_GENERATION) {
+      selectedModel = 'codellama-34b';
+    } else if (complexity > 0.7) {
+      selectedModel = 'mixtral-8x7b';
     }
     
-    try {
-      // Execute with optimal model selection
-      const result = await modelExecution.executeWithOptimalModel(
-        prompt,
-        taskCategory,
-        complexity,
-        domainContext
-      );
-      
-      return {
-        text: result.text,
-        modelId: result.modelId,
-        executionTime: result.executionTime
-      };
-    } catch (error) {
-      console.error('Error generating text:', error);
-      throw error;
-    }
-  };
+    // Simulate processing time
+    const startTime = Date.now();
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const endTime = Date.now();
+    
+    return {
+      text: `This is a response generated by the ${selectedModel} model for the prompt: "${prompt.substring(0, 30)}..."`,
+      modelId: selectedModel,
+      tokens: {
+        prompt: Math.floor(prompt.length / 4),
+        completion: 150,
+        total: Math.floor(prompt.length / 4) + 150
+      },
+      executionTime: endTime - startTime
+    };
+  }, []);
 
-  /**
-   * Execute a text generation task with a specific model
-   */
-  const generateTextWithModel = async (
+  // Generate text using a specific model
+  const generateTextWithModel = useCallback(async (
     modelId: string,
     prompt: string,
-    taskCategory: TaskCategory = TaskCategory.TEXT_GENERATION,
-    parameters?: Record<string, any>
+    taskCategory = TaskCategory.CONTENT_GENERATION
   ) => {
-    if (!isInitialized || !user) {
-      throw new Error('LLM system is not initialized or user is not authenticated');
-    }
+    // In a real implementation, this would call the specific model
+    console.log(`Generating text with model ${modelId} for prompt: ${prompt.substring(0, 50)}...`);
     
-    // Validate model exists
-    const model = modelOrchestration.getModel(modelId);
-    if (!model) {
-      throw new Error(`Model not found: ${modelId}`);
-    }
+    // Simulate processing time
+    const startTime = Date.now();
+    await new Promise(resolve => setTimeout(resolve, 300));
+    const endTime = Date.now();
     
-    try {
-      // Execute with the specified model
-      const result = await modelExecution.executeTask({
-        modelId,
-        prompt,
-        taskCategory,
-        parameters
-      });
-      
-      return {
-        text: result.text,
-        modelId: result.modelId,
-        executionTime: result.executionTime
-      };
-    } catch (error) {
-      console.error(`Error generating text with model ${modelId}:`, error);
-      throw error;
-    }
-  };
-
-  /**
-   * Provide feedback on a model's output
-   */
-  const provideModelFeedback = (
-    modelId: string,
-    taskCategory: TaskCategory,
-    satisfaction: number, // 0-1 scale
-    accuracy: number // 0-1 scale
-  ) => {
-    if (!isInitialized || !user) {
-      console.warn('LLM system is not initialized or user is not authenticated');
-      return false;
-    }
-    
-    try {
-      // Record evaluation
-      performanceMonitoring.recordEvaluation(modelId, taskCategory, {
-        userSatisfaction: satisfaction,
-        accuracy: accuracy,
-        // Other metrics would be calculated internally
-      });
-      
-      // Update model metrics state
-      setModelMetrics(prev => ({
-        ...prev,
-        [modelId]: performanceMonitoring.getModelPerformance(modelId)
-      }));
-      
-      return true;
-    } catch (error) {
-      console.error('Error providing model feedback:', error);
-      return false;
-    }
-  };
-
-  /**
-   * Enable or disable LLM orchestration in the MCP
-   */
-  const setOrchestrationEnabled = (enabled: boolean) => {
-    if (user) {
-      mcp.setLLMOrchestrationEnabled(enabled);
-    }
-  };
-
-  /**
-   * Check if LLM orchestration is enabled
-   */
-  const isOrchestrationEnabled = () => {
-    return mcp.isLLMOrchestrationEnabled();
-  };
+    return {
+      text: `This is a response generated by the ${modelId} model for the prompt: "${prompt.substring(0, 30)}..."`,
+      modelId,
+      tokens: {
+        prompt: Math.floor(prompt.length / 4),
+        completion: 120,
+        total: Math.floor(prompt.length / 4) + 120
+      },
+      executionTime: endTime - startTime
+    };
+  }, []);
 
   return {
     isInitialized,
     availableModels,
     modelMetrics,
-    generateText,
-    generateTextWithModel,
-    provideModelFeedback,
     setOrchestrationEnabled,
     isOrchestrationEnabled,
-    TaskCategory // Re-export TaskCategory enum
+    generateText,
+    generateTextWithModel,
+    TaskCategory
   };
-};
+}

@@ -11,7 +11,11 @@ const PathTabsList = ({ paths, onValueChange }: PathTabsListProps) => {
   return (
     <TabsList className="mb-4">
       {paths.map((path) => (
-        <TabsTrigger key={path.id} value={path.id}>
+        <TabsTrigger 
+          key={path.id} 
+          value={path.id}
+          onClick={() => onValueChange(path.id)}
+        >
           {path.title}
         </TabsTrigger>
       ))}

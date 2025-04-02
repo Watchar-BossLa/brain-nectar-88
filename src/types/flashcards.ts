@@ -1,40 +1,25 @@
-// Enhanced flashcard types that map to both the database schema and UI components
+
+// Enhanced flashcard types
 export interface Flashcard {
   id: string;
-  
-  // Database field names
-  user_id?: string;
-  topic_id?: string;
-  front_content: string;
-  back_content: string;
-  difficulty?: number;
-  next_review_date?: string;
-  repetition_count?: number;
-  mastery_level?: number;
-  easiness_factor?: number;
-  last_retention?: number;
-  last_reviewed_at?: string;
-  created_at?: string;
-  updated_at?: string;
-  interval?: number;  // Added the interval property
-  
-  // UI field names (for backward compatibility)
-  userId?: string;
-  topicId?: string;
-  front?: string;
-  back?: string;
-  topic?: string;
+  front: string;
+  back: string;
+  topic: string;
+  topicId: string;
   tags?: string[];
+  difficulty: number;
   usesLatex?: boolean;
   hasFinancialFormulas?: boolean;
   imageUrls?: string[];
   audioUrl?: string;
-  created?: string;
+  created: string;
   lastReviewed?: string;
   dueDate?: string;
-  repetitionCount?: number;
-  easinessFactor?: number;
-  mastery?: number;
+  repetitionCount: number;
+  easinessFactor: number;
+  interval: number;
+  mastery: number;
+  userId: string;
 }
 
 export interface FlashcardDeck {

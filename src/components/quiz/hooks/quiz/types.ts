@@ -16,6 +16,11 @@ export interface QuizState {
   quizLength: number;
   answeredQuestions: AnsweredQuestion[];
   selectedSubject: string;
+  questionCount: number;
+  questions: QuizQuestion[];
+  currentQuestionIndex: number;
+  userAnswers: string[];
+  quizStatus: 'setup' | 'in-progress' | 'completed';
 }
 
 export interface QuizActions {
@@ -50,4 +55,5 @@ export interface QuizStateWithSetters extends QuizState {
   setCurrentDifficulty: React.Dispatch<React.SetStateAction<1 | 2 | 3>>;
   setAnsweredQuestions: React.Dispatch<React.SetStateAction<AnsweredQuestion[]>>;
   setSelectedSubject: React.Dispatch<React.SetStateAction<string>>;
+  setQuestionCount: React.Dispatch<React.SetStateAction<number>>;
 }

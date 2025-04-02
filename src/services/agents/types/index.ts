@@ -1,8 +1,17 @@
 
-// Re-export all types from the sub-directories
-export * from './agentTypes';
-// Export TaskStatus from taskTypes but avoid duplicate export
-export type { ContextTag } from './taskTypes';
-export * from './messageTypes';
-export * from './profileTypes';
-export * from './systemState';
+// Re-export all types from the agent types file
+export type {
+  Task,
+  AgentTask,
+  AgentMessage,
+  SystemState,
+  CognitiveProfile
+} from './agentTypes';
+
+// Re-export enums
+export {
+  AgentType,
+  TaskType,
+  TaskPriority,
+  TaskStatus
+} from './agentTypes';

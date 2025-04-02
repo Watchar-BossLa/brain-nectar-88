@@ -1,16 +1,24 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import AdaptiveQuizPlatform from '@/components/quiz/AdaptiveQuizPlatform';
 import { motion } from 'framer-motion';
-import { BookOpen, Brain, ChevronRight, LineChart, Award, BarChart } from 'lucide-react';
+import { BookOpen, Brain, ChevronRight, LineChart, BarChart } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import HomeNavigation from '@/components/layout/HomeNavigation';
+import { SubjectSelector } from '@/components/subjects';
 
 const AdaptiveQuiz = () => {
+  const [selectedSubject, setSelectedSubject] = useState('accounting');
+
   return (
     <MainLayout>
-      <div className="p-8 max-w-7xl mx-auto">
+      <div className="container p-6 md:p-8 mx-auto">
+        <div className="mb-4">
+          <HomeNavigation />
+        </div>
+      
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -40,6 +48,15 @@ const AdaptiveQuiz = () => {
             </div>
           </div>
         </motion.div>
+
+        <Card className="p-4 mb-6">
+          <h2 className="text-lg font-medium mb-3">Choose Subject Area</h2>
+          <SubjectSelector 
+            currentSubject={selectedSubject}
+            onSelect={setSelectedSubject}
+            displayStyle="buttons"
+          />
+        </Card>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <motion.div
@@ -108,7 +125,7 @@ const AdaptiveQuiz = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <AdaptiveQuizPlatform />
+          <AdaptiveQuizPlatform initialSubject={selectedSubject} />
         </motion.div>
       </div>
     </MainLayout>

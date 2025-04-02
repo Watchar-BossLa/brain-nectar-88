@@ -1,69 +1,142 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { ThumbsUp, ThumbsDown, Lightbulb, Star, Trophy, MessageSquare } from 'lucide-react';
-import { useFlashcardReview } from '@/hooks/useFlashcardReview';
-import LatexRenderer from '@/components/math/LatexRenderer';
-import FeedbackDialog from '../../quiz/components/feedback/FeedbackDialog';
+import { Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/context/auth';
+import { spacedRepetitionService } from '@/services/flashcards/spacedRepetitionService';
+import { Flashcard } from '@/hooks/flashcards/types';
 
 interface ReviewFlashcardsTabProps {
   onComplete: () => void;
 }
 
-const ReviewFlashcardsTab = ({ onComplete }: ReviewFlashcardsTabProps) => {
-  const {
-    currentCard,
-    reviewState,
-    handleDifficultyRating,
-    completeReview
-  } = useFlashcardReview();
+const FlashcardReviewContent = ({ flashcard, isFlipped }: { flashcard: Flashcard; isFlipped: boolean }) => {
+  return (
+    <div className="min-h-[200px] flex items-center justify-center p-6">
+      <div className="text-center">
+        {isFlipped ? (
+          <div className="animate-fadeIn">
+            <div className="text-xl font-semibold">{flashcard.back_content || flashcard.back}</div>
+          </div>
+        ) : (
+          <div className="text-xl font-semibold">{flashcard.front_content || flashcard.front}</div>
+        )}
+      </div>
+    </div>
+  );
+};
 
-  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
-  const [reviewStats, setReviewStats] = useState({
-    totalReviewed: 0,
-    easy: 0,
-    medium: 0,
-    hard: 0,
-    averageRating: 3
-  });
+const FlashcardReviewCard = ({ flashcard, onFlip, isFlipped, onRate }: {
+  flashcard: Flashcard;
+  onFlip: () => void;
+  isFlipped: boolean;
+  onRate: (rating: number) => Promise<void>;
+}) => {
+  return (
+    <Card className="w-full">
+      <CardContent className="p-6 min-h-[300px] flex items-center justify-center">
+        <div className="text-center">
+          {isFlipped ? (
+            <div className="animate-fadeIn">
+              <div className="mb-4 text-xl font-semibold">{flashcard.back_content || flashcard.back}</div>
+            </div>
+          ) : (
+            <div>
+              <div className="mb-4 text-xl font-semibold">{flashcard.front_content || flashcard.front}</div>
+            </div>
+          )}
+        </div>
+      </CardContent>
+      
+      <CardFooter className="flex justify-around">
+        <Button variant="outline" onClick={() => onRate(1)}>Hard</Button>
+        <Button onClick={onFlip}>{isFlipped ? 'Show Question' : 'Show Answer'}</Button>
+        <Button variant="outline" onClick={() => onRate(5)}>Easy</Button>
+      </CardFooter>
+    </Card>
+  );
+};
+
+const ReviewFlashcardsTab: React.FC<ReviewFlashcardsTabProps> = ({ onComplete }) => {
+  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
-  const handleSubmitFeedback = (feedback: {
-    questionId: string;
-    feedbackType: 'issue' | 'suggestion' | 'praise';
-    feedbackText: string;
-  }) => {
-    console.log('Flashcard feedback submitted:', feedback);
+  useEffect(() => {
+    const fetchFlashcards = async () => {
+      setIsLoading(true);
+      try {
+        if (!user) {
+          throw new Error('User not authenticated');
+        }
+        
+        const dueCards = await spacedRepetitionService.getDueFlashcards(user.id);
+        setFlashcards(dueCards);
+        setCurrentIndex(0);
+      } catch (error) {
+        console.error('Error fetching due flashcards:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load flashcards for review',
+          variant: 'destructive'
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchFlashcards();
+    }
+  }, [user, toast]);
+
+  const handleFlip = () => {
+    setIsFlipped(!isFlipped);
+  };
+
+  const handleRating = async (rating: number) => {
+    if (!flashcards.length || currentIndex >= flashcards.length) return;
+
+    const currentFlashcard = flashcards[currentIndex];
     
-    toast({
-      title: "Feedback received",
-      description: "Thank you for helping us improve our flashcards!",
-    });
-  };
-
-  const showAnswer = () => {
-    console.log("Show answer clicked");
-  };
-
-  const rateCard = (rating: number) => {
-    handleDifficultyRating(rating);
-    
-    setReviewStats(prev => {
-      const newStats = { ...prev, totalReviewed: prev.totalReviewed + 1 };
-      if (rating <= 2) newStats.hard = prev.hard + 1;
-      else if (rating === 3) newStats.medium = prev.medium + 1;
-      else newStats.easy = prev.easy + 1;
+    try {
+      await spacedRepetitionService.recordReview(currentFlashcard.id, rating);
       
-      const totalRatings = newStats.easy + newStats.medium + newStats.hard;
-      newStats.averageRating = ((newStats.easy * 5) + (newStats.medium * 3) + (newStats.hard * 1)) / totalRatings;
-      
-      return newStats;
-    });
+      if (currentIndex < flashcards.length - 1) {
+        setCurrentIndex(currentIndex + 1);
+        setIsFlipped(false);
+      } else {
+        onComplete();
+        toast({
+          title: 'Review complete',
+          description: `You've reviewed all ${flashcards.length} cards due today!`,
+          duration: 5000
+        });
+      }
+    } catch (error) {
+      console.error('Error updating flashcard after review:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save your rating',
+        variant: 'destructive'
+      });
+    }
   };
 
-  if (!currentCard && reviewState !== 'complete') {
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[300px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!flashcards || flashcards.length === 0) {
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
@@ -71,157 +144,31 @@ const ReviewFlashcardsTab = ({ onComplete }: ReviewFlashcardsTabProps) => {
           <p className="text-muted-foreground text-center">
             You've caught up with all your reviews. Check back later.
           </p>
-          <Button onClick={completeReview} className="mt-4">
-            Return to Flashcards
-          </Button>
         </CardContent>
       </Card>
     );
   }
 
-  if (reviewState === 'complete') {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-yellow-500" />
-            Review Session Complete
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-center text-lg">
-            Great job! You've completed your review session.
-          </p>
-          
-          <div className="grid grid-cols-3 gap-4 mt-4">
-            <div className="bg-green-50 border border-green-200 rounded-md p-3 text-center">
-              <p className="text-sm text-muted-foreground">Easy</p>
-              <p className="text-2xl font-bold text-green-600">{reviewStats.easy}</p>
-            </div>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 text-center">
-              <p className="text-sm text-muted-foreground">Medium</p>
-              <p className="text-2xl font-bold text-yellow-600">{reviewStats.medium}</p>
-            </div>
-            <div className="bg-red-50 border border-red-200 rounded-md p-3 text-center">
-              <p className="text-sm text-muted-foreground">Hard</p>
-              <p className="text-2xl font-bold text-red-600">{reviewStats.hard}</p>
-            </div>
-          </div>
-          
-          <div className="mt-4">
-            <p className="text-sm text-muted-foreground mb-1">Average Rating</p>
-            <Progress value={reviewStats.averageRating * 20} className="h-2" />
-            <div className="flex justify-between mt-1 text-xs text-muted-foreground">
-              <span>Hard</span>
-              <span>Easy</span>
-            </div>
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button onClick={completeReview} className="w-full">
-            Return to Flashcards
-          </Button>
-        </CardFooter>
-      </Card>
-    );
-  }
-
-  const hasLatex = (content: string = '') => {
-    return content.includes('$$') || content.includes('$');
-  };
-
-  const front = currentCard?.front_content || '';
-  const back = currentCard?.back_content || '';
+  const currentFlashcard = flashcards[currentIndex];
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="bg-muted/20">
-        <div className="flex justify-between items-center">
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
           <CardTitle>Flashcard Review</CardTitle>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setIsFeedbackOpen(true)}
-              className="flex items-center gap-1"
-            >
-              <MessageSquare className="h-4 w-4" />
-              Feedback
-            </Button>
-            <p className="text-sm text-muted-foreground">
-              Cards reviewed: {reviewStats.totalReviewed}
-            </p>
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="pt-6">
-        <div className="min-h-[200px] flex flex-col justify-center">
-          <div className="mb-6">
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">Question</h3>
-            <div className="p-4 border rounded-md bg-card">
-              {hasLatex(front) ? (
-                <LatexRenderer latex={front} />
-              ) : (
-                <p className="text-lg">{front}</p>
-              )}
-            </div>
-          </div>
-          
-          {reviewState === 'active' && (
-            <div className="mt-4">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Answer</h3>
-              <div className="p-4 border rounded-md bg-card">
-                {hasLatex(back) ? (
-                  <LatexRenderer latex={back} />
-                ) : (
-                  <p className="text-lg">{back}</p>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </CardContent>
-      
-      <CardFooter className="border-t p-4 bg-muted/10">
-        {reviewState === 'loading' ? (
-          <Button onClick={showAnswer} className="w-full">
-            <Lightbulb className="mr-2 h-4 w-4" />
-            Show Answer
-          </Button>
-        ) : (
-          <div className="w-full space-y-4">
-            <p className="text-sm text-center text-muted-foreground mb-2">
-              How well did you know this?
-            </p>
-            <div className="grid grid-cols-3 gap-2">
-              <Button variant="outline" onClick={() => rateCard(1)} className="flex flex-col py-3">
-                <ThumbsDown className="h-5 w-5 text-red-500 mb-1" />
-                <span className="text-xs">Hard</span>
-              </Button>
-              <Button variant="outline" onClick={() => rateCard(3)} className="flex flex-col py-3">
-                <Star className="h-5 w-5 text-yellow-500 mb-1" />
-                <span className="text-xs">Medium</span>
-              </Button>
-              <Button variant="outline" onClick={() => rateCard(5)} className="flex flex-col py-3">
-                <ThumbsUp className="h-5 w-5 text-green-500 mb-1" />
-                <span className="text-xs">Easy</span>
-              </Button>
-            </div>
-          </div>
+          <CardDescription>Review your flashcards using spaced repetition.</CardDescription>
+        </CardHeader>
+        
+        {currentFlashcard && (
+          <FlashcardReviewCard
+            flashcard={currentFlashcard}
+            isFlipped={isFlipped}
+            onFlip={handleFlip}
+            onRate={handleRating}
+          />
         )}
-      </CardFooter>
-      
-      {currentCard && (
-        <FeedbackDialog
-          questionId={currentCard.id || 'unknown'}
-          questionText={front}
-          isOpen={isFeedbackOpen}
-          onClose={() => setIsFeedbackOpen(false)}
-          onSubmitFeedback={handleSubmitFeedback}
-        />
-      )}
-    </Card>
+      </Card>
+    </div>
   );
 };
 

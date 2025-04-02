@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -17,11 +17,13 @@ import { LogOut, User, Settings } from 'lucide-react';
 const NavbarUserMenu = () => {
   const { user, signOut } = useAuth();
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const navigate = useNavigate();
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
     try {
       await signOut();
+      navigate('/login');
     } finally {
       setIsSigningOut(false);
     }
@@ -63,17 +65,13 @@ const NavbarUserMenu = () => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link to="/profile" className="flex items-center">
-            <User className="mr-2 h-4 w-4" />
-            <span>Profile</span>
-          </Link>
+        <DropdownMenuItem onClick={() => navigate('/profile')}>
+          <User className="mr-2 h-4 w-4" />
+          <span>Profile</span>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link to="/profile/settings" className="flex items-center">
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
-          </Link>
+        <DropdownMenuItem onClick={() => navigate('/settings')}>
+          <Settings className="mr-2 h-4 w-4" />
+          <span>Settings</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem 

@@ -41,7 +41,7 @@ const EquationVisualizer = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="basic" onValueChange={(value) => setMode(value as VisualizerMode)}>
+        <Tabs value={mode} onValueChange={(value) => setMode(value as VisualizerMode)}>
           <TabsList className="mb-4">
             <TabsTrigger value="basic">Basic Mode</TabsTrigger>
             <TabsTrigger value="interactive">Interactive Mode</TabsTrigger>

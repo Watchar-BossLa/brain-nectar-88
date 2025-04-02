@@ -1,24 +1,28 @@
 
-import { CognitiveProfile } from '../types/profileTypes';
+import { CognitiveProfile } from '../types';
 
 /**
- * Profile Update Options
+ * Learning history item from database
+ */
+export interface LearningHistoryItem {
+  content?: {
+    content_type?: string;
+    topic_id?: string;
+    module_id?: string;
+  };
+  topic_id?: string;
+  module_id?: string;
+  status?: string;
+  progress_percentage?: number;
+  created_at: string;
+  updated_at: string;
+  [key: string]: any;
+}
+
+/**
+ * Profile update options
  */
 export interface ProfileUpdateOptions {
   userId: string;
   newData: Partial<CognitiveProfile>;
-}
-
-/**
- * Profile Analysis Result
- */
-export interface ProfileAnalysisResult {
-  userId: string;
-  learningStyleStrengths: Record<string, number>;
-  recommendedContentFormats: string[];
-  attention: {
-    optimalSessionLength: number;
-    recommendedBreakFrequency: number;
-  };
-  timestamp: string;
 }

@@ -1,50 +1,28 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLearningPath } from '@/hooks/useLearningPath';
-import { ChevronDown, ChevronRight, CheckCircle, BookOpen, Clock, RefreshCcw } from 'lucide-react';
+import { ChevronDown, ChevronRight, CheckCircle, BookOpen, Clock } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import LearningModule from '@/components/ui/learning-module';
 import { TopicItemProps } from '@/components/ui/learning-module/topic-item';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LearningPathVisualization from './LearningPathVisualization';
-import { useToast } from '@/components/ui/use-toast';
 
 const LearningPathDisplay = () => {
   const { currentPath, loading, error, refreshPath } = useLearningPath();
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
   const [activeView, setActiveView] = useState<'list' | 'visualization'>('list');
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const { toast } = useToast();
 
   const toggleModule = (moduleId: string) => {
     setExpandedModules(prev => ({
       ...prev,
       [moduleId]: !prev[moduleId]
     }));
-  };
-
-  const handleRefresh = async () => {
-    try {
-      setIsRefreshing(true);
-      await refreshPath();
-      toast({
-        title: "Learning path refreshed",
-        description: "Your learning path has been successfully updated.",
-      });
-    } catch (err) {
-      toast({
-        title: "Refresh failed",
-        description: "Could not refresh learning path. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsRefreshing(false);
-    }
   };
   
   if (loading) {
@@ -57,22 +35,7 @@ const LearningPathDisplay = () => {
         <CardContent className="py-6">
           <div className="text-center">
             <p className="text-red-500 mb-4">Error loading learning path: {error.message}</p>
-            <Button 
-              onClick={handleRefresh} 
-              disabled={isRefreshing}
-            >
-              {isRefreshing ? (
-                <>
-                  <RefreshCcw className="mr-2 h-4 w-4 animate-spin" />
-                  Refreshing...
-                </>
-              ) : (
-                <>
-                  <RefreshCcw className="mr-2 h-4 w-4" />
-                  Retry
-                </>
-              )}
-            </Button>
+            <Button onClick={() => refreshPath()}>Retry</Button>
           </div>
         </CardContent>
       </Card>
@@ -94,45 +57,18 @@ const LearningPathDisplay = () => {
     );
   }
 
-  // Calculate total and completed topics with safety checks
-  const totalTopics = currentPath.modules.reduce((acc, module) => 
-    acc + (Array.isArray(module.topics) ? module.topics.length : 0), 0);
-    
+  const totalTopics = currentPath.modules.reduce((acc, module) => acc + module.topics.length, 0);
   const completedTopics = currentPath.modules.reduce((acc, module) => 
-    acc + (Array.isArray(module.topics) 
-      ? module.topics.filter(topic => topic.status === 'completed').length 
-      : 0), 0);
-      
+    acc + module.topics.filter(topic => topic.status === 'completed').length, 0);
   const overallProgress = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
 
   return (
     <div className="space-y-6">
       <Tabs defaultValue="list" onValueChange={(value) => setActiveView(value as 'list' | 'visualization')}>
-        <div className="flex justify-between items-center">
-          <TabsList className="mb-4">
-            <TabsTrigger value="list">List View</TabsTrigger>
-            <TabsTrigger value="visualization">Visual Path</TabsTrigger>
-          </TabsList>
-          
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-          >
-            {isRefreshing ? (
-              <>
-                <RefreshCcw className="mr-2 h-4 w-4 animate-spin" />
-                Refreshing...
-              </>
-            ) : (
-              <>
-                <RefreshCcw className="mr-2 h-4 w-4" />
-                Refresh
-              </>
-            )}
-          </Button>
-        </div>
+        <TabsList className="mb-4">
+          <TabsTrigger value="list">List View</TabsTrigger>
+          <TabsTrigger value="visualization">Visual Path</TabsTrigger>
+        </TabsList>
         
         <TabsContent value="list">
           <Card>
@@ -178,14 +114,10 @@ const LearningPathDisplay = () => {
 
           <div className="space-y-4 mt-6">
             {currentPath.modules.map((module, index) => {
-              if (!module || !Array.isArray(module.topics)) {
-                return null;
-              }
-              
               // Convert module topics to the format expected by LearningModule
               const topicItems: TopicItemProps[] = module.topics.map(topic => ({
                 id: topic.id,
-                title: topic.title || `Topic ${index + 1}`,
+                title: topic.title,
                 duration: '30 min',
                 isCompleted: topic.status === 'completed'
               }));
@@ -197,9 +129,9 @@ const LearningPathDisplay = () => {
                 
               return (
                 <LearningModule
-                  key={module.id || `module-${index}`}
-                  id={module.id || `module-${index}`}
-                  title={module.title || `Module ${index + 1}`}
+                  key={module.id}
+                  id={module.id}
+                  title={module.title}
                   topics={topicItems}
                   progress={moduleProgress}
                   totalDuration={`${module.topics.length * 0.5} hours`}
@@ -213,7 +145,7 @@ const LearningPathDisplay = () => {
         <TabsContent value="visualization">
           <LearningPathVisualization 
             learningPath={currentPath}
-            loading={loading || isRefreshing}
+            loading={loading}
           />
         </TabsContent>
       </Tabs>

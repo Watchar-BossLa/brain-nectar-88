@@ -20,8 +20,8 @@ export const getFlashcardStats = async (userId: string) => {
     }
     
     // Get flashcards due today
-    const now = new Date();
-    const endOfDay = new Date(now);
+    const today = new Date();
+    const endOfDay = new Date(today);
     endOfDay.setHours(23, 59, 59, 999);
     
     const { data: dueCards, error: dueError } = await supabase
@@ -35,7 +35,7 @@ export const getFlashcardStats = async (userId: string) => {
     }
     
     // Get reviews done today
-    const startOfDay = new Date(now);
+    const startOfDay = new Date(today);
     startOfDay.setHours(0, 0, 0, 0);
     
     const { data: reviewsToday, error: reviewError } = await supabase

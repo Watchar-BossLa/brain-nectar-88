@@ -1,16 +1,25 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import MainLayout from '@/components/layout/MainLayout';
 import AdaptiveQuizPlatform from '@/components/quiz/AdaptiveQuizPlatform';
 import { BrainCircuit, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import HomeNavigation from '@/components/layout/HomeNavigation';
+import { Card } from '@/components/ui/card';
+import { SubjectSelector } from '@/components/subjects';
 
 const Quiz = () => {
+  const [selectedSubject, setSelectedSubject] = useState('accounting');
+  
   return (
     <MainLayout>
-      <div className="p-6 md:p-8 max-w-6xl mx-auto">
+      <div className="container p-6 md:p-8 mx-auto">
+        <div className="mb-4">
+          <HomeNavigation />
+        </div>
+        
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -24,7 +33,7 @@ const Quiz = () => {
                 Quiz Platform
               </h1>
               <p className="text-muted-foreground mt-1">
-                Test your accounting knowledge with our quiz system
+                Test your knowledge with our quiz system
               </p>
             </div>
             <Link to="/adaptive-quiz">
@@ -36,12 +45,21 @@ const Quiz = () => {
           </div>
         </motion.div>
 
+        <Card className="p-4 mb-6">
+          <h2 className="text-lg font-medium mb-3">Choose Subject Area</h2>
+          <SubjectSelector 
+            currentSubject={selectedSubject}
+            onSelect={setSelectedSubject}
+            displayStyle="buttons"
+          />
+        </Card>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <AdaptiveQuizPlatform />
+          <AdaptiveQuizPlatform initialSubject={selectedSubject} />
         </motion.div>
       </div>
     </MainLayout>

@@ -41,7 +41,6 @@
     "@radix-ui/react-toggle-group": "^1.1.0",
     "@radix-ui/react-tooltip": "^1.1.4",
     "@solana/wallet-adapter-base": "^0.9.24",
-    "@solana/wallet-adapter-phantom": "^0.9.25",
     "@solana/wallet-adapter-react": "^0.15.36",
     "@solana/wallet-adapter-react-ui": "^0.9.36",
     "@solana/wallet-adapter-wallets": "^0.19.33",
@@ -59,10 +58,9 @@
     "cmdk": "^1.0.0",
     "date-fns": "^4.1.0",
     "embla-carousel-react": "^8.3.0",
-    "framer-motion": "^12.6.3",
+    "framer-motion": "^12.6.2",
     "http-browserify": "^1.7.0",
     "https-browserify": "^1.0.0",
-    "i18next-browser-languagedetector": "^7.2.2",
     "input-otp": "^1.2.4",
     "jsdom": "^26.0.0",
     "katex": "^0.16.21",
@@ -84,7 +82,7 @@
     "url": "^0.11.4",
     "uuid": "^11.1.0",
     "vaul": "^0.9.3",
-    "vitest": "^3.1.1",
+    "vitest": "^3.0.9",
     "zod": "^3.23.8"
   },
   "devDependencies": {

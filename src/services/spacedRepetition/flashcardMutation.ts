@@ -2,76 +2,124 @@
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Create a new flashcard
- * 
- * @param userId User ID
- * @param frontContent Front side content
- * @param backContent Back side content
- * @param topicId Optional topic ID
- * @returns Object with data or error
+ * Create a new flashcard in the database
  */
 export const createFlashcard = async (
-  userId: string,
-  frontContent: string,
-  backContent: string,
-  topicId?: string
+  frontContentOrUserId: string, 
+  backContent: string, 
+  topicIdOrNull?: string | null
 ) => {
   try {
-    const now = new Date().toISOString();
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    // Get current user with updated syntax
+    const { data: sessionData } = await supabase.auth.getSession();
+    const session = sessionData.session;
+    let userId: string;
+    let frontContent: string;
     
-    const { data, error } = await supabase
-      .from('flashcards')
-      .insert({
-        user_id: userId,
-        front_content: frontContent,
-        back_content: backContent,
-        topic_id: topicId,
-        next_review_date: tomorrow.toISOString(),
-        repetition_count: 0,
-        difficulty: 3, // Medium difficulty by default
-        mastery_level: 0,
-        easiness_factor: 2.5, // Default easiness factor
-        created_at: now,
-        updated_at: now
-      })
-      .select()
-      .single();
-      
-    if (error) {
-      return { data: null, error };
+    // Handle different function signatures
+    if (session && session.user && session.user.id === frontContentOrUserId) {
+      // If first argument is userId (old signature)
+      userId = frontContentOrUserId;
+      frontContent = backContent;
+      backContent = topicIdOrNull as string;
+      topicIdOrNull = null;
+    } else {
+      // If first argument is frontContent (new signature)
+      userId = session?.user?.id || '';
+      frontContent = frontContentOrUserId;
     }
     
-    return { data, error: null };
+    if (!userId) {
+      throw new Error('User not authenticated');
+    }
+
+    // Create the flashcard
+    const response = await supabase
+      .from('flashcards')
+      .insert({
+        front_content: frontContent,
+        back_content: backContent,
+        topic_id: topicIdOrNull || null,
+        user_id: userId,
+        difficulty: 0,
+        repetition_count: 0,
+        mastery_level: 0,
+        easiness_factor: 2.5,
+        next_review_date: new Date().toISOString()
+      })
+      .select();
+      
+    // Return the created flashcard
+    return response.data?.[0] || null;
   } catch (error) {
     console.error('Error creating flashcard:', error);
-    return { data: null, error };
+    throw error;
   }
 };
 
 /**
- * Delete a flashcard
- * 
- * @param flashcardId The ID of the flashcard to delete
- * @returns Object with data or error
+ * Delete a flashcard from the database
  */
-export const deleteFlashcard = async (flashcardId: string) => {
+export const deleteFlashcard = async (flashcardId: string): Promise<boolean> => {
   try {
-    const { data, error } = await supabase
+    // Check if user is authenticated
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData.session?.user?.id;
+    
+    if (!userId) {
+      throw new Error('User not authenticated');
+    }
+    
+    // Delete the flashcard
+    const { error } = await supabase
       .from('flashcards')
       .delete()
       .eq('id', flashcardId)
-      .select()
-      .single();
+      .eq('user_id', userId);
       
-    if (error) {
-      return { data: null, error };
-    }
+    if (error) throw error;
     
-    return { data, error: null };
+    return true;
   } catch (error) {
     console.error('Error deleting flashcard:', error);
-    return { data: null, error };
+    return false;
+  }
+};
+
+/**
+ * Update a flashcard in the database
+ */
+export const updateFlashcard = async (
+  flashcardId: string, 
+  updates: { 
+    front_content?: string; 
+    back_content?: string;
+    topic_id?: string;
+    difficulty?: number;
+  }
+): Promise<any> => {
+  try {
+    // Check if user is authenticated
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData.session?.user?.id;
+    
+    if (!userId) {
+      throw new Error('User not authenticated');
+    }
+    
+    // Update the flashcard
+    const { data, error } = await supabase
+      .from('flashcards')
+      .update(updates)
+      .eq('id', flashcardId)
+      .eq('user_id', userId)
+      .select();
+      
+    if (error) throw error;
+    
+    return data?.[0] || null;
+  } catch (error) {
+    console.error('Error updating flashcard:', error);
+    return null;
   }
 };

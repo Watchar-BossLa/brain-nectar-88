@@ -1,84 +1,73 @@
 
-import { SystemState, AgentType } from '../types';
+import { AgentType, SystemState } from '../types';
 
 /**
  * SystemStateManager
  * 
- * Manages the state of the multi-agent system
+ * Manages the system state including active agents, metrics, and global variables.
  */
 export class SystemStateManager {
   private systemState: SystemState;
-  private stateUpdateCallback?: (state: SystemState) => void;
-  
-  constructor(registeredAgents: AgentType[]) {
-    // Initialize the system state with default values
+
+  constructor(activeAgents: AgentType[]) {
     this.systemState = {
-      activeAgents: registeredAgents,
-      globalVariables: {},
-      metrics: {
-        taskSuccessRate: 0.98,
-        averageProcessingTime: 150,
-        systemLoad: 0.25,
-      },
-      priorityMatrix: {},
+      activeAgents,
       taskQueue: 0,
-      processingTasks: 0,
       completedTasks: 0,
       failedTasks: 0,
-      systemStatus: 'READY',
-      lastUpdated: new Date().toISOString()
+      uptime: 0,
+      globalVariables: {},
+      lastUpdated: new Date().toISOString(),
+      metrics: {
+        taskCompletionRate: 0,
+        averageResponseTime: 0,
+        userSatisfactionScore: 0,
+      },
+      priorityMatrix: {},
     };
   }
-  
+
   /**
    * Get the current system state
    */
   public getSystemState(): SystemState {
     return { ...this.systemState };
   }
-  
+
   /**
-   * Update the system metrics
+   * Update system metrics based on task outcomes
    */
   public updateMetrics(success: boolean): void {
-    const metrics = this.systemState.metrics;
-    
-    // Update metrics based on task success/failure
-    this.systemState = {
-      ...this.systemState,
-      metrics: {
-        ...metrics,
-        taskSuccessRate: success ? 
-          metrics.taskSuccessRate * 0.9 + 0.1 : 
-          metrics.taskSuccessRate * 0.9,
-        systemLoad: Math.min(0.95, metrics.systemLoad + 0.05),
-      },
-      lastUpdated: new Date().toISOString()
-    };
-    
-    if (this.stateUpdateCallback) {
-      this.stateUpdateCallback(this.systemState);
+    // This is a simplified metrics update
+    // In a real system, this would be much more sophisticated
+    if (!this.systemState.metrics) {
+      this.systemState.metrics = {
+        taskCompletionRate: 0,
+        averageResponseTime: 0,
+        userSatisfactionScore: 0
+      };
     }
+    
+    // Update task completion rate
+    const currentRate = this.systemState.metrics.taskCompletionRate;
+    const newRate = success
+      ? currentRate + (1 - currentRate) * 0.1  // Slight increase for success
+      : currentRate - currentRate * 0.1;       // Slight decrease for failure
+    
+    this.systemState.metrics.taskCompletionRate = Math.max(0, Math.min(1, newRate));
   }
-  
+
   /**
    * Set a global variable in the system state
    */
   public setGlobalVariable(key: string, value: any): void {
-    this.systemState.globalVariables = {
-      ...this.systemState.globalVariables,
-      [key]: value
-    };
-    
-    if (this.stateUpdateCallback) {
-      this.stateUpdateCallback(this.systemState);
-    }
+    this.systemState.globalVariables[key] = value;
   }
-  
+
   /**
-   * Set a callback to be triggered when the state updates
+   * Get a global variable from the system state
    */
-  public setStateUpdateCallback(callback: (state: SystemState) => void): void {
-    this.stateUpdateCallback = callback;
+  public getGlobalVariable(key: string): any {
+    return this.systemState.globalVariables[key];
   }
 }

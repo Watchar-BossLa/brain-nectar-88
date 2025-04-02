@@ -1,35 +1,38 @@
 
-import { Session } from '@supabase/supabase-js';
+import { Session, User } from '@/types/supabase-types';
 
-export interface AuthUser {
+// Define AuthUser interface
+export interface AuthUser extends User {
   id: string;
   email?: string;
-  aud: string;
-  role?: string;
   app_metadata: {
     provider?: string;
     [key: string]: any;
   };
   user_metadata: {
+    avatar_url?: string;
+    full_name?: string;
     [key: string]: any;
   };
-  created_at: string;
+  aud: string;
 }
 
-export type PlatformOwnerType = {
+export interface PlatformOwnerType {
   email: string;
   name: string;
-  role: string;
-};
+  [key: string]: string;
+}
 
 export interface AuthContextType {
-  user: AuthUser | null;
   session: Session | null;
+  user: AuthUser | null;
   loading: boolean;
   signIn: (email: string, password: string, callback?: (success: boolean) => void) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, callback?: (success: boolean) => void) => Promise<{ error: Error | null }>;
   signInWithGoogle: (callback?: () => void) => Promise<{ error: Error | null }>;
   signOut: (callback?: () => void) => Promise<void>;
-  platformOwner: PlatformOwnerType;
+  platformOwner: PlatformOwnerType; // For backward compatibility
+  platformOwners?: PlatformOwnerType[]; // All platform owners
   isAdmin: boolean;
+  isPlatformOwner?: boolean;
 }
