@@ -5,8 +5,7 @@ import App from './App';
 import './index.css';
 import './polyfills';
 
+// Create the root and render the App
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+  <App />
 );
