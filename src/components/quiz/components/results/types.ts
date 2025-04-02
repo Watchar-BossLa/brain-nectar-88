@@ -1,33 +1,31 @@
 
-export interface ScoreSummaryProps {
-  score: number;
-  correctCount: number;
-  totalCount: number;
-}
+import { AnsweredQuestion, QuizResults } from '@/types/quiz';
 
-export interface PerformanceByTopicProps {
-  topicStats?: Record<string, { total: number; correct: number }>;
-}
-
-export interface PerformanceByDifficultyProps {
-  difficultyStats?: Record<number, { total: number; correct: number }>;
-}
-
-export interface QuestionFeedback {
-  questionId: string;
-  feedback: string;
-  rating: number;
-  timestamp: string;
-  userId?: string;
-  questionText?: string;
-  feedbackType?: string;
-  feedbackText?: string;
-  createdAt?: string;
+export interface QuizResultsProps {
+  results: QuizResults;
+  onRestart: () => void;
+  onReview?: () => void;
+  sessionId?: string;
 }
 
 export interface ScoreDataItem {
   name: string;
-  score: number;
-  average: number;
-  color?: string;
+  value: number;
+  color: string;
+}
+
+export interface PerformanceByTopicProps {
+  topics: Record<string, { correct: number; total: number }>;
+}
+
+export interface PerformanceByDifficultyProps {
+  difficulties: Record<string, { correct: number; total: number }>;
+}
+
+export interface QuestionFeedback {
+  questionId: string;
+  feedbackType: 'issue' | 'suggestion' | 'praise';
+  feedbackText: string;
+  userId?: string;
+  createdAt: Date;
 }

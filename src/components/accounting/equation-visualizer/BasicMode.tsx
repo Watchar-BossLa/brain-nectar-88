@@ -2,7 +2,7 @@
 import React from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { renderLatexContent } from '@/components/flashcards/utils/latex-utils';
+import { renderLatexContent } from '../../flashcards/utils/latex-renderer';
 
 interface BasicModeProps {
   assets: number;

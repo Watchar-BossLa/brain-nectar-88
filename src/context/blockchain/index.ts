@@ -1,9 +1,6 @@
 
-import { SolanaProvider } from './SolanaProvider';
-import { SolanaContextProvider } from './SolanaContextProvider';
-
-// Re-export the Solana context components
-export { SolanaProvider, SolanaContextProvider };
-
-// Export the SolanaProvider's hook as default
-export { useSolana } from './SolanaContextProvider';
+export * from './SolanaContext';
+export * from './SolanaProvider';
+export * from './SolanaContextProvider';
+export * from './useSolana';
+export * from './types';

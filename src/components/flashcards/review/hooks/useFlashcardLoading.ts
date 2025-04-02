@@ -1,66 +1,48 @@
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useEffect } from 'react';
+import { useAuth } from '@/context/auth';
 import { getDueFlashcards } from '@/services/spacedRepetition';
+import { useToast } from '@/hooks/use-toast';
 
-export const useFlashcardLoading = () => {
+/**
+ * Hook for loading flashcards for review
+ */
+export const useFlashcardLoading = (
+  setFlashcards: (cards: any[]) => void,
+  setIsLoading: (loading: boolean) => void,
+  setReviewComplete: (complete: boolean) => void
+) => {
   const { user } = useAuth();
-  const [dueFlashcards, setDueFlashcards] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [reviewCompleted, setReviewCompleted] = useState(false);
+  const { toast } = useToast();
 
+  // Load due flashcards
   useEffect(() => {
     const loadFlashcards = async () => {
       if (!user) return;
       
+      setIsLoading(true);
       try {
-        setIsLoading(true);
-        const cards = await getDueFlashcards(user.id);
-        setDueFlashcards(cards);
-      } catch (error) {
-        console.error('Error loading due flashcards:', error);
+        const { data, error } = await getDueFlashcards(user.id);
+        
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          setFlashcards(data);
+        } else {
+          setReviewComplete(true);
+        }
+      } catch (err) {
+        toast({
+          title: 'Error loading flashcards',
+          description: 'There was a problem loading your flashcards for review.',
+          variant: 'destructive',
+        });
+        console.error('Error loading flashcards:', err);
       } finally {
         setIsLoading(false);
       }
     };
-
+    
     loadFlashcards();
-  }, [user]);
-
-  const handleRate = (difficulty: string | number) => {
-    // Convert string to number if needed
-    const difficultyValue = typeof difficulty === 'string' ? parseInt(difficulty, 10) : difficulty;
-    
-    // Update flashcard rating logic here
-    // This is just a placeholder
-    console.log(`Rated flashcard as ${difficultyValue}`);
-    
-    moveToNextCard();
-  };
-
-  const moveToNextCard = () => {
-    if (currentIndex < dueFlashcards.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-    } else {
-      setReviewCompleted(true);
-    }
-  };
-
-  const restartReview = () => {
-    setCurrentIndex(0);
-    setReviewCompleted(false);
-  };
-
-  return {
-    dueFlashcards,
-    currentFlashcard: dueFlashcards[currentIndex],
-    currentIndex,
-    isLoading,
-    reviewCompleted,
-    totalCards: dueFlashcards.length,
-    handleRate,
-    moveToNextCard,
-    restartReview
-  };
+  }, [user, toast, setFlashcards, setIsLoading, setReviewComplete]);
 };

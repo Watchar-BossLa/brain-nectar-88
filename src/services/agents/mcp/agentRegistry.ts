@@ -1,55 +1,59 @@
 
-import { BaseAgent } from './BaseAgent';
+import { AgentType } from '../types';
+import { BaseAgent } from '../baseAgent';
+import { CognitiveProfileAgent } from '../cognitive-profile';
+import { LearningPathAgent } from '../learning-path';
+import { ContentAdaptationAgent } from '../content-adaptation';
+import { AssessmentAgent } from '../assessment';
+import { EngagementAgent } from '../engagement';
+import { FeedbackAgent } from '../feedback';
+import { UiUxAgent } from '../ui-ux';
+import { SchedulingAgent } from '../scheduling';
 
-// Registry to store agent instances
-const registry = new Map<string, BaseAgent>();
-
-// Export createAgentRegistry function for compatibility with existing code
+/**
+ * Agent Registry
+ * 
+ * Manages the creation and access to all specialized agents in the system.
+ */
 export function createAgentRegistry() {
-  return agentRegistry;
-}
-
-// Create the agent registry singleton
-export const agentRegistry = {
-  /**
-   * Register an agent in the registry
-   */
-  registerAgent(agent: BaseAgent): void {
-    registry.set(agent.id, agent);
-  },
-
-  /**
-   * Get an agent by ID
-   */
-  getAgent(agentId: string): BaseAgent | undefined {
-    return registry.get(agentId);
-  },
-
-  /**
-   * Get all registered agents
-   */
-  getAllAgents(): BaseAgent[] {
-    return Array.from(registry.values());
-  },
-
-  /**
-   * Get agents by type
-   */
-  getAgentsByType(type: string): BaseAgent[] {
-    return Array.from(registry.values()).filter(agent => agent.type === type);
-  },
-
-  /**
-   * Remove an agent from the registry
-   */
-  removeAgent(agentId: string): boolean {
-    return registry.delete(agentId);
-  },
-
-  /**
-   * Clear the registry
-   */
-  clear(): void {
-    registry.clear();
+  const agents = new Map<AgentType, BaseAgent>();
+  
+  // Initialize all agents
+  function initializeAgents() {
+    agents.set('COGNITIVE_PROFILE', new CognitiveProfileAgent());
+    agents.set('LEARNING_PATH', new LearningPathAgent());
+    agents.set('CONTENT_ADAPTATION', new ContentAdaptationAgent());
+    agents.set('ASSESSMENT', new AssessmentAgent());
+    agents.set('ENGAGEMENT', new EngagementAgent());
+    agents.set('FEEDBACK', new FeedbackAgent());
+    agents.set('UI_UX', new UiUxAgent());
+    agents.set('SCHEDULING', new SchedulingAgent());
   }
-};
+  
+  // Initialize agents on creation
+  initializeAgents();
+  
+  return {
+    /**
+     * Get an agent by type
+     */
+    getAgent(type: AgentType): BaseAgent | undefined {
+      return agents.get(type);
+    },
+    
+    /**
+     * Get all registered agent types
+     */
+    getRegisteredAgentTypes(): AgentType[] {
+      return Array.from(agents.keys());
+    },
+    
+    /**
+     * Reset all agents (for testing or system reset)
+     */
+    resetAgents(): void {
+      agents.clear();
+      initializeAgents();
+    }
+  };
+}

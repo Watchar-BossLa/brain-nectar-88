@@ -18,18 +18,14 @@ const PathContent = ({ path }: PathContentProps) => {
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Recommended Study Plan</h3>
         
-        {(path.modules || [1, 2, 3]).map((module: any, index: number) => (
-          <ModuleCard 
-            key={module.id || index} 
-            index={index + 1} 
-            module={module.id ? module : {
-              title: `Module ${index + 1}`,
-              topics: [
-                { id: `${index}-1`, title: 'Topic 1', mastery: Math.floor(Math.random() * 100) },
-                { id: `${index}-2`, title: 'Topic 2', mastery: Math.floor(Math.random() * 100) }
-              ]
-            }} 
-          />
+        {[1, 2, 3].map((index) => (
+          <ModuleCard key={index} index={index} module={{
+            title: `Module ${index}`,
+            topics: [
+              { id: `${index}-1`, title: 'Topic 1', mastery: Math.floor(Math.random() * 100) },
+              { id: `${index}-2`, title: 'Topic 2', mastery: Math.floor(Math.random() * 100) }
+            ]
+          }} />
         ))}
       </div>
     </TabsContent>

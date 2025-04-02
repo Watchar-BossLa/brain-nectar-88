@@ -1,15 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { getUserFlashcards, deleteFlashcard } from '@/services/spacedRepetition';
+import { Flashcard } from '@/types/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from '@/context/auth';
+import { useAuth } from '@/context/AuthContext';
 import FlashcardListHeader from './FlashcardListHeader';
 import EmptyFlashcardState from './EmptyFlashcardState';
 import FlashcardGrid from './FlashcardGrid';
 import DeleteFlashcardDialog from './DeleteFlashcardDialog';
-import { Flashcard } from '@/types/supabase'; // Use consistent Flashcard type
 
 interface FlashcardListProps {
   onAddNew: () => void;
@@ -33,7 +33,7 @@ const FlashcardList: React.FC<FlashcardListProps> = ({
 
   const fetchFlashcards = async () => {
     if (propFlashcards) {
-      setFlashcards(propFlashcards as any as Flashcard[]);
+      setFlashcards(propFlashcards);
       setLoading(false);
       return;
     }
@@ -44,10 +44,11 @@ const FlashcardList: React.FC<FlashcardListProps> = ({
         throw new Error('User not authenticated');
       }
       
-      const cardsData = await getUserFlashcards(user.id);
-      if (cardsData) {
-        setFlashcards(cardsData as any as Flashcard[]);
+      const { data, error } = await getUserFlashcards(user.id);
+      if (error) {
+        throw new Error(error.message);
       }
+      setFlashcards(data || []);
     } catch (error) {
       console.error('Error fetching flashcards:', error);
       toast({
@@ -62,7 +63,7 @@ const FlashcardList: React.FC<FlashcardListProps> = ({
 
   useEffect(() => {
     if (propFlashcards) {
-      setFlashcards(propFlashcards as any as Flashcard[]);
+      setFlashcards(propFlashcards);
       setLoading(false);
     } else if (user) {
       fetchFlashcards();
@@ -78,10 +79,9 @@ const FlashcardList: React.FC<FlashcardListProps> = ({
     if (!flashcardToDelete) return;
     
     try {
-      const success = await deleteFlashcard(flashcardToDelete);
-      
-      if (!success) {
-        throw new Error('Failed to delete flashcard');
+      const { error } = await deleteFlashcard(flashcardToDelete);
+      if (error) {
+        throw new Error(error.message);
       }
       
       setFlashcards(flashcards.filter(card => card.id !== flashcardToDelete));

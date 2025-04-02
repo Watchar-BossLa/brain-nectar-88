@@ -1,8 +1,8 @@
+
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
 import { Flashcard } from './types';
-import { getSession } from '@/lib/supabaseAuth';
 
 export const useFlashcardsMutation = (onSuccess: () => void) => {
   const { toast } = useToast();
@@ -21,8 +21,7 @@ export const useFlashcardsMutation = (onSuccess: () => void) => {
         throw new Error('Back content is required');
       }
       
-      // Use the compatibility layer to get the session
-      const { data } = await getSession();
+      const { data } = await supabase.auth.getSession();
       const user = data.session?.user;
       
       if (!user?.id) {
@@ -54,7 +53,6 @@ export const useFlashcardsMutation = (onSuccess: () => void) => {
       });
       
       onSuccess();
-      return insertData;
     } catch (err) {
       console.error('Error creating flashcard:', err);
       setError(err as Error);
@@ -63,7 +61,6 @@ export const useFlashcardsMutation = (onSuccess: () => void) => {
         description: (err as Error).message,
         variant: 'destructive',
       });
-      return null;
     } finally {
       setLoading(false);
     }

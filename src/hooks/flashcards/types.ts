@@ -1,11 +1,9 @@
 
 export interface Flashcard {
   id: string;
-  deck_id?: string;
-  front?: string;
-  back?: string;
-  front_content?: string;  // Add these for compatibility
-  back_content?: string;   // Add these for compatibility
+  deck_id: string;
+  front: string;
+  back: string;
   user_id?: string;
   created_at?: string;
   updated_at?: string;
@@ -17,6 +15,8 @@ export interface Flashcard {
   next_review_at?: string;
   review_count?: number;
   // Additional fields for front-end compatibility
+  front_content?: string;
+  back_content?: string;
   topic_id?: string;
   topicId?: string;
   difficulty?: number;
@@ -24,9 +24,6 @@ export interface Flashcard {
   repetition_count?: number;
   next_review_date?: string;
   last_retention?: number;
-  topic?: string;
-  tags?: string[];
-  audioUrl?: string;
 }
 
 export interface FlashcardLearningStats {
@@ -39,10 +36,6 @@ export interface FlashcardLearningStats {
   next_review_at: string;
   review_count: number;
   totalCards?: number;
-  // For backward compatibility with calculateFlashcardRetention
-  id?: string;
-  difficulty?: number;
-  mastery_level?: number;
 }
 
 export interface FlashcardDeck {
@@ -82,14 +75,4 @@ export interface FlashcardReviewResponse {
   difficulty_rating: number;
   time_taken: number;
   created_at?: string;
-}
-
-export type ReviewState = 'reviewing' | 'answering' | 'complete';
-
-export interface ReviewStats {
-  totalReviewed: number;
-  easy: number;
-  medium: number;
-  hard: number;
-  averageRating: number;
 }

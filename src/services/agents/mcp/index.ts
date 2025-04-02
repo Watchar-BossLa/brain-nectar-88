@@ -1,5 +1,13 @@
 
-// Re-export MasterControlProgram and related functionality
-export { masterControlProgram, MasterControlProgram } from './MasterControlProgram';
-export { agentRegistry } from './agentRegistry';
-export { BaseAgent, AgentMessage } from './BaseAgent';
+import { MasterControlProgram } from './MasterControlProgram';
+
+// Export the master control program functionality
+export { MasterControlProgram };
+
+// Export a singleton instance for use throughout the application
+export const mcp = MasterControlProgram.getInstance();
+
+// Re-export important types and components for easier access
+export * from './systemState';
+export * from './communication';
+export * from './taskProcessor';

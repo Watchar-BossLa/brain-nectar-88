@@ -1,225 +1,257 @@
 
-import { masterControlProgram } from "../mcp/MasterControlProgram";
-import { TaskCategory, TaskPriority } from "../types/taskTypes";
-import { createLearningPathAgent } from "../learning-path";
-import { agentRegistry } from "../mcp/agentRegistry";
-import { useAuth } from "@/context/auth";
+import { MasterControlProgram } from '../mcp';
+import { AgentTask, AgentType, TaskType, TaskPriority } from '../types';
+import { modelOrchestration } from '../../llm/modelOrchestration';
 
-// Initialize agents
-export const initializeAgents = () => {
-  try {
-    console.log("Initializing agents...");
-    
-    // Register the learning path agent
-    const learningPathAgent = createLearningPathAgent();
-    agentRegistry.registerAgent(learningPathAgent);
-    
-    // Initialize the MasterControlProgram
-    masterControlProgram.initialize().then(() => {
-      console.log("MasterControlProgram initialized");
-    });
-    
-    console.log("Agent initialization complete");
-    return true;
-  } catch (error) {
-    console.error("Error initializing agents:", error);
-    return false;
+/**
+ * Agent Orchestrator
+ * 
+ * Advanced orchestration layer for coordinating complex multi-agent operations.
+ * This manages complex task dependencies, parallel execution, and optimization
+ * of agent resource allocation.
+ */
+export class AgentOrchestrator {
+  private static instance: AgentOrchestrator;
+  private mcp: MasterControlProgram;
+  
+  private constructor() {
+    this.mcp = MasterControlProgram.getInstance();
+    console.log('Agent Orchestrator initialized');
   }
-};
-
-// Orchestration functions for different tasks
-export const orchestrateFlashcardGeneration = async (
-  userId: string,
-  topics: string[],
-  count: number,
-  options?: Record<string, any>
-): Promise<string | null> => {
-  try {
-    console.log(`Orchestrating flashcard generation for user ${userId} on topics:`, topics);
-    
-    if (!masterControlProgram.isLLMOrchestrationEnabled()) {
-      console.log("LLM Orchestration is not enabled");
-      return null;
+  
+  /**
+   * Get the singleton instance
+   */
+  public static getInstance(): AgentOrchestrator {
+    if (!AgentOrchestrator.instance) {
+      AgentOrchestrator.instance = new AgentOrchestrator();
     }
+    return AgentOrchestrator.instance;
+  }
+  
+  /**
+   * Generate an adaptive learning path for a user
+   */
+  public async generateAdaptiveLearningPath(
+    userId: string, 
+    qualificationId: string,
+    options?: {
+      priorityTopics?: string[];
+      timeConstraint?: number;
+      complexityPreference?: 'basic' | 'standard' | 'advanced';
+    }
+  ): Promise<any> {
+    console.log(`Generating adaptive learning path for user ${userId}`);
     
-    const taskId = await masterControlProgram.submitTask(
-      TaskCategory.FLASHCARD_GENERATION,
-      `Generate ${count} flashcards for topics: ${topics.join(', ')}`,
-      {
-        userId,
-        topics,
-        count,
+    // Create a dependency chain of tasks for generating adaptive learning path
+    const taskId = `learning-path-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    
+    // 1. First task: Cognitive profiling to understand user's learning style
+    const profilingTask: AgentTask = {
+      id: `${taskId}-profiling`,
+      userId,
+      taskType: 'COGNITIVE_PROFILING',
+      description: 'Generate cognitive profile for learning path adaptation',
+      priority: 'HIGH',
+      targetAgentTypes: ['COGNITIVE_PROFILE'],
+      context: ['learning_path', 'qualification', 'adaptive'],
+      data: { 
+        qualificationId,
         options
       },
-      TaskPriority.MEDIUM
-    );
+      createdAt: new Date().toISOString()
+    };
     
-    return taskId;
-  } catch (error) {
-    console.error("Error orchestrating flashcard generation:", error);
-    return null;
-  }
-};
-
-export const orchestrateLearningPath = async (
-  userId: string,
-  options?: Record<string, any>
-): Promise<string | null> => {
-  try {
-    console.log(`Orchestrating learning path generation for user ${userId}`);
+    // Submit the first task in the chain
+    await this.mcp.submitTask(profilingTask);
     
-    if (!masterControlProgram.isLLMOrchestrationEnabled()) {
-      console.log("LLM Orchestration is not enabled");
-      return null;
-    }
-    
-    const taskId = await masterControlProgram.submitTask(
-      TaskCategory.LEARNING_PATH,
-      `Generate personalized learning path for user ${userId}`,
-      {
-        userId,
-        options
+    // 2. Second task: Create adaptive learning path based on cognitive profile
+    const pathGenerationTask: AgentTask = {
+      id: `${taskId}-generation`,
+      userId,
+      taskType: 'LEARNING_PATH_GENERATION',
+      description: 'Generate personalized learning path',
+      priority: 'HIGH',
+      targetAgentTypes: ['LEARNING_PATH'],
+      context: ['cognitive_profile', 'qualification', 'adaptive'],
+      data: { 
+        qualificationId,
+        options,
+        previousTaskId: profilingTask.id
       },
-      TaskPriority.MEDIUM
-    );
+      createdAt: new Date().toISOString(),
+    };
     
-    return taskId;
-  } catch (error) {
-    console.error("Error orchestrating learning path generation:", error);
-    return null;
-  }
-};
-
-export const orchestrateContentReview = async (
-  userId: string,
-  contentId: string,
-  contentText: string,
-  options?: Record<string, any>
-): Promise<string | null> => {
-  try {
-    console.log(`Orchestrating content review for user ${userId} on content ${contentId}`);
+    // Submit the second task in the chain
+    await this.mcp.submitTask(pathGenerationTask);
     
-    if (!masterControlProgram.isLLMOrchestrationEnabled()) {
-      console.log("LLM Orchestration is not enabled");
-      return null;
-    }
-    
-    const taskId = await masterControlProgram.submitTask(
-      TaskCategory.CONTENT_REVIEW,
-      `Review content ${contentId} for user ${userId}`,
-      {
-        userId,
-        contentId,
-        contentText,
-        options
+    // 3. Third task: Create content adaptations for the learning path
+    const contentAdaptationTask: AgentTask = {
+      id: `${taskId}-content-adaptation`,
+      userId,
+      taskType: 'CONTENT_ADAPTATION',
+      description: 'Adapt content for personalized learning path',
+      priority: 'MEDIUM',
+      targetAgentTypes: ['CONTENT_ADAPTATION'],
+      context: ['learning_path', 'cognitive_profile', 'qualification'],
+      data: { 
+        qualificationId,
+        options,
+        previousTaskId: pathGenerationTask.id
       },
-      TaskPriority.MEDIUM
-    );
+      createdAt: new Date().toISOString(),
+    };
     
-    return taskId;
-  } catch (error) {
-    console.error("Error orchestrating content review:", error);
-    return null;
+    // Submit the third task in the chain
+    await this.mcp.submitTask(contentAdaptationTask);
+    
+    return {
+      status: 'processing',
+      taskIds: [profilingTask.id, pathGenerationTask.id, contentAdaptationTask.id]
+    };
   }
-};
-
-export const orchestrateStudyPlan = async (
-  userId: string,
-  goalId: string,
-  daysToGoal: number,
-  options?: Record<string, any>
-): Promise<string | null> => {
-  try {
-    console.log(`Orchestrating study plan for user ${userId} with goal ${goalId} in ${daysToGoal} days`);
-    
-    if (!masterControlProgram.isLLMOrchestrationEnabled()) {
-      console.log("LLM Orchestration is not enabled");
-      return null;
+  
+  /**
+   * Create an assessment with adaptive difficulty
+   */
+  public async createAdaptiveAssessment(
+    userId: string,
+    topicIds: string[],
+    options?: {
+      initialDifficulty?: number;
+      adaptationRate?: number;
+      questionCount?: number;
+      timeLimit?: number;
     }
+  ): Promise<any> {
+    console.log(`Creating adaptive assessment for user ${userId} on topics: ${topicIds.join(', ')}`);
     
-    const taskId = await masterControlProgram.submitTask(
-      TaskCategory.SYSTEM,  // Use SYSTEM for now until we have a dedicated category
-      `Generate study plan for user ${userId} to achieve ${goalId} in ${daysToGoal} days`,
-      {
-        userId,
-        goalId,
-        daysToGoal,
-        options
+    // Generate a unique task ID for this assessment
+    const taskId = `assessment-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    
+    // Create task for assessment generation
+    const assessmentTask: AgentTask = {
+      id: taskId,
+      userId,
+      taskType: 'ASSESSMENT_GENERATION',
+      description: 'Generate adaptive difficulty assessment',
+      priority: 'HIGH',
+      targetAgentTypes: ['ASSESSMENT', 'COGNITIVE_PROFILE'],
+      context: ['assessment', 'adaptive', 'difficulty'],
+      data: { 
+        topicIds,
+        options: options || {
+          initialDifficulty: 0.5,
+          adaptationRate: 0.1,
+          questionCount: 10,
+          timeLimit: 20 
+        }
       },
-      TaskPriority.MEDIUM
-    );
+      createdAt: new Date().toISOString(),
+    };
     
-    return taskId;
-  } catch (error) {
-    console.error("Error orchestrating study plan:", error);
-    return null;
+    // Submit the assessment generation task
+    await this.mcp.submitTask(assessmentTask);
+    
+    return {
+      status: 'processing',
+      taskId: assessmentTask.id
+    };
   }
-};
-
-export const orchestrateQuizGeneration = async (
-  userId: string,
-  topics: string[],
-  difficulty: number,
-  questionCount: number,
-  options?: Record<string, any>
-): Promise<string | null> => {
-  try {
-    console.log(`Orchestrating quiz generation for user ${userId} on topics:`, topics);
-    
-    if (!masterControlProgram.isLLMOrchestrationEnabled()) {
-      console.log("LLM Orchestration is not enabled");
-      return null;
+  
+  /**
+   * Optimize study schedule based on user's learning patterns
+   */
+  public async optimizeStudySchedule(
+    userId: string,
+    options?: {
+      dailyAvailableTime?: number;
+      priorityTopics?: string[];
+      startDate?: string;
+      endDate?: string;
+      goalDate?: string;
     }
+  ): Promise<any> {
+    console.log(`Optimizing study schedule for user ${userId}`);
     
-    const taskId = await masterControlProgram.submitTask(
-      TaskCategory.ASSESSMENT,
-      `Generate quiz with ${questionCount} questions on topics: ${topics.join(', ')}`,
-      {
-        userId,
-        topics,
-        difficulty,
-        questionCount,
-        options
+    // Generate a unique task ID for this schedule optimization
+    const taskId = `schedule-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    
+    // Create team of agents for schedule optimization
+    const schedulingTask: AgentTask = {
+      id: taskId,
+      userId,
+      taskType: 'SCHEDULE_OPTIMIZATION',
+      description: 'Generate optimized study schedule',
+      priority: 'MEDIUM',
+      targetAgentTypes: ['SCHEDULING', 'COGNITIVE_PROFILE', 'ENGAGEMENT'],
+      context: ['schedule', 'optimization', 'study_plan'],
+      data: { 
+        options: options || {
+          dailyAvailableTime: 60, // minutes
+          startDate: new Date().toISOString(),
+          endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+        }
       },
-      TaskPriority.MEDIUM
-    );
+      createdAt: new Date().toISOString(),
+    };
     
-    return taskId;
-  } catch (error) {
-    console.error("Error orchestrating quiz generation:", error);
-    return null;
+    // Submit the scheduling task
+    await this.mcp.submitTask(schedulingTask);
+    
+    return {
+      status: 'processing',
+      taskId: schedulingTask.id
+    };
   }
-};
-
-export const orchestrateTutoring = async (
-  userId: string,
-  query: string,
-  context: Record<string, any>,
-  options?: Record<string, any>
-): Promise<string | null> => {
-  try {
-    console.log(`Orchestrating tutoring for user ${userId} with query: ${query}`);
-    
-    if (!masterControlProgram.isLLMOrchestrationEnabled()) {
-      console.log("LLM Orchestration is not enabled");
-      return null;
+  
+  /**
+   * Generate a sequence of flashcards with spaced repetition optimization
+   */
+  public async generateOptimizedFlashcards(
+    userId: string,
+    topicIds: string[],
+    options?: {
+      count?: number;
+      includeFormulas?: boolean;
+      difficultyRange?: [number, number];
+      prioritizeWeakAreas?: boolean;
     }
+  ): Promise<any> {
+    console.log(`Generating optimized flashcards for user ${userId} on topics: ${topicIds.join(', ')}`);
     
-    const taskId = await masterControlProgram.submitTask(
-      TaskCategory.TUTORING,
-      `Provide tutoring assistance for query: ${query}`,
-      {
-        userId,
-        query,
-        context,
-        options
+    // Create task for flashcard generation and optimization
+    const taskId = `flashcards-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    
+    const flashcardTask: AgentTask = {
+      id: taskId,
+      userId,
+      taskType: 'FLASHCARD_OPTIMIZATION',
+      description: 'Generate optimized flashcard sequence',
+      priority: 'MEDIUM',
+      targetAgentTypes: ['LEARNING_PATH', 'COGNITIVE_PROFILE'],
+      context: ['flashcards', 'spaced_repetition', 'optimization'],
+      data: { 
+        topicIds,
+        options: options || {
+          count: 20,
+          includeFormulas: true,
+          difficultyRange: [0.3, 0.8],
+          prioritizeWeakAreas: true
+        }
       },
-      TaskPriority.MEDIUM
-    );
+      createdAt: new Date().toISOString(),
+    };
     
-    return taskId;
-  } catch (error) {
-    console.error("Error orchestrating tutoring:", error);
-    return null;
+    // Submit the flashcard optimization task
+    await this.mcp.submitTask(flashcardTask);
+    
+    return {
+      status: 'processing',
+      taskId: flashcardTask.id
+    };
   }
-};
+}
+
+// Export singleton instance
+export const agentOrchestrator = AgentOrchestrator.getInstance();

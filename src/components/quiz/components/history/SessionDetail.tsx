@@ -1,141 +1,181 @@
 
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
-import { Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useSessionHistory } from '../../hooks/adaptive-quiz/useSessionHistory';
+import { format, parseISO } from 'date-fns';
+import { ArrowLeft, Clock, Calendar, Award, Target, BookOpen } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { QuizSession } from '@/types/quiz-session';
+
+// Import the components we need from the results folder
+import PerformanceByTopic from '../results/PerformanceByTopic';
+import PerformanceByDifficulty from '../results/PerformanceByDifficulty';
 import PerformanceChart from '../results/PerformanceChart';
-import { ScoreDataItem } from '../results/types';
+import ScoreSummary from '../results/ScoreSummary';
 
 interface SessionDetailProps {
   sessionId: string;
+  onBack: () => void;
 }
 
-const fetchSessionDetail = async (sessionId: string) => {
-  // Placeholder implementation - replace with actual API call
-  // This should be implemented in src/services/quiz/sessionService.ts
+const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId, onBack }) => {
+  const { getSession } = useSessionHistory();
+  const [session, setSession] = useState<QuizSession | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Wait for 1 second to simulate API call
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  return {
-    id: sessionId,
-    score_percentage: 75,
-    correct_answers: 15,
-    total_questions: 20,
-    time_spent: 600, // in seconds
-    created_at: new Date().toISOString(),
-    date: format(new Date(), 'MMM d, yyyy'),
-    difficulty: 3,
-    initial_difficulty: 2,
-    selected_topics: ['Accounting Basics', 'Financial Statements'],
-    quiz_answered_questions: [
-      { id: '1', question_text: 'What is accounting?', is_correct: true, topic: 'Accounting Basics' },
-      { id: '2', question_text: 'What is a balance sheet?', is_correct: false, topic: 'Financial Statements' }
-      // More questions would be here...
-    ]
-  };
-};
-
-const SessionDetail: React.FC<SessionDetailProps> = ({ sessionId }) => {
-  const { data: session, isLoading, error } = useQuery({
-    queryKey: ['sessionDetail', sessionId],
-    queryFn: () => fetchSessionDetail(sessionId)
-  });
+  // Fetch session asynchronously
+  useEffect(() => {
+    const fetchSession = async () => {
+      setIsLoading(true);
+      try {
+        const fetchedSession = await getSession(sessionId);
+        setSession(fetchedSession);
+      } catch (error) {
+        console.error('Error fetching session:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchSession();
+  }, [sessionId, getSession]);
   
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (error || !session) {
-    return (
-      <div className="p-8">
-        <p className="text-destructive">Error loading session details.</p>
-      </div>
-    );
-  }
-  
-  // Prepare chart data
-  const chartData: ScoreDataItem[] = [
-    { name: 'Session', score: session.score_percentage, average: 65 }
-  ];
-  
-  return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold">
-        Session from {format(new Date(session.created_at), 'MMM d, yyyy')}
-      </h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Session Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Score:</span>
-              <span className="font-medium">{session.score_percentage}%</span>
-            </div>
-            
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Correct Answers:</span>
-              <span className="font-medium">{session.correct_answers}</span>
-            </div>
-            
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Total Questions:</span>
-              <span className="font-medium">{session.total_questions}</span>
-            </div>
-            
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Time Spent:</span>
-              <span className="font-medium">
-                {Math.floor(session.time_spent / 60)}m {session.time_spent % 60}s
-              </span>
-            </div>
-            
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Difficulty:</span>
-              <span className="font-medium">{session.difficulty}/5</span>
-            </div>
-            
-            <div className="flex flex-wrap gap-2">
-              <span className="text-muted-foreground">Topics:</span>
-              <div className="flex flex-wrap gap-1">
-                {session.selected_topics.map((topic) => (
-                  <Badge key={topic} variant="outline">{topic}</Badge>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <PerformanceChart data={chartData} />
-      </div>
-      
       <Card>
-        <CardHeader>
-          <CardTitle>Questions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-3">
-            {session.quiz_answered_questions.map((question: any) => (
-              <li key={question.id} className="flex items-start gap-2">
-                <Badge variant={question.is_correct ? "secondary" : "destructive"}>
-                  {question.is_correct ? 'Correct' : 'Incorrect'}
-                </Badge>
-                <span>{question.question_text}</span>
-              </li>
-            ))}
-          </ul>
+        <CardContent className="py-10">
+          <div className="flex justify-center items-center h-40">
+            <p className="text-muted-foreground">Loading session details...</p>
+          </div>
         </CardContent>
       </Card>
-    </div>
+    );
+  }
+  
+  if (!session) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="text-center py-8">
+            <h3 className="text-lg font-medium">Session not found</h3>
+            <p className="text-muted-foreground mt-2">The requested quiz session could not be found.</p>
+            <Button onClick={onBack} variant="outline" className="mt-4">
+              <ArrowLeft className="h-4 w-4 mr-2" /> Back to History
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  const { results, answeredQuestions, selectedTopics, initialDifficulty } = session;
+  const formattedDate = format(parseISO(session.date), 'MMMM d, yyyy');
+  const formattedTime = format(parseISO(session.date), 'h:mm a');
+  const timeInMinutes = Math.floor(results.timeSpent / 60000);
+  const timeInSeconds = Math.floor((results.timeSpent % 60000) / 1000);
+  
+  const scorePercentage = results.questionsAttempted > 0 
+    ? Math.round((results.correctAnswers / results.questionsAttempted) * 100) 
+    : 0;
+    
+  const scoreData = [
+    { name: 'Correct', value: results.correctAnswers, color: '#10b981' },
+    { name: 'Incorrect', value: results.incorrectAnswers, color: '#ef4444' },
+    { name: 'Skipped', value: results.skippedQuestions, color: '#d1d5db' }
+  ];
+  
+  const difficultyLabel = ['Easy', 'Medium', 'Hard'][initialDifficulty - 1];
+  
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-start justify-between">
+          <div>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={onBack}
+              className="mb-2 -ml-2 text-muted-foreground"
+            >
+              <ArrowLeft className="h-4 w-4 mr-1" /> Back to History
+            </Button>
+            <CardTitle>Session Results</CardTitle>
+            <CardDescription className="flex items-center mt-1">
+              <Calendar className="h-4 w-4 mr-1" />
+              {formattedDate} at {formattedTime}
+            </CardDescription>
+          </div>
+          <div className="bg-primary/10 text-primary rounded-full px-3 py-1 text-sm font-medium flex items-center">
+            <Award className="h-4 w-4 mr-1" />
+            {difficultyLabel} Difficulty
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Score Summary */}
+        <ScoreSummary
+          scorePercentage={scorePercentage}
+          correctAnswers={results.correctAnswers}
+          questionsAttempted={results.questionsAttempted}
+          incorrectAnswers={results.incorrectAnswers}
+          skippedQuestions={results.skippedQuestions}
+          timeInMinutes={timeInMinutes}
+          timeInSeconds={timeInSeconds}
+        />
+        
+        <Separator />
+        
+        {/* Topics */}
+        <div className="space-y-3">
+          <h3 className="font-medium flex items-center">
+            <Target className="h-4 w-4 mr-2" /> Topics Covered
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {selectedTopics.length > 0 ? (
+              selectedTopics.map((topic, index) => (
+                <span 
+                  key={index}
+                  className="bg-muted rounded-full px-3 py-1 text-sm"
+                >
+                  {topic}
+                </span>
+              ))
+            ) : (
+              <span className="text-sm text-muted-foreground">All topics</span>
+            )}
+          </div>
+        </div>
+        
+        <Separator />
+        
+        {/* Performance details */}
+        <div>
+          <h3 className="font-medium mb-3 flex items-center">
+            <Target className="h-4 w-4 mr-2" /> Performance by Topic
+          </h3>
+          <PerformanceByTopic topics={results.performanceByTopic} />
+        </div>
+        
+        <Separator />
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h3 className="font-medium mb-4 flex items-center">
+              <BookOpen className="h-4 w-4 mr-2" /> Performance Breakdown
+            </h3>
+            <PerformanceChart scoreData={scoreData} />
+          </div>
+          
+          <div>
+            <h3 className="font-medium mb-4 flex items-center">
+              <Target className="h-4 w-4 mr-2" /> Performance by Difficulty
+            </h3>
+            <PerformanceByDifficulty difficulties={results.performanceByDifficulty} />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

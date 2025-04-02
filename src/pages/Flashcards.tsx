@@ -80,8 +80,8 @@ const Flashcards = () => {
   
   const handleDeleteFlashcard = async (id: string) => {
     try {
-      const success = await deleteFlashcard(id);
-      if (!success) throw new Error('Failed to delete flashcard');
+      const { error } = await deleteFlashcard(id);
+      if (error) throw error;
       
       toast({
         title: 'Success',

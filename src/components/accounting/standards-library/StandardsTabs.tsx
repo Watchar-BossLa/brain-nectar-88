@@ -42,9 +42,7 @@ const StandardsTabs: React.FC<StandardsTabsProps> = ({
       {frameworks.map((framework) => (
         <TabsContent key={framework} value={framework} className="mt-4">
           <StandardsList 
-            standards={filteredStandards.filter(standard => 
-              framework === 'all' || standard.framework === framework
-            )} 
+            standards={filteredStandards} 
             bookmarks={bookmarks}
             selectedStandards={selectedStandards}
             onToggleBookmark={onToggleBookmark}

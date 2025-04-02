@@ -1,98 +1,108 @@
 
-import React, { createContext, useState, useEffect, useContext } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import * as authService from './authService';
-import { platformOwner } from '@/constants';
-import {
-  getSession,
-  getCurrentUser,
-  onAuthStateChange
-} from '@/lib/supabaseAuth';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { PLATFORM_OWNER } from './constants';
+import { AuthContext } from './AuthContext';
+import { useAuthService } from './authService';
+import { AuthUser } from './types';
+import type { Session } from '@supabase/supabase-js';
 
-export type AuthContextType = {
-  user: User | null;
-  session: Session | null;
-  isAdmin: boolean;
-  loading: boolean;
-  signIn: typeof authService.signIn;
-  signUp: typeof authService.signUp;
-  signOut: typeof authService.signOut;
-  signInWithOAuth: typeof authService.signInWithOAuth;
-  platformOwner: typeof platformOwner;
-};
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const { toast } = useToast();
+  const authService = useAuthService();
 
   useEffect(() => {
-    // Get initial session
-    const initializeAuth = async () => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, currentSession) => {
+        console.log('Auth state changed:', event, currentSession?.user?.email);
+        setSession(currentSession);
+        setUser(currentSession?.user as AuthUser ?? null);
+        
+        // Check if the current user is the platform administrator
+        if (currentSession?.user?.email === PLATFORM_OWNER.email) {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+        }
+        
+        setLoading(false);
+      }
+    );
+
+    // THEN check for existing session
+    const initialSession = async () => {
       try {
         setLoading(true);
+        const { data, error } = await supabase.auth.getSession();
         
-        // Get current session
-        const { data } = await getSession();
-        const session = data?.session;
+        if (error) {
+          console.error('Error fetching session:', error);
+          toast({
+            title: 'Authentication Error',
+            description: 'Failed to restore your session.',
+            variant: 'destructive',
+          });
+          return;
+        }
         
-        if (session) {
-          setSession(session);
-          setUser(session.user);
+        if (data.session) {
+          console.log('Initial session restored for:', data.session.user?.email);
+          setSession(data.session);
+          setUser(data.session.user as AuthUser);
+          
+          // Check if the current user is the platform administrator
+          if (data.session.user.email === PLATFORM_OWNER.email) {
+            setIsAdmin(true);
+          }
         }
       } catch (error) {
-        console.error('Error initializing auth:', error);
+        console.error('Error fetching session:', error);
+        toast({
+          title: 'Authentication Error',
+          description: 'Failed to restore your session.',
+          variant: 'destructive',
+        });
       } finally {
         setLoading(false);
       }
     };
 
-    // Initialize auth
-    initializeAuth();
-    
-    // Set up auth listener
-    const { data: authListener } = onAuthStateChange((event: string, session: Session | null) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-    
-    // Clean up auth listener on unmount
-    return () => {
-      if (authListener && typeof authListener.subscription?.unsubscribe === 'function') {
-        authListener.subscription.unsubscribe();
-      }
-    };
-  }, []);
-  
-  // Check if user is admin
-  const isAdmin = user?.email === platformOwner.email;
+    initialSession();
 
-  const value = {
-    user,
-    session,
-    loading,
-    isAdmin,
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [toast]);
+
+  // Create wrapped versions of auth methods that handle navigation within components
+  const wrappedAuthMethods = {
     signIn: authService.signIn,
     signUp: authService.signUp,
-    signOut: authService.signOut,
-    signInWithOAuth: authService.signInWithOAuth,
-    platformOwner
+    signInWithGoogle: authService.signInWithGoogle,
+    signOut: authService.signOut
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider 
+      value={{
+        session,
+        user,
+        loading,
+        signIn: wrappedAuthMethods.signIn,
+        signUp: wrappedAuthMethods.signUp,
+        signInWithGoogle: wrappedAuthMethods.signInWithGoogle,
+        signOut: wrappedAuthMethods.signOut,
+        platformOwner: PLATFORM_OWNER,
+        isAdmin,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+}

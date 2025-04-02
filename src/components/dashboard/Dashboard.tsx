@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { motion } from '@/lib/motion-imports';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/context/auth';
 import QuizBasedLearningPath from '@/components/learning/QuizBasedLearningPath';
 

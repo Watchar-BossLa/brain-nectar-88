@@ -1,41 +1,34 @@
 
-import React, { FC, ReactNode, useMemo } from 'react';
-import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
+import React, { useMemo } from 'react';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { clusterApiUrl } from '@solana/web3.js';
-// Import our stubs
-import {
-  BackpackWalletAdapter,
-  BraveWalletAdapter,
-  CoinbaseWalletAdapter
-} from '@/lib/wallet-adapter-stubs';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import { 
+  PhantomWalletAdapter, 
+  SolflareWalletAdapter 
+} from '@solana/wallet-adapter-wallets';
 
-// Default styles that can be overridden by your app
-require('@solana/wallet-adapter-react-ui/styles.css');
+// Import the styles directly with import statement instead of require
+import '@solana/wallet-adapter-react-ui/styles.css';
 
-interface SolanaProviderProps {
-  children: ReactNode;
-}
-
-export const SolanaProvider: FC<SolanaProviderProps> = ({ children }) => {
-  // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'
-  const network = WalletAdapterNetwork.Devnet;
-
-  // You can also provide a custom RPC endpoint
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
-
-  // Use our stub wallets that conform to the expected interface
-  const wallets = useMemo(
-    () => [
-      new BackpackWalletAdapter(),
-      new BraveWalletAdapter(),
-      new CoinbaseWalletAdapter()
-    ],
-    []
+export function SolanaProvider({ children }: { children: React.ReactNode }) {
+  // Use a stored network setting or default to devnet
+  const [network, setNetwork] = useLocalStorage<WalletAdapterNetwork>(
+    'solanaNetwork',
+    WalletAdapterNetwork.Devnet
   );
 
-  // @ts-ignore - Using stubs for development
+  // Get the RPC endpoint for the selected network
+  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+
+  // Define wallet adapters properly with ES modules syntax
+  const wallets = useMemo(() => [
+    new PhantomWalletAdapter(),
+    new SolflareWalletAdapter()
+  ], [network]);
+
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
@@ -43,4 +36,4 @@ export const SolanaProvider: FC<SolanaProviderProps> = ({ children }) => {
       </WalletProvider>
     </ConnectionProvider>
   );
-};
+}

@@ -2,10 +2,7 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import FormulaDisplay from '../FormulaDisplay';
-
-interface FormulasTabProps {
-  // Add any needed props here
-}
+import { FormulasTabProps } from '../../types/platform-types';
 
 const FormulasTab: React.FC<FormulasTabProps> = () => {
   return (

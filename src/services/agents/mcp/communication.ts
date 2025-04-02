@@ -1,107 +1,60 @@
 
-import { BaseAgent, AgentMessage } from './BaseAgent';
-import { v4 as uuidv4 } from 'uuid';
-import { agentRegistry } from './agentRegistry';
+import { AgentMessage, AgentType, MessageType } from '../types';
+import { createAgentRegistry } from './agentRegistry';
 
 /**
- * Send a message to a specific agent
+ * CommunicationManager
+ * 
+ * Handles communication between agents in the system.
  */
-export const sendMessageToAgent = (
-  targetAgentId: string,
-  content: string,
-  senderAgentId: string,
-  metadata?: Record<string, any>
-): boolean => {
-  const targetAgent = agentRegistry.getAgent(targetAgentId);
-  
-  if (!targetAgent) {
-    console.warn(`Agent with ID ${targetAgentId} not found.`);
-    return false;
-  }
-  
-  const message: AgentMessage = {
-    id: uuidv4(),
-    sender: senderAgentId,
-    receiver: targetAgentId,
-    content,
-    timestamp: new Date().toISOString(),
-    metadata: metadata || {}
-  };
-  
-  targetAgent.receiveMessage(message);
-  return true;
-};
-
-/**
- * Broadcast a message to all agents of a specific type
- */
-export const broadcastMessageByType = (
-  agentType: string,
-  content: string,
-  senderAgentId: string,
-  metadata?: Record<string, any>
-): number => {
-  const agents = agentRegistry.getAgentsByType(agentType);
-  let count = 0;
-  
-  agents.forEach(agent => {
-    const message: AgentMessage = {
-      id: uuidv4(),
-      sender: senderAgentId,
-      receiver: agent.id,
-      content,
-      timestamp: new Date().toISOString(),
-      metadata: metadata || {}
-    };
-    
-    agent.receiveMessage(message);
-    count++;
-  });
-  
-  return count;
-};
-
-/**
- * Forward a message to another agent
- */
-export const forwardMessage = (
-  message: AgentMessage,
-  newReceiverId: string,
-  additionalContext?: string
-): boolean => {
-  const targetAgent = agentRegistry.getAgent(newReceiverId);
-  
-  if (!targetAgent) {
-    console.warn(`Target agent with ID ${newReceiverId} not found.`);
-    return false;
-  }
-  
-  const forwardedMessage: AgentMessage = {
-    ...message,
-    id: uuidv4(),
-    receiver: newReceiverId,
-    metadata: {
-      ...message.metadata,
-      originalReceiver: message.receiver,
-      forwardedBy: message.receiver,
-      additionalContext
-    }
-  };
-  
-  targetAgent.receiveMessage(forwardedMessage);
-  return true;
-};
-
 export class CommunicationManager {
-  sendMessage(targetId: string, content: string, senderId: string): boolean {
-    return sendMessageToAgent(targetId, content, senderId);
+  private agentRegistry = createAgentRegistry();
+
+  /**
+   * Broadcast a message to all agents or specific agents
+   */
+  public broadcastMessage(message: AgentMessage, targetAgents?: AgentType[]): void {
+    if (targetAgents && targetAgents.length > 0) {
+      targetAgents.forEach(agentType => {
+        const agent = this.agentRegistry.getAgent(agentType);
+        if (agent) {
+          agent.receiveMessage(message);
+        }
+      });
+    } else {
+      // Broadcast to all registered agents
+      const registeredAgents = this.agentRegistry.getRegisteredAgentTypes();
+      registeredAgents.forEach(agentType => {
+        const agent = this.agentRegistry.getAgent(agentType);
+        if (agent) {
+          agent.receiveMessage(message);
+        }
+      });
+    }
   }
-  
-  broadcast(type: string, content: string, senderId: string): number {
-    return broadcastMessageByType(type, content, senderId);
-  }
-  
-  forward(message: AgentMessage, newReceiverId: string, context?: string): boolean {
-    return forwardMessage(message, newReceiverId, context);
+
+  /**
+   * Send a message from one agent to another
+   */
+  public sendDirectMessage(
+    fromAgent: AgentType, 
+    toAgent: AgentType, 
+    content: string, 
+    data: Record<string, any> = {}
+  ): void {
+    const targetAgent = this.agentRegistry.getAgent(toAgent);
+    
+    if (targetAgent) {
+      targetAgent.receiveMessage({
+        type: 'REQUEST' as MessageType,
+        content,
+        data,
+        timestamp: new Date().toISOString(),
+        senderId: fromAgent,
+        targetId: toAgent
+      });
+    } else {
+      console.warn(`Target agent ${toAgent} not found for direct message`);
+    }
   }
 }

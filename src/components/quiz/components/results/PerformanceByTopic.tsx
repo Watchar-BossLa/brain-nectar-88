@@ -1,19 +1,12 @@
 
 import React from 'react';
 import { Progress } from "@/components/ui/progress";
+import { PerformanceByTopicProps } from './types';
 
-export interface PerformanceByTopicProps {
-  topics?: Record<string, { correct: number; total: number }>;
-  topicStats?: Record<string, { correct: number; total: number }>; // For backwards compatibility
-}
-
-const PerformanceByTopic: React.FC<PerformanceByTopicProps> = ({ topics, topicStats }) => {
-  // Use either topics or topicStats, preferring topics if both are provided
-  const statsToRender = topics || topicStats || {};
-  
+const PerformanceByTopic: React.FC<PerformanceByTopicProps> = ({ topics }) => {
   return (
     <div className="space-y-3">
-      {Object.entries(statsToRender).map(([topic, { correct, total }]) => (
+      {Object.entries(topics).map(([topic, { correct, total }]) => (
         <div key={topic} className="space-y-1">
           <div className="flex justify-between items-center">
             <span className="font-medium">{topic}</span>

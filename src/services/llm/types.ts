@@ -1,85 +1,134 @@
 
-// Task categories for the LLM system
+/**
+ * Task categories that models can handle
+ */
 export enum TaskCategory {
-  CONTENT_GENERATION = 'CONTENT_GENERATION',
-  CONTENT_ANALYSIS = 'CONTENT_ANALYSIS',
-  QUESTION_ANSWERING = 'QUESTION_ANSWERING',
-  SUMMARIZATION = 'SUMMARIZATION',
-  TUTORING = 'TUTORING',
-  CLASSIFICATION = 'CLASSIFICATION',
-  TRANSLATION = 'TRANSLATION',
-  CHAT = 'CHAT',
-  CODE_GENERATION = 'CODE_GENERATION',
-  CUSTOM = 'CUSTOM',
-  // Adding missing categories
   TEXT_GENERATION = 'TEXT_GENERATION',
+  QUESTION_ANSWERING = 'QUESTION_ANSWERING',
+  CLASSIFICATION = 'CLASSIFICATION',
+  SUMMARIZATION = 'SUMMARIZATION',
   REASONING = 'REASONING',
-  CONTENT_CREATION = 'CONTENT_CREATION'
+  CODE_GENERATION = 'CODE_GENERATION',
+  MATH_COMPUTATION = 'MATH_COMPUTATION',
+  CONTENT_CREATION = 'CONTENT_CREATION',
+  EXTRACTION = 'EXTRACTION'
 }
 
-// Task complexity levels
-export enum TaskComplexity {
-  LOW = 0.25,
-  MEDIUM = 0.5,
-  HIGH = 0.75,
-  VERY_HIGH = 1.0
+/**
+ * Model capability information
+ */
+export interface ModelCapability {
+  taskCategory: TaskCategory;
+  performanceScore: number; // 0-1 score indicating performance on this task
 }
 
-// Model execution result
-export interface ModelExecutionResult {
-  text: string;
-  modelId: string;
-  tokens: {
-    prompt: number;
-    completion: number;
-    total: number;
-  };
-  executionTime: number;
+/**
+ * Resource requirements for a model
+ */
+export interface ResourceRequirements {
+  memory: number; // Memory needed in GB
+  computeUnits: number; // Abstract compute units needed
 }
 
-// Additional types needed by the system
-export interface ModelExecutionInput {
-  prompt: string;
-  modelId?: string;
-  parameters?: ModelParameters;
-}
-
+/**
+ * Parameters for model execution
+ */
 export interface ModelParameters {
-  temperature?: number;
-  maxTokens?: number;
-  topP?: number;
+  temperature: number;
+  maxTokens: number;
+  topP: number;
   frequencyPenalty?: number;
   presencePenalty?: number;
+  [key: string]: any; // Allow for model-specific parameters
 }
 
-export interface ModelProviderConfig {
-  id: string;
-  name: string;
-  apiKey?: string;
-  baseUrl?: string;
-  models: ModelType[];
-}
-
+/**
+ * Model type information
+ */
 export interface ModelType {
   id: string;
   name: string;
   provider: string;
-  contextSize: number;
   capabilities: TaskCategory[];
+  resourceRequirements: ResourceRequirements;
+  defaultParameters: ModelParameters;
+  quantizationLevel?: string;
+  contextLength?: number;
 }
 
+/**
+ * Model evaluation metrics
+ */
 export interface ModelEvaluation {
-  modelId: string;
   accuracy: number;
   latency: number;
-  costEfficiency: number;
+  f1Score: number;
   resourceEfficiency: number;
+  userSatisfaction: number;
+  evaluatedAt?: string;
 }
 
+/**
+ * Input for model execution
+ */
+export interface ModelExecutionInput {
+  modelId: string;
+  prompt: string;
+  taskCategory: TaskCategory;
+  parameters?: Partial<ModelParameters>;
+  systemPrompt?: string;
+}
+
+/**
+ * Result of model execution
+ */
+export interface ModelExecutionResult {
+  text: string;
+  modelId: string;
+  executionTime: number;
+  tokenCount: {
+    input: number;
+    output: number;
+  };
+  truncated: boolean;
+}
+
+/**
+ * Model provider configuration
+ */
+export interface ModelProviderConfig {
+  name: string;
+  apiEndpoint: string;
+  authType: 'apiKey' | 'oauth' | 'none';
+  apiKey?: string;
+  modelsAvailable: string[];
+}
+
+/**
+ * Model selection criteria
+ */
+export interface ModelSelectionCriteria {
+  taskCategory: TaskCategory;
+  complexity?: number; // 0-1 scale where 1 is most complex
+  domainContext?: string[];
+  maxLatency?: number;
+  minAccuracy?: number;
+  resourceConstraints?: {
+    maxMemory?: number;
+    maxComputeUnits?: number;
+  };
+}
+
+/**
+ * Model execution metrics
+ */
 export interface ExecutionMetrics {
   modelId: string;
-  taskCategory: TaskCategory;
-  executionTime: number;
-  tokenCount: number;
+  taskId: string;
+  startTime: number;
+  endTime: number;
+  inputTokens: number;
+  outputTokens: number;
   success: boolean;
+  errorMessage?: string;
 }

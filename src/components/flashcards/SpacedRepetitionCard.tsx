@@ -3,31 +3,20 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Flashcard } from '@/types/supabase';
+import { updateFlashcardAfterReview } from '@/services/spacedRepetition';
 import { useToast } from '@/hooks/use-toast';
+import { AnimatePresence } from 'framer-motion';
 import 'katex/dist/katex.min.css';
 import { calculateRetention } from '@/services/spacedRepetition/algorithm';
+import { MemoryRetentionIndicator } from './components/MemoryRetentionIndicator';
+import { DifficultyRatingButtons } from './components/DifficultyRatingButtons';
+import { AnimatedFlashcardContent } from './components/AnimatedFlashcardContent';
 
 interface SpacedRepetitionCardProps {
   flashcard: Flashcard;
-  onComplete: (difficulty: number) => Promise<void>;
+  onComplete: () => void;
   onUpdateStats?: () => void;
 }
-
-const RetentionIndicator = ({ value }: { value: number }) => {
-  const percentage = Math.max(0, Math.min(100, Math.round(value * 100)));
-  let colorClass = 'bg-red-500';
-  if (percentage > 80) colorClass = 'bg-green-500';
-  else if (percentage > 50) colorClass = 'bg-yellow-500';
-
-  return (
-    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
-      <div
-        className={`h-2.5 rounded-full ${colorClass}`}
-        style={{ width: `${percentage}%` }}
-      ></div>
-    </div>
-  );
-};
 
 const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({ 
   flashcard, 
@@ -69,7 +58,11 @@ const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({
     setIsSubmitting(true);
 
     try {
-      await onComplete(difficulty);
+      const { data, error } = await updateFlashcardAfterReview(flashcard.id, difficulty);
+      
+      if (error) {
+        throw error;
+      }
       
       // Update stats if callback is provided
       if (onUpdateStats) {
@@ -78,6 +71,7 @@ const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({
       
       // Short delay to show the selected rating
       setTimeout(() => {
+        onComplete();
         setIsSubmitting(false);
       }, 600);
       
@@ -101,51 +95,46 @@ const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({
         </CardDescription>
         
         {/* Memory Retention Indicator */}
-        <RetentionIndicator value={retentionEstimate} />
+        <MemoryRetentionIndicator 
+          retention={retentionEstimate}
+          repetitionCount={flashcard.repetition_count}
+        />
       </CardHeader>
       
       <CardContent className="flex justify-center pb-8">
         <div 
-          className="relative w-full h-[300px] cursor-pointer flex items-center justify-center p-8 border rounded-md"
+          className="relative w-full h-[300px] cursor-pointer"
           onClick={handleFlip}
         >
-          <div className="text-center transition-all duration-300 ease-in-out">
-            <div className="text-xl font-semibold">
-              {isFlipped ? flashcard.back_content : flashcard.front_content}
-            </div>
-          </div>
+          <AnimatePresence initial={false} mode="wait">
+            {isFlipped ? (
+              <AnimatedFlashcardContent
+                content={flashcard.back_content}
+                isAnswer={true}
+                onClick={handleFlip}
+                isFlipped={isFlipped}
+              />
+            ) : (
+              <AnimatedFlashcardContent
+                content={flashcard.front_content}
+                isAnswer={false}
+                onClick={handleFlip}
+                isFlipped={isFlipped}
+              />
+            )}
+          </AnimatePresence>
         </div>
       </CardContent>
       
       <CardFooter className="flex-col space-y-4">
-        {isFlipped ? (
-          <div className="grid grid-cols-3 gap-2 w-full">
-            <Button 
-              onClick={() => handleRating(1)} 
-              variant="outline" 
-              className="bg-red-100 hover:bg-red-200"
-              disabled={isSubmitting}
-            >
-              Hard
-            </Button>
-            <Button 
-              onClick={() => handleRating(3)} 
-              variant="outline" 
-              className="bg-yellow-100 hover:bg-yellow-200"
-              disabled={isSubmitting}
-            >
-              Medium
-            </Button>
-            <Button 
-              onClick={() => handleRating(5)} 
-              variant="outline" 
-              className="bg-green-100 hover:bg-green-200"
-              disabled={isSubmitting}
-            >
-              Easy
-            </Button>
-          </div>
-        ) : (
+        {isFlipped && (
+          <DifficultyRatingButtons
+            onRate={handleRating}
+            selectedRating={difficultyRating}
+            isSubmitting={isSubmitting}
+          />
+        )}
+        {!isFlipped && (
           <Button 
             onClick={handleFlip}
             className="w-full"

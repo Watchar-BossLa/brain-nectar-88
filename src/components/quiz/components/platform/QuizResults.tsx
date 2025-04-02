@@ -69,9 +69,9 @@ const QuizResults: React.FC<QuizResultsProps> = ({ questions, answers, onRestart
       </CardHeader>
       
       <ScoreSummary 
-        score={scorePercentage}
-        correctCount={correctAnswers}
-        totalCount={questions.length}
+        score={scorePercentage} 
+        correctCount={correctAnswers} 
+        totalCount={questions.length} 
       />
       
       <div className="grid md:grid-cols-2 gap-6">

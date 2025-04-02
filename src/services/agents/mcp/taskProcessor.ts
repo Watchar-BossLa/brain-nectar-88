@@ -1,66 +1,117 @@
 
-import { Task, TaskStatus } from '../types/taskTypes';
-import { agentRegistry } from './agentRegistry';
-import { masterControlProgram } from './MasterControlProgram';
-
-// In-memory store for task assignments
-const taskAssignments: Record<string, string> = {};
+import { AgentTask, TaskType, TaskStatus } from '../types';
+import { createAgentRegistry } from './agentRegistry';
+import { agentIntegration } from '../../llm/agentIntegration';
+import { determineTargetAgents } from './taskRouting';
+import { TaskQueueManager } from './taskQueueManager';
 
 /**
- * Assign a task to the appropriate agent based on category
+ * TaskProcessor
+ * 
+ * Handles the processing of tasks in the queue and distributes them to appropriate agents.
  */
-export const assignTaskToAgent = async (task: Task): Promise<string | null> => {
-  try {
-    // Find agents that can handle this task category
-    const agents = agentRegistry.getAgentsByType(task.category);
+export class TaskProcessor {
+  private taskQueueManager: TaskQueueManager;
+  private isProcessing = false;
+  private agentRegistry = createAgentRegistry();
+  private useLLMOrchestration = true;
+
+  constructor() {
+    this.taskQueueManager = new TaskQueueManager();
+  }
+
+  /**
+   * Submit a task to be handled by the appropriate agent(s)
+   */
+  public async submitTask(task: AgentTask): Promise<void> {
+    console.log('Task submitted to MCP:', task);
     
-    if (!agents || agents.length === 0) {
-      console.warn(`No agent found for category ${task.category}`);
-      return null;
+    // Add task to the queue based on priority
+    this.taskQueueManager.addTaskToQueue(task);
+    
+    // Start processing the queue if not already processing
+    if (!this.isProcessing) {
+      this.processTaskQueue();
+    }
+  }
+
+  /**
+   * Process tasks in the queue
+   */
+  private async processTaskQueue(): Promise<void> {
+    if (this.taskQueueManager.isEmpty()) {
+      this.isProcessing = false;
+      return;
+    }
+
+    this.isProcessing = true;
+    const task = this.taskQueueManager.getNextTask();
+    
+    if (!task) {
+      this.isProcessing = false;
+      return;
     }
     
-    // For now, just pick the first available agent
-    // In a more sophisticated implementation, we could consider agent load, etc.
-    const agent = agents[0];
-    
-    // Store the assignment in memory
-    taskAssignments[task.id] = agent.id;
-    
-    // Process the task with the agent
-    agent.processTask(task);
-    
-    console.log(`Task ${task.id} assigned to agent ${agent.id}`);
-    
-    return agent.id;
-  } catch (error) {
-    console.error('Error assigning task:', error);
-    return null;
+    try {
+      // Determine which agent(s) should handle the task
+      const targetAgents = determineTargetAgents(task);
+      
+      if (targetAgents.length === 0) {
+        console.warn('No suitable agent found for task:', task);
+        console.error('No suitable agent found');
+      } else {
+        // If LLM orchestration is enabled, use it to enhance agent processing
+        if (this.useLLMOrchestration) {
+          // Process the task with LLM orchestration first
+          const llmResult = await agentIntegration.processAgentTask(task);
+          
+          // Attach LLM result to task data for agent use
+          task.data = {
+            ...task.data,
+            llmResult: llmResult
+          };
+          
+          console.log(`Enhanced task with LLM orchestration: ${task.id}`);
+        }
+        
+        // Distribute the task to the appropriate agent(s)
+        for (const agentType of targetAgents) {
+          const agent = this.agentRegistry.getAgent(agentType);
+          if (agent) {
+            await agent.processTask(task);
+          }
+        }
+        
+        console.log('Task processed successfully');
+      }
+    } catch (error) {
+      console.error('Error processing task:', error);
+      console.error('Task processing failed:', error instanceof Error ? error.message : 'Unknown error');
+    } finally {
+      // Continue processing the queue
+      this.processTaskQueue();
+    }
   }
-};
 
-/**
- * Process task result and update status
- */
-export const processTaskResult = async (taskId: string, result: any): Promise<boolean> => {
-  try {
-    // Update the task status in the MasterControlProgram
-    return await masterControlProgram.completeTask(taskId, result);
-  } catch (error) {
-    console.error('Error processing task result:', error);
-    return false;
+  /**
+   * Get the registry of agents
+   */
+  public getAgentRegistry() {
+    return this.agentRegistry;
   }
-};
-
-/**
- * Mark a task as failed
- */
-export const markTaskAsFailed = async (taskId: string, error: string): Promise<boolean> => {
-  try {
-    // For now, just log it
-    console.log(`Task ${taskId} failed with error:`, error);
-    return true;
-  } catch (updateError) {
-    console.error('Error marking task as failed:', updateError);
-    return false;
+  
+  /**
+   * Enable or disable LLM orchestration
+   */
+  public setLLMOrchestrationEnabled(enabled: boolean): void {
+    this.useLLMOrchestration = enabled;
+    console.log(`LLM orchestration ${enabled ? 'enabled' : 'disabled'}`);
   }
-};
+  
+  /**
+   * Check if LLM orchestration is enabled
+   */
+  public isLLMOrchestrationEnabled(): boolean {
+    return this.useLLMOrchestration;
+  }
+}

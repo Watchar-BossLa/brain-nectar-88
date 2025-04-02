@@ -1,160 +1,115 @@
+import { supabase } from '@/integrations/supabase/client';
+import { Flashcard } from '@/types/flashcard';
+import { calculateMasteryLevel, calculateRetention, calculateNextReviewDate } from './algorithm';
+import { FlashcardRetentionResult, FlashcardLearningStats } from './reviewTypes';
 
-import { supabase } from '@/lib/supabase';
-import { v4 as uuidv4 } from 'uuid';
-import { getSession } from '@/lib/supabaseAuth';
-import { calculateSpacedRepetition } from './spacedRepAlgorithm';
+// Re-export functions from reviewStats.ts for backward compatibility
+export { calculateFlashcardRetention, getFlashcardLearningStats } from './reviewStats';
 
 /**
- * Update flashcard learning stats after a review
+ * Update a flashcard after it has been reviewed
+ * 
+ * @param flashcardId The ID of the flashcard to update
+ * @param difficultyRating The user's difficulty rating (1-5)
+ * @returns The updated flashcard or null if error
  */
-export async function updateFlashcardAfterReview(
-  flashcardId: string, 
-  difficulty: number // 0-5 scale where 0 is hardest, 5 is easiest
-) {
+export const updateFlashcardAfterReview = async (
+  flashcardId: string,
+  difficultyRating: number
+): Promise<any | null> => {
   try {
-    // Get current user session
-    const { data: sessionData } = await getSession();
-    
-    if (!sessionData?.session?.user?.id) {
-      throw new Error('User not authenticated');
-    }
-    
-    const userId = sessionData.session.user.id;
-    
-    // Get current learning stats
-    const { data: currentStats, error: statsError } = await supabase
-      .from('flashcard_learning_stats')
+    // Get current flashcard data
+    const { data: flashcard, error } = await supabase
+      .from('flashcards')
       .select('*')
-      .eq('flashcard_id', flashcardId)
-      .eq('user_id', userId)
+      .eq('id', flashcardId)
       .single();
-    
-    if (statsError) {
-      throw statsError;
+      
+    if (error || !flashcard) {
+      console.error('Error fetching flashcard:', error);
+      return null;
     }
     
-    // Calculate new spaced repetition parameters
-    const {
-      easinessFactor,
-      intervalDays,
-      repetitionCount
-    } = calculateSpacedRepetition(
-      currentStats.easiness_factor,
-      currentStats.interval_days,
-      currentStats.repetition_count,
-      difficulty
+    // Calculate retention and updated parameters
+    const retention = calculateRetention(
+      flashcard.difficulty || 3, 
+      flashcard.easiness_factor || 2.5
+    );
+    
+    // Update easiness factor based on difficulty rating
+    const diffModifier = (5 - difficultyRating) / 5;
+    const easinessFactor = Math.max(1.3, (flashcard.easiness_factor || 2.5) + (0.1 - (5 - difficultyRating) * 0.08 + diffModifier * 0.02));
+    
+    // Calculate new mastery level
+    const masteryLevel = calculateMasteryLevel(
+      flashcard.mastery_level || 0,
+      retention,
+      difficultyRating // Pass the third argument (difficulty rating)
     );
     
     // Calculate next review date
-    const nextReviewDate = new Date();
-    nextReviewDate.setDate(nextReviewDate.getDate() + intervalDays);
+    const now = new Date();
+    const daysUntilNextReview = calculateNextReview(easinessFactor, (flashcard.repetition_count || 0) + 1);
+    const nextReviewDate = new Date(now);
+    nextReviewDate.setDate(now.getDate() + daysUntilNextReview);
     
-    // Update learning stats
-    const { error: updateError } = await supabase
-      .from('flashcard_learning_stats')
+    // Update the flashcard
+    const { data, error: updateError } = await supabase
+      .from('flashcards')
       .update({
+        difficulty: difficultyRating,
         easiness_factor: easinessFactor,
-        interval_days: intervalDays,
-        repetition_count: repetitionCount,
-        last_review_date: new Date().toISOString(),
-        next_review_date: nextReviewDate.toISOString(),
-        updated_at: new Date().toISOString()
+        last_retention: retention,
+        mastery_level: masteryLevel,
+        repetition_count: (flashcard.repetition_count || 0) + 1,
+        last_reviewed_at: now.toISOString(),
+        next_review_date: nextReviewDate.toISOString()
       })
-      .eq('flashcard_id', flashcardId)
-      .eq('user_id', userId);
-    
+      .eq('id', flashcardId)
+      .select('*')
+      .single();
+      
     if (updateError) {
-      throw updateError;
+      console.error('Error updating flashcard:', updateError);
+      return null;
     }
     
     // Record the review
     const { error: reviewError } = await supabase
       .from('flashcard_reviews')
       .insert({
-        id: uuidv4(),
+        user_id: flashcard.user_id,
         flashcard_id: flashcardId,
-        user_id: userId,
-        difficulty_rating: difficulty,
-        reviewed_at: new Date().toISOString()
+        difficulty_rating: difficultyRating,
+        retention_estimate: retention
       });
-    
+      
     if (reviewError) {
-      console.error('Error recording review:', reviewError);
+      console.error('Error recording flashcard review:', reviewError);
     }
     
-    return {
-      easinessFactor,
-      intervalDays,
-      repetitionCount,
-      nextReviewDate: nextReviewDate.toISOString()
-    };
+    return data;
   } catch (error) {
-    console.error('Error updating flashcard after review:', error);
-    throw error;
+    console.error('Error in updateFlashcardAfterReview:', error);
+    return null;
   }
-}
+};
 
 /**
- * Get flashcard learning stats
+ * Calculate days until next review using the SM-2 algorithm
+ * 
+ * @param easinessFactor The easiness factor
+ * @param repetitionCount The number of times the card has been reviewed
+ * @returns Number of days until next review
  */
-export async function getFlashcardLearningStats(userId?: string) {
-  try {
-    // Get current user session if userId is not provided
-    if (!userId) {
-      const { data: sessionData } = await getSession();
-      
-      if (!sessionData?.session?.user?.id) {
-        throw new Error('User not authenticated');
-      }
-      
-      userId = sessionData.session.user.id;
-    }
-    
-    // Get all flashcard stats
-    const { data, error } = await supabase
-      .from('flashcard_learning_stats')
-      .select('*')
-      .eq('user_id', userId);
-    
-    if (error) {
-      throw error;
-    }
-    
-    // Get review data
-    const { data: reviewData, error: reviewError } = await supabase
-      .from('flashcard_reviews')
-      .select('*')
-      .eq('user_id', userId);
-    
-    if (reviewError) {
-      console.error('Error getting review data:', reviewError);
-    }
-    
-    // Calculate stats
-    const totalCards = data.length;
-    const masteredCards = data.filter(card => 
-      card.easiness_factor >= 2.5 && card.repetition_count >= 3
-    ).length;
-    
-    const now = new Date();
-    const dueCards = data.filter(card => 
-      new Date(card.next_review_date) <= now
-    ).length;
-    
-    // Calculate average difficulty from reviews
-    const reviewsToday = reviewData ? reviewData.filter(review => 
-      new Date(review.reviewed_at).toDateString() === now.toDateString()
-    ).length : 0;
-    
-    return {
-      totalCards,
-      masteredCards,
-      dueCards,
-      averageDifficulty: 0, // Would require more calculation
-      reviewsToday
-    };
-  } catch (error) {
-    console.error('Error getting flashcard learning stats:', error);
-    throw error;
+const calculateNextReview = (easinessFactor: number, repetitionCount: number): number => {
+  if (repetitionCount <= 1) {
+    return 1; // First review: 1 day
+  } else if (repetitionCount === 2) {
+    return 3; // Second review: 3 days
+  } else {
+    // For subsequent reviews, use the formula: previousInterval * easinessFactor
+    const previousInterval = calculateNextReview(easinessFactor, repetitionCount - 1);
+    return Math.ceil(previousInterval * easinessFactor);
   }
-}
+};
