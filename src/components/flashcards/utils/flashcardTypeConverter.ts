@@ -12,14 +12,17 @@ export const convertToSupabaseFlashcard = (flashcard: any): Flashcard => {
     front_content: flashcard.front_content || flashcard.front || '',
     back_content: flashcard.back_content || flashcard.back || '',
     difficulty: flashcard.difficulty || 0,
-    next_review_date: flashcard.next_review_date || new Date().toISOString(),
-    repetition_count: flashcard.repetition_count || 0,
+    next_review_date: flashcard.next_review_date || flashcard.next_review_at || new Date().toISOString(),
+    repetition_count: flashcard.repetition_count || flashcard.repetitions || 0,
     mastery_level: flashcard.mastery_level || 0,
     easiness_factor: flashcard.easiness_factor || 2.5,
     last_retention: flashcard.last_retention || 0.85,
     last_reviewed_at: flashcard.last_reviewed_at || null,
     created_at: flashcard.created_at || new Date().toISOString(),
     updated_at: flashcard.updated_at || new Date().toISOString(),
+    // Add compatibility fields
+    front: flashcard.front_content || flashcard.front || '',
+    back: flashcard.back_content || flashcard.back || ''
   };
 };
 
@@ -33,6 +36,8 @@ export const convertFromSupabaseFlashcard = (flashcard: Flashcard): any => {
     topicId: flashcard.topic_id,
     front: flashcard.front_content,
     back: flashcard.back_content,
+    front_content: flashcard.front_content,
+    back_content: flashcard.back_content,
     difficulty: flashcard.difficulty || 0,
     nextReviewDate: flashcard.next_review_date,
     repetitionCount: flashcard.repetition_count || 0,

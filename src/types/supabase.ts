@@ -16,6 +16,10 @@ export interface Flashcard {
   easiness_factor: number;
   last_retention: number;
   last_reviewed_at: string | null;
+  // Add compatibility fields for different interfaces
+  front?: string; // For compatibility with components expecting 'front'
+  back?: string;  // For compatibility with components expecting 'back'
+  deck_id?: string; // For compatibility with other flashcard systems
 }
 
 export interface FlashcardReview {

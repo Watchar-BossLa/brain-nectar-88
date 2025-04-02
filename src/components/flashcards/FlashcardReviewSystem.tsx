@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -136,10 +137,10 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ onComplet
           <div className="mb-6">
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Question</h3>
             <div className="p-4 border rounded-md bg-card">
-              {hasLatex(currentCard.front) ? (
-                <LatexRenderer latex={currentCard.front} />
+              {hasLatex(currentCard.front_content) ? (
+                <LatexRenderer latex={currentCard.front_content} />
               ) : (
-                <p className="text-lg">{currentCard.front}</p>
+                <p className="text-lg">{currentCard.front_content}</p>
               )}
             </div>
           </div>
@@ -149,10 +150,10 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ onComplet
             <div className="mt-4">
               <h3 className="text-sm font-medium text-muted-foreground mb-2">Answer</h3>
               <div className="p-4 border rounded-md bg-card">
-                {hasLatex(currentCard.back) ? (
-                  <LatexRenderer latex={currentCard.back} />
+                {hasLatex(currentCard.back_content) ? (
+                  <LatexRenderer latex={currentCard.back_content} />
                 ) : (
-                  <p className="text-lg">{currentCard.back}</p>
+                  <p className="text-lg">{currentCard.back_content}</p>
                 )}
               </div>
             </div>

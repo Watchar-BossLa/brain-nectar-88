@@ -1,29 +1,14 @@
+import { Flashcard as SupabaseFlashcard } from '@/types/supabase';
 
-export interface Flashcard {
-  id: string;
-  deck_id: string;
-  front: string;
-  back: string;
-  user_id?: string;
-  created_at?: string;
-  updated_at?: string;
-  // Learning stats fields
-  easiness_factor?: number;
+// Extend the base Flashcard type with additional properties for the flashcard hooks
+export interface Flashcard extends SupabaseFlashcard {
+  // Additional properties used in hooks can be added here
+  deck_id?: string;
+  front?: string; // Alias for front_content
+  back?: string;  // Alias for back_content
   interval?: number;
   repetitions?: number;
-  last_reviewed_at?: string;
-  next_review_at?: string;
-  review_count?: number;
-  // Additional fields for front-end compatibility
-  front_content?: string;
-  back_content?: string;
-  topic_id?: string;
-  topicId?: string;
-  difficulty?: number;
-  mastery_level?: number;
-  repetition_count?: number;
-  next_review_date?: string;
-  last_retention?: number;
+  next_review_at?: string; // Alias for next_review_date
 }
 
 export interface FlashcardLearningStats {
