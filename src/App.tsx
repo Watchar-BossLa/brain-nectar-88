@@ -1,6 +1,7 @@
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from '@/components/ui/theme-provider';
 import Dashboard from './pages/Dashboard';
 import CognitiveProfile from './pages/CognitiveProfile';
 import AdaptiveQuiz from './components/quiz/AdaptiveQuiz';
@@ -10,15 +11,13 @@ import Flashcards from './pages/Flashcards';
 import FlashcardReview from './pages/FlashcardReview';
 import QuizHistory from './pages/QuizHistory';
 import Standards from './pages/Standards';
-import Settings from './pages/Settings'; // Import Settings page
 import { AuthProvider } from './context/auth';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import TestingPage from './pages/TestingPage';
 import Index from './pages/Index';
 import { LanguageProvider } from './context/language/LanguageContext';
-import { ThemeProvider } from './context/theme/ThemeContext'; // Use our custom ThemeProvider
 
-// Import i18n configuration first
+// Import i18n configuration
 import './i18n/i18n';
 
 const queryClient = new QueryClient();
@@ -26,9 +25,9 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
-          <LanguageProvider>
+      <ThemeProvider defaultTheme="light" storageKey="study-bee-theme">
+        <LanguageProvider>
+          <AuthProvider>
             <Router>
               <Routes>
                 <Route path="/" element={<Index />} />
@@ -41,12 +40,11 @@ function App() {
                 <Route path="/flashcard-review" element={<ProtectedRoute><FlashcardReview /></ProtectedRoute>} />
                 <Route path="/quiz-history" element={<ProtectedRoute><QuizHistory /></ProtectedRoute>} />
                 <Route path="/standards" element={<ProtectedRoute><Standards /></ProtectedRoute>} />
-                <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                 <Route path="/testing" element={<ProtectedRoute><TestingPage /></ProtectedRoute>} />
               </Routes>
             </Router>
-          </LanguageProvider>
-        </AuthProvider>
+          </AuthProvider>
+        </LanguageProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
