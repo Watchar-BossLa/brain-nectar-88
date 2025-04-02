@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Flashcard {
@@ -21,8 +22,8 @@ export async function getUserFlashcards(userId?: string): Promise<Flashcard[]> {
   try {
     if (!userId) {
       // Get current user if userId not provided
-      const { data: userData } = await supabase.auth.getUser();
-      userId = userData?.user?.id;
+      const { data } = await supabase.auth.getSession();
+      userId = data?.session?.user?.id;
       
       if (!userId) {
         throw new Error('User not authenticated');
@@ -48,8 +49,8 @@ export async function getDueFlashcards(userId?: string): Promise<Flashcard[]> {
   try {
     if (!userId) {
       // Get current user if userId not provided
-      const { data: userData } = await supabase.auth.getUser();
-      userId = userData?.user?.id;
+      const { data } = await supabase.auth.getSession();
+      userId = data?.session?.user?.id;
       
       if (!userId) {
         throw new Error('User not authenticated');

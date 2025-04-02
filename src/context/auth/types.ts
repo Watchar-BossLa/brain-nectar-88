@@ -1,7 +1,5 @@
 
-import type { User } from '@supabase/supabase-js';
-
-// Define AuthUser interface
+// Define AuthUser interface without importing from supabase
 export interface AuthUser {
   id: string;
   email?: string;
