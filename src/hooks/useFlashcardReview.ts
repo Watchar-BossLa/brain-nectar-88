@@ -2,10 +2,16 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/auth';
+import { Flashcard } from '@/types/supabase';
+import { spacedRepetitionService } from '@/services/flashcards/spacedRepetitionService';
+import { useToast } from '@/components/ui/use-toast';
 
+/**
+ * Hook for reviewing flashcards using spaced repetition
+ */
 export const useFlashcardReview = (onComplete?: () => void) => {
-  const [currentCard, setCurrentCard] = useState<any>(null);
-  const [reviewCards, setReviewCards] = useState<any[]>([]);
+  const [currentCard, setCurrentCard] = useState<Flashcard | null>(null);
+  const [reviewCards, setReviewCards] = useState<Flashcard[]>([]);
   const [reviewState, setReviewState] = useState<'reviewing' | 'answering' | 'complete'>('reviewing');
   const [reviewStats, setReviewStats] = useState({
     totalReviewed: 0,
@@ -16,7 +22,10 @@ export const useFlashcardReview = (onComplete?: () => void) => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const { toast } = useToast();
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
 
+  // Load due cards when the component mounts
   useEffect(() => {
     if (user) {
       loadDueCards();
@@ -28,79 +37,40 @@ export const useFlashcardReview = (onComplete?: () => void) => {
     
     try {
       setIsLoading(true);
-      const today = new Date().toISOString();
       
-      const { data, error } = await supabase
-        .from('flashcards')
-        .select('*')
-        .eq('user_id', user.id)
-        .or(`next_review_date.lte.${today},next_review_date.is.null`);
-        
-      if (error) throw error;
+      const dueCards = await spacedRepetitionService.getDueFlashcards(user.id);
       
-      setReviewCards(data || []);
-      if (data && data.length > 0) {
-        setCurrentCard(data[0]);
+      setReviewCards(dueCards || []);
+      if (dueCards && dueCards.length > 0) {
+        setCurrentCard(dueCards[0]);
+        setCurrentCardIndex(0);
       }
     } catch (err) {
       console.error('Error loading due cards:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to load flashcards for review',
+        variant: 'destructive'
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const showAnswer = () => {
+  const handleFlip = () => {
     setReviewState('answering');
   };
-
-  // Alias for showAnswer to match component expectations
-  const handleFlip = showAnswer;
 
   const rateCard = async (difficulty: number) => {
     if (!currentCard) return;
     
-    // Update flashcard in the database with new spaced repetition values
     try {
-      // Calculate new spaced repetition values based on difficulty rating
-      const easinessFactor = Math.max(1.3, (currentCard.easiness_factor || 2.5) + 
-        (0.1 - (5 - difficulty) * (0.08 + (5 - difficulty) * 0.02)));
+      // Record the review
+      const success = await spacedRepetitionService.recordReview(currentCard.id, difficulty);
       
-      let repetitions = currentCard.repetitions || 0;
-      if (difficulty < 3) {
-        repetitions = 0;
-      } else {
-        repetitions += 1;
+      if (!success) {
+        throw new Error('Failed to update flashcard');
       }
-      
-      // Calculate next interval
-      let interval;
-      if (repetitions <= 1) {
-        interval = 1;
-      } else if (repetitions === 2) {
-        interval = 6;
-      } else {
-        interval = Math.round((currentCard.interval || 1) * easinessFactor);
-      }
-      
-      // Calculate next review date
-      const nextDate = new Date();
-      nextDate.setDate(nextDate.getDate() + interval);
-      
-      // Update the database
-      const { error } = await supabase
-        .from('flashcards')
-        .update({
-          easiness_factor: easinessFactor,
-          repetitions: repetitions,
-          interval: interval,
-          last_reviewed_at: new Date().toISOString(),
-          next_review_date: nextDate.toISOString(),
-          repetition_count: (currentCard.repetition_count || 0) + 1,
-          last_retention: difficulty
-        })
-        .eq('id', currentCard.id);
-      
-      if (error) throw error;
       
       // Update stats
       const newStats = { ...reviewStats };
@@ -118,34 +88,33 @@ export const useFlashcardReview = (onComplete?: () => void) => {
       setReviewStats(newStats);
       
       // Move to the next card
-      const currentIndex = reviewCards.findIndex(card => card.id === currentCard.id);
-      if (currentIndex < reviewCards.length - 1) {
-        setCurrentCard(reviewCards[currentIndex + 1]);
-        setReviewState('reviewing');
-      } else {
-        setReviewState('complete');
-        setCurrentCard(null);
-        if (onComplete) onComplete();
-      }
+      moveToNextCard();
     } catch (err) {
       console.error('Error updating flashcard:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to save your rating',
+        variant: 'destructive'
+      });
     }
   };
   
-  // Alias for rateCard to match component expectations
-  const handleDifficultyRating = rateCard;
-
-  const handleSkip = () => {
-    // Skip the current card and move to the next one
-    const currentIndex = reviewCards.findIndex(card => card.id === currentCard.id);
-    if (currentIndex < reviewCards.length - 1) {
-      setCurrentCard(reviewCards[currentIndex + 1]);
+  const moveToNextCard = () => {
+    const nextIndex = currentCardIndex + 1;
+    
+    if (nextIndex < reviewCards.length) {
+      setCurrentCard(reviewCards[nextIndex]);
+      setCurrentCardIndex(nextIndex);
       setReviewState('reviewing');
     } else {
       setReviewState('complete');
       setCurrentCard(null);
       if (onComplete) onComplete();
     }
+  };
+
+  const handleSkip = () => {
+    moveToNextCard();
   };
   
   const completeReview = () => {
@@ -156,15 +125,13 @@ export const useFlashcardReview = (onComplete?: () => void) => {
     currentCard,
     reviewState,
     reviewStats,
-    showAnswer,
+    showAnswer: handleFlip,
     rateCard,
     completeReview,
     isLoading,
     reviewCards,
-    // Add these methods to match the expected interface
     handleFlip,
-    handleDifficultyRating,
     handleSkip,
-    currentCardIndex: reviewCards.findIndex(card => card && currentCard && card.id === currentCard.id)
+    currentCardIndex
   };
 };

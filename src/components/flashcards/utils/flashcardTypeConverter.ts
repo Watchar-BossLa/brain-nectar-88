@@ -7,17 +7,17 @@ import { Flashcard } from '@/types/supabase';
 export const convertToSupabaseFlashcard = (flashcard: any): Flashcard => {
   return {
     id: flashcard.id,
-    user_id: flashcard.user_id || flashcard.userId,
-    topic_id: flashcard.topic_id || flashcard.topicId,
-    front_content: flashcard.front_content || flashcard.front,
-    back_content: flashcard.back_content || flashcard.back,
+    user_id: flashcard.user_id || flashcard.userId || '',
+    topic_id: flashcard.topic_id || flashcard.topicId || null,
+    front_content: flashcard.front_content || flashcard.front || '',
+    back_content: flashcard.back_content || flashcard.back || '',
     difficulty: flashcard.difficulty || 0,
-    next_review_date: flashcard.next_review_date,
+    next_review_date: flashcard.next_review_date || new Date().toISOString(),
     repetition_count: flashcard.repetition_count || 0,
     mastery_level: flashcard.mastery_level || 0,
     easiness_factor: flashcard.easiness_factor || 2.5,
     last_retention: flashcard.last_retention || 0.85,
-    last_reviewed_at: flashcard.last_reviewed_at,
+    last_reviewed_at: flashcard.last_reviewed_at || null,
     created_at: flashcard.created_at || new Date().toISOString(),
     updated_at: flashcard.updated_at || new Date().toISOString(),
   };
