@@ -17,7 +17,7 @@ import TestingPage from './pages/TestingPage';
 import Index from './pages/Index';
 import { LanguageProvider } from './context/language/LanguageContext';
 
-// Import i18n configuration
+// Import i18n configuration first
 import './i18n/i18n';
 
 const queryClient = new QueryClient();
@@ -26,8 +26,8 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="study-bee-theme">
-        <LanguageProvider>
-          <AuthProvider>
+        <AuthProvider>
+          <LanguageProvider>
             <Router>
               <Routes>
                 <Route path="/" element={<Index />} />
@@ -43,8 +43,8 @@ function App() {
                 <Route path="/testing" element={<ProtectedRoute><TestingPage /></ProtectedRoute>} />
               </Routes>
             </Router>
-          </AuthProvider>
-        </LanguageProvider>
+          </LanguageProvider>
+        </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
