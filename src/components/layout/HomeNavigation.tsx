@@ -57,11 +57,10 @@ const HomeNavigation: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // Find the active tab based on the current path
   const findActiveTab = () => {
     const currentPath = location.pathname;
-    const currentItem = navigationItems.find(item => item.path === currentPath);
-    return currentItem ? currentItem.name : navigationItems[0].name;
+    const matchedItem = navigationItems.find(item => item.path === currentPath);
+    return matchedItem ? matchedItem.name : navigationItems[0].name;
   };
   
   const [activeTab, setActiveTab] = useState<string>(findActiveTab());
@@ -132,33 +131,18 @@ const HomeNavigation: React.FC = () => {
           </SheetTrigger>
           <SheetContent side="left">
             <div className="flex flex-col space-y-4 mt-6">
-              {/* Home navigation always included in mobile menu */}
-              <SheetClose asChild>
-                <Link
-                  to="/dashboard"
-                  className={`flex items-center px-4 py-2 rounded-md hover:bg-secondary ${
-                    location.pathname === "/dashboard" ? "bg-primary/10 text-primary" : ""
-                  }`}
-                >
-                  <Home className="h-4 w-4 mr-2" />
-                  Dashboard
-                </Link>
-              </SheetClose>
-              
               {navigationItems.map((item) => (
-                item.path !== "/dashboard" && (
-                  <SheetClose key={item.name} asChild>
-                    <Link
-                      to={item.path}
-                      className={`flex items-center px-4 py-2 rounded-md hover:bg-secondary ${
-                        location.pathname === item.path ? "bg-primary/10 text-primary" : ""
-                      }`}
-                    >
-                      {item.icon}
-                      {item.name}
-                    </Link>
-                  </SheetClose>
-                )
+                <SheetClose key={item.name} asChild>
+                  <Link
+                    to={item.path}
+                    className={`flex items-center px-4 py-2 rounded-md hover:bg-secondary ${
+                      location.pathname === item.path ? "bg-primary/10 text-primary" : ""
+                    }`}
+                  >
+                    {item.icon}
+                    {item.name}
+                  </Link>
+                </SheetClose>
               ))}
             </div>
           </SheetContent>

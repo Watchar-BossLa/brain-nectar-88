@@ -19,7 +19,7 @@ interface ModulesListProps {
   modules: ModuleType[];
 }
 
-const ModulesList = ({ modules }: ModulesListProps) => {
+const ModulesList = ({ modules = [] }: ModulesListProps) => {
   return (
     <>
       {/* Search and Filter */}
@@ -39,17 +39,23 @@ const ModulesList = ({ modules }: ModulesListProps) => {
       
       {/* Modules List */}
       <div className="space-y-5">
-        {modules.map((module, index) => (
-          <LearningModule
-            key={module.id}
-            id={module.id}
-            title={module.title}
-            topics={module.topics}
-            progress={module.progress}
-            totalDuration={module.totalDuration}
-            isActive={index === 3} // Set the current module as active
-          />
-        ))}
+        {modules.length > 0 ? (
+          modules.map((module, index) => (
+            <LearningModule
+              key={module.id}
+              id={module.id}
+              title={module.title}
+              topics={module.topics}
+              progress={module.progress}
+              totalDuration={module.totalDuration}
+              isActive={index === 0} // Set the first module as active by default
+            />
+          ))
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No modules found.</p>
+          </div>
+        )}
       </div>
     </>
   );
