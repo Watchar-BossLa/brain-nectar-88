@@ -23,27 +23,34 @@ export class LearningHistoryService {
       }
       
       // Convert to learning history items
-      return progressData.map(item => ({
-        contentId: item.content?.id,
-        topicId: item.content?.topic_id,
-        moduleId: item.content?.module_id,
-        status: item.status,
-        progressPercentage: item.progress_percentage,
-        createdAt: item.created_at,
-        updatedAt: item.updated_at,
-        content: {
-          id: item.content?.id,
-          topicId: item.content?.topic_id,
-          moduleId: item.content?.module_id,
-          contentType: item.content?.content_type,
-          contentData: item.content?.content_data,
-          title: item.content?.title
-        }
-      }));
+      return progressData.map(item => this.formatToLearningHistoryItem(item));
     } catch (error) {
       console.error('Error in getLearningHistory:', error);
       return [];
     }
+  }
+  
+  /**
+   * Format database item to learning history item
+   */
+  static formatToLearningHistoryItem(item: any): LearningHistoryItem {
+    return {
+      contentId: item.content?.id,
+      topicId: item.content?.topic_id,
+      moduleId: item.content?.moduleId,
+      status: item.status,
+      progressPercentage: item.progress_percentage,
+      createdAt: item.created_at,
+      updatedAt: item.updated_at,
+      content: {
+        id: item.content?.id,
+        topicId: item.content?.topic_id,
+        moduleId: item.content?.moduleId,
+        contentType: item.content?.content_type,
+        contentData: item.content?.content_data,
+        title: item.content?.title
+      }
+    };
   }
   
   /**

@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Flashcard } from '@/types/flashcard';
+import { Flashcard, fromDatabaseFormat } from '@/types/flashcard';
 
 export const calculateFlashcardRetention = async (userId: string) => {
   try {
@@ -58,8 +58,11 @@ export const updateFlashcardAfterReview = async (flashcardId: string, difficulty
     // Record the review
     await recordFlashcardReview(flashcardId, difficultyRating);
     
+    // Convert database format to application format
+    const normalizedFlashcard = fromDatabaseFormat(flashcard);
+    
     // Update flashcard based on review
-    return updateFlashcardReviewData(flashcard, difficultyRating);
+    return updateFlashcardReviewData(normalizedFlashcard, difficultyRating);
   } catch (error) {
     console.error('Error updating flashcard after review:', error);
     return false;
