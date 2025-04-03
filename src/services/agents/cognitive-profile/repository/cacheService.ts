@@ -1,37 +1,26 @@
 
-import { CognitiveProfile } from '../../types';
-
 /**
- * Service for caching cognitive profiles in memory
+ * Cache service for cognitive profiles
  */
-export class ProfileCacheService {
-  private profileCache: Map<string, CognitiveProfile> = new Map();
+
+// Simple in-memory cache
+const cache = new Map<string, any>();
+
+export const cacheService = {
+  // Cache operations
+  setItem: (key: string, value: any) => {
+    cache.set(key, value);
+  },
   
-  /**
-   * Get a cached profile if available
-   */
-  public getFromCache(userId: string): CognitiveProfile | null {
-    return this.profileCache.get(userId) || null;
-  }
+  getItem: (key: string) => {
+    return cache.get(key) || null;
+  },
   
-  /**
-   * Store a profile in the cache
-   */
-  public saveToCache(profile: CognitiveProfile): void {
-    this.profileCache.set(profile.userId, profile);
-  }
+  removeItem: (key: string) => {
+    cache.delete(key);
+  },
   
-  /**
-   * Clear a specific profile from cache
-   */
-  public clearFromCache(userId: string): void {
-    this.profileCache.delete(userId);
+  clear: () => {
+    cache.clear();
   }
-  
-  /**
-   * Clear all profiles from cache
-   */
-  public clearAllCache(): void {
-    this.profileCache.clear();
-  }
-}
+};

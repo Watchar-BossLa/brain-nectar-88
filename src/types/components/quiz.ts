@@ -18,4 +18,5 @@ export interface ActiveQuizCardProps {
   isLoading?: boolean;
   isSubmitting?: boolean;
   skipQuestion?: () => void;
+  isAnswerSubmitted?: boolean;
 }

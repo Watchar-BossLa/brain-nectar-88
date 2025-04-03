@@ -1,154 +1,60 @@
-
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { updateFlashcardAfterReview } from '@/services/spacedRepetition';
-import { useToast } from '@/hooks/use-toast';
-import { AnimatePresence } from 'framer-motion';
-import 'katex/dist/katex.min.css';
-import { calculateRetention } from '@/services/spacedRepetition/algorithm';
-import { MemoryRetentionIndicator } from './components/MemoryRetentionIndicator';
-import { DifficultyRatingButtons } from './components/DifficultyRatingButtons';
-import { AnimatedFlashcardContent } from './components/FlashcardContent';
+import React from 'react';
+import { Card, CardContent } from "@/components/ui/card";
 import { Flashcard } from '@/types/flashcard';
+import { calculateFlashcardRetention } from '@/services/spacedRepetition';
+import { getIconForInterval, getRetentionLabel } from './utils/spacedRepetitionUtils';
+import { Badge } from "@/components/ui/badge";
+import { CalendarIcon, CheckCircle2, Flame, HelpCircle, Hourglass, Star } from 'lucide-react';
 
 interface SpacedRepetitionCardProps {
   flashcard: Flashcard;
-  onComplete: () => void;
-  onUpdateStats?: () => void;
+  onReview: (flashcardId: string, difficulty: number) => void;
 }
 
-const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({ 
-  flashcard, 
-  onComplete,
-  onUpdateStats
-}) => {
-  const [isFlipped, setIsFlipped] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [difficultyRating, setDifficultyRating] = useState<number | null>(null);
-  const [retentionEstimate, setRetentionEstimate] = useState<number>(1);
-  const { toast } = useToast();
+const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({ flashcard, onReview }) => {
+  const result = calculateFlashcardRetention(flashcard);
 
-  const frontContent = flashcard.frontContent || flashcard.front_content || '';
-  const backContent = flashcard.backContent || flashcard.back_content || '';
-  const repetitionCount = flashcard.repetitionCount || flashcard.repetition_count || 0;
-  const nextReviewDate = flashcard.nextReviewDate || flashcard.next_review_date;
-
-  useEffect(() => {
-    // Reset state when flashcard changes
-    setIsFlipped(false);
-    setDifficultyRating(null);
-    
-    // Calculate estimated current retention
-    if (nextReviewDate && repetitionCount > 0) {
-      const reviewDate = new Date(nextReviewDate);
-      const now = new Date();
-      const daysSinceReview = Math.max(0, (now.getTime() - reviewDate.getTime()) / (1000 * 60 * 60 * 24));
-      
-      // Estimate memory strength based on repetition count and difficulty
-      const memoryStrength = repetitionCount * 0.2 * (flashcard.difficulty || 2.5);
-      
-      // Calculate current retention
-      const retention = calculateRetention(daysSinceReview, memoryStrength);
-      setRetentionEstimate(retention);
-    }
-  }, [flashcard.id, nextReviewDate, repetitionCount]);
-
-  const handleFlip = () => {
-    setIsFlipped(!isFlipped);
+  const handleReview = (difficulty: number) => {
+    onReview(flashcard.id, difficulty);
   };
 
-  const handleRating = async (difficulty: number) => {
-    setDifficultyRating(difficulty);
-    setIsSubmitting(true);
-
-    try {
-      const result = await updateFlashcardAfterReview(flashcard.id, difficulty);
-      
-      // Check for errors in the result
-      if (result && typeof result === 'object' && 'error' in result && result.error) {
-        throw new Error(result.error.message || 'Failed to update flashcard');
-      }
-      
-      // Update stats if callback is provided
-      if (onUpdateStats) {
-        onUpdateStats();
-      }
-      
-      // Short delay to show the selected rating
-      setTimeout(() => {
-        onComplete();
-        setIsSubmitting(false);
-      }, 600);
-      
-    } catch (error) {
-      console.error('Error updating flashcard review:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update flashcard. Please try again.',
-        variant: 'destructive'
-      });
-      setIsSubmitting(false);
-    }
-  };
+  const spaceRepIcon = getIconForInterval(result?.daysUntilReview || 0);
+  const retentionLabel = getRetentionLabel(result?.retention || 0);
+  const retentionPercentage = Math.round((result?.retention || 0) * 100);
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold">Flashcard Review</CardTitle>
-        <CardDescription>
-          How well did you remember this card? Be honest for best results.
-        </CardDescription>
-        
-        {/* Memory Retention Indicator */}
-        <MemoryRetentionIndicator 
-          retention={retentionEstimate}
-          repetitionCount={repetitionCount}
-        />
-      </CardHeader>
-      
-      <CardContent className="flex justify-center pb-8">
-        <div 
-          className="relative w-full h-[300px] cursor-pointer"
-          onClick={handleFlip}
-        >
-          <AnimatePresence initial={false} mode="wait">
-            {isFlipped ? (
-              <AnimatedFlashcardContent
-                content={backContent}
-                isAnswer={true}
-                onClick={handleFlip}
-                isFlipped={isFlipped}
-              />
-            ) : (
-              <AnimatedFlashcardContent
-                content={frontContent}
-                isAnswer={false}
-                onClick={handleFlip}
-                isFlipped={isFlipped}
-              />
-            )}
-          </AnimatePresence>
+    <Card className="w-full max-w-md mx-auto">
+      <CardContent className="p-4">
+        <h2 className="text-lg font-semibold mb-2">{flashcard.frontContent}</h2>
+        <p className="text-sm text-muted-foreground mb-4">{flashcard.backContent}</p>
+
+        <div className="flex items-center space-x-2 mb-3">
+          {spaceRepIcon}
+          <span className="text-xs text-muted-foreground">{retentionLabel}</span>
+          <Badge className="bg-blue-500/10 text-blue-600 hover:bg-blue-500/20">{retentionPercentage}% Retention</Badge>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2">
+          <button
+            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            onClick={() => handleReview(1)}
+          >
+            Hard
+          </button>
+          <button
+            className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded"
+            onClick={() => handleReview(2)}
+          >
+            Okay
+          </button>
+          <button
+            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+            onClick={() => handleReview(3)}
+          >
+            Easy
+          </button>
         </div>
       </CardContent>
-      
-      <CardFooter className="flex-col space-y-4">
-        {isFlipped && (
-          <DifficultyRatingButtons
-            onRate={handleRating}
-            selectedRating={difficultyRating}
-            isSubmitting={isSubmitting}
-          />
-        )}
-        {!isFlipped && (
-          <Button 
-            onClick={handleFlip}
-            className="w-full"
-          >
-            Show Answer
-          </Button>
-        )}
-      </CardFooter>
     </Card>
   );
 };

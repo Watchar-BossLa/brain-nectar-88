@@ -14,7 +14,8 @@ const ActiveQuizCard: React.FC<ActiveQuizCardProps> = ({
   setSelectedAnswer,
   handleAnswerSubmit,
   isSubmitting,
-  skipQuestion
+  skipQuestion,
+  isAnswerSubmitted
 }) => {
   if (!question) {
     return null;

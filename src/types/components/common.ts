@@ -5,5 +5,17 @@
  * or could be used across multiple categories
  */
 
-// Currently this file is a placeholder for common component props
-// that don't fit neatly into other categories
+export interface DashboardTabsProps {
+  className?: string;
+}
+
+export interface PanelTabsProps {
+  className?: string;
+}
+
+// Additional common component props
+export interface TabsContainerProps {
+  className?: string;
+  children: React.ReactNode;
+}
+
