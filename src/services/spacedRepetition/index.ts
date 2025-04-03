@@ -23,10 +23,16 @@ import {
 
 import { 
   updateFlashcardAfterReview,
-  recordFlashcardReview,
-  calculateFlashcardRetention,
-  getFlashcardLearningStats
+  recordFlashcardReview
 } from './reviewService';
+
+import {
+  calculateFlashcardRetention
+} from './flashcardRetention';
+
+import {
+  getFlashcardLearningStats
+} from './learningStats';
 
 import {
   FlashcardRetentionResult,
