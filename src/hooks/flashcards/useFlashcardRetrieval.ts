@@ -32,7 +32,7 @@ export function useFlashcardRetrieval() {
       
       if (dueError) throw dueError;
       
-      // Convert to camelCase
+      // Convert to camelCase - ensure all fields are properly transformed
       const camelCaseFlashcards = (allFlashcards || []).map(formatFlashcardToCamelCase);
       const camelCaseDueCards = (dueCards || []).map(formatFlashcardToCamelCase);
       

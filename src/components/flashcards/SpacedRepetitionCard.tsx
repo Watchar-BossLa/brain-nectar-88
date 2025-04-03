@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Flashcard } from '@/types/supabase';
 import { updateFlashcardAfterReview } from '@/services/spacedRepetition';
 import { useToast } from '@/hooks/use-toast';
 import { AnimatePresence } from 'framer-motion';
@@ -11,6 +10,20 @@ import { calculateRetention } from '@/services/spacedRepetition/algorithm';
 import { MemoryRetentionIndicator } from './components/MemoryRetentionIndicator';
 import { DifficultyRatingButtons } from './components/DifficultyRatingButtons';
 import { AnimatedFlashcardContent } from './components/FlashcardContent';
+
+interface Flashcard {
+  id: string;
+  front_content?: string;
+  frontContent?: string;
+  back_content?: string;
+  backContent?: string;
+  next_review_date?: string;
+  nextReviewDate?: string;
+  repetition_count?: number;
+  repetitionCount?: number;
+  difficulty?: number;
+  [key: string]: any; // Allow other properties
+}
 
 interface SpacedRepetitionCardProps {
   flashcard: Flashcard;
@@ -29,25 +42,30 @@ const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({
   const [retentionEstimate, setRetentionEstimate] = useState<number>(1);
   const { toast } = useToast();
 
+  const frontContent = flashcard.front_content || flashcard.frontContent || '';
+  const backContent = flashcard.back_content || flashcard.backContent || '';
+  const repetitionCount = flashcard.repetition_count || flashcard.repetitionCount || 0;
+  const nextReviewDate = flashcard.next_review_date || flashcard.nextReviewDate;
+
   useEffect(() => {
     // Reset state when flashcard changes
     setIsFlipped(false);
     setDifficultyRating(null);
     
     // Calculate estimated current retention
-    if (flashcard.next_review_date && flashcard.repetition_count > 0) {
-      const reviewDate = new Date(flashcard.next_review_date);
+    if (nextReviewDate && repetitionCount > 0) {
+      const reviewDate = new Date(nextReviewDate);
       const now = new Date();
       const daysSinceReview = Math.max(0, (now.getTime() - reviewDate.getTime()) / (1000 * 60 * 60 * 24));
       
       // Estimate memory strength based on repetition count and difficulty
-      const memoryStrength = flashcard.repetition_count * 0.2 * (flashcard.difficulty || 2.5);
+      const memoryStrength = repetitionCount * 0.2 * (flashcard.difficulty || 2.5);
       
       // Calculate current retention
       const retention = calculateRetention(daysSinceReview, memoryStrength);
       setRetentionEstimate(retention);
     }
-  }, [flashcard.id]);
+  }, [flashcard.id, nextReviewDate, repetitionCount]);
 
   const handleFlip = () => {
     setIsFlipped(!isFlipped);
@@ -97,7 +115,7 @@ const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({
         {/* Memory Retention Indicator */}
         <MemoryRetentionIndicator 
           retention={retentionEstimate}
-          repetitionCount={flashcard.repetition_count}
+          repetitionCount={repetitionCount}
         />
       </CardHeader>
       
@@ -109,14 +127,14 @@ const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({
           <AnimatePresence initial={false} mode="wait">
             {isFlipped ? (
               <AnimatedFlashcardContent
-                content={flashcard.back_content}
+                content={backContent}
                 isAnswer={true}
                 onClick={handleFlip}
                 isFlipped={isFlipped}
               />
             ) : (
               <AnimatedFlashcardContent
-                content={flashcard.front_content}
+                content={frontContent}
                 isAnswer={false}
                 onClick={handleFlip}
                 isFlipped={isFlipped}

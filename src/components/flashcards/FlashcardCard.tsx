@@ -1,12 +1,19 @@
 
 import React, { useState } from 'react';
-import { FlashcardCardProps } from '@/types/components';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { calculateNextReviewDate } from '@/services/spacedRepetition';
 import { FlashcardContent } from './components/FlashcardContent';
 import DeleteFlashcardDialog from './DeleteFlashcardDialog';
 import { format } from 'date-fns';
+
+interface Flashcard {
+  id: string;
+  front_content?: string;
+  back_content?: string;
+  next_review_date?: string;
+  [key: string]: any; // To allow for other properties
+}
 
 interface FlashcardCardProps {
   flashcard: Flashcard;
@@ -46,9 +53,14 @@ const FlashcardCard: React.FC<FlashcardCardProps> = ({
     }
   };
 
+  // Ensure we have the next_review_date property before using it
   const nextReviewDate = flashcard.next_review_date 
     ? new Date(flashcard.next_review_date) 
     : null;
+  
+  // Safely access front_content and back_content, providing fallbacks
+  const frontContent = flashcard.front_content || flashcard.frontContent || '';
+  const backContent = flashcard.back_content || flashcard.backContent || '';
   
   return (
     <>
@@ -61,12 +73,12 @@ const FlashcardCard: React.FC<FlashcardCardProps> = ({
         >
           {/* Front of card */}
           <CardContent className="absolute inset-0 backface-hidden p-4 flex flex-col items-center justify-center">
-            <FlashcardContent content={flashcard.front_content} />
+            <FlashcardContent content={frontContent} />
           </CardContent>
           
           {/* Back of card */}
           <CardContent className="absolute inset-0 backface-hidden rotate-y-180 p-4 flex flex-col items-center justify-center">
-            <FlashcardContent content={flashcard.back_content} />
+            <FlashcardContent content={backContent} />
           </CardContent>
         </div>
         
