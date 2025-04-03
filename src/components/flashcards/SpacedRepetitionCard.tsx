@@ -10,20 +10,7 @@ import { calculateRetention } from '@/services/spacedRepetition/algorithm';
 import { MemoryRetentionIndicator } from './components/MemoryRetentionIndicator';
 import { DifficultyRatingButtons } from './components/DifficultyRatingButtons';
 import { AnimatedFlashcardContent } from './components/FlashcardContent';
-
-interface Flashcard {
-  id: string;
-  front_content?: string;
-  frontContent?: string;
-  back_content?: string;
-  backContent?: string;
-  next_review_date?: string;
-  nextReviewDate?: string;
-  repetition_count?: number;
-  repetitionCount?: number;
-  difficulty?: number;
-  [key: string]: any; // Allow other properties
-}
+import { Flashcard } from '@/types/flashcard';
 
 interface SpacedRepetitionCardProps {
   flashcard: Flashcard;
@@ -42,10 +29,10 @@ const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({
   const [retentionEstimate, setRetentionEstimate] = useState<number>(1);
   const { toast } = useToast();
 
-  const frontContent = flashcard.front_content || flashcard.frontContent || '';
-  const backContent = flashcard.back_content || flashcard.backContent || '';
-  const repetitionCount = flashcard.repetition_count || flashcard.repetitionCount || 0;
-  const nextReviewDate = flashcard.next_review_date || flashcard.nextReviewDate;
+  const frontContent = flashcard.frontContent || flashcard.front_content || '';
+  const backContent = flashcard.backContent || flashcard.back_content || '';
+  const repetitionCount = flashcard.repetitionCount || flashcard.repetition_count || 0;
+  const nextReviewDate = flashcard.nextReviewDate || flashcard.next_review_date;
 
   useEffect(() => {
     // Reset state when flashcard changes

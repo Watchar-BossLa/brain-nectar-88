@@ -1,5 +1,5 @@
 
-import { Flashcard, fromDatabaseFormat } from '@/types/flashcard';
+import { Flashcard, normalizeFlashcard } from '@/types/flashcard';
 
 /**
  * Converts between different Flashcard formats
@@ -12,7 +12,7 @@ import { Flashcard, fromDatabaseFormat } from '@/types/flashcard';
 export const convertToSupabaseFlashcard = (flashcard: Partial<Flashcard>): Flashcard => {
   if (!flashcard) return null;
   
-  return fromDatabaseFormat({
+  return normalizeFlashcard({
     id: flashcard.id || '',
     user_id: flashcard.userId || flashcard.user_id || '',
     topic_id: flashcard.topicId || flashcard.topic_id || null,
@@ -36,5 +36,5 @@ export const convertToSupabaseFlashcard = (flashcard: Partial<Flashcard>): Flash
 export const convertToHookFlashcard = (flashcard: any): Flashcard => {
   if (!flashcard) return null;
   
-  return fromDatabaseFormat(flashcard);
+  return normalizeFlashcard(flashcard);
 };

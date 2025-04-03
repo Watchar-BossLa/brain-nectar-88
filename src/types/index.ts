@@ -11,7 +11,9 @@ export * from './enums';
 export * from './components';
 
 // Re-export Supabase types
-export type { Json } from './supabase';
+// Note: Json type is now properly imported from the generated Supabase types
+import type { Json } from './supabase';
+export type { Json };
 
 // Import Database type only if it exists
 // This line will be modified once Database type is properly defined

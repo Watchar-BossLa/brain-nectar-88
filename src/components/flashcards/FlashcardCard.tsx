@@ -45,11 +45,11 @@ const FlashcardCard: React.FC<FlashcardCardProps> = ({
     }
   };
 
-  // Safely get the content from either camelCase or snake_case properties
+  // Get content directly from the flashcard properties
   const frontContent = flashcard.frontContent || flashcard.front_content || '';
   const backContent = flashcard.backContent || flashcard.back_content || '';
   
-  // Ensure we have the next_review_date property before using it
+  // Ensure we have the next review date
   const reviewDateStr = flashcard.nextReviewDate || flashcard.next_review_date;
   const nextReviewDate = reviewDateStr ? new Date(reviewDateStr) : null;
   
