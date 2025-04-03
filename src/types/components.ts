@@ -1,123 +1,53 @@
-import { Flashcard } from './supabase';
-import { QuizQuestion } from '../components/quiz/types';
-import { AccountComponent, UpdateComponentFunction, TransactionType } from '../components/accounting/equation-visualizer/types';
-import { TaskCategory } from '@/types/enums';
 
-export interface QualificationType {
-  id: string;
-  name: string;
-  description: string;
-  color: string;
-  progress: number;
-  modules: number;
-  completed: number;
-  metadata: {
-    website: string;
-    accreditation: string;
-    duration: string;
-  };
+import { Flashcard } from './flashcard';
+import { FlashcardLearningStats } from '../services/spacedRepetition/reviewTypes';
+
+// Define interfaces for component props
+export interface FlashcardListHeaderProps {
+  onAddNew: () => void;
 }
 
-export interface QualificationHeaderProps {
-  qualification: QualificationType;
+export interface EmptyFlashcardStateProps {
+  onAddNew: () => void;
 }
 
-export interface QualificationProgressProps {
-  qualification: QualificationType;
+export interface FlashcardGridProps {
+  flashcards: Flashcard[];
+  onDelete?: (id: string) => void;
+  onCardUpdated?: () => void;
 }
 
-export interface QualificationMetadataProps {
-  qualification: QualificationType;
+export interface FlashcardsHeaderProps {
+  isCreating: boolean;
+  onCreateSimpleFlashcard: () => void;
+  onCreateAdvancedFlashcard: () => void;
 }
 
-export interface TopicItemProps {
-  id: string;
+export interface FlashcardsEmptyStateProps {
   title: string;
-  duration: string;
-  isCompleted: boolean;
-}
-
-export interface QualificationStructureAccordionProps {
-  qualificationId: string;
-  modules: any[];
-  getStatusBadge: (status: string) => React.ReactNode;
-  accordionName: string;
-  websiteName: string;
-}
-
-export interface ScoreSummaryProps {
-  totalQuestions: number;
-  correctAnswers: number;
-  incorrectAnswers: number;
-  skippedQuestions: number;
-}
-
-export interface AllFlashcardsTabProps {
-  isLoading: boolean;
-  flashcards: Flashcard[];
-  onDeleteFlashcard: (id: string) => Promise<void>;
-  onCardUpdated: () => void;
+  description: string;
   onCreateSimpleFlashcard: () => void;
   onCreateAdvancedFlashcard: () => void;
 }
 
-export interface DueFlashcardsTabProps {
-  flashcards: Flashcard[];
-  onStartReview: () => void;
-  onDeleteFlashcard: (id: string) => Promise<void>;
-  onCardUpdated: () => void;
-  onCreateSimpleFlashcard: () => void;
-  onCreateAdvancedFlashcard: () => void;
+export interface DeleteFlashcardDialogProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
 }
 
-export interface ReviewHeaderProps {
-  reviewsCompleted: number;
-  totalToReview: number;
-}
-
-export interface EmptyReviewStateProps {
-  // No props needed as it's a static component
-}
-
-export interface LoadingSkeletonProps {
-  // No props needed as it's a static component
-}
-
-export interface ReviewLoadingProps {
-  // No props needed as it's a static component
-}
-
-export interface DashboardTabsProps {
-  selectedTab: string;
-  setSelectedTab: (tab: string) => void;
-  availableModels: string[];
-  modelMetrics: Record<string, any>;
-  testProps: {
-    testPrompt: string;
-    setTestPrompt: (prompt: string) => void;
-    isGenerating: boolean;
-    testResult: string;
-    handleTestGeneration: () => Promise<void>;
-    handleTestWithModel: () => Promise<void>;
-    selectedModel: string;
-    setSelectedModel: (model: string) => void;
-    selectedTaskCategory: TaskCategory;
-    setSelectedTaskCategory: (category: TaskCategory) => void;
-    TaskCategory: typeof TaskCategory;
+export interface FlashcardStatsProps {
+  stats: {
+    totalCards: number;
+    masteredCards: number;
+    dueCards: number;
+    reviewsToday: number;
+    averageDifficulty: number;
   };
 }
 
-export interface PanelTabsProps {
-  selectedTab: string;
-  setSelectedTab: (tab: string) => void;
-  availableModels: string[];
-  modelMetrics: Record<string, any>;
-  testProps: {
-    testPrompt: string;
-    setTestPrompt: (prompt: string) => void;
-    isGenerating: boolean;
-    generatedText: string;
-    handleTestGeneration: () => Promise<void>;
-    TaskCategory: typeof TaskCategory;
-  };
+export interface FlashcardPreviewProps {
+  frontContent: string;
+  backContent: string;
+  useLatex?: boolean;
 }

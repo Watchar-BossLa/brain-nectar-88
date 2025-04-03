@@ -1,5 +1,5 @@
 
-import { TaskCategory } from '../../../types/enums';
+import { TaskCategory, TaskType } from '@/types/index';
 
 /**
  * Agent task interface for integration with LLM system
@@ -8,7 +8,7 @@ import { TaskCategory } from '../../../types/enums';
 export interface AgentTask {
   id: string;
   userId: string;
-  taskType: string;
+  taskType: TaskType | string;
   description: string;
   priority: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
   targetAgentTypes?: string[];

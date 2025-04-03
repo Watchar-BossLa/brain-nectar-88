@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { TaskCategory } from '@/types/enums';
+import { TaskCategory } from '@/types/index';
 
 interface TestTabProps {
   testPrompt: string;
@@ -15,7 +15,6 @@ interface TestTabProps {
   setSelectedModel: (model: string) => void;
   selectedTaskCategory: TaskCategory;
   setSelectedTaskCategory: (category: TaskCategory) => void;
-  TaskCategory: typeof TaskCategory;
 }
 
 export function TestTab({
@@ -29,7 +28,6 @@ export function TestTab({
   setSelectedModel,
   selectedTaskCategory,
   setSelectedTaskCategory,
-  TaskCategory
 }: TestTabProps) {
   return (
     <div className="space-y-4">

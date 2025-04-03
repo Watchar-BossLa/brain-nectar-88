@@ -1,7 +1,8 @@
+
 /**
  * Import TaskCategory from central location
  */
-import { TaskCategory } from '../../types/enums';
+import { TaskCategory } from '@/types/index';
 
 /**
  * Export TaskCategory for backward compatibility

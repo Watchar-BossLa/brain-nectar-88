@@ -5,17 +5,7 @@ import { Button } from '@/components/ui/button';
 import { FlashcardContent } from './components/FlashcardContent';
 import DeleteFlashcardDialog from './DeleteFlashcardDialog';
 import { format } from 'date-fns';
-
-interface Flashcard {
-  id: string;
-  front_content?: string;
-  frontContent?: string;
-  back_content?: string;
-  backContent?: string;
-  next_review_date?: string;
-  nextReviewDate?: string;
-  [key: string]: any; // To allow for other properties
-}
+import { Flashcard } from '@/types/flashcard';
 
 interface FlashcardCardProps {
   flashcard: Flashcard;

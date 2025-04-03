@@ -1,3 +1,4 @@
+
 import { Session, User } from '@supabase/supabase-js';
 
 export type Profile = {
@@ -67,6 +68,7 @@ export type UserProgress = {
   content?: Content;
 };
 
+// Legacy type definition - use types/flashcard.ts instead
 export type Flashcard = {
   id: string;
   userId: string;
