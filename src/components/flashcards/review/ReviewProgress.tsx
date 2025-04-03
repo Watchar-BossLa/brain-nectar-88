@@ -1,13 +1,11 @@
-
 import React from 'react';
+import { ReviewProgressProps } from '@/types/components';
 import { Progress } from '@/components/ui/progress';
 
-interface ReviewProgressProps {
-  currentIndex: number;
-  totalCards: number;
-}
-
-const ReviewProgress: React.FC<ReviewProgressProps> = ({ currentIndex, totalCards }) => {
+const ReviewProgress: React.FC<ReviewProgressProps> = ({
+  currentIndex,
+  totalCards
+}) => {
   const progress = Math.round(((currentIndex) / totalCards) * 100);
 
   return (

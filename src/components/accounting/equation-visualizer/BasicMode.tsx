@@ -1,16 +1,8 @@
-
 import React from 'react';
+import { BasicModeProps } from '@/types/components';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { renderLatexContent } from '../../flashcards/utils/latex-renderer';
-
-interface BasicModeProps {
-  assets: number;
-  liabilities: number;
-  equity: number;
-  handleAssetChange: (value: number) => void;
-  handleLiabilityChange: (value: number) => void;
-}
 
 const BasicMode: React.FC<BasicModeProps> = ({
   assets,

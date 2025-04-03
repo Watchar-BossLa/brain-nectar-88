@@ -1,15 +1,9 @@
-
 import React from 'react';
+import { FlashcardGridProps } from '@/types/components';
 import { Flashcard } from '@/types/supabase';
 import FlashcardCard from './FlashcardCard';
 import { deleteFlashcard } from '@/services/spacedRepetition';
 import { useToast } from '@/hooks/use-toast';
-
-interface FlashcardGridProps {
-  flashcards: Flashcard[];
-  onDelete?: (id: string) => void;
-  onCardUpdated?: () => void;
-}
 
 const FlashcardGrid: React.FC<FlashcardGridProps> = ({ flashcards, onDelete, onCardUpdated }) => {
   const { toast } = useToast();

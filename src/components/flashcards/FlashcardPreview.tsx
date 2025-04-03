@@ -1,14 +1,8 @@
-
 import React from 'react';
+import { FlashcardPreviewProps } from '@/types/components';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { renderLatexContent } from './utils/latex-renderer';
 import { Card, CardContent } from '@/components/ui/card';
-
-interface FlashcardPreviewProps {
-  frontContent: string;
-  backContent: string;
-  useLatex: boolean;
-}
 
 const FlashcardPreview: React.FC<FlashcardPreviewProps> = ({ 
   frontContent, 

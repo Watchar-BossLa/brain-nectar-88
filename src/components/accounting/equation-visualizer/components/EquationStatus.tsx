@@ -1,13 +1,6 @@
-
 import React from 'react';
+import { EquationStatusProps } from '@/types/components';
 import { LatexRenderer } from '../../../math/LatexRendererWrapper';
-
-interface EquationStatusProps {
-  isBalanced: boolean;
-  totalAssets: number;
-  totalLiabilities: number;
-  totalEquity: number;
-}
 
 const EquationStatus: React.FC<EquationStatusProps> = ({
   isBalanced,

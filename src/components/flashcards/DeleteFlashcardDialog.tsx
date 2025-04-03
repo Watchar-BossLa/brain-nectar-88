@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { DeleteFlashcardDialogProps } from '@/types/components';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,12 +10,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
-interface DeleteFlashcardDialogProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
-}
 
 const DeleteFlashcardDialog: React.FC<DeleteFlashcardDialogProps> = ({
   isOpen,

@@ -1,19 +1,9 @@
-
 import React from 'react';
+import { DueFlashcardsTabProps } from '@/types/components';
 import { Brain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Flashcard } from '@/types/supabase';
 import FlashcardGrid from '@/components/flashcards/FlashcardGrid';
 import FlashcardsEmptyState from '@/components/flashcards/FlashcardsEmptyState';
-
-interface DueFlashcardsTabProps {
-  flashcards: Flashcard[];
-  onStartReview: () => void;
-  onDeleteFlashcard: (id: string) => Promise<void>;
-  onCardUpdated: () => void;
-  onCreateSimpleFlashcard: () => void;
-  onCreateAdvancedFlashcard: () => void;
-}
 
 const DueFlashcardsTab = ({
   flashcards,

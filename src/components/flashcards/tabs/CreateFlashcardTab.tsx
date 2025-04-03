@@ -1,14 +1,8 @@
-
 import React from 'react';
+import { CreateFlashcardTabProps } from '@/types/components';
 import { Card, CardContent } from '@/components/ui/card';
 import FlashcardForm from '@/components/flashcards/FlashcardForm';
 import AdvancedFlashcardForm from '@/components/flashcards/AdvancedFlashcardForm';
-
-interface CreateFlashcardTabProps {
-  isAdvancedForm: boolean;
-  onFlashcardCreated: () => void;
-  onCancel: () => void;
-}
 
 const CreateFlashcardTab = ({
   isAdvancedForm,

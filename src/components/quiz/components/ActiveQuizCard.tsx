@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { ActiveQuizCardProps } from '@/types/components';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";

@@ -1,16 +1,9 @@
-
 import React from 'react';
+import { ReviewCardProps } from '@/types/components';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Flashcard } from '@/types/supabase';
 import { motion } from 'framer-motion';
-
-interface ReviewCardProps {
-  currentCard: Flashcard;
-  isFlipped: boolean;
-  onFlip: () => void;
-  onRating: (difficulty: number) => Promise<void>;
-}
 
 const ReviewCard: React.FC<ReviewCardProps> = ({
   currentCard,

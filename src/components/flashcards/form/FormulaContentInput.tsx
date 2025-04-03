@@ -1,14 +1,7 @@
-
 import React from 'react';
+import { FormulaContentInputProps } from '@/types/components';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-
-interface FormulaContentInputProps {
-  frontContent: string;
-  setFrontContent: (value: string) => void;
-  backContent: string;
-  setBackContent: (value: string) => void;
-}
 
 const FormulaContentInput: React.FC<FormulaContentInputProps> = ({
   frontContent,

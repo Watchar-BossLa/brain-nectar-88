@@ -1,25 +1,9 @@
-
 import React from 'react';
+import { PanelTabsProps } from '@/types/components';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OverviewTab } from './OverviewTab';
 import { ModelsTab } from './ModelsTab';
 import { PanelTestTab } from './PanelTestTab';
-import { TaskCategory } from '@/types/enums';
-
-interface PanelTabsProps {
-  selectedTab: string;
-  setSelectedTab: (tab: string) => void;
-  availableModels: string[];
-  modelMetrics: Record<string, any>;
-  testProps: {
-    testPrompt: string;
-    setTestPrompt: (prompt: string) => void;
-    isGenerating: boolean;
-    generatedText: string;
-    handleTestGeneration: () => Promise<void>;
-    TaskCategory: typeof TaskCategory;
-  };
-}
 
 export function PanelTabs({
   selectedTab,

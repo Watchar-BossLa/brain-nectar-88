@@ -1,13 +1,6 @@
-
 import React from 'react';
+import { FormButtonsProps } from '@/types/components';
 import { Button } from '@/components/ui/button';
-
-interface FormButtonsProps {
-  isSubmitting: boolean;
-  onCancel: () => void;
-  frontContent: string;
-  backContent: string;
-}
 
 const FormButtons: React.FC<FormButtonsProps> = ({
   isSubmitting,

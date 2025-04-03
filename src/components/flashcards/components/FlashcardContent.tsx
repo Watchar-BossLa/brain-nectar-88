@@ -1,13 +1,7 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
+import { FlashcardContentProps } from '@/types/components';
 import { renderContent } from '../utils/content-renderer';
-
-interface FlashcardContentProps {
-  content: string;
-  isAnswer?: boolean;
-  onClick?: () => void;
-}
 
 export const FlashcardContent: React.FC<FlashcardContentProps> = ({
   content,

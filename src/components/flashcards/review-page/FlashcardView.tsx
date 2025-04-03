@@ -1,16 +1,9 @@
-
 import React from 'react';
+import { FlashcardViewProps } from '@/types/components';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Flashcard } from '@/types/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-
-interface FlashcardViewProps {
-  flashcard: Flashcard;
-  isFlipped: boolean;
-  onFlip: () => void;
-  onRating?: (rating: number) => Promise<void>;
-}
 
 const FlashcardView: React.FC<FlashcardViewProps> = ({
   flashcard,

@@ -1,8 +1,8 @@
-
 import React from 'react';
+import { LoadingSkeletonProps } from '@/types/components';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const LoadingSkeleton: React.FC = () => {
+const LoadingSkeleton: React.FC<LoadingSkeletonProps> = () => {
   return (
     <div className="container max-w-5xl py-10">
       <Skeleton className="h-8 w-64 mb-2" />

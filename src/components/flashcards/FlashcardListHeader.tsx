@@ -1,11 +1,7 @@
-
 import React from 'react';
+import { FlashcardListHeaderProps } from '@/types/components';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
-
-interface FlashcardListHeaderProps {
-  onAddNew: () => void;
-}
 
 const FlashcardListHeader: React.FC<FlashcardListHeaderProps> = ({ onAddNew }) => {
   return (

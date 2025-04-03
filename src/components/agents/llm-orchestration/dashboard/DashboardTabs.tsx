@@ -1,29 +1,8 @@
-
 import React from 'react';
+import { DashboardTabsProps } from '@/types/components';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ModelMetrics } from '../ModelMetrics';
 import { TestTab } from './TestTab';
-import { TaskCategory } from '@/types/enums';
-
-interface DashboardTabsProps {
-  selectedTab: string;
-  setSelectedTab: (tab: string) => void;
-  availableModels: string[];
-  modelMetrics: Record<string, any>;
-  testProps: {
-    testPrompt: string;
-    setTestPrompt: (prompt: string) => void;
-    isGenerating: boolean;
-    testResult: string;
-    handleTestGeneration: () => Promise<void>;
-    handleTestWithModel: () => Promise<void>;
-    selectedModel: string;
-    setSelectedModel: (model: string) => void;
-    selectedTaskCategory: TaskCategory;
-    setSelectedTaskCategory: (category: TaskCategory) => void;
-    TaskCategory: typeof TaskCategory;
-  };
-}
 
 export function DashboardTabs({
   selectedTab,

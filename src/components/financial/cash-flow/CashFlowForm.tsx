@@ -1,25 +1,9 @@
-
 import React from 'react';
+import { CashFlowFormProps } from '@/types/components';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus } from 'lucide-react';
-
-interface CashFlowFormProps {
-  newCashFlowItem: {
-    name: string;
-    amount: number;
-    category: string;
-    type: string;
-  };
-  setNewCashFlowItem: React.Dispatch<React.SetStateAction<{
-    name: string;
-    amount: number;
-    category: string;
-    type: string;
-  }>>;
-  addCashFlowItem: () => void;
-}
 
 const CashFlowForm: React.FC<CashFlowFormProps> = ({
   newCashFlowItem,

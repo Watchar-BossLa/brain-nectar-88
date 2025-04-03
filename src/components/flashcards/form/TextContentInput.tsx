@@ -1,14 +1,7 @@
-
 import React from 'react';
+import { TextContentInputProps } from '@/types/components';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-
-interface TextContentInputProps {
-  frontContent: string;
-  setFrontContent: (value: string) => void;
-  backContent: string;
-  setBackContent: (value: string) => void;
-}
 
 const TextContentInput: React.FC<TextContentInputProps> = ({
   frontContent,

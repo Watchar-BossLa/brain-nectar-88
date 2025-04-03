@@ -1,11 +1,11 @@
-
 import React from 'react';
+import { EmptyReviewStateProps } from '@/types/components';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const EmptyReviewState: React.FC = () => {
+const EmptyReviewState: React.FC<EmptyReviewStateProps> = () => {
   const navigate = useNavigate();
 
   return (

@@ -1,15 +1,8 @@
-
 import React from 'react';
+import { FlashcardsEmptyStateProps } from '@/types/components';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BookText, Calculator } from 'lucide-react';
-
-interface FlashcardsEmptyStateProps {
-  title: string;
-  description: string;
-  onCreateSimpleFlashcard: () => void;
-  onCreateAdvancedFlashcard: () => void;
-}
 
 const FlashcardsEmptyState = ({
   title,

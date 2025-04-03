@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Flashcard } from '@/types/supabase';
+import { FlashcardCardProps } from '@/types/components';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { calculateNextReviewDate } from '@/services/spacedRepetition';
@@ -19,7 +19,9 @@ interface FlashcardCardProps {
 const FlashcardCard: React.FC<FlashcardCardProps> = ({ 
   flashcard, 
   onDelete,
-  onUpdated 
+  onUpdated,
+  isReviewMode,
+  onRating 
 }) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);

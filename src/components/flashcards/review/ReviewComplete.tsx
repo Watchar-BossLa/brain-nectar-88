@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { ReviewCompleteProps } from '@/types/components';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle } from 'lucide-react';

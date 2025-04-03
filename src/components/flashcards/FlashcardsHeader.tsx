@@ -1,13 +1,7 @@
-
 import React from 'react';
+import { FlashcardsHeaderProps } from '@/types/components';
 import { Button } from '@/components/ui/button';
 import { BookText, Calculator } from 'lucide-react';
-
-interface FlashcardsHeaderProps {
-  isCreating: boolean;
-  onCreateSimpleFlashcard: () => void;
-  onCreateAdvancedFlashcard: () => void;
-}
 
 const FlashcardsHeader = ({ 
   isCreating, 

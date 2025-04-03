@@ -1,17 +1,7 @@
-
 import React from 'react';
+import { FlashcardStatsProps } from '@/types/components';
 import { Card, CardContent } from '@/components/ui/card';
 import { BookOpenCheck, Clock, BrainCircuit } from 'lucide-react';
-
-interface FlashcardStatsProps {
-  stats: {
-    totalCards: number;
-    masteredCards: number;
-    dueCards: number;
-    averageDifficulty: number;
-    reviewsToday: number;
-  };
-}
 
 const FlashcardStats: React.FC<FlashcardStatsProps> = ({ stats }) => {
   return (

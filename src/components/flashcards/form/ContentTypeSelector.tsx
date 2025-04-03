@@ -1,13 +1,7 @@
-
 import React from 'react';
+import { ContentTypeSelectorProps } from '@/types/components';
 import { Button } from '@/components/ui/button';
 import { BookText, FormInput, Calculator } from 'lucide-react';
-
-interface ContentTypeSelectorProps {
-  contentType: 'text' | 'formula' | 'financial';
-  setContentType: (type: 'text' | 'formula' | 'financial') => void;
-  setUseLatex: (value: boolean) => void;
-}
 
 const ContentTypeSelector: React.FC<ContentTypeSelectorProps> = ({
   contentType,

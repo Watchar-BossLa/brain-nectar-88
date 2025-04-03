@@ -1,17 +1,8 @@
-
 import React, { useState } from 'react';
+import { AccountSectionProps } from '@/types/components';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Trash2 } from 'lucide-react';
-import { AccountComponent, UpdateComponentFunction } from '../types';
-
-interface AccountSectionProps {
-  title: string;
-  components: AccountComponent[];
-  updateComponent: UpdateComponentFunction;
-  componentType: 'assets' | 'liabilities' | 'equity';
-  totalValue: number;
-}
 
 const AccountSection: React.FC<AccountSectionProps> = ({
   title,
@@ -62,7 +53,6 @@ const AccountSection: React.FC<AccountSectionProps> = ({
         </div>
       ))}
       
-      {/* Add new component */}
       <div className="flex items-center gap-2 mt-4">
         <Input 
           placeholder={`New ${title.toLowerCase()} name`}

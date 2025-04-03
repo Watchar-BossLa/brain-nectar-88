@@ -1,22 +1,9 @@
-
 import React from 'react';
+import { AdvancedModeProps } from '@/types/components';
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from 'lucide-react';
-import { AccountComponent, UpdateComponentFunction } from './types';
 import AccountSection from './components/AccountSection';
 import EquationStatus from './components/EquationStatus';
-
-interface AdvancedModeProps {
-  assetComponents: AccountComponent[];
-  liabilityComponents: AccountComponent[];
-  equityComponents: AccountComponent[];
-  updateComponent: UpdateComponentFunction;
-  totalAssets: number;
-  totalLiabilities: number;
-  totalEquity: number;
-  isBalanced: boolean;
-  resetValues: () => void;
-}
 
 const AdvancedMode: React.FC<AdvancedModeProps> = ({
   assetComponents,

@@ -1,18 +1,8 @@
-
 import React from 'react';
+import { AllFlashcardsTabProps } from '@/types/components';
 import { Loader2 } from 'lucide-react';
-import { Flashcard } from '@/types/supabase';
 import FlashcardGrid from '@/components/flashcards/FlashcardGrid';
 import FlashcardsEmptyState from '@/components/flashcards/FlashcardsEmptyState';
-
-interface AllFlashcardsTabProps {
-  isLoading: boolean;
-  flashcards: Flashcard[];
-  onDeleteFlashcard: (id: string) => Promise<void>;
-  onCardUpdated: () => void;
-  onCreateSimpleFlashcard: () => void;
-  onCreateAdvancedFlashcard: () => void;
-}
 
 const AllFlashcardsTab = ({
   isLoading,

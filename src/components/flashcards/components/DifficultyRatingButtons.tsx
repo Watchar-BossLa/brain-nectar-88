@@ -1,13 +1,7 @@
-
 import React from 'react';
+import { DifficultyRatingButtonsProps } from '@/types/components';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
-
-interface DifficultyRatingButtonsProps {
-  onRate: (difficulty: number) => void;
-  selectedRating: number | null;
-  isSubmitting: boolean;
-}
 
 export const DifficultyRatingButtons: React.FC<DifficultyRatingButtonsProps> = ({
   onRate,

@@ -1,14 +1,7 @@
-
 import React from 'react';
+import { RatingButtonsProps } from '@/types/components';
 import { Button } from '@/components/ui/button';
 import { XIcon, HelpCircleIcon, CheckIcon, SkipForwardIcon } from 'lucide-react';
-
-interface RatingButtonsProps {
-  isFlipped: boolean;
-  onRating: (rating: number) => Promise<void>;
-  onSkip: () => void;
-  onRevealAnswer: () => void;
-}
 
 const RatingButtons: React.FC<RatingButtonsProps> = ({
   isFlipped,

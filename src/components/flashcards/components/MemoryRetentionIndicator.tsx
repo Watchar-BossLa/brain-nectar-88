@@ -1,12 +1,7 @@
-
 import React from 'react';
+import { MemoryRetentionIndicatorProps } from '@/types/components';
 import { Brain } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
-
-interface MemoryRetentionIndicatorProps {
-  retention: number;
-  repetitionCount: number;
-}
 
 export const MemoryRetentionIndicator: React.FC<MemoryRetentionIndicatorProps> = ({ 
   retention,

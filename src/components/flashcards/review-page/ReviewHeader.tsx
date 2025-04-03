@@ -1,11 +1,6 @@
-
 import React from 'react';
+import { ReviewHeaderProps } from '@/types/components';
 import { Progress } from '@/components/ui/progress';
-
-interface ReviewHeaderProps {
-  reviewsCompleted: number;
-  totalToReview: number;
-}
 
 const ReviewHeader: React.FC<ReviewHeaderProps> = ({ 
   reviewsCompleted, 

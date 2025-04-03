@@ -1,11 +1,7 @@
-
 import React from 'react';
+import { EmptyFlashcardStateProps } from '@/types/components';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
-
-interface EmptyFlashcardStateProps {
-  onAddNew: () => void;
-}
 
 const EmptyFlashcardState: React.FC<EmptyFlashcardStateProps> = ({ onAddNew }) => {
   return (
