@@ -23,6 +23,7 @@ import {
 
 import { 
   updateFlashcardAfterReview,
+  updateFlashcardReviewData,
   recordFlashcardReview
 } from './reviewService';
 
@@ -63,6 +64,7 @@ export {
   
   // Review management
   updateFlashcardAfterReview,
+  updateFlashcardReviewData,
   recordFlashcardReview,
   calculateFlashcardRetention,
   getFlashcardLearningStats,

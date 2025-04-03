@@ -1,71 +1,38 @@
 
-import { CognitiveProfile } from '../types';
+/**
+ * Types for the cognitive profile agent
+ */
 
 /**
- * Learning history item from database
+ * Learning history item representing a user's interaction with content
  */
 export interface LearningHistoryItem {
-  content?: {
-    contentType?: string;
-    topicId?: string;
-    moduleId?: string;
-  };
-  topicId?: string;
-  moduleId?: string;
+  contentId?: string;
+  topicId?: string | null;
+  moduleId?: string | null;
   status?: string;
   progressPercentage?: number;
-  createdAt: string;
-  updatedAt: string;
-  [key: string]: any;
+  createdAt?: string;
+  updatedAt?: string;
+  content?: {
+    id?: string;
+    topicId?: string;
+    moduleId?: string;
+    contentType?: string;
+    contentData?: any;
+    title?: string;
+  };
 }
 
 /**
- * Profile update options
+ * User cognitive profile
  */
-export interface ProfileUpdateOptions {
+export interface CognitiveProfile {
   userId: string;
-  newData: Partial<CognitiveProfile>;
-}
-
-/**
- * Learning session data
- */
-export interface LearningSessionData {
-  userId: string;
-  sessionStart: string;
-  sessionEnd?: string;
-  topicId?: string;
-  moduleId?: string;
-  sessionType: 'flashcard' | 'quiz' | 'content' | 'discussion';
-  progress: number;
-  metrics?: {
-    correctAnswers?: number;
-    totalQuestions?: number;
-    averageResponseTime?: number;
-    cardsMastered?: number;
-    retentionRate?: number;
-  };
-}
-
-/**
- * Cognitive profile generation parameters
- */
-export interface ProfileGenerationParams {
-  learningHistory: LearningHistoryItem[];
-  quizResults?: Array<{
-    topic: string;
-    score: number;
-    dateCompleted: string;
-  }>;
-  flashcardStats?: {
-    masteryRate: number;
-    retentionRate: number;
-    learningEfficiency: number;
-    preferredStudyTimes?: string[];
-  };
-  userPreferences?: {
-    preferredContentTypes?: string[];
-    studyFrequency?: string;
-    sessionDuration?: number;
-  };
+  learningSpeed: Record<string, number>;
+  contentPreferences: string[];
+  strengths: string[];
+  weaknesses: string[];
+  knowledgeGraph: Record<string, string[]>;
+  lastUpdated: string;
 }

@@ -24,13 +24,21 @@ export class LearningHistoryService {
       
       // Convert to learning history items
       return progressData.map(item => ({
-        content: item.content,
-        topicId: item.content?.topicId,
-        moduleId: item.content?.moduleId,
+        contentId: item.content?.id,
+        topicId: item.content?.topic_id,
+        moduleId: item.content?.module_id,
         status: item.status,
         progressPercentage: item.progress_percentage,
         createdAt: item.created_at,
-        updatedAt: item.updated_at
+        updatedAt: item.updated_at,
+        content: {
+          id: item.content?.id,
+          topicId: item.content?.topic_id,
+          moduleId: item.content?.module_id,
+          contentType: item.content?.content_type,
+          contentData: item.content?.content_data,
+          title: item.content?.title
+        }
       }));
     } catch (error) {
       console.error('Error in getLearningHistory:', error);

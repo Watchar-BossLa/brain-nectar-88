@@ -44,6 +44,28 @@ export const calculateFlashcardRetention = async (userId: string) => {
   }
 };
 
+export const updateFlashcardAfterReview = async (flashcardId: string, difficultyRating: number) => {
+  try {
+    // Fetch the flashcard
+    const { data: flashcard, error: fetchError } = await supabase
+      .from('flashcards')
+      .select('*')
+      .eq('id', flashcardId)
+      .single();
+      
+    if (fetchError) throw fetchError;
+    
+    // Record the review
+    await recordFlashcardReview(flashcardId, difficultyRating);
+    
+    // Update flashcard based on review
+    return updateFlashcardReviewData(flashcard, difficultyRating);
+  } catch (error) {
+    console.error('Error updating flashcard after review:', error);
+    return false;
+  }
+};
+
 export const updateFlashcardReviewData = async (flashcard: Flashcard, difficulty: number) => {
   try {
     // Calculate new values based on SM-2 algorithm
@@ -71,26 +93,31 @@ export const updateFlashcardReviewData = async (flashcard: Flashcard, difficulty
   }
 };
 
-export const recordReviewAttempt = async (
-  flashcardId: string,
-  difficulty: number,
-  isCorrect: boolean
-) => {
+export const recordFlashcardReview = async (flashcardId: string, difficultyRating: number) => {
   try {
+    // Get user ID
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.error('No authenticated user found');
+      return false;
+    }
+    
+    // Insert a review record
     const { error } = await supabase
       .from('flashcard_reviews')
       .insert({
         flashcard_id: flashcardId,
-        difficulty,
-        is_correct: isCorrect,
-        reviewed_at: new Date().toISOString()
+        difficulty_rating: difficultyRating,
+        reviewed_at: new Date().toISOString(),
+        user_id: user.id
       });
 
     if (error) throw error;
     
     return true;
   } catch (error) {
-    console.error('Error recording review attempt:', error);
+    console.error('Error recording flashcard review:', error);
     return false;
   }
 };

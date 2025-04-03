@@ -1,4 +1,6 @@
 
+import { LearningHistoryItem } from '../types';
+
 /**
  * Utility class for analyzing learning data
  */
@@ -6,7 +8,7 @@ export class DataAnalysisUtils {
   /**
    * Analyze content interaction patterns to determine preferred content formats
    */
-  static analyzeContentInteractions(learningHistory: any[]): string[] {
+  static analyzeContentInteractions(learningHistory: LearningHistoryItem[]): string[] {
     // Default content types if analysis is inconclusive
     if (!learningHistory || learningHistory.length === 0) {
       return ['text', 'video'];
@@ -32,7 +34,7 @@ export class DataAnalysisUtils {
   /**
    * Estimate learning speed across different domains
    */
-  static estimateLearningSpeed(learningHistory: any[]): Record<string, number> {
+  static estimateLearningSpeed(learningHistory: LearningHistoryItem[]): Record<string, number> {
     const speeds: Record<string, number> = {};
     
     if (!learningHistory || learningHistory.length === 0) {
@@ -59,7 +61,7 @@ export class DataAnalysisUtils {
   /**
    * Build initial knowledge graph from completed topics
    */
-  static buildInitialKnowledgeGraph(learningHistory: any[]): Record<string, string[]> {
+  static buildInitialKnowledgeGraph(learningHistory: LearningHistoryItem[]): Record<string, string[]> {
     const knowledgeGraph: Record<string, string[]> = {};
     
     if (!learningHistory || learningHistory.length === 0) {
@@ -85,7 +87,7 @@ export class DataAnalysisUtils {
       );
       
       if (completedTopicsInModule.length > 0) {
-        knowledgeGraph[moduleId] = completedTopicsInModule;
+        knowledgeGraph[moduleId] = completedTopicsInModule as string[];
       }
     }
     
