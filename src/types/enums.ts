@@ -1,11 +1,8 @@
 
 /**
- * Centralized enumeration definitions for the application
+ * Central location for all enum definitions used in the Study Bee application
  */
 
-/**
- * Types of agents in the multi-agent system
- */
 export enum AgentType {
   COGNITIVE_PROFILE = "COGNITIVE_PROFILE",
   LEARNING_PATH = "LEARNING_PATH",
@@ -17,9 +14,6 @@ export enum AgentType {
   SCHEDULING = "SCHEDULING"
 }
 
-/**
- * Types of tasks that can be performed by agents
- */
 export enum TaskType {
   COGNITIVE_PROFILING = "COGNITIVE_PROFILING",
   LEARNING_PATH_GENERATION = "LEARNING_PATH_GENERATION",
@@ -27,58 +21,110 @@ export enum TaskType {
   ASSESSMENT_GENERATION = "ASSESSMENT_GENERATION",
   FLASHCARD_OPTIMIZATION = "FLASHCARD_OPTIMIZATION",
   SCHEDULE_OPTIMIZATION = "SCHEDULE_OPTIMIZATION",
-  UI_OPTIMIZATION = "UI_OPTIMIZATION",
-  ENGAGEMENT_OPTIMIZATION = "ENGAGEMENT_OPTIMIZATION",
-  FEEDBACK_GENERATION = "FEEDBACK_GENERATION",
-  MULTI_AGENT_COORDINATION = "MULTI_AGENT_COORDINATION"
+  UI_OPTIMIZATION = "UI_OPTIMIZATION"
 }
 
-/**
- * Task priority levels
- */
 export enum TaskPriority {
-  CRITICAL = "CRITICAL",
   HIGH = "HIGH",
   MEDIUM = "MEDIUM",
   LOW = "LOW"
 }
 
-/**
- * Message types for agent communication
- */
 export enum MessageType {
   SYSTEM = "SYSTEM",
   USER = "USER",
   AGENT = "AGENT",
-  TASK = "TASK",
-  NOTIFICATION = "NOTIFICATION"
+  TASK = "TASK"
 }
 
-/**
- * Task categories for LLM task mapping
- */
-export enum TaskCategory {
-  CONTENT_UNDERSTANDING = "CONTENT_UNDERSTANDING",
-  CONTENT_GENERATION = "CONTENT_GENERATION",
-  PERSONALIZATION = "PERSONALIZATION",
-  ASSESSMENT = "ASSESSMENT",
-  OPTIMIZATION = "OPTIMIZATION",
-  TEXT_GENERATION = "TEXT_GENERATION",
-  QUESTION_ANSWERING = "QUESTION_ANSWERING",
-  CLASSIFICATION = "CLASSIFICATION",
-  REASONING = "REASONING",
-  SUMMARIZATION = "SUMMARIZATION",
-  CODE_GENERATION = "CODE_GENERATION",
-  CONTENT_CREATION = "CONTENT_CREATION"
+export enum ContentType {
+  TEXT = "TEXT",
+  IMAGE = "IMAGE",
+  VIDEO = "VIDEO",
+  AUDIO = "AUDIO",
+  PDF = "PDF",
+  INTERACTIVE = "INTERACTIVE"
 }
 
-/**
- * Task status indicators
- */
-export enum TaskStatus {
-  PENDING = "PENDING",
+export enum QualificationStatus {
+  NOT_STARTED = "NOT_STARTED",
+  IN_PROGRESS = "IN_PROGRESS",
+  COMPLETE = "COMPLETE"
+}
+
+export enum StudySessionStatus {
+  SCHEDULED = "SCHEDULED",
   IN_PROGRESS = "IN_PROGRESS",
   COMPLETED = "COMPLETED",
-  FAILED = "FAILED",
-  CANCELED = "CANCELED"
+  MISSED = "MISSED"
+}
+
+export enum FlashcardDifficulty {
+  VERY_EASY = 1,
+  EASY = 2,
+  MEDIUM = 3,
+  HARD = 4,
+  VERY_HARD = 5
+}
+
+export enum LearningPathType {
+  STANDARD = "STANDARD",
+  ADAPTIVE = "ADAPTIVE",
+  CUSTOM = "CUSTOM"
+}
+
+export enum ModuleType {
+  CONCEPT = "CONCEPT",
+  PRACTICE = "PRACTICE",
+  ASSESSMENT = "ASSESSMENT"
+}
+
+export enum AssessmentType {
+  QUIZ = "QUIZ",
+  TEST = "TEST",
+  EXAM = "EXAM",
+  SELF_ASSESSMENT = "SELF_ASSESSMENT"
+}
+
+export enum CognitiveProfileAspect {
+  LEARNING_STYLE = "LEARNING_STYLE",
+  KNOWLEDGE_GAPS = "KNOWLEDGE_GAPS",
+  STRENGTHS = "STRENGTHS",
+  WEAKNESSES = "WEAKNESSES",
+  PREFERENCES = "PREFERENCES"
+}
+
+export enum TaskCategory {
+  TEXT_GENERATION = "TEXT_GENERATION",
+  QUESTION_ANSWERING = "QUESTION_ANSWERING",
+  SUMMARIZATION = "SUMMARIZATION",
+  CLASSIFICATION = "CLASSIFICATION",
+  CODE_GENERATION = "CODE_GENERATION",
+  DATA_ANALYSIS = "DATA_ANALYSIS"
+}
+
+export enum ModelProvider {
+  OPENAI = "OPENAI",
+  ANTHROPIC = "ANTHROPIC",
+  OLLAMA = "OLLAMA",
+  GOOGLE = "GOOGLE",
+  INTERNAL = "INTERNAL"
+}
+
+// Re-export all enums as a namespace for easier imports
+export const Enums = {
+  AgentType,
+  TaskType,
+  TaskPriority,
+  MessageType,
+  ContentType,
+  QualificationStatus,
+  StudySessionStatus,
+  FlashcardDifficulty,
+  LearningPathType,
+  ModuleType,
+  AssessmentType,
+  CognitiveProfileAspect,
+  TaskCategory,
+  ModelProvider
 }

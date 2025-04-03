@@ -63,10 +63,10 @@ const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({
     setIsSubmitting(true);
 
     try {
-      const { error } = await updateFlashcardAfterReview(flashcard.id, difficulty);
+      const result = await updateFlashcardAfterReview(flashcard.id, difficulty);
       
-      if (error) {
-        throw new Error(error.message);
+      if (result && result.error) {
+        throw new Error(result.error.message || 'Failed to update flashcard');
       }
       
       // Update stats if callback is provided

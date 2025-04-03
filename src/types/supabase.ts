@@ -1,4 +1,3 @@
-
 import { Session, User } from '@supabase/supabase-js';
 
 export type Profile = {
@@ -174,3 +173,11 @@ export type AuthState = {
   session: Session | null;
   user: User | null;
 };
+
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]

@@ -1,6 +1,9 @@
 
 import { Flashcard } from './flashcard';
 import { FlashcardLearningStats } from '../services/spacedRepetition/reviewTypes';
+import { AccountComponent } from '../components/accounting/equation-visualizer/types';
+import { TaskCategory } from './enums';
+import { Dispatch, SetStateAction } from 'react';
 
 // Define interfaces for component props
 export interface FlashcardListHeaderProps {
@@ -55,41 +58,113 @@ export interface FlashcardPreviewProps {
 // Accounting related props
 export interface AdvancedModeProps {
   className?: string;
+  assetComponents: AccountComponent[];
+  liabilityComponents: AccountComponent[];
+  equityComponents: AccountComponent[];
+  updateComponent: (type: string, id: string, value: number, name?: string, remove?: boolean) => void;
+  totalAssets: number;
+  totalLiabilities: number;
+  totalEquity: number;
+  isBalanced: boolean;
+  resetValues: () => void;
 }
 
 export interface BasicModeProps {
   className?: string;
+  assets: number;
+  liabilities: number;
+  equity: number;
+  handleAssetChange: (value: number) => void;
+  handleLiabilityChange: (value: number) => void;
 }
 
-export interface AccountSectionProps {
-  title: string;
-  accounts: any[];
-  type: string;
-  onChange?: (accounts: any[]) => void;
-}
-
-export interface EquationStatusProps {
+export interface InteractiveModeProps {
   assets: number;
   liabilities: number;
   equity: number;
   isBalanced: boolean;
+  transactions: string[];
+  handleAssetChange: (value: number) => void;
+  handleLiabilityChange: (value: number) => void;
+  handleEquityChange: (value: number) => void;
+  applyTransaction: (type: string) => void;
+}
+
+export interface AccountSectionProps {
+  title: string;
+  accounts?: any[];
+  type?: string;
+  onChange?: (accounts: any[]) => void;
+  components: AccountComponent[];
+  updateComponent: (type: string, id: string, value: number, name?: string, remove?: boolean) => void;
+  componentType: string;
+  totalValue: number;
+}
+
+export interface EquationStatusProps {
+  isBalanced: boolean;
+  totalAssets: number;
+  totalLiabilities: number;
+  totalEquity: number;
 }
 
 // Agent/LLM orchestration props
 export interface DashboardTabsProps {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
+  selectedTab: string;
+  setSelectedTab: Dispatch<SetStateAction<string>>;
+  availableModels: string[];
+  modelMetrics: Record<string, any>;
+  testProps: {
+    testPrompt: string;
+    setTestPrompt: Dispatch<SetStateAction<string>>;
+    isGenerating: boolean;
+    testResult: string;
+    handleTestGeneration: () => Promise<void>;
+    handleTestWithModel: () => Promise<void>;
+    selectedModel: string;
+    setSelectedModel: Dispatch<SetStateAction<string>>;
+    selectedTaskCategory: TaskCategory;
+    setSelectedTaskCategory: Dispatch<SetStateAction<TaskCategory>>;
+    TaskCategory: typeof TaskCategory;
+  };
 }
 
 export interface PanelTabsProps {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
+  selectedTab: string;
+  setSelectedTab: Dispatch<SetStateAction<string>>;
+  availableModels: string[];
+  modelMetrics: Record<string, any>;
+  testProps: {
+    testPrompt: string;
+    setTestPrompt: Dispatch<SetStateAction<string>>;
+    isGenerating: boolean;
+    generatedText: string;
+    handleTestGeneration: () => Promise<void>;
+    TaskCategory: typeof TaskCategory;
+  };
 }
 
 // Financial tool props
 export interface CashFlowFormProps {
-  onDataChange: (data: any) => void;
+  onDataChange?: (data: any) => void;
   initialData?: any;
+  newCashFlowItem: {
+    name: string;
+    amount: number;
+    category: string;
+    type: string;
+  };
+  setNewCashFlowItem: Dispatch<SetStateAction<{
+    name: string;
+    amount: number;
+    category: string;
+    type: string;
+  }>>;
+  addCashFlowItem: () => void;
 }
 
 // Flashcard component props
@@ -156,6 +231,7 @@ export interface FlashcardViewProps {
   flashcard: Flashcard;
   isFlipped: boolean;
   onFlip: () => void;
+  onRating?: (rating: number) => void;
 }
 
 export interface LoadingSkeletonProps {
@@ -175,21 +251,22 @@ export interface ReviewHeaderProps {
 }
 
 export interface ReviewCardProps {
-  flashcard: Flashcard;
+  flashcard?: Flashcard;
+  currentCard?: Flashcard;
   isFlipped: boolean;
   onFlip: () => void;
   onRate?: (rating: number) => void;
 }
 
 export interface ReviewCompleteProps {
-  stats: {
+  stats?: {
     easy: number;
     medium: number;
     hard: number;
     averageRating: number;
     totalReviewed: number;
   };
-  onComplete: () => void;
+  onComplete?: () => void;
 }
 
 export interface ReviewLoadingProps {
@@ -228,8 +305,8 @@ export interface DueFlashcardsTabProps {
 
 // Quiz component props
 export interface ActiveQuizCardProps {
-  question: any;
-  onAnswer: (answerId: string) => void;
-  currentQuestionIndex: number;
-  totalQuestions: number;
+  question?: any;
+  onAnswer?: (answerId: string) => void;
+  currentQuestionIndex?: number;
+  totalQuestions?: number;
 }
