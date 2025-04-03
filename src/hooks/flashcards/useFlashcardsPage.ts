@@ -1,10 +1,14 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/auth';
+import { Flashcard, FlashcardLearningStats } from '@/types/flashcard';
+import { supabase } from '@/integrations/supabase/client';
 import { useFlashcardRetrieval } from './useFlashcardRetrieval';
 import { useFlashcardStats } from './useFlashcardStats';
 import { useFlashcardMutations } from './useFlashcardMutations';
-import { Flashcard, FlashcardLearningStats } from '@/types/flashcard';
-import { useAuth } from '@/context/auth';
+
+export type { Flashcard, FlashcardLearningStats };
 
 export interface UseFlashcardsReturn {
   flashcards: Flashcard[];
@@ -12,75 +16,32 @@ export interface UseFlashcardsReturn {
   stats: FlashcardLearningStats & { averageDifficulty: number };
   loading: boolean;
   error: Error | null;
-  refreshFlashcards: () => Promise<void>;
   createFlashcard: (flashcard: Partial<Flashcard>) => Promise<Flashcard | null>;
   updateFlashcard: (id: string, updates: Partial<Flashcard>) => Promise<boolean>;
   deleteFlashcard: (id: string) => Promise<boolean>;
-  // Additional properties for the Flashcards page
-  activeTab?: string;
-  setActiveTab?: (tab: string) => void;
-  isCreating?: boolean;
-  setIsCreating?: (creating: boolean) => void;
-  handleCreateFlashcard?: () => void;
-  handleFlashcardCreated?: () => void;
-  handleStartReview?: () => void;
-  handleUpdateStats?: () => void;
+  refreshFlashcards: () => Promise<void>;
+  isCreating: boolean;
+  isDeleting: boolean;
+  isUpdating: boolean;
 }
 
-export function useFlashcardsPage(): UseFlashcardsReturn {
+export const useFlashcardsPage = (): UseFlashcardsReturn => {
   const { user } = useAuth();
-  const userId = user?.id || '';
-  
-  // Compose the specialized hooks
-  const { flashcards, dueFlashcards, loading: retrievalLoading, error: retrievalError, fetchFlashcards } = useFlashcardRetrieval();
-  const { stats, isLoading: statsLoading, error: statsError, refreshStats } = useFlashcardStats();
-  const { createFlashcard: create, updateFlashcard: update, deleteFlashcard: remove, isCreating, isUpdating, isDeleting } = useFlashcardMutations(userId);
-  
-  // Local UI state
-  const [activeTab, setActiveTab] = useState('all');
-  const [isCreating, setIsCreating] = useState(false);
+  const { toast } = useToast();
+  const { flashcards, dueFlashcards, loading, error, fetchFlashcards } = useFlashcardRetrieval();
+  const { stats, refreshStats } = useFlashcardStats();
+  const { 
+    createFlashcard, 
+    updateFlashcard, 
+    deleteFlashcard, 
+    isCreating, 
+    isDeleting,
+    isUpdating
+  } = useFlashcardMutations();
 
-  // Refresh all flashcard data
   const refreshFlashcards = async () => {
     await fetchFlashcards();
     await refreshStats();
-  };
-
-  // UI handlers
-  const handleCreateFlashcard = () => {
-    setIsCreating(true);
-    setActiveTab('create');
-  };
-
-  const handleFlashcardCreated = () => {
-    setIsCreating(false);
-    setActiveTab('all');
-    refreshFlashcards();
-  };
-
-  const handleStartReview = () => {
-    setActiveTab('review');
-  };
-
-  // Derived state
-  const loading = retrievalLoading || statsLoading || isCreating || isUpdating || isDeleting;
-  const error = retrievalError || statsError;
-
-  // Create wrapper functions for mutators
-  const createFlashcard = async (flashcardData: Partial<Flashcard>) => {
-    const result = await create(flashcardData);
-    return result?.data || null;
-  };
-
-  const updateFlashcard = async (id: string, updates: Partial<Flashcard>) => {
-    const flashcardToUpdate = { id, ...updates } as Flashcard;
-    const result = await update(flashcardToUpdate);
-    return result !== null;
-  };
-
-  const deleteFlashcard = async (id: string) => {
-    const result = await remove(id);
-    return result?.success || false;
   };
 
   return {
@@ -89,22 +50,55 @@ export function useFlashcardsPage(): UseFlashcardsReturn {
     stats,
     loading,
     error,
-    refreshFlashcards,
     createFlashcard,
     updateFlashcard,
     deleteFlashcard,
-    // UI state helpers
-    activeTab,
-    setActiveTab,
+    refreshFlashcards,
     isCreating,
-    setIsCreating,
-    handleCreateFlashcard,
-    handleFlashcardCreated,
-    handleStartReview,
-    handleUpdateStats: refreshStats
+    isDeleting,
+    isUpdating
   };
-}
+};
 
-// Re-export the types for convenience
-export type { Flashcard, FlashcardLearningStats } from '@/types/flashcard';
-export { fromDatabaseFormat, toDatabaseFormat } from '@/types/flashcard';
+// Additional utility functions to convert between naming conventions
+export const formatFlashcardToCamelCase = (flashcardData: any): Partial<Flashcard> => {
+  if (!flashcardData) return {};
+  
+  return {
+    id: flashcardData.id,
+    userId: flashcardData.user_id,
+    topicId: flashcardData.topic_id,
+    frontContent: flashcardData.front_content,
+    backContent: flashcardData.back_content,
+    difficulty: flashcardData.difficulty,
+    nextReviewDate: flashcardData.next_review_date,
+    repetitionCount: flashcardData.repetition_count,
+    masteryLevel: flashcardData.mastery_level,
+    createdAt: flashcardData.created_at,
+    updatedAt: flashcardData.updated_at,
+    easinessFactor: flashcardData.easiness_factor,
+    lastRetention: flashcardData.last_retention,
+    lastReviewedAt: flashcardData.last_reviewed_at
+  };
+};
+
+export const formatFlashcardToSnakeCase = (flashcardData: Partial<Flashcard>): any => {
+  if (!flashcardData) return {};
+  
+  return {
+    id: flashcardData.id,
+    user_id: flashcardData.userId,
+    topic_id: flashcardData.topicId,
+    front_content: flashcardData.frontContent,
+    back_content: flashcardData.backContent,
+    difficulty: flashcardData.difficulty,
+    next_review_date: flashcardData.nextReviewDate,
+    repetition_count: flashcardData.repetitionCount,
+    mastery_level: flashcardData.masteryLevel,
+    created_at: flashcardData.createdAt,
+    updated_at: flashcardData.updatedAt,
+    easiness_factor: flashcardData.easinessFactor,
+    last_retention: flashcardData.lastRetention,
+    last_reviewed_at: flashcardData.lastReviewedAt
+  };
+};

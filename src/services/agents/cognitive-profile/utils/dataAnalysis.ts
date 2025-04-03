@@ -1,147 +1,161 @@
 
-import { LearningHistoryItem } from '../types';
+/**
+ * Data Analysis utilities for the cognitive profile agent
+ */
 
 /**
- * Utility functions for analyzing user learning data
+ * Analyzes a batch of learning data to extract patterns
  */
-export class DataAnalysisUtils {
-  /**
-   * Analyze content interactions to determine preferred content formats
-   */
-  public static analyzeContentInteractions(learningHistory: LearningHistoryItem[]): string[] {
-    // Extract content types from progress data
-    const contentTypes = learningHistory
-      .filter(item => item.content && item.content.content_type)
-      .map(item => item.content.content_type);
-    
-    // Count occurrences of each content type
-    const typeCounts: Record<string, number> = {};
-    contentTypes.forEach(type => {
-      typeCounts[type] = (typeCounts[type] || 0) + 1;
-    });
-    
-    // Sort by frequency
-    const preferredTypes = Object.entries(typeCounts)
-      .sort((a, b) => b[1] - a[1])
-      .map(([type]) => type);
-    
-    return preferredTypes.length > 0 ? preferredTypes : ['text', 'video'];
-  }
+export function analyzeLearningData(
+  learningEvents: Array<{
+    type: string;
+    timestamp: string;
+    data: {
+      contentType?: string;
+      topicId?: string;
+      moduleId?: string;
+    };
+  }>
+): any {
+  // Group events by content type
+  const contentTypeGroups = new Map<string, any[]>();
   
-  /**
-   * Estimate learning speed across different domains based on user history
-   */
-  public static estimateLearningSpeed(learningHistory: LearningHistoryItem[]): Record<string, number> {
-    // This is a simplified implementation
-    // In a real system, this would analyze completion times, repeated attempts, etc.
+  for (const event of learningEvents) {
+    const contentType = event.data.contentType || 'unknown';
     
-    const speeds: Record<string, number> = {};
-    const defaultSpeed = 1.0; // Normal speed
-    
-    // Group by topic or subject area
-    const topicGroups = this.groupByTopic(learningHistory);
-    
-    // Calculate speed for each topic
-    for (const [topicId, items] of Object.entries(topicGroups)) {
-      // Simple heuristic: calculate average progress rate
-      const progressRates = items
-        .filter(item => item.progress_percentage !== undefined)
-        .map(item => ({
-          progress: item.progress_percentage,
-          time: new Date(item.updated_at).getTime() - new Date(item.created_at).getTime()
-        }));
-      
-      if (progressRates.length > 0) {
-        // Calculate progress per millisecond, normalized against a baseline
-        const avgRate = progressRates.reduce((sum, item) => 
-          sum + (item.progress / Math.max(1, item.time)), 0) / progressRates.length;
-          
-        // Convert to a scale where 1.0 is average
-        speeds[topicId] = avgRate > 0 ? avgRate * 1000 : defaultSpeed;
-      } else {
-        speeds[topicId] = defaultSpeed;
-      }
+    if (!contentTypeGroups.has(contentType)) {
+      contentTypeGroups.set(contentType, []);
     }
     
-    return speeds;
+    contentTypeGroups.get(contentType)!.push(event);
   }
   
-  /**
-   * Group learning history items by topic
-   */
-  public static groupByTopic(items: LearningHistoryItem[]): Record<string, LearningHistoryItem[]> {
-    const groups: Record<string, LearningHistoryItem[]> = {};
-    
-    items.forEach(item => {
-      const topicId = item.content?.topic_id || item.topic_id;
-      if (topicId) {
-        if (!groups[topicId]) {
-          groups[topicId] = [];
-        }
-        groups[topicId].push(item);
-      }
-    });
-    
-    return groups;
-  }
+  // Calculate time spent per content type
+  const timePerContentType = new Map<string, number>();
   
-  /**
-   * Group learning history items by module
-   */
-  public static groupByModule(items: LearningHistoryItem[]): Record<string, LearningHistoryItem[]> {
-    const groups: Record<string, LearningHistoryItem[]> = {};
-    
-    items.forEach(item => {
-      const moduleId = item.content?.module_id || item.module_id;
-      if (moduleId) {
-        if (!groups[moduleId]) {
-          groups[moduleId] = [];
-        }
-        groups[moduleId].push(item);
-      }
-    });
-    
-    return groups;
-  }
-  
-  /**
-   * Build initial knowledge graph from completed topics
-   */
-  public static buildInitialKnowledgeGraph(learningHistory: LearningHistoryItem[]): Record<string, string[]> {
-    const graph: Record<string, string[]> = {};
-    
-    // Extract completed topics from progress data
-    const completedItems = learningHistory.filter(item => 
-      item.status === 'completed' || item.progress_percentage >= 90
+  for (const [contentType, events] of contentTypeGroups.entries()) {
+    // Sort events by timestamp
+    events.sort((a, b) => 
+      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     );
     
-    // Group by module or subject area
-    const moduleGroups = this.groupByModule(completedItems);
-    
-    // For each module, create connections between its topics
-    for (const [moduleId, items] of Object.entries(moduleGroups)) {
-      const topicIds = [...new Set(items
-        .filter(item => item.content && item.content.topic_id)
-        .map(item => item.content.topic_id)
-      )];
+    let totalTimeSpent = 0;
+    for (let i = 1; i < events.length; i++) {
+      const timeDiff = new Date(events[i].timestamp).getTime() - 
+                       new Date(events[i-1].timestamp).getTime();
       
-      // Create connections between topics in the same module
-      topicIds.forEach(topicId => {
-        if (!graph[topicId]) {
-          graph[topicId] = [];
-        }
-        
-        // Connect to other topics in the same module
-        topicIds
-          .filter(id => id !== topicId)
-          .forEach(relatedId => {
-            if (!graph[topicId].includes(relatedId)) {
-              graph[topicId].push(relatedId);
-            }
-          });
-      });
+      // Only count if difference is less than 30 minutes (likely same session)
+      if (timeDiff < 30 * 60 * 1000) {
+        totalTimeSpent += timeDiff;
+      }
     }
     
-    return graph;
+    timePerContentType.set(contentType, totalTimeSpent);
   }
+  
+  // Group events by topic
+  const topicGroups = new Map<string, any[]>();
+  
+  for (const event of learningEvents) {
+    const topicId = event.data.topicId || 'unknown';
+    
+    if (!topicGroups.has(topicId)) {
+      topicGroups.set(topicId, []);
+    }
+    
+    topicGroups.get(topicId)!.push(event);
+  }
+  
+  // Calculate success rates per topic
+  const successRatesByTopic = new Map<string, number>();
+  
+  for (const [topicId, events] of topicGroups.entries()) {
+    const assessmentEvents = events.filter(e => e.type === 'assessment');
+    if (assessmentEvents.length === 0) continue;
+    
+    const successfulEvents = assessmentEvents.filter(
+      e => e.data && e.data.result && e.data.result.success
+    );
+    
+    successRatesByTopic.set(
+      topicId, 
+      successfulEvents.length / assessmentEvents.length
+    );
+  }
+  
+  // Group events by module
+  const moduleGroups = new Map<string, any[]>();
+  
+  for (const event of learningEvents) {
+    const moduleId = event.data.moduleId || 'unknown';
+    
+    if (!moduleGroups.has(moduleId)) {
+      moduleGroups.set(moduleId, []);
+    }
+    
+    moduleGroups.get(moduleId)!.push(event);
+  }
+  
+  // Identify learning patterns
+  const patterns: Record<string, any> = {
+    preferredTimeOfDay: detectPreferredTimeOfDay(learningEvents),
+    averageSessionDuration: calculateAverageSessionDuration(learningEvents),
+    contentTypePreferences: calculateContentTypePreferences([...timePerContentType.entries()]),
+    mostChallenging: identifyMostChallengingTopics([...successRatesByTopic.entries()]),
+  };
+  
+  return {
+    timePerContentType: Object.fromEntries(timePerContentType),
+    successRatesByTopic: Object.fromEntries(successRatesByTopic),
+    patterns
+  };
+}
+
+/**
+ * Helper functions
+ */
+
+function detectPreferredTimeOfDay(events: any[]): string {
+  // Logic to detect when user typically studies
+  const hours = events.map(e => new Date(e.timestamp).getHours());
+  
+  let morning = 0, afternoon = 0, evening = 0, night = 0;
+  
+  for (const hour of hours) {
+    if (hour >= 5 && hour < 12) morning++;
+    else if (hour >= 12 && hour < 17) afternoon++;
+    else if (hour >= 17 && hour < 22) evening++;
+    else night++;
+  }
+  
+  const max = Math.max(morning, afternoon, evening, night);
+  
+  if (max === morning) return 'morning';
+  if (max === afternoon) return 'afternoon';
+  if (max === evening) return 'evening';
+  return 'night';
+}
+
+function calculateAverageSessionDuration(events: any[]): number {
+  // Logic to calculate average study session length
+  // For simplicity, just return a mock value
+  return 35; // minutes
+}
+
+function calculateContentTypePreferences(timePerType: [string, number][]): Record<string, number> {
+  // Calculate preferences based on time spent
+  const totalTime = timePerType.reduce((sum, [_, time]) => sum + time, 0);
+  
+  if (totalTime === 0) return {};
+  
+  return Object.fromEntries(
+    timePerType.map(([type, time]) => [type, time / totalTime])
+  );
+}
+
+function identifyMostChallengingTopics(successRates: [string, number][]): string[] {
+  // Return topics with success rates below 70%
+  return successRates
+    .filter(([_, rate]) => rate < 0.7)
+    .map(([topicId]) => topicId);
 }

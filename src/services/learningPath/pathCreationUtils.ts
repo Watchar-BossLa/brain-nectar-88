@@ -1,44 +1,76 @@
 
-import { Module, Topic } from '@/types/supabase';
-
 /**
- * Creates an adaptive learning path based on modules, topics and mastery levels
+ * Utility functions for creating and manipulating learning paths
  */
-export const createAdaptivePath = (
-  modules: Module[] | null,
-  topics: Topic[] | null,
-  topicMastery: Record<string, number>
-) => {
-  if (!modules || !topics) return [];
+
+interface Topic {
+  id: string;
+  title: string;
+  description: string;
+  moduleId: string;
+  order: number;
+  complexity: number;
+}
+
+interface Module {
+  id: string;
+  title: string;
+  description: string;
+  topics: Topic[];
+  order: number;
+}
+
+export const organizeTopicsByModule = (topics: Topic[]): Record<string, Topic[]> => {
+  const moduleMap: Record<string, Topic[]> = {};
   
-  const result = [];
-  
-  // Group topics by module
-  const topicsByModule: Record<string, Topic[]> = {};
-  topics.forEach(topic => {
-    if (!topicsByModule[topic.module_id]) {
-      topicsByModule[topic.module_id] = [];
+  for (const topic of topics) {
+    if (!moduleMap[topic.moduleId]) {
+      moduleMap[topic.moduleId] = [];
     }
-    topicsByModule[topic.module_id].push(topic);
-  });
-  
-  // Create learning path with modules and their topics
-  modules.forEach(module => {
-    const moduleTopics = topicsByModule[module.id] || [];
     
-    // Sort topics by mastery (less mastery first)
-    const sortedTopics = [...moduleTopics].sort((a, b) => {
-      return (topicMastery[a.id] || 0) - (topicMastery[b.id] || 0);
-    });
-    
-    result.push({
-      module,
-      topics: sortedTopics.map(topic => ({
-        topic,
-        mastery: topicMastery[topic.id] || 0
-      }))
-    });
-  });
+    moduleMap[topic.moduleId].push(topic);
+  }
   
-  return result;
+  // Sort topics within each module
+  for (const moduleId in moduleMap) {
+    moduleMap[moduleId].sort((a, b) => a.order - b.order);
+  }
+  
+  return moduleMap;
+};
+
+export const generateModulesFromTopics = (topics: Topic[], moduleData: Record<string, Partial<Module>>): Module[] => {
+  const moduleMap = organizeTopicsByModule(topics);
+  const modules: Module[] = [];
+  
+  for (const moduleId in moduleMap) {
+    modules.push({
+      id: moduleId,
+      title: moduleData[moduleId]?.title || `Module ${moduleId}`,
+      description: moduleData[moduleId]?.description || "No description available",
+      topics: moduleMap[moduleId],
+      order: moduleData[moduleId]?.order || 0
+    });
+  }
+  
+  // Sort modules by order
+  modules.sort((a, b) => a.order - b.order);
+  
+  return modules;
+};
+
+export const calculateEstimatedTimeToComplete = (modules: Module[]): number => {
+  let totalMinutes = 0;
+  
+  for (const module of modules) {
+    // Each topic takes roughly 30-60 minutes depending on complexity
+    for (const topic of module.topics) {
+      const baseTime = 30;
+      const complexityMultiplier = 1 + (topic.complexity || 0) / 2;
+      
+      totalMinutes += baseTime * complexityMultiplier;
+    }
+  }
+  
+  return Math.round(totalMinutes);
 };
