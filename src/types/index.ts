@@ -10,8 +10,12 @@ export * from './enums';
 // Re-export component interfaces
 export * from './components';
 
-// Re-export Supabase types - exclude Flashcard to avoid duplication
-export type { Database, Json } from './supabase';
+// Re-export Supabase types
+export type { Json } from './supabase';
+
+// Import Database type only if it exists
+// This line will be modified once Database type is properly defined
+// export type { Database } from './supabase';
 
 // Re-export Flashcard types
 export * from './flashcard';

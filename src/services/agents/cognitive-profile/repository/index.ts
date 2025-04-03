@@ -1,97 +1,177 @@
 
 import { CognitiveProfile } from '../../types';
-import { CognitiveProfileDbOperations } from './dbOperations';
-import { ProfileCacheService } from './cacheService';
-import { ProfileUpdateOptions } from '../types';
+import { dbOperations } from './dbOperations';
+import { cacheService } from './cacheService';
+
+// Define the missing interface
+export interface ProfileUpdateOptions {
+  mergeKnowledgeGraph?: boolean;
+  overwriteContentPreferences?: boolean;
+  updateTimestamp?: boolean;
+}
 
 /**
- * Repository for cognitive profiles that handles caching and database operations
+ * Repository for cognitive profile operations
  */
 export class ProfileRepository {
-  private dbOperations: CognitiveProfileDbOperations;
-  private cacheService: ProfileCacheService;
-  
-  constructor() {
-    this.dbOperations = new CognitiveProfileDbOperations();
-    this.cacheService = new ProfileCacheService();
-  }
-  
   /**
-   * Retrieve the cognitive profile for a user
-   * First checks cache, then database if not found in cache
+   * Get cognitive profile for a user
    */
   public async getCognitiveProfile(userId: string): Promise<CognitiveProfile | null> {
-    console.log(`Retrieving cognitive profile for user ${userId}`);
+    // Check cache first
+    const cachedProfile = cacheService.getProfile(userId);
+    if (cachedProfile) {
+      return cachedProfile;
+    }
     
+    // Get from DB if not in cache
     try {
-      // Check cache first
-      const cachedProfile = this.cacheService.getFromCache(userId);
-      if (cachedProfile) {
-        console.log(`Retrieved profile from cache for user ${userId}`);
-        return cachedProfile;
+      const profile = await dbOperations.getProfile(userId);
+      
+      if (profile) {
+        // Update cache
+        cacheService.cacheProfile(profile);
       }
       
-      // If not in cache, check database
-      const dbProfile = await this.dbOperations.fetchProfile(userId);
-      
-      // If found in database, cache it for future use
-      if (dbProfile) {
-        this.cacheService.saveToCache(dbProfile);
-      }
-      
-      return dbProfile;
+      return profile;
     } catch (error) {
-      console.error('Error retrieving cognitive profile:', error);
+      console.error(`Error fetching profile for user ${userId}:`, error);
       return null;
     }
   }
   
   /**
-   * Save a cognitive profile
+   * Save a new or updated cognitive profile
    */
-  public async saveProfile(profile: CognitiveProfile): Promise<void> {
+  public async saveProfile(profile: CognitiveProfile): Promise<boolean> {
     try {
-      // Save to database
-      await this.dbOperations.saveProfile(profile);
+      // Save to DB
+      const success = await dbOperations.saveProfile(profile);
       
-      // Update cache
-      this.cacheService.saveToCache(profile);
+      if (success) {
+        // Update cache
+        cacheService.cacheProfile(profile);
+      }
+      
+      return success;
     } catch (error) {
-      console.error('Error saving cognitive profile:', error);
-      throw error;
+      console.error(`Error saving profile for user ${profile.userId}:`, error);
+      return false;
     }
   }
   
   /**
-   * Update a cognitive profile with new data
+   * Update specific properties of a cognitive profile
    */
-  public async updateProfile(options: ProfileUpdateOptions): Promise<CognitiveProfile | null> {
-    const { userId, newData } = options;
-    
-    // Get existing profile
-    const existingProfile = await this.getCognitiveProfile(userId);
-    if (!existingProfile) {
-      console.error(`Cannot update non-existent profile for user ${userId}`);
+  public async updateProfile(
+    userId: string, 
+    updates: Partial<CognitiveProfile>,
+    options: ProfileUpdateOptions = {}
+  ): Promise<CognitiveProfile | null> {
+    try {
+      // Get current profile
+      const currentProfile = await this.getCognitiveProfile(userId);
+      
+      if (!currentProfile) {
+        console.error(`No profile found for user ${userId}`);
+        return null;
+      }
+      
+      // Apply updates with options
+      const updatedProfile = this.applyProfileUpdates(currentProfile, updates, options);
+      
+      // Save updated profile
+      const success = await this.saveProfile(updatedProfile);
+      
+      return success ? updatedProfile : null;
+    } catch (error) {
+      console.error(`Error updating profile for user ${userId}:`, error);
       return null;
     }
-    
-    // Merge existing profile with new data
-    const updatedProfile: CognitiveProfile = {
-      ...existingProfile,
-      ...newData,
-      lastUpdated: new Date().toISOString()
-    };
-    
-    // Save updated profile
-    await this.saveProfile(updatedProfile);
-    
-    return updatedProfile;
   }
   
   /**
-   * Clear a profile from cache
+   * Delete a cognitive profile
    */
-  public clearProfileCache(userId: string): void {
-    this.cacheService.clearFromCache(userId);
+  public async deleteProfile(userId: string): Promise<boolean> {
+    try {
+      // Delete from DB
+      const success = await dbOperations.deleteProfile(userId);
+      
+      if (success) {
+        // Remove from cache
+        cacheService.removeProfile(userId);
+      }
+      
+      return success;
+    } catch (error) {
+      console.error(`Error deleting profile for user ${userId}:`, error);
+      return false;
+    }
+  }
+  
+  /**
+   * Apply updates to a profile, respecting the provided options
+   */
+  private applyProfileUpdates(
+    profile: CognitiveProfile, 
+    updates: Partial<CognitiveProfile>,
+    options: ProfileUpdateOptions
+  ): CognitiveProfile {
+    const result: CognitiveProfile = { ...profile };
+    
+    // Apply each update according to options
+    Object.entries(updates).forEach(([key, value]) => {
+      const typedKey = key as keyof CognitiveProfile;
+      
+      if (typedKey === 'knowledgeGraph' && options.mergeKnowledgeGraph && result.knowledgeGraph) {
+        // Merge knowledge graph instead of replacing
+        result.knowledgeGraph = this.mergeKnowledgeGraphs(
+          result.knowledgeGraph,
+          value as Record<string, string[]>
+        );
+      } 
+      else if (typedKey === 'preferredContentFormats' && !options.overwriteContentPreferences) {
+        // Don't overwrite content preferences unless specified
+        // Do nothing
+      }
+      else {
+        // Standard property update
+        (result as any)[typedKey] = value;
+      }
+    });
+    
+    // Update timestamp if requested
+    if (options.updateTimestamp !== false) {
+      result.lastUpdated = new Date().toISOString();
+    }
+    
+    return result;
+  }
+  
+  /**
+   * Merge two knowledge graphs
+   */
+  private mergeKnowledgeGraphs(
+    original: Record<string, string[]>,
+    update: Record<string, string[]>
+  ): Record<string, string[]> {
+    const result: Record<string, string[]> = { ...original };
+    
+    // Merge each domain's topics
+    Object.entries(update).forEach(([domain, topics]) => {
+      if (!result[domain]) {
+        result[domain] = [];
+      }
+      
+      // Add new topics without duplicates
+      topics.forEach(topic => {
+        if (!result[domain].includes(topic)) {
+          result[domain].push(topic);
+        }
+      });
+    });
+    
+    return result;
   }
 }
