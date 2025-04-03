@@ -1,71 +1,26 @@
 
 import React from 'react';
-import { Clock, CheckCircle, XCircle, SkipForward } from 'lucide-react';
+import { Progress } from "@/components/ui/progress";
+import { ScoreSummaryProps } from './types';
 
-interface ScoreSummaryProps {
-  scorePercentage: number;
-  correctAnswers: number;
-  questionsAttempted: number;
-  incorrectAnswers: number;
-  skippedQuestions: number;
-  timeInMinutes: number;
-  timeInSeconds: number;
-}
-
-const ScoreSummary: React.FC<ScoreSummaryProps> = ({
-  scorePercentage,
-  correctAnswers,
-  questionsAttempted,
-  incorrectAnswers,
-  skippedQuestions,
-  timeInMinutes,
-  timeInSeconds
-}) => {
-  const accuracyColor = 
-    scorePercentage >= 80 ? 'text-green-500' :
-    scorePercentage >= 60 ? 'text-amber-500' : 'text-red-500';
-    
+const ScoreSummary: React.FC<ScoreSummaryProps> = ({ score, correctCount, totalCount }) => {
   return (
-    <>
-      <div className="text-center">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <span className={`text-4xl font-bold ${accuracyColor}`}>{scorePercentage}%</span>
-          <span className="text-lg text-muted-foreground">
-            ({correctAnswers}/{questionsAttempted})
-          </span>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <div>
+          <h3 className="text-2xl font-bold">{score}%</h3>
+          <p className="text-sm text-muted-foreground">
+            {correctCount} correct out of {totalCount} questions
+          </p>
         </div>
-        <div className="flex items-center justify-center gap-2 text-muted-foreground">
-          <Clock className="h-4 w-4" />
-          <span>Completed in {timeInMinutes}m {timeInSeconds}s</span>
-        </div>
-      </div>
-        
-      <div className="grid grid-cols-3 gap-4 py-2">
-        <div className="flex flex-col items-center">
-          <div className="flex items-center gap-1 text-green-500">
-            <CheckCircle className="h-5 w-5" />
-            <span className="text-lg font-semibold">{correctAnswers}</span>
-          </div>
-          <span className="text-xs text-muted-foreground">Correct</span>
-        </div>
-          
-        <div className="flex flex-col items-center">
-          <div className="flex items-center gap-1 text-red-500">
-            <XCircle className="h-5 w-5" />
-            <span className="text-lg font-semibold">{incorrectAnswers}</span>
-          </div>
-          <span className="text-xs text-muted-foreground">Incorrect</span>
-        </div>
-          
-        <div className="flex flex-col items-center">
-          <div className="flex items-center gap-1 text-muted-foreground">
-            <SkipForward className="h-5 w-5" />
-            <span className="text-lg font-semibold">{skippedQuestions}</span>
-          </div>
-          <span className="text-xs text-muted-foreground">Skipped</span>
+        <div className="text-sm font-medium">
+          {score >= 80 ? 'Excellent!' : 
+           score >= 60 ? 'Good work!' : 
+           score >= 40 ? 'Keep practicing' : 'Needs improvement'}
         </div>
       </div>
-    </>
+      <Progress value={score} className="h-2" />
+    </div>
   );
 };
 

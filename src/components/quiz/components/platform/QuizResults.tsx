@@ -43,18 +43,27 @@ const QuizResults: React.FC<QuizResultsProps> = ({ questions, answers, onRestart
   }, {});
   
   // Get performance by difficulty
-  const difficultyStats = questions.reduce((acc: Record<number, { total: number, correct: number }>, question, index) => {
-    const difficulty = question.difficulty;
-    if (!acc[difficulty]) {
-      acc[difficulty] = { total: 0, correct: 0 };
+  const difficultyStats = questions.reduce((acc: Record<string, { total: number, correct: number }>, question, index) => {
+    // Convert numerical difficulty to string representation
+    let difficultyLabel: string;
+    if (typeof question.difficulty === 'number') {
+      if (question.difficulty <= 2) difficultyLabel = 'Easy';
+      else if (question.difficulty <= 4) difficultyLabel = 'Medium';
+      else difficultyLabel = 'Hard';
+    } else {
+      difficultyLabel = String(question.difficulty);
     }
-    acc[difficulty].total++;
+    
+    if (!acc[difficultyLabel]) {
+      acc[difficultyLabel] = { total: 0, correct: 0 };
+    }
+    acc[difficultyLabel].total++;
     
     const correctAnswer = Array.isArray(question.correctAnswer) 
       ? question.correctAnswer 
       : [question.correctAnswer];
     if (correctAnswer.includes(answers[index])) {
-      acc[difficulty].correct++;
+      acc[difficultyLabel].correct++;
     }
     return acc;
   }, {});
@@ -83,7 +92,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({ questions, answers, onRestart
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <PerformanceByTopic topicStats={topicStats} />
+            <PerformanceByTopic topics={topicStats} />
           </CardContent>
         </Card>
         
@@ -95,7 +104,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({ questions, answers, onRestart
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <PerformanceByDifficulty difficultyStats={difficultyStats} />
+            <PerformanceByDifficulty difficulties={difficultyStats} />
           </CardContent>
         </Card>
       </div>

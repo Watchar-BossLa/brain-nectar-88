@@ -7,8 +7,8 @@ export interface FlashcardStats {
   totalCards: number;
   masteredCards: number;
   dueCards: number;
-  averageDifficulty?: number;
-  reviewsToday?: number;
+  averageDifficulty: number; // Now required
+  reviewsToday: number; // Now required
   masteryPercentage?: number;
   learningCards?: number;
   newCards?: number;

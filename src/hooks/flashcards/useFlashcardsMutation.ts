@@ -32,7 +32,7 @@ export const useFlashcardsMutation = (onSuccess: () => void) => {
         user_id: user.id,
         front_content: flashcard.front || flashcard.front_content,
         back_content: flashcard.back || flashcard.back_content,
-        topic_id: flashcard.topicId || flashcard.topic_id || null,
+        topic_id: flashcard.topic_id || null,
         difficulty: flashcard.difficulty || 1,
         mastery_level: 0,
         next_review_date: new Date().toISOString(),
@@ -80,8 +80,8 @@ export const useFlashcardsMutation = (onSuccess: () => void) => {
       if (updates.difficulty !== undefined) {
         updateData.difficulty = updates.difficulty;
       }
-      if (updates.topicId || updates.topic_id) {
-        updateData.topic_id = updates.topicId || updates.topic_id;
+      if (updates.topic_id !== undefined) {
+        updateData.topic_id = updates.topic_id;
       }
       if (updates.next_review_date || updates.next_review_at) {
         updateData.next_review_date = updates.next_review_date || updates.next_review_at;

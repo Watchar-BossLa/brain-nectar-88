@@ -31,3 +31,45 @@ export interface FlashcardReview {
   retention_estimate: number | null;
   created_at: string;
 }
+
+// Add missing types referenced in other files
+export interface Topic {
+  id: string;
+  title: string;
+  description: string | null;
+  user_id?: string;
+  created_at?: string;
+  updated_at?: string;
+  order?: number;
+  module_id?: string;
+  parent_topic_id?: string | null;
+}
+
+export interface UserProgress {
+  id: string;
+  user_id: string;
+  topic_id: string;
+  progress_percentage: number;
+  last_activity_date: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Module {
+  id: string;
+  title: string;
+  description: string | null;
+  order: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Content {
+  id: string;
+  title: string;
+  content_type: string;
+  content_data: any;
+  topic_id: string;
+  created_at?: string;
+  updated_at?: string;
+}

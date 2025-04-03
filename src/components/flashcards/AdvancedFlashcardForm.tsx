@@ -58,8 +58,11 @@ const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({ onSuccess
         processedBackContent = `${backContent}\n\n[fin:${financialType}]`;
       }
 
-      // Passing null for the topicId (third parameter is optional)
-      const { data, error } = await createFlashcard(processedFrontContent, processedBackContent, null);
+      // Updated to match expected signature
+      const { data, error } = await createFlashcard({
+        front_content: processedFrontContent,
+        back_content: processedBackContent
+      });
 
       if (error) {
         throw new Error(error.message);

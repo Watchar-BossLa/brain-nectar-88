@@ -1,15 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth';
 import { mcp } from '@/services/agents/mcp';
+import { TaskCategory as ServiceTaskCategory } from '@/services/llm/types';
 
-// Define the TaskCategory enum
+// Redefine the TaskCategory to match the one in services/llm/types.ts
 export enum TaskCategory {
-  TEXT_GENERATION = 'text_generation',
-  SUMMARIZATION = 'summarization',
-  TRANSLATION = 'translation',
-  QUESTION_ANSWERING = 'question_answering',
-  CODE_GENERATION = 'code_generation'
+  TEXT_GENERATION = 'TEXT_GENERATION',
+  QUESTION_ANSWERING = 'QUESTION_ANSWERING',
+  CLASSIFICATION = 'CLASSIFICATION',
+  SUMMARIZATION = 'SUMMARIZATION',
+  REASONING = 'REASONING',
+  CODE_GENERATION = 'CODE_GENERATION',
+  MATH_COMPUTATION = 'MATH_COMPUTATION',
+  CONTENT_CREATION = 'CONTENT_CREATION',
+  EXTRACTION = 'EXTRACTION'
 }
+
+// Map our TaskCategory to the service TaskCategory for internal use
+const mapToServiceTaskCategory = (category: TaskCategory): ServiceTaskCategory => {
+  return category as unknown as ServiceTaskCategory;
+};
 
 // Mock service modules for encapsulation
 const modelOrchestration = {
@@ -130,10 +140,10 @@ export const useLLMOrchestration = () => {
     }
     
     try {
-      // Execute with optimal model selection
+      // Execute with optimal model selection - map to service TaskCategory
       const result = await modelExecution.executeWithOptimalModel(
         prompt,
-        taskCategory,
+        mapToServiceTaskCategory(taskCategory),
         complexity,
         domainContext
       );
@@ -169,11 +179,11 @@ export const useLLMOrchestration = () => {
     }
     
     try {
-      // Execute with the specified model
+      // Execute with the specified model - map to service TaskCategory
       const result = await modelExecution.executeTask({
         modelId,
         prompt,
-        taskCategory,
+        taskCategory: mapToServiceTaskCategory(taskCategory),
         parameters
       });
       
@@ -203,8 +213,8 @@ export const useLLMOrchestration = () => {
     }
     
     try {
-      // Record evaluation
-      performanceMonitoring.recordEvaluation(modelId, taskCategory, {
+      // Record evaluation - map to service TaskCategory
+      performanceMonitoring.recordEvaluation(modelId, mapToServiceTaskCategory(taskCategory), {
         userSatisfaction: satisfaction,
         accuracy: accuracy,
         // Other metrics would be calculated internally

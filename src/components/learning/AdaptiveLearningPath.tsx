@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth';
-import { getDueFlashcards, getFlashcardsByTopic } from '@/services/spacedRepetition';
-import { Topic, Flashcard } from '@/types/supabase';
+import { supabase } from '@/lib/supabase';
+import { Topic } from '@/types/supabase';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -11,6 +12,27 @@ import { useNavigate } from 'react-router-dom';
 interface AdaptiveLearningPathProps {
   topics: Topic[];
 }
+
+// Helper functions to replace the missing imports
+const getDueFlashcards = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('flashcards')
+    .select('*')
+    .eq('user_id', userId)
+    .lte('next_review_date', new Date().toISOString());
+    
+  return { data, error };
+};
+
+const getFlashcardsByTopic = async (userId: string, topicId: string) => {
+  const { data, error } = await supabase
+    .from('flashcards')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('topic_id', topicId);
+    
+  return { data, error };
+};
 
 const AdaptiveLearningPath: React.FC<AdaptiveLearningPathProps> = ({ topics }) => {
   const { user } = useAuth();
