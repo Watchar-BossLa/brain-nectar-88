@@ -1,6 +1,7 @@
 
 import { SystemStateManager } from '../systemState';
 import { MCPInitializer } from '../MCPInitializer';
+import { performanceMonitoring } from '../../../llm';
 
 export class MonitoringService {
   constructor(
