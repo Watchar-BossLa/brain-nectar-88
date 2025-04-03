@@ -10,31 +10,26 @@ import { StatusCards, OperationsContent } from './dashboard';
  * Displays the status and metrics of the multi-agent system managed by the MCP.
  */
 export default function AgentSystemDashboard() {
-  const { isInitialized, getAgentStatuses, submitTask, TaskTypes } = useMultiAgentSystem();
+  const { isInitialized, systemState, submitTask, TaskTypes } = useMultiAgentSystem();
   const [selectedTab, setSelectedTab] = useState('status');
-  const [systemState, setSystemState] = useState({
-    activeAgents: Array.from(getAgentStatuses().keys()).filter(key => getAgentStatuses().get(key)),
-    metrics: {
-      taskCompletionRate: 0.85,
-      averageResponseTime: 230,
-      userSatisfactionScore: 0.92
-    },
-    globalVariables: {},
-    priorityMatrix: {}
-  });
 
   // Handle test task submission
   const handleTestTask = async () => {
     try {
       // Use a TaskType that actually exists in the TaskTypes object
       const firstAvailableTaskType = Object.values(TaskTypes)[0];
-      await submitTask(firstAvailableTaskType, { test: true });
+      await submitTask(
+        firstAvailableTaskType,
+        'Test task',
+        { test: true },
+        'MEDIUM'
+      );
     } catch (error) {
       console.error('Error submitting test task:', error);
     }
   };
 
-  if (!isInitialized()) {
+  if (!isInitialized) {
     return (
       <Card>
         <CardHeader>
@@ -53,8 +48,8 @@ export default function AgentSystemDashboard() {
   return (
     <div className="space-y-4">
       <StatusCards 
-        activeAgents={systemState.activeAgents}
-        metrics={systemState.metrics}
+        activeAgents={systemState?.activeAgents || []}
+        metrics={systemState?.metrics || null}
       />
 
       <Card>
@@ -66,8 +61,8 @@ export default function AgentSystemDashboard() {
           <OperationsContent
             selectedTab={selectedTab}
             setSelectedTab={setSelectedTab}
-            globalVariables={systemState.globalVariables}
-            priorityMatrix={systemState.priorityMatrix}
+            globalVariables={systemState?.globalVariables}
+            priorityMatrix={systemState?.priorityMatrix}
             handleTestTask={handleTestTask}
           />
         </CardContent>

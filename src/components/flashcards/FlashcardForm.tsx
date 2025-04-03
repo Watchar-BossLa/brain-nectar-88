@@ -43,12 +43,7 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({ onFlashcardCreated }) => 
     setIsSubmitting(true);
     
     try {
-      // Updated to match expected signature - assuming createFlashcard expects these parameters
-      const { error } = await createFlashcard({
-        front_content: frontContent,
-        back_content: backContent,
-        user_id: user.id
-      });
+      const { error } = await createFlashcard(user.id, frontContent, backContent);
       
       if (error) {
         throw error;

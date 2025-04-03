@@ -1,12 +1,12 @@
 
-import React from 'react';
-import { AccountingStandard } from '../types/standards';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Bookmark, FileText, ArrowUpDown } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
+import { AccountingStandard } from '../types/standards';
 
-interface StandardsListProps {
+interface StandardsListProps { 
   standards: AccountingStandard[];
   bookmarks: string[];
   selectedStandards: string[];
@@ -14,80 +14,147 @@ interface StandardsListProps {
   onToggleSelection: (id: string) => void;
 }
 
-const StandardsList: React.FC<StandardsListProps> = ({
+const StandardsList: React.FC<StandardsListProps> = ({ 
   standards,
   bookmarks,
   selectedStandards,
   onToggleBookmark,
-  onToggleSelection,
+  onToggleSelection
 }) => {
+  const [expandedStandard, setExpandedStandard] = useState<string | null>(null);
+  
   if (standards.length === 0) {
     return (
-      <div className="p-12 text-center border rounded-lg">
-        <BookOpen className="h-12 w-12 mx-auto text-muted-foreground opacity-20 mb-3" />
-        <h3 className="text-lg font-medium mb-1">No Standards Found</h3>
-        <p className="text-muted-foreground">Try adjusting your search criteria or filters</p>
+      <div className="text-center py-8 text-muted-foreground flex flex-col items-center gap-2">
+        <BookOpen className="h-12 w-12 text-muted-foreground/50" />
+        <p>No standards found matching your search criteria.</p>
+        <p className="text-sm">Try adjusting your search or filters.</p>
       </div>
     );
   }
-
+  
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {standards.map((standard) => (
-        <Card key={standard.id} className="overflow-hidden">
-          <CardHeader className="pb-2">
-            <div className="flex justify-between gap-2">
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Showing {standards.length} standard{standards.length !== 1 ? 's' : ''}
+      </p>
+      
+      {standards.map(standard => (
+        <Card key={standard.id} className={`overflow-hidden ${selectedStandards.includes(standard.id) ? 'border-primary' : ''}`}>
+          <div
+            className="p-4 cursor-pointer hover:bg-muted"
+            onClick={() => setExpandedStandard(expandedStandard === standard.id ? null : standard.id)}
+          >
+            <div className="flex justify-between items-start">
               <div>
-                <CardTitle className="text-base font-semibold line-clamp-1">{standard.name}</CardTitle>
-                <CardDescription className="line-clamp-2">{standard.description}</CardDescription>
+                <h3 className="font-medium flex items-center gap-2">
+                  {standard.name}
+                  <Badge className="ml-2">
+                    {standard.framework}
+                  </Badge>
+                  {standard.category && (
+                    <Badge variant="outline" className="ml-1">
+                      {standard.category}
+                    </Badge>
+                  )}
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">{standard.description}</p>
+                {standard.lastUpdated && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Last updated: {new Date(standard.lastUpdated).toLocaleDateString()}
+                  </p>
+                )}
               </div>
-              <div className="flex-shrink-0">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onToggleBookmark(standard.id)}
-                  className={bookmarks.includes(standard.id) ? 'text-primary' : ''}
-                >
-                  <Bookmark className="h-5 w-5" />
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2 mb-3">
-              <Badge variant="outline">{standard.framework}</Badge>
-              {standard.category && (
-                <Badge variant="secondary">{standard.category}</Badge>
-              )}
-            </div>
-            <div className="flex items-center justify-between mt-4">
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex items-center gap-1"
-                  onClick={() => window.open(`/standard/${standard.id}`, '_blank')}
-                >
-                  <FileText className="h-4 w-4" />
-                  <span>View</span>
-                </Button>
+              <div className="flex items-center gap-2">
                 <Button 
                   variant={selectedStandards.includes(standard.id) ? "default" : "outline"}
                   size="sm"
-                  className="flex items-center gap-1"
-                  onClick={() => onToggleSelection(standard.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleSelection(standard.id);
+                  }}
                 >
-                  <ArrowUpDown className="h-4 w-4" />
-                  <span>{selectedStandards.includes(standard.id) ? 'Selected' : 'Compare'}</span>
+                  {selectedStandards.includes(standard.id) ? "Selected" : "Select for Compare"}
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleBookmark(standard.id);
+                  }}
+                  className={bookmarks.includes(standard.id) ? "text-yellow-500" : "text-muted-foreground"}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill={bookmarks.includes(standard.id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
+                  </svg>
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExpandedStandard(expandedStandard === standard.id ? null : standard.id);
+                  }}
+                >
+                  {expandedStandard === standard.id ? 'Collapse' : 'Expand'}
                 </Button>
               </div>
-              {standard.lastUpdated && (
-                <div className="text-xs text-muted-foreground">
-                  Updated: {standard.lastUpdated}
-                </div>
-              )}
             </div>
-          </CardContent>
+          </div>
+          
+          {expandedStandard === standard.id && (
+            <CardContent className="border-t pt-4">
+              <div className="prose max-w-none">
+                <div dangerouslySetInnerHTML={{ __html: standard.content }} />
+                
+                {standard.examples && standard.examples.length > 0 && (
+                  <>
+                    <h4>Examples</h4>
+                    <ul>
+                      {standard.examples.map((example, index) => (
+                        <li key={index}>{example}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+                
+                {standard.relatedStandards && standard.relatedStandards.length > 0 && (
+                  <>
+                    <h4>Related Standards</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {standard.relatedStandards.map(id => (
+                        <Button 
+                          key={id} 
+                          variant="outline" 
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedStandard(id);
+                          }}
+                        >
+                          {id}
+                        </Button>
+                      ))}
+                    </div>
+                  </>
+                )}
+                
+                <div className="flex justify-end mt-4">
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(`#/standards/${standard.id}`, '_blank');
+                    }}
+                  >
+                    View Full Standard
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          )}
         </Card>
       ))}
     </div>

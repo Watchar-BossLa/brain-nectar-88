@@ -1,13 +1,11 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
 import { useFlashcardsPage } from '@/hooks/useFlashcardsPage';
 import { deleteFlashcard } from '@/services/spacedRepetition';
 import { convertToSupabaseFlashcard } from '@/components/flashcards/utils/flashcardTypeConverter';
-import { loadDefaultFlashcardsForUser } from '@/services/flashcards/defaultFlashcards';
-import { useAuth } from '@/context/auth';
 
 // Component imports
 import FlashcardStats from '@/components/flashcards/FlashcardStats';
@@ -20,7 +18,6 @@ import ReviewFlashcardsTab from '@/components/flashcards/tabs/ReviewFlashcardsTa
 const Flashcards = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [isCreating, setIsCreating] = useState(false);
-  const [loadingDefaults, setLoadingDefaults] = useState(false);
   
   const {
     flashcards,
@@ -31,53 +28,9 @@ const Flashcards = () => {
   } = useFlashcardsPage();
   
   const { toast } = useToast();
-  const { user } = useAuth();
   const [isAdvancedForm, setIsAdvancedForm] = useState(false);
   
-  useEffect(() => {
-    const checkAndLoadDefaultFlashcards = async () => {
-      if (!user) return;
-      
-      if (user && !isLoading && flashcards.length === 0 && !loadingDefaults) {
-        console.log('No flashcards found, attempting to load defaults...');
-        setLoadingDefaults(true);
-        
-        try {
-          const loaded = await loadDefaultFlashcardsForUser(user.id);
-          if (loaded) {
-            console.log('Default flashcards loaded successfully');
-            toast({
-              title: "Default flashcards loaded",
-              description: "We've added some starter flashcards to help you get started!",
-              duration: 5000,
-            });
-            await refreshFlashcards();
-          } else {
-            console.error("Failed to load default flashcards");
-            toast({
-              title: "Error",
-              description: "Could not load default flashcards. Please try refreshing the page.",
-              variant: "destructive",
-              duration: 5000,
-            });
-          }
-        } catch (error) {
-          console.error("Error loading default flashcards:", error);
-          toast({
-            title: "Error",
-            description: "Failed to load default flashcards. Please try again later.",
-            variant: "destructive",
-            duration: 5000,
-          });
-        } finally {
-          setLoadingDefaults(false);
-        }
-      }
-    };
-    
-    checkAndLoadDefaultFlashcards();
-  }, [user, isLoading, flashcards.length, toast, refreshFlashcards]);
-  
+  // Handle flashcard deletion
   const handleDeleteFlashcard = async (id: string) => {
     try {
       const { error } = await deleteFlashcard(id);
@@ -99,25 +52,30 @@ const Flashcards = () => {
     }
   };
 
+  // Handle updating stats after changes
   const handleUpdateStats = () => {
     refreshFlashcards();
   };
 
+  // Create new flashcard
   const handleCreateFlashcard = () => {
     setIsCreating(true);
     setActiveTab('create');
   };
 
+  // Handle flashcard creation completed
   const handleFlashcardCreated = () => {
     setIsCreating(false);
     setActiveTab('all');
     handleUpdateStats();
   };
 
+  // Start flashcard review
   const handleStartReview = () => {
     setActiveTab('review');
   };
 
+  // Create handlers for the different flashcard creation types
   const handleCreateSimpleFlashcard = () => {
     setIsAdvancedForm(false);
     handleCreateFlashcard();
@@ -128,6 +86,7 @@ const Flashcards = () => {
     handleCreateFlashcard();
   };
 
+  // Convert internal flashcard types to Supabase types for components
   const supabaseFlashcards = flashcards.map(convertToSupabaseFlashcard);
   const supaDueFlashcards = dueFlashcards.map(convertToSupabaseFlashcard);
 
@@ -152,18 +111,9 @@ const Flashcards = () => {
             <TabsTrigger value="review">Review</TabsTrigger>
           </TabsList>
           
-          {loadingDefaults && flashcards.length === 0 && (
-            <div className="mt-6 p-6 text-center">
-              <div className="flex flex-col items-center justify-center space-y-4">
-                <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-muted-foreground">Loading starter flashcards...</p>
-              </div>
-            </div>
-          )}
-          
           <TabsContent value="all" className="mt-6">
             <AllFlashcardsTab 
-              isLoading={isLoading || loadingDefaults}
+              isLoading={isLoading}
               flashcards={supabaseFlashcards}
               onDeleteFlashcard={handleDeleteFlashcard}
               onCardUpdated={handleUpdateStats}

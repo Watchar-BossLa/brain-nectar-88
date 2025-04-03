@@ -7,7 +7,7 @@ import MainLayout from '@/components/layout/MainLayout';
 // Import our new components
 import AccountingEquation from '@/components/accounting/AccountingEquation';
 import BalanceSheet from '@/components/accounting/BalanceSheet';
-import StandardsLibrary from '@/components/accounting/standards-library';
+import StandardsLibrary from '@/components/accounting/StandardsLibrary';
 import AdaptiveQuiz from '@/components/quiz/AdaptiveQuiz';
 import StudySchedulePlanner from '@/components/study/StudySchedulePlanner';
 import LatexRenderer from '@/components/math/LatexRenderer';

@@ -1,94 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth';
 import { mcp } from '@/services/agents/mcp';
-import { TaskCategory as ServiceTaskCategory } from '@/services/llm/types';
-
-// Redefine the TaskCategory to match the one in services/llm/types.ts
-export enum TaskCategory {
-  TEXT_GENERATION = 'TEXT_GENERATION',
-  QUESTION_ANSWERING = 'QUESTION_ANSWERING',
-  CLASSIFICATION = 'CLASSIFICATION',
-  SUMMARIZATION = 'SUMMARIZATION',
-  REASONING = 'REASONING',
-  CODE_GENERATION = 'CODE_GENERATION',
-  MATH_COMPUTATION = 'MATH_COMPUTATION',
-  CONTENT_CREATION = 'CONTENT_CREATION',
-  EXTRACTION = 'EXTRACTION'
-}
-
-// Map our TaskCategory to the service TaskCategory for internal use
-const mapToServiceTaskCategory = (category: TaskCategory): ServiceTaskCategory => {
-  return category as unknown as ServiceTaskCategory;
-};
-
-// Mock service modules for encapsulation
-const modelOrchestration = {
-  getAllModels: () => {
-    return [
-      { id: 'gpt-3.5-turbo', capabilities: ['text_generation'] },
-      { id: 'gpt-4', capabilities: ['text_generation', 'code_generation'] }
-    ];
-  },
-  getModel: (id: string) => {
-    const models = modelOrchestration.getAllModels();
-    return models.find(model => model.id === id);
-  }
-};
-
-const modelExecution = {
-  executeWithOptimalModel: async (
-    prompt: string,
-    taskCategory: TaskCategory,
-    complexity: number,
-    domainContext: string[]
-  ) => {
-    console.log(`Executing task with prompt: ${prompt.substring(0, 30)}...`);
-    console.log(`Task category: ${taskCategory}, complexity: ${complexity}`);
-    // Mock implementation
-    return {
-      text: `This is a mock response for the prompt: "${prompt.substring(0, 30)}..."`,
-      modelId: 'gpt-4',
-      executionTime: 1200
-    };
-  },
-  executeTask: async (params: {
-    modelId: string,
-    prompt: string,
-    taskCategory: TaskCategory,
-    parameters?: Record<string, any>
-  }) => {
-    console.log(`Executing task with model ${params.modelId}`);
-    // Mock implementation
-    return {
-      text: `This is a mock response from model ${params.modelId}`,
-      modelId: params.modelId,
-      executionTime: 800
-    };
-  }
-};
-
-const performanceMonitoring = {
-  getModelPerformance: (modelId: string) => {
-    // Mock metrics
-    return {
-      averageResponseTime: 1200,
-      successRate: 0.98,
-      userSatisfaction: 0.85
-    };
-  },
-  recordEvaluation: (
-    modelId: string,
-    taskCategory: TaskCategory,
-    metrics: {
-      userSatisfaction: number,
-      accuracy: number
-    }
-  ) => {
-    console.log(`Recording evaluation for ${modelId} on task ${taskCategory}`);
-    // In a real implementation, this would update some metrics database
-    return true;
-  }
-};
+import { 
+  TaskCategory, 
+  modelOrchestration, 
+  modelExecution, 
+  performanceMonitoring 
+} from '@/services/llm';
 
 /**
  * Hook to use the LLM orchestration system in components
@@ -102,23 +20,28 @@ export const useLLMOrchestration = () => {
   // Initialize the LLM orchestration system when the user is authenticated
   useEffect(() => {
     if (user) {
-      // Since this is a mock implementation, we'll just set it to initialized
-      setIsInitialized(true);
+      // Check if the LLM system is already initialized
+      const systemState = mcp.getSystemState();
+      const llmAvailable = systemState.globalVariables?.llmSystemAvailable || false;
       
-      // Load available models
-      const models = modelOrchestration.getAllModels();
-      setAvailableModels(models.map(model => model.id));
+      setIsInitialized(llmAvailable);
       
-      // Get metrics for each model
-      const metrics: Record<string, any> = {};
-      for (const model of models) {
-        const modelPerformance = performanceMonitoring.getModelPerformance(model.id);
-        if (modelPerformance) {
-          metrics[model.id] = modelPerformance;
+      if (llmAvailable) {
+        // Load available models
+        const models = modelOrchestration.getAllModels();
+        setAvailableModels(models.map(model => model.id));
+        
+        // Get metrics for each model
+        const metrics: Record<string, any> = {};
+        for (const model of models) {
+          const modelPerformance = performanceMonitoring.getModelPerformance(model.id);
+          if (modelPerformance) {
+            metrics[model.id] = modelPerformance;
+          }
         }
+        
+        setModelMetrics(metrics);
       }
-      
-      setModelMetrics(metrics);
     } else {
       setIsInitialized(false);
       setAvailableModels([]);
@@ -140,10 +63,10 @@ export const useLLMOrchestration = () => {
     }
     
     try {
-      // Execute with optimal model selection - map to service TaskCategory
+      // Execute with optimal model selection
       const result = await modelExecution.executeWithOptimalModel(
         prompt,
-        mapToServiceTaskCategory(taskCategory),
+        taskCategory,
         complexity,
         domainContext
       );
@@ -179,11 +102,11 @@ export const useLLMOrchestration = () => {
     }
     
     try {
-      // Execute with the specified model - map to service TaskCategory
+      // Execute with the specified model
       const result = await modelExecution.executeTask({
         modelId,
         prompt,
-        taskCategory: mapToServiceTaskCategory(taskCategory),
+        taskCategory,
         parameters
       });
       
@@ -213,8 +136,8 @@ export const useLLMOrchestration = () => {
     }
     
     try {
-      // Record evaluation - map to service TaskCategory
-      performanceMonitoring.recordEvaluation(modelId, mapToServiceTaskCategory(taskCategory), {
+      // Record evaluation
+      performanceMonitoring.recordEvaluation(modelId, taskCategory, {
         userSatisfaction: satisfaction,
         accuracy: accuracy,
         // Other metrics would be calculated internally
@@ -234,18 +157,19 @@ export const useLLMOrchestration = () => {
   };
 
   /**
-   * Enable or disable LLM orchestration
+   * Enable or disable LLM orchestration in the MCP
    */
   const setOrchestrationEnabled = (enabled: boolean) => {
-    // Mock implementation
-    console.log(`Setting LLM orchestration enabled: ${enabled}`);
+    if (user) {
+      mcp.setLLMOrchestrationEnabled(enabled);
+    }
   };
 
   /**
    * Check if LLM orchestration is enabled
    */
   const isOrchestrationEnabled = () => {
-    return isInitialized;
+    return mcp.isLLMOrchestrationEnabled();
   };
 
   return {

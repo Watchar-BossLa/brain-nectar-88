@@ -1,10 +1,6 @@
 
 import { AgentMessage, AgentTask } from '../types';
 import { BaseAgent } from '../baseAgent';
-import { ScheduleOptimizer } from './scheduleOptimizer';
-import { FlashcardScheduler } from './flashcardScheduler';
-import { SpacedRepetitionScheduler } from './spacedRepetitionScheduler';
-import { ExamPrepPlanner } from './examPrepPlanner';
 
 /**
  * Scheduling Agent
@@ -12,17 +8,8 @@ import { ExamPrepPlanner } from './examPrepPlanner';
  * Optimizes study timing and session structure.
  */
 export class SchedulingAgent extends BaseAgent {
-  private scheduleOptimizer: ScheduleOptimizer;
-  private flashcardScheduler: FlashcardScheduler;
-  private spacedRepetitionScheduler: SpacedRepetitionScheduler;
-  private examPrepPlanner: ExamPrepPlanner;
-
   constructor() {
     super('SCHEDULING');
-    this.scheduleOptimizer = new ScheduleOptimizer();
-    this.flashcardScheduler = new FlashcardScheduler();
-    this.spacedRepetitionScheduler = new SpacedRepetitionScheduler();
-    this.examPrepPlanner = new ExamPrepPlanner();
   }
   
   async processTask(task: AgentTask): Promise<any> {
@@ -30,9 +17,9 @@ export class SchedulingAgent extends BaseAgent {
     
     switch (task.taskType) {
       case 'SCHEDULE_OPTIMIZATION':
-        return this.scheduleOptimizer.optimizeSchedule(task.userId, task.data);
+        return this.optimizeSchedule(task.userId, task.data);
       case 'FLASHCARD_OPTIMIZATION':
-        return this.flashcardScheduler.optimizeFlashcards(task.userId, task.data);
+        return this.optimizeFlashcards(task.userId, task.data);
       default:
         console.warn(`Scheduling Agent received unknown task type: ${task.taskType}`);
         return { status: 'error', message: 'Unknown task type' };
@@ -44,19 +31,39 @@ export class SchedulingAgent extends BaseAgent {
     // Handle messages from other agents
   }
   
-  async optimizeSchedule(userId: string, data: any): Promise<any> {
-    return this.scheduleOptimizer.optimizeSchedule(userId, data);
+  private async optimizeSchedule(userId: string, data: any): Promise<any> {
+    console.log(`Optimizing schedule for user ${userId}`);
+    
+    // Mock implementation
+    return {
+      status: 'success',
+      schedule: {
+        recommendedTimes: [
+          { day: 'Monday', time: '09:00', duration: 30 },
+          { day: 'Wednesday', time: '15:00', duration: 45 },
+          { day: 'Friday', time: '18:00', duration: 30 }
+        ],
+        topicDistribution: [
+          { topicId: 'topic-1', percentage: 40 },
+          { topicId: 'topic-2', percentage: 60 }
+        ]
+      }
+    };
   }
   
-  async optimizeFlashcards(userId: string, data: any): Promise<any> {
-    return this.flashcardScheduler.optimizeFlashcards(userId, data);
-  }
-  
-  async createSpacedRepetitionSchedule(userId: string, data: any): Promise<any> {
-    return this.spacedRepetitionScheduler.createSchedule(userId, data);
-  }
-  
-  async createExamPrepPlan(userId: string, data: any): Promise<any> {
-    return this.examPrepPlanner.createPlan(userId, data);
+  private async optimizeFlashcards(userId: string, data: any): Promise<any> {
+    console.log(`Optimizing flashcards for user ${userId}`);
+    
+    // Mock implementation
+    return {
+      status: 'success',
+      flashcardSchedule: {
+        reviewIntervals: [
+          { cardId: 'card-1', nextReview: '2023-09-10T15:00:00Z' },
+          { cardId: 'card-2', nextReview: '2023-09-12T10:00:00Z' }
+        ],
+        recommendedBatchSize: 15
+      }
+    };
   }
 }

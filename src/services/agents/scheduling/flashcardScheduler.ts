@@ -4,32 +4,9 @@ import { supabase } from '@/integrations/supabase/client';
 /**
  * FlashcardScheduler
  * 
- * Manages flashcard scheduling and optimization.
+ * Handles the integration between the MCP and the spaced repetition system
  */
 export class FlashcardScheduler {
-  /**
-   * Optimize flashcards for a user
-   */
-  async optimizeFlashcards(userId: string, data: any): Promise<any> {
-    console.log(`Optimizing flashcards for user ${userId}`);
-    
-    // Get flashcard review history and calculate optimal intervals
-    // In a real implementation, we would use spaced repetition algorithms
-    
-    return {
-      status: 'success',
-      flashcardSchedule: {
-        reviewIntervals: [
-          { cardId: 'card-1', nextReview: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() },
-          { cardId: 'card-2', nextReview: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString() }
-        ],
-        recommendedBatchSize: 15,
-        dailyTimeAllocation: 20, // minutes
-        optimalTimeOfDay: '19:00'
-      }
-    };
-  }
-  
   /**
    * Generate study recommendations for flashcards
    */
@@ -203,3 +180,5 @@ export class FlashcardScheduler {
     }
   }
 }
+
+export const flashcardScheduler = new FlashcardScheduler();

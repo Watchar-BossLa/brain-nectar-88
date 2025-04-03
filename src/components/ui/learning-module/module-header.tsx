@@ -1,65 +1,105 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronUp, Bookmark } from 'lucide-react';
+import { BookOpen, CheckCircle, Clock } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 
 export interface ModuleHeaderProps {
   title: string;
-  description?: string;
+  topicsCount: number;
+  totalDuration: string;
+  progress: number;
   isExpanded: boolean;
   onToggle: () => void;
-  bookmarked?: boolean;
-  onBookmark?: () => void;
 }
 
-export const ModuleHeader = ({ 
+const ModuleHeader = ({ 
   title, 
-  description, 
+  topicsCount, 
+  totalDuration, 
+  progress, 
   isExpanded, 
-  onToggle,
-  bookmarked = false,
-  onBookmark
+  onToggle 
 }: ModuleHeaderProps) => {
   return (
+    <div 
+      className="flex items-center justify-between p-4 cursor-pointer"
+      onClick={onToggle}
+    >
+      <div className="flex items-center gap-3">
+        <div className={cn(
+          "w-8 h-8 rounded-full flex items-center justify-center",
+          progress === 100 ? "bg-green-100 text-green-600" : "bg-primary/10 text-primary"
+        )}>
+          {progress === 100 ? (
+            <CheckCircle className="h-5 w-5" />
+          ) : (
+            <BookOpen className="h-4 w-4" />
+          )}
+        </div>
+        
+        <div>
+          <h3 className="font-medium">{title}</h3>
+          <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+            <div className="flex items-center gap-1">
+              <BookOpen className="h-3 w-3" />
+              <span>{topicsCount} topics</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              <span>{totalDuration}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <ModuleProgress progress={progress} isExpanded={isExpanded} />
+    </div>
+  );
+};
+
+interface ModuleProgressProps {
+  progress: number;
+  isExpanded: boolean;
+}
+
+const ModuleProgress = ({ progress, isExpanded }: ModuleProgressProps) => {
+  return (
+    <div className="flex items-center gap-4">
+      <div className="hidden sm:block w-32">
+        <div className="flex justify-between text-xs mb-1">
+          <span className="text-muted-foreground">Progress</span>
+          <span className="font-medium">{progress}%</span>
+        </div>
+        <Progress value={progress} className="h-1.5" />
+      </div>
+      
+      <ChevronIcon isExpanded={isExpanded} />
+    </div>
+  );
+};
+
+interface ChevronIconProps {
+  isExpanded: boolean;
+}
+
+const ChevronIcon = ({ isExpanded }: ChevronIconProps) => {
+  return (
     <div className={cn(
-      "p-4 rounded-t-lg flex items-start justify-between transition-colors duration-200",
-      isExpanded ? "bg-primary/10" : "bg-card"
+      "h-5 w-5 transition-transform duration-200",
+      isExpanded && "transform rotate-180"
     )}>
-      <div className="flex-1">
-        <h3 className="text-lg font-semibold">{title}</h3>
-        {description && (
-          <p className="text-sm text-muted-foreground mt-1">{description}</p>
-        )}
-      </div>
-      <div className="flex items-center gap-2">
-        {onBookmark && (
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            onClick={(e) => {
-              e.stopPropagation();
-              onBookmark();
-            }}
-            className="text-muted-foreground hover:text-primary"
-          >
-            <Bookmark 
-              className={cn(
-                "h-4 w-4", 
-                bookmarked ? "fill-primary text-primary" : "fill-none"
-              )} 
-            />
-          </Button>
-        )}
-        <Button 
-          size="sm" 
-          variant="ghost" 
-          onClick={onToggle}
-          className="text-muted-foreground hover:text-primary"
-        >
-          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-        </Button>
-      </div>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
     </div>
   );
 };

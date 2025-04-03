@@ -1,6 +1,7 @@
+
 import { AgentMessage, AgentTask, TaskType, MessageType } from '../types';
 import { BaseAgent } from '../baseAgent';
-import { calculateFlashcardRetention } from '@/services/spacedRepetition';
+import { calculateFlashcardRetention } from '@/services/spacedRepetition/reviewService';
 import { spacedRepetitionService } from '@/services/flashcards/spacedRepetitionService';
 
 /**
@@ -85,21 +86,14 @@ export class LearningPathAgent extends BaseAgent {
     console.log(`Optimizing flashcard sequence for user ${userId}`);
     
     // Get retention data for all flashcards
-    const retentionData = await calculateFlashcardRetention(userId);
+    const { overallRetention, cardRetention } = await calculateFlashcardRetention(userId);
     
-    // Using data.cardRetention safely with nullish coalescing
-    const cardRetentionData = retentionData.data?.cardRetention || {};
-    const cardRetentionArray = Object.keys(cardRetentionData).map(id => ({
-      id,
-      ...cardRetentionData[id]
-    }));
-      
     // Calculate optimal review schedule based on retention data
     const recommendations = {
-      overallRetention: Math.round((retentionData.data?.overallRetention || 0) * 100), // as percentage
-      priorityCards: cardRetentionArray.slice(0, 5).map(card => card.id), // lowest retention cards
+      overallRetention: Math.round(overallRetention * 100), // as percentage
+      priorityCards: cardRetention.slice(0, 5).map(card => card.id), // lowest retention cards
       optimalReviewTime: this.getOptimalReviewTime(),
-      suggestedBatchSize: this.calculateOptimalBatchSize(cardRetentionArray.length)
+      suggestedBatchSize: this.calculateOptimalBatchSize(cardRetention.length)
     };
     
     return {
@@ -129,37 +123,3 @@ export class LearningPathAgent extends BaseAgent {
     return 20;
   }
 }
-
-export const analyzeRetentionPatterns = async (userId: string) => {
-  try {
-    const retention = await calculateFlashcardRetention(userId);
-    if (!retention.success) {
-      console.error('Failed to calculate flashcard retention');
-      return [];
-    }
-    
-    // Use the overallRetention property from data object
-    const overallRetention = retention.data?.overallRetention || 0.75;
-    
-    // Return recommendations based on retention rate
-    if (overallRetention < 0.6) {
-      return [
-        'Your retention is below average. Consider shorter, more frequent review sessions.',
-        'Focus on understanding concepts before memorizing details.'
-      ];
-    } else if (overallRetention < 0.8) {
-      return [
-        'Your retention is good, but could be improved.',
-        'Try using more varied practice techniques like active recall.'
-      ];
-    } else {
-      return [
-        'Your retention is excellent!',
-        'Consider increasing the interval between reviews to optimize your time.'
-      ];
-    }
-  } catch (error) {
-    console.error('Error analyzing retention patterns:', error);
-    return [];
-  }
-};

@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Button } from '@/components/ui/button';
+import { BookText, FormInput, Calculator } from 'lucide-react';
 
 interface ContentTypeSelectorProps {
   contentType: 'text' | 'formula' | 'financial';
@@ -14,39 +14,40 @@ const ContentTypeSelector: React.FC<ContentTypeSelectorProps> = ({
   setContentType,
   setUseLatex
 }) => {
-  const handleTypeChange = (value: string) => {
-    const type = value as 'text' | 'formula' | 'financial';
-    setContentType(type);
-    
-    // Automatically enable LaTeX for formula type
-    if (type === 'formula') {
-      setUseLatex(true);
-    }
-  };
-  
   return (
-    <div className="space-y-2">
-      <Label>Content Type</Label>
-      <RadioGroup 
-        value={contentType} 
-        onValueChange={handleTypeChange}
-        className="flex flex-wrap gap-4"
+    <div className="grid grid-cols-3 gap-4">
+      <Button
+        type="button"
+        variant={contentType === 'text' ? 'default' : 'outline'}
+        className="flex flex-col items-center justify-center p-4 h-auto"
+        onClick={() => setContentType('text')}
       >
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem value="text" id="type-text" />
-          <Label htmlFor="type-text" className="cursor-pointer">Basic Text</Label>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem value="formula" id="type-formula" />
-          <Label htmlFor="type-formula" className="cursor-pointer">Formula (LaTeX)</Label>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem value="financial" id="type-financial" />
-          <Label htmlFor="type-financial" className="cursor-pointer">Financial Statement</Label>
-        </div>
-      </RadioGroup>
+        <BookText className="h-8 w-8 mb-2" />
+        <span>Text</span>
+      </Button>
+      
+      <Button
+        type="button"
+        variant={contentType === 'formula' ? 'default' : 'outline'}
+        className="flex flex-col items-center justify-center p-4 h-auto"
+        onClick={() => {
+          setContentType('formula');
+          setUseLatex(true);
+        }}
+      >
+        <FormInput className="h-8 w-8 mb-2" />
+        <span>Formula</span>
+      </Button>
+      
+      <Button
+        type="button"
+        variant={contentType === 'financial' ? 'default' : 'outline'}
+        className="flex flex-col items-center justify-center p-4 h-auto"
+        onClick={() => setContentType('financial')}
+      >
+        <Calculator className="h-8 w-8 mb-2" />
+        <span>Financial</span>
+      </Button>
     </div>
   );
 };

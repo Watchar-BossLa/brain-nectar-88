@@ -18,15 +18,9 @@ export type QuestionType = 'multiple-choice' | 'calculation' | 'essay' | 'true-f
 
 export interface AnsweredQuestion {
   id: string;
-  question?: QuizQuestion;
   isCorrect: boolean;
-  userAnswer?: string;
-  selectedAnswer?: string;
-  confidenceLevel?: number;
+  userAnswer: string;
   timeTaken: number;
-  topic?: string;
-  confidence?: number;
-  difficulty?: number;
 }
 
 export interface QuizResults {
@@ -37,13 +31,4 @@ export interface QuizResults {
   performanceByTopic: Record<string, { correct: number; total: number }>;
   performanceByDifficulty: Record<string, { correct: number; total: number }>;
   timeSpent: number;
-  totalQuestions?: number;
-  score?: number;
-  timeTaken?: number;
-  answers?: any[];
-  difficulty?: number;
-  averageConfidence?: number;
-  confidenceAccuracy?: number;
-  recommendedTopics?: string[];
-  masteryLevel?: number;
 }

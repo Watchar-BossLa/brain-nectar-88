@@ -9,6 +9,11 @@ import {
   calculateNextReviewDate, 
   INITIAL_EASINESS_FACTOR,
   MIN_EASINESS_FACTOR,
+  getDueFlashcards as getSpacedRepDueFlashcards,
+  createFlashcard as createSpacedRepFlashcard,
+  getUserFlashcards as getSpacedRepUserFlashcards,
+  deleteFlashcard as deleteSpacedRepFlashcard,
+  getFlashcardsByTopic as getSpacedRepFlashcardsByTopic,
   updateFlashcardAfterReview as updateSpacedRepFlashcardAfterReview
 } from './spacedRepetition';
 
@@ -19,9 +24,8 @@ export { calculateNextReviewDate };
 // Get all flashcards for the current user
 export const getUserFlashcards = async () => {
   try {
-    // Get current user with updated syntax
-    const { data } = await supabase.auth.getSession();
-    const user = data.session?.user;
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
       console.error('No authenticated user found');
@@ -38,9 +42,8 @@ export const getUserFlashcards = async () => {
 // Get flashcards due for review
 export const getDueFlashcards = async (topicId?: string) => {
   try {
-    // Get current user with updated syntax
-    const { data } = await supabase.auth.getSession();
-    const user = data.session?.user;
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
       console.error('No authenticated user found');
@@ -54,41 +57,11 @@ export const getDueFlashcards = async (topicId?: string) => {
   }
 };
 
-// Get a user's flashcards
-export const getSpacedRepUserFlashcards = async (userId: string) => {
-  try {
-    const { data, error } = await supabase
-      .from('flashcards')
-      .select('*')
-      .eq('user_id', userId);
-      
-    return { data, error };
-  } catch (error) {
-    return { data: null, error };
-  }
-};
-
-// Get flashcards due for review
-export const getSpacedRepDueFlashcards = async (userId: string) => {
-  try {
-    const { data, error } = await supabase
-      .from('flashcards')
-      .select('*')
-      .eq('user_id', userId)
-      .lte('next_review_date', new Date().toISOString());
-      
-    return { data, error };
-  } catch (error) {
-    return { data: null, error };
-  }
-};
-
 // Create a new flashcard
 export const createFlashcard = async (frontContent: string, backContent: string, topicId?: string) => {
   try {
-    // Get current user with updated syntax
-    const { data } = await supabase.auth.getSession();
-    const user = data.session?.user;
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
       console.error('No authenticated user found');
@@ -102,35 +75,6 @@ export const createFlashcard = async (frontContent: string, backContent: string,
   }
 };
 
-// Create a new flashcard with the spaced repetition system
-export const createSpacedRepFlashcard = async (
-  userId: string, 
-  frontContent: string, 
-  backContent: string, 
-  topicId?: string
-) => {
-  try {
-    const { data, error } = await supabase
-      .from('flashcards')
-      .insert({
-        user_id: userId,
-        front_content: frontContent,
-        back_content: backContent,
-        topic_id: topicId || null,
-        difficulty: 0,
-        repetition_count: 0,
-        mastery_level: 0,
-        easiness_factor: INITIAL_EASINESS_FACTOR,
-        next_review_date: new Date().toISOString()
-      })
-      .select();
-      
-    return { data, error };
-  } catch (error) {
-    return { data: null, error };
-  }
-};
-
 // Update flashcard after review
 export const updateFlashcardAfterReview = async (flashcardId: string, difficulty: number) => {
   return updateSpacedRepFlashcardAfterReview(flashcardId, difficulty);
@@ -138,29 +82,23 @@ export const updateFlashcardAfterReview = async (flashcardId: string, difficulty
 
 // Delete a flashcard
 export const deleteFlashcard = async (flashcardId: string) => {
-  try {
-    const { error } = await supabase
-      .from('flashcards')
-      .delete()
-      .eq('id', flashcardId);
-      
-    return { data: null, error };
-  } catch (error) {
-    return { data: null, error };
-  }
+  return deleteSpacedRepFlashcard(flashcardId);
 };
 
 // Get flashcards by topic ID
-export const getFlashcardsByTopic = async (userId: string, topicId: string) => {
+export const getFlashcardsByTopic = async (topicId: string) => {
   try {
-    const { data, error } = await supabase
-      .from('flashcards')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('topic_id', topicId);
-      
-    return { data, error };
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.error('No authenticated user found');
+      return { data: null, error: new Error('User not authenticated') };
+    }
+    
+    return getSpacedRepFlashcardsByTopic(user.id, topicId);
   } catch (error) {
+    console.error('Error in getFlashcardsByTopic:', error);
     return { data: null, error };
   }
 };

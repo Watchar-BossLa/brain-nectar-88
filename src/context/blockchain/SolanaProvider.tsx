@@ -3,37 +3,34 @@ import React, { useMemo } from 'react';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
+import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl } from '@solana/web3.js';
-import { useLocalStorage } from '@/hooks/use-local-storage';
-import { 
-  PhantomWalletAdapter, 
-  SolflareWalletAdapter 
-} from '@solana/wallet-adapter-wallets';
+import { SolanaContextProvider } from './SolanaContextProvider';
 
-// Import the styles directly with import statement instead of require
+// Import wallet adapter CSS
 import '@solana/wallet-adapter-react-ui/styles.css';
 
-export function SolanaProvider({ children }: { children: React.ReactNode }) {
-  // Use a stored network setting or default to devnet
-  const [network, setNetwork] = useLocalStorage<WalletAdapterNetwork>(
-    'solanaNetwork',
-    WalletAdapterNetwork.Devnet
-  );
-
-  // Get the RPC endpoint for the selected network
+export const SolanaProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const network = WalletAdapterNetwork.Devnet;
   const endpoint = useMemo(() => clusterApiUrl(network), [network]);
-
-  // Define wallet adapters properly with ES modules syntax
-  const wallets = useMemo(() => [
-    new PhantomWalletAdapter(),
-    new SolflareWalletAdapter()
-  ], [network]);
+  
+  const wallets = useMemo(
+    () => [
+      new PhantomWalletAdapter(),
+      new SolflareWalletAdapter(),
+    ],
+    []
+  );
 
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>{children}</WalletModalProvider>
+        <WalletModalProvider>
+          <SolanaContextProvider>
+            {children}
+          </SolanaContextProvider>
+        </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
   );
-}
+};

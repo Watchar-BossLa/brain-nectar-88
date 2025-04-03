@@ -1,81 +1,59 @@
 
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import ModuleHeader from './module-header';
 import ModuleContent from './module-content';
 import { TopicItemProps } from './topic-item';
-import { Progress } from '@/components/ui/progress';
 
 export interface LearningModuleProps {
   id: string;
   title: string;
-  description?: string;
   topics: TopicItemProps[];
-  initialExpanded?: boolean;
-  onTopicClick?: (id: string) => void;
-  bookmarked?: boolean;
-  onBookmark?: () => void;
-  progress?: number;
-  totalDuration?: string;
+  progress: number;
+  totalDuration: string;
   isActive?: boolean;
 }
 
 const LearningModule = ({
+  id,
   title,
-  description,
   topics,
-  initialExpanded = false,
-  onTopicClick,
-  bookmarked = false,
-  onBookmark,
   progress,
   totalDuration,
-  isActive = false,
+  isActive = false
 }: LearningModuleProps) => {
-  const [isExpanded, setIsExpanded] = useState(initialExpanded || isActive);
-  
-  const handleToggle = () => {
+  const [isExpanded, setIsExpanded] = useState(isActive);
+
+  const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
   };
-  
-  const handleTopicClick = (id: string) => {
-    if (onTopicClick) {
-      onTopicClick(id);
-    }
-  };
-  
+
   return (
-    <div className={`rounded-lg border shadow-sm overflow-hidden ${isActive ? 'border-primary' : ''}`}>
-      <ModuleHeader 
-        title={title} 
-        description={description}
+    <motion.div 
+      className="border border-border rounded-lg overflow-hidden mb-4 bg-card"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <ModuleHeader
+        title={title}
+        topicsCount={topics.length}
+        totalDuration={totalDuration}
+        progress={progress}
         isExpanded={isExpanded}
-        onToggle={handleToggle}
-        bookmarked={bookmarked}
-        onBookmark={onBookmark}
+        onToggle={toggleExpanded}
       />
       
-      {progress !== undefined && (
-        <div className="px-4 pb-2">
-          <div className="flex justify-between text-sm mb-1">
-            <span className="text-muted-foreground">Progress</span>
-            <span className="font-medium">{progress}%</span>
-          </div>
-          <Progress value={progress} className="h-1" />
-          
-          {totalDuration && (
-            <div className="mt-2 text-xs text-muted-foreground text-right">
-              Total duration: {totalDuration}
-            </div>
-          )}
-        </div>
-      )}
-      
-      <ModuleContent 
-        topics={topics} 
-        isExpanded={isExpanded}
-        onTopicClick={handleTopicClick}
-      />
-    </div>
+      <AnimatePresence>
+        {isExpanded && (
+          <ModuleContent
+            topics={topics}
+            progress={progress}
+            isExpanded={isExpanded}
+          />
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 

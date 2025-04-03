@@ -1,13 +1,10 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useFlashcardReview } from '@/hooks/useFlashcardReview';
-import { ThumbsUp, ThumbsDown, Lightbulb, Star, Trophy, MessageSquare } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Lightbulb, Star, Trophy } from 'lucide-react';
 import { LatexRenderer } from '@/components/math/LatexRendererWrapper';
-import FeedbackDialog from '../quiz/components/feedback/FeedbackDialog';
-import { useToast } from '@/components/ui/use-toast';
 
 interface FlashcardReviewSystemProps {
   onComplete: () => void;
@@ -22,22 +19,6 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ onComplet
     rateCard,
     completeReview
   } = useFlashcardReview(onComplete);
-
-  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
-  const { toast } = useToast();
-
-  const handleSubmitFeedback = (feedback: {
-    questionId: string;
-    feedbackType: 'issue' | 'suggestion' | 'praise';
-    feedbackText: string;
-  }) => {
-    console.log('Flashcard feedback submitted:', feedback);
-    
-    toast({
-      title: "Feedback received",
-      description: "Thank you for helping us improve our flashcards!",
-    });
-  };
 
   // If there's no current card, show a message
   if (!currentCard && reviewState !== 'complete') {
@@ -114,20 +95,9 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ onComplet
       <CardHeader className="bg-muted/20">
         <div className="flex justify-between items-center">
           <CardTitle>Flashcard Review</CardTitle>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setIsFeedbackOpen(true)}
-              className="flex items-center gap-1"
-            >
-              <MessageSquare className="h-4 w-4" />
-              Feedback
-            </Button>
-            <p className="text-sm text-muted-foreground">
-              Cards reviewed: {reviewStats.totalReviewed}
-            </p>
-          </div>
+          <p className="text-sm text-muted-foreground">
+            Cards reviewed: {reviewStats.totalReviewed}
+          </p>
         </div>
       </CardHeader>
       
@@ -137,10 +107,10 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ onComplet
           <div className="mb-6">
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Question</h3>
             <div className="p-4 border rounded-md bg-card">
-              {hasLatex(currentCard.front_content) ? (
-                <LatexRenderer latex={currentCard.front_content} />
+              {hasLatex(currentCard.front) ? (
+                <LatexRenderer latex={currentCard.front} />
               ) : (
-                <p className="text-lg">{currentCard.front_content}</p>
+                <p className="text-lg">{currentCard.front}</p>
               )}
             </div>
           </div>
@@ -150,10 +120,10 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ onComplet
             <div className="mt-4">
               <h3 className="text-sm font-medium text-muted-foreground mb-2">Answer</h3>
               <div className="p-4 border rounded-md bg-card">
-                {hasLatex(currentCard.back_content) ? (
-                  <LatexRenderer latex={currentCard.back_content} />
+                {hasLatex(currentCard.back) ? (
+                  <LatexRenderer latex={currentCard.back} />
                 ) : (
-                  <p className="text-lg">{currentCard.back_content}</p>
+                  <p className="text-lg">{currentCard.back}</p>
                 )}
               </div>
             </div>
@@ -189,16 +159,6 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ onComplet
           </div>
         )}
       </CardFooter>
-
-      {currentCard && (
-        <FeedbackDialog
-          questionId={currentCard.id || 'unknown'}
-          questionText={currentCard.front}
-          isOpen={isFeedbackOpen}
-          onClose={() => setIsFeedbackOpen(false)}
-          onSubmitFeedback={handleSubmitFeedback}
-        />
-      )}
     </Card>
   );
 };

@@ -1,26 +1,8 @@
 
 import React from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { FileText, X, ArrowRight } from 'lucide-react';
-
-const templates = {
-  balanceSheet: [
-    { id: 'standard-balance-sheet', name: 'Standard Balance Sheet', description: 'Classic balance sheet format with assets, liabilities, and equity sections' },
-    { id: 'classified-balance-sheet', name: 'Classified Balance Sheet', description: 'Detailed balance sheet with current and non-current classifications' },
-    { id: 'comparative-balance-sheet', name: 'Comparative Balance Sheet', description: 'Balance sheet showing comparison between two periods' }
-  ],
-  incomeStatement: [
-    { id: 'standard-income-statement', name: 'Standard Income Statement', description: 'Basic income statement with revenues, expenses, and net income' },
-    { id: 'multi-step-income-statement', name: 'Multi-Step Income Statement', description: 'Detailed income statement with gross profit, operating income, and net income' },
-    { id: 'contribution-margin-statement', name: 'Contribution Margin Statement', description: 'Income statement focusing on variable costs and contribution margin' }
-  ],
-  cashFlow: [
-    { id: 'standard-cash-flow', name: 'Standard Cash Flow Statement', description: 'Cash flow statement with operating, investing, and financing activities' },
-    { id: 'direct-method-cash-flow', name: 'Direct Method Cash Flow', description: 'Cash flow statement that shows operating cash receipts and payments' },
-    { id: 'indirect-method-cash-flow', name: 'Indirect Method Cash Flow', description: 'Cash flow statement that reconciles net income to operating cash flow' }
-  ]
-};
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
 
 interface TemplateGalleryProps {
   statementType: string;
@@ -28,52 +10,127 @@ interface TemplateGalleryProps {
   onClose: () => void;
 }
 
-const TemplateGallery: React.FC<TemplateGalleryProps> = ({ statementType, onSelect, onClose }) => {
-  const templateList = statementType === 'balanceSheet' 
-    ? templates.balanceSheet 
-    : statementType === 'incomeStatement'
-      ? templates.incomeStatement
-      : templates.cashFlow;
-  
-  const statementTitle = statementType === 'balanceSheet' 
-    ? 'Balance Sheet' 
-    : statementType === 'incomeStatement'
-      ? 'Income Statement'
-      : 'Cash Flow Statement';
-  
+interface Template {
+  id: string;
+  name: string;
+  description: string;
+  thumbnail: string;
+  compatibility: string[];
+}
+
+const TemplateGallery: React.FC<TemplateGalleryProps> = ({
+  statementType,
+  onSelect,
+  onClose
+}) => {
+  // Template data
+  const templates: Template[] = [
+    {
+      id: 'standard-balance-sheet',
+      name: 'Standard Balance Sheet',
+      description: 'Classic two-column balance sheet format with assets on left, liabilities and equity on right',
+      thumbnail: '/placeholder.svg',
+      compatibility: ['balanceSheet']
+    },
+    {
+      id: 'report-balance-sheet',
+      name: 'Report Format Balance Sheet',
+      description: 'Top-to-bottom format with assets followed by liabilities and equity',
+      thumbnail: '/placeholder.svg',
+      compatibility: ['balanceSheet']
+    },
+    {
+      id: 'multi-period-balance-sheet',
+      name: 'Multi-Period Balance Sheet',
+      description: 'Compare balance sheets across multiple periods side by side',
+      thumbnail: '/placeholder.svg',
+      compatibility: ['balanceSheet']
+    },
+    {
+      id: 'standard-income-statement',
+      name: 'Standard Income Statement',
+      description: 'Single-step format showing revenues, expenses, and net income',
+      thumbnail: '/placeholder.svg',
+      compatibility: ['incomeStatement']
+    },
+    {
+      id: 'multi-step-income-statement',
+      name: 'Multi-Step Income Statement',
+      description: 'Detailed format showing gross profit, operating income, and net income',
+      thumbnail: '/placeholder.svg',
+      compatibility: ['incomeStatement']
+    },
+    {
+      id: 'contribution-margin-income-statement',
+      name: 'Contribution Margin Format',
+      description: 'Separates fixed and variable costs to highlight contribution margin',
+      thumbnail: '/placeholder.svg',
+      compatibility: ['incomeStatement']
+    },
+    {
+      id: 'direct-cash-flow',
+      name: 'Direct Method Cash Flow',
+      description: 'Reports cash flow activities using direct receipts and payments',
+      thumbnail: '/placeholder.svg',
+      compatibility: ['cashFlow']
+    },
+    {
+      id: 'indirect-cash-flow',
+      name: 'Indirect Method Cash Flow',
+      description: 'Starts with net income and adjusts for non-cash items and working capital changes',
+      thumbnail: '/placeholder.svg',
+      compatibility: ['cashFlow']
+    },
+    {
+      id: 'gaap-cash-flow',
+      name: 'GAAP Compliant Cash Flow',
+      description: 'Follows GAAP standards with proper categorization of all cash activities',
+      thumbnail: '/placeholder.svg',
+      compatibility: ['cashFlow']
+    }
+  ];
+
+  // Filter templates based on the current statement type
+  const filteredTemplates = templates.filter(template => 
+    template.compatibility.includes(statementType)
+  );
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">
-          <FileText className="inline mr-2 h-5 w-5" />
-          {statementTitle} Templates
-        </h3>
+        <h2 className="text-xl font-bold">Template Gallery</h2>
         <Button variant="ghost" size="sm" onClick={onClose}>
           <X className="h-4 w-4" />
         </Button>
       </div>
       
-      <div className="grid md:grid-cols-3 gap-4">
-        {templateList.map((template) => (
-          <Card key={template.id} className="overflow-hidden cursor-pointer hover:border-primary transition-colors">
-            <CardContent className="p-0">
-              <div 
-                className="p-4 border-b bg-muted/30 flex justify-between items-center"
-              >
-                <div>
-                  <h4 className="font-medium">{template.name}</h4>
-                </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => onSelect(template.id)}
-                >
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="p-4">
-                <p className="text-sm text-muted-foreground">{template.description}</p>
-              </div>
+      <p className="text-muted-foreground">
+        Select a template to apply to your {statementType === 'balanceSheet' 
+          ? 'balance sheet' 
+          : statementType === 'incomeStatement' 
+            ? 'income statement' 
+            : 'cash flow statement'}
+      </p>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredTemplates.map(template => (
+          <Card 
+            key={template.id} 
+            className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => onSelect(template.id)}
+          >
+            <div className="aspect-video bg-muted">
+              <img 
+                src={template.thumbnail} 
+                alt={template.name} 
+                className="w-full h-full object-cover object-center"
+              />
+            </div>
+            <CardContent className="p-4">
+              <h3 className="font-medium">{template.name}</h3>
+              <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                {template.description}
+              </p>
             </CardContent>
           </Card>
         ))}

@@ -10,7 +10,7 @@ import 'katex/dist/katex.min.css';
 import { calculateRetention } from '@/services/spacedRepetition/algorithm';
 import { MemoryRetentionIndicator } from './components/MemoryRetentionIndicator';
 import { DifficultyRatingButtons } from './components/DifficultyRatingButtons';
-import { AnimatedFlashcardContent } from './components/AnimatedFlashcardContent';
+import { AnimatedFlashcardContent } from './components/FlashcardContent';
 
 interface SpacedRepetitionCardProps {
   flashcard: Flashcard;
@@ -58,10 +58,10 @@ const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({
     setIsSubmitting(true);
 
     try {
-      const { data, error } = await updateFlashcardAfterReview(flashcard.id, difficulty);
+      const { error } = await updateFlashcardAfterReview(flashcard.id, difficulty);
       
       if (error) {
-        throw error;
+        throw new Error(error.message);
       }
       
       // Update stats if callback is provided

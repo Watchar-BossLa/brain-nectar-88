@@ -1,38 +1,19 @@
 
-import type { Session } from '@supabase/supabase-js';
-
-// Define AuthUser interface
-export interface AuthUser {
-  id: string;
-  email?: string;
-  app_metadata: {
-    provider?: string;
-    [key: string]: any;
-  };
-  user_metadata: {
-    avatar_url?: string;
-    full_name?: string;
-    [key: string]: any;
-  };
-  aud: string;
-}
+import { Session, User } from '@supabase/supabase-js';
 
 export interface PlatformOwnerType {
   email: string;
-  [key: string]: string;
+  name: string;
 }
 
 export interface AuthContextType {
   session: Session | null;
-  user: AuthUser | null;
+  user: User | null;
   loading: boolean;
-  signIn: (email: string, password: string, callback?: (success: boolean) => void) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, callback?: (success: boolean) => void) => Promise<{ error: Error | null }>;
-  signInWithGoogle: (callback?: () => void) => Promise<{ error: Error | null }>;
-  signOut: (callback?: () => void) => Promise<void>;
-  platformOwner: {
-    email: string;
-    [key: string]: string;
-  };
+  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signInWithGoogle: () => Promise<{ error: Error | null }>;
+  signOut: () => Promise<void>;
+  platformOwner: PlatformOwnerType;
   isAdmin: boolean;
 }

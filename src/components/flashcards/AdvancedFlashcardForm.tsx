@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -31,10 +32,6 @@ const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({ onSuccess
   const [financialType, setFinancialType] = useState<FinancialStatementType>('balance-sheet');
   const { toast } = useToast();
 
-  const handleFinancialTypeChange = (value: FinancialStatementType) => {
-    setFinancialType(value);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -58,11 +55,8 @@ const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({ onSuccess
         processedBackContent = `${backContent}\n\n[fin:${financialType}]`;
       }
 
-      // Updated to match expected signature
-      const { data, error } = await createFlashcard({
-        front_content: processedFrontContent,
-        back_content: processedBackContent
-      });
+      // Passing null for the topicId (third parameter is optional)
+      const { data, error } = await createFlashcard(processedFrontContent, processedBackContent, null);
 
       if (error) {
         throw new Error(error.message);
@@ -116,7 +110,7 @@ const AdvancedFlashcardForm: React.FC<AdvancedFlashcardFormProps> = ({ onSuccess
             backContent={backContent}
             setBackContent={setBackContent}
             financialType={financialType}
-            setFinancialType={handleFinancialTypeChange}
+            setFinancialType={setFinancialType}
           />
         );
       

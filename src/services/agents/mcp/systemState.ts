@@ -12,18 +12,13 @@ export class SystemStateManager {
   constructor(activeAgents: AgentType[]) {
     this.systemState = {
       activeAgents,
-      taskQueue: 0,
-      completedTasks: 0,
-      failedTasks: 0,
-      uptime: 0,
-      globalVariables: {},
-      lastUpdated: new Date().toISOString(),
       metrics: {
         taskCompletionRate: 0,
         averageResponseTime: 0,
         userSatisfactionScore: 0,
       },
       priorityMatrix: {},
+      globalVariables: {},
     };
   }
 
@@ -40,13 +35,6 @@ export class SystemStateManager {
   public updateMetrics(success: boolean): void {
     // This is a simplified metrics update
     // In a real system, this would be much more sophisticated
-    if (!this.systemState.metrics) {
-      this.systemState.metrics = {
-        taskCompletionRate: 0,
-        averageResponseTime: 0,
-        userSatisfactionScore: 0
-      };
-    }
     
     // Update task completion rate
     const currentRate = this.systemState.metrics.taskCompletionRate;

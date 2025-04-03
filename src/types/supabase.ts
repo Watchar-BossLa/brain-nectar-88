@@ -1,7 +1,74 @@
 
-// Define the Supabase database schema types
+import { Session, User } from '@supabase/supabase-js';
 
-export interface Flashcard {
+export type Profile = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  avatar_url: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Qualification = {
+  id: string;
+  title: string;
+  description: string | null;
+  image_url: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Module = {
+  id: string;
+  qualification_id: string;
+  title: string;
+  description: string | null;
+  image_url: string | null;
+  order_index: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Topic = {
+  id: string;
+  module_id: string;
+  title: string;
+  description: string | null;
+  order_index: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Content = {
+  id: string;
+  topic_id: string;
+  title: string;
+  content_type: 'text' | 'video' | 'pdf' | 'quiz' | 'flashcard';
+  content_data: any;
+  order_index: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type UserProgress = {
+  id: string;
+  user_id: string;
+  content_id: string;
+  status: 'not_started' | 'in_progress' | 'completed';
+  progress_percentage: number;
+  last_accessed_at: string;
+  created_at: string;
+  updated_at: string;
+  content?: Content;
+};
+
+export type Flashcard = {
   id: string;
   user_id: string;
   topic_id: string | null;
@@ -13,63 +80,85 @@ export interface Flashcard {
   mastery_level: number;
   created_at: string;
   updated_at: string;
-  easiness_factor: number;
-  last_retention: number;
-  last_reviewed_at: string | null;
-  // Add compatibility fields for different interfaces
-  front?: string; // For compatibility with components expecting 'front'
-  back?: string;  // For compatibility with components expecting 'back'
-  deck_id?: string; // For compatibility with other flashcard systems
-}
+  // Add the missing properties that we're using in our code
+  easiness_factor?: number;
+  last_retention?: number;
+  last_reviewed_at?: string;
+};
 
-export interface FlashcardReview {
+export type FlashcardReview = {
   id: string;
-  flashcard_id: string;
   user_id: string;
+  flashcard_id: string;
   difficulty_rating: number;
   reviewed_at: string;
-  retention_estimate: number | null;
-  created_at: string;
-}
-
-// Add missing types referenced in other files
-export interface Topic {
-  id: string;
-  title: string;
-  description: string | null;
-  user_id?: string;
+  retention_estimate: number;
   created_at?: string;
-  updated_at?: string;
-  order?: number;
-  module_id?: string;
-  parent_topic_id?: string | null;
-}
+};
 
-export interface UserProgress {
+export type UserNote = {
   id: string;
   user_id: string;
-  topic_id: string;
-  progress_percentage: number;
-  last_activity_date: string;
-  created_at?: string;
-  updated_at?: string;
-}
+  content_id: string | null;
+  title: string;
+  content: string | null;
+  created_at: string;
+  updated_at: string;
+};
 
-export interface Module {
+export type Assessment = {
   id: string;
   title: string;
   description: string | null;
-  order: number;
-  created_at?: string;
-  updated_at?: string;
-}
+  module_id: string | null;
+  time_limit_minutes: number | null;
+  passing_score: number | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
 
-export interface Content {
+export type Question = {
   id: string;
+  assessment_id: string;
+  question_text: string;
+  question_type: 'multiple_choice' | 'true_false' | 'essay' | 'calculation';
+  options: any | null;
+  correct_answer: any | null;
+  points: number;
+  difficulty: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type UserAssessment = {
+  id: string;
+  user_id: string;
+  assessment_id: string;
+  status: 'not_started' | 'in_progress' | 'completed' | 'graded';
+  start_time: string | null;
+  end_time: string | null;
+  score: number | null;
+  feedback: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type StudyPlan = {
+  id: string;
+  user_id: string;
+  qualification_id: string | null;
   title: string;
-  content_type: string;
-  content_data: any;
-  topic_id: string;
-  created_at?: string;
-  updated_at?: string;
-}
+  description: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  daily_goal_minutes: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AuthState = {
+  session: Session | null;
+  user: User | null;
+};

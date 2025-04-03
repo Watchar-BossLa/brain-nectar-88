@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { AuthUser } from '@/context/auth/types';
+import { Session, User } from '@supabase/supabase-js';
 
 // Auth helpers
 export const signUp = async (email: string, password: string) => {
@@ -8,7 +8,7 @@ export const signUp = async (email: string, password: string) => {
     email,
     password,
   });
-  return { user: data.user as AuthUser | null, error };
+  return { user: data.user, error };
 };
 
 export const signIn = async (email: string, password: string) => {
@@ -16,7 +16,7 @@ export const signIn = async (email: string, password: string) => {
     email,
     password,
   });
-  return { session: data.session, user: data.user as AuthUser | null, error };
+  return { session: data.session, user: data.user, error };
 };
 
 export const signOut = async () => {
@@ -25,8 +25,8 @@ export const signOut = async () => {
 };
 
 export const getCurrentUser = async () => {
-  const { data, error } = await supabase.auth.getSession();
-  return { user: data.session?.user as AuthUser | null || null, error };
+  const { data, error } = await supabase.auth.getUser();
+  return { user: data.user, error };
 };
 
 export const getCurrentSession = async () => {

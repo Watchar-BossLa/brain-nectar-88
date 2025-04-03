@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
 
 interface FormButtonsProps {
   isSubmitting: boolean;
@@ -16,9 +15,6 @@ const FormButtons: React.FC<FormButtonsProps> = ({
   frontContent,
   backContent
 }) => {
-  // Calculate if form can be submitted
-  const canSubmit = frontContent.trim().length > 0 && backContent.trim().length > 0;
-  
   return (
     <div className="flex justify-end gap-2 mt-6">
       <Button
@@ -29,19 +25,11 @@ const FormButtons: React.FC<FormButtonsProps> = ({
       >
         Cancel
       </Button>
-      
       <Button
         type="submit"
-        disabled={isSubmitting || !canSubmit}
+        disabled={isSubmitting || !frontContent || !backContent}
       >
-        {isSubmitting ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Creating...
-          </>
-        ) : (
-          'Create Flashcard'
-        )}
+        {isSubmitting ? 'Creating...' : 'Create Flashcard'}
       </Button>
     </div>
   );

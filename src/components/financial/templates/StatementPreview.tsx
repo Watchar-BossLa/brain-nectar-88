@@ -9,7 +9,11 @@ interface StatementPreviewProps {
   statementType: string;
 }
 
-const StatementPreview: React.FC<StatementPreviewProps> = ({ templateId, statementType }) => {
+const StatementPreview: React.FC<StatementPreviewProps> = ({ 
+  templateId, 
+  statementType 
+}) => {
+  // Render the appropriate preview based on statement type
   if (statementType === 'balanceSheet') {
     return <BalanceSheetPreview templateId={templateId} />;
   } else if (statementType === 'incomeStatement') {
@@ -18,11 +22,7 @@ const StatementPreview: React.FC<StatementPreviewProps> = ({ templateId, stateme
     return <CashFlowPreview templateId={templateId} />;
   }
   
-  return (
-    <div className="text-center p-8 border border-dashed rounded-lg">
-      <p>Preview not available for this template type.</p>
-    </div>
-  );
+  return <div>Invalid statement type</div>;
 };
 
 export default StatementPreview;

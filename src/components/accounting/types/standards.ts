@@ -11,15 +11,6 @@ export interface AccountingStandard {
   examples?: string[];
   relatedStandards?: string[];
   searchKeywords?: string[];
-  revisions?: StandardRevision[];
-  implementationGuidance?: string;
-  supersedes?: string[];
-  supersededBy?: string;
-}
-
-export interface StandardRevision {
-  date: string;
-  description: string;
 }
 
 export interface StandardsLibraryProps {
@@ -29,10 +20,10 @@ export interface StandardsLibraryProps {
   onSearchComplete?: (results: AccountingStandard[]) => void;
 }
 
-export interface StandardsSearchFilters {
-  framework: 'all' | 'GAAP' | 'IFRS' | 'FASB' | 'IASB' | 'AASB' | 'Other';
-  category: string;
-  dateRange: string;
-  searchInContent: boolean;
-  exactMatchOnly: boolean;
+export interface StandardsListProps { 
+  standards: AccountingStandard[];
+  bookmarks: string[];
+  selectedStandards: string[];
+  onToggleBookmark: (id: string) => void;
+  onToggleSelection: (id: string) => void;
 }
