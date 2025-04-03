@@ -1,158 +1,92 @@
 
-import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { createFlashcard, deleteFlashcard, updateFlashcard } from '@/services/spacedRepetition';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { Flashcard, formatFlashcardToCamelCase, formatFlashcardToSnakeCase } from './useFlashcardTypes';
+import { Flashcard } from '@/types/flashcard';
 
-export function useFlashcardMutations(onSuccess?: () => void) {
+export const useFlashcardMutations = (userId: string) => {
+  const queryClient = useQueryClient();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
 
-  const createFlashcard = async (flashcard: Partial<Flashcard>) => {
-    try {
-      setLoading(true);
+  // Create flashcard mutation
+  const createMutation = useMutation({
+    mutationFn: async (flashcardData: Partial<Flashcard>) => {
+      // Extract the front and back content using the correct properties
+      const frontContent = flashcardData.frontContent || flashcardData.front_content || '';
+      const backContent = flashcardData.backContent || flashcardData.back_content || '';
       
-      // Ensure required fields
-      if (!flashcard.front && !flashcard.frontContent) {
-        throw new Error('Front content is required');
-      }
+      // Use the topicId if provided
+      const topicId = flashcardData.topicId || flashcardData.topic_id || null;
       
-      if (!flashcard.back && !flashcard.backContent) {
-        throw new Error('Back content is required');
-      }
-      
-      // Get user ID from current session
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user?.id) {
-        throw new Error('User not authenticated');
-      }
-      
-      // Prepare data for insert - converting camelCase to snake_case for database
-      const newFlashcard = {
-        user_id: session.user.id,
-        front_content: flashcard.front || flashcard.frontContent,
-        back_content: flashcard.back || flashcard.backContent,
-        topic_id: flashcard.topicId || null,
-        difficulty: flashcard.difficulty || 1,
-        mastery_level: 0,
-        next_review_date: new Date().toISOString(),
-        easiness_factor: 2.5,
-        repetition_count: 0
-      };
-      
-      const { data, error: insertError } = await supabase
-        .from('flashcards')
-        .insert(newFlashcard)
-        .select();
-      
-      if (insertError) throw insertError;
-      
+      return createFlashcard(userId, frontContent, backContent, topicId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['flashcards', userId] });
       toast({
-        title: 'Flashcard created',
-        description: 'Your new flashcard has been added',
+        title: 'Success',
+        description: 'Flashcard created successfully'
       });
-      
-      if (onSuccess) {
-        onSuccess();
-      }
-      
-      setError(null);
-      return data ? formatFlashcardToCamelCase(data[0]) : null;
-    } catch (err) {
-      console.error('Error creating flashcard:', err);
-      setError(err as Error);
+    },
+    onError: (error: Error) => {
+      console.error('Error creating flashcard:', error);
       toast({
-        title: 'Error creating flashcard',
-        description: (err as Error).message,
-        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to create flashcard',
+        variant: 'destructive'
       });
-      return null;
-    } finally {
-      setLoading(false);
     }
-  };
+  });
 
-  const updateFlashcard = async (id: string, updates: Partial<Flashcard>) => {
-    try {
-      setLoading(true);
-      
-      // Prepare data for update - converting camelCase to snake_case for database
-      const updateData = formatFlashcardToSnakeCase(updates);
-      
-      const { error: updateError } = await supabase
-        .from('flashcards')
-        .update(updateData)
-        .eq('id', id);
-      
-      if (updateError) throw updateError;
-      
+  // Update flashcard mutation
+  const updateMutation = useMutation({
+    mutationFn: async (flashcard: Flashcard) => {
+      return updateFlashcard(flashcard);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['flashcards', userId] });
       toast({
-        title: 'Flashcard updated',
-        description: 'Your flashcard has been updated',
+        title: 'Success',
+        description: 'Flashcard updated successfully'
       });
-      
-      if (onSuccess) {
-        onSuccess();
-      }
-      
-      setError(null);
-      return true;
-    } catch (err) {
-      console.error('Error updating flashcard:', err);
-      setError(err as Error);
+    },
+    onError: (error: Error) => {
+      console.error('Error updating flashcard:', error);
       toast({
-        title: 'Error updating flashcard',
-        description: (err as Error).message,
-        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to update flashcard',
+        variant: 'destructive'
       });
-      return false;
-    } finally {
-      setLoading(false);
     }
-  };
+  });
 
-  const deleteFlashcard = async (id: string) => {
-    try {
-      setLoading(true);
-      
-      const { error: deleteError } = await supabase
-        .from('flashcards')
-        .delete()
-        .eq('id', id);
-      
-      if (deleteError) throw deleteError;
-      
+  // Delete flashcard mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return deleteFlashcard(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['flashcards', userId] });
       toast({
-        title: 'Flashcard deleted',
-        description: 'Your flashcard has been removed',
+        title: 'Success',
+        description: 'Flashcard deleted successfully'
       });
-      
-      if (onSuccess) {
-        onSuccess();
-      }
-      
-      setError(null);
-      return true;
-    } catch (err) {
-      console.error('Error deleting flashcard:', err);
-      setError(err as Error);
+    },
+    onError: (error: Error) => {
+      console.error('Error deleting flashcard:', error);
       toast({
-        title: 'Error deleting flashcard',
-        description: (err as Error).message,
-        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to delete flashcard',
+        variant: 'destructive'
       });
-      return false;
-    } finally {
-      setLoading(false);
     }
-  };
+  });
 
   return {
-    createFlashcard,
-    updateFlashcard,
-    deleteFlashcard,
-    loading,
-    error
+    createFlashcard: createMutation.mutateAsync,
+    updateFlashcard: updateMutation.mutateAsync,
+    deleteFlashcard: deleteMutation.mutateAsync,
+    isCreating: createMutation.isPending,
+    isUpdating: updateMutation.isPending,
+    isDeleting: deleteMutation.isPending
   };
-}
+};

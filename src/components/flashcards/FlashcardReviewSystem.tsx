@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -90,6 +91,10 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ onComplet
     return content.includes('$$') || content.includes('$');
   };
 
+  // Use the appropriate property names for flashcard content
+  const frontContent = currentCard.frontContent || currentCard.front_content || '';
+  const backContent = currentCard.backContent || currentCard.back_content || '';
+
   return (
     <Card className="overflow-hidden">
       <CardHeader className="bg-muted/20">
@@ -107,10 +112,10 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ onComplet
           <div className="mb-6">
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Question</h3>
             <div className="p-4 border rounded-md bg-card">
-              {hasLatex(currentCard.front) ? (
-                <LatexRenderer latex={currentCard.front} />
+              {hasLatex(frontContent) ? (
+                <LatexRenderer latex={frontContent} />
               ) : (
-                <p className="text-lg">{currentCard.front}</p>
+                <p className="text-lg">{frontContent}</p>
               )}
             </div>
           </div>
@@ -120,10 +125,10 @@ const FlashcardReviewSystem: React.FC<FlashcardReviewSystemProps> = ({ onComplet
             <div className="mt-4">
               <h3 className="text-sm font-medium text-muted-foreground mb-2">Answer</h3>
               <div className="p-4 border rounded-md bg-card">
-                {hasLatex(currentCard.back) ? (
-                  <LatexRenderer latex={currentCard.back} />
+                {hasLatex(backContent) ? (
+                  <LatexRenderer latex={backContent} />
                 ) : (
-                  <p className="text-lg">{currentCard.back}</p>
+                  <p className="text-lg">{backContent}</p>
                 )}
               </div>
             </div>

@@ -90,6 +90,15 @@ const Flashcards = () => {
   const supabaseFlashcards = flashcards.map(convertToSupabaseFlashcard);
   const supaDueFlashcards = dueFlashcards.map(convertToSupabaseFlashcard);
 
+  // Transform the stats to match the FlashcardStatsProps interface
+  const displayStats = {
+    totalCards: stats.totalCards || 0,
+    masteredCards: stats.masteredCards || 0,
+    dueCards: stats.dueCards || 0,
+    reviewsToday: stats.reviewsToday || 0,
+    averageDifficulty: stats.averageDifficulty || 0
+  };
+
   return (
     <MainLayout>
       <div className="flex flex-col space-y-6">
@@ -99,7 +108,7 @@ const Flashcards = () => {
           onCreateAdvancedFlashcard={handleCreateAdvancedFlashcard}
         />
         
-        <FlashcardStats stats={stats} />
+        <FlashcardStats stats={displayStats} />
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">

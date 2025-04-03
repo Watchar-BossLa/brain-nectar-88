@@ -6,7 +6,7 @@ import EmptyReviewState from '@/components/flashcards/review-page/EmptyReviewSta
 import ReviewHeader from '@/components/flashcards/review-page/ReviewHeader';
 import FlashcardView from '@/components/flashcards/review-page/FlashcardView';
 import RatingButtons from '@/components/flashcards/review-page/RatingButtons';
-import { Flashcard } from '@/types/supabase';
+import { Flashcard } from '@/types/flashcard';
 
 const FlashcardReview = () => {
   const {
@@ -36,23 +36,23 @@ const FlashcardReview = () => {
   const totalToReview = reviewCards.length || 0;
   const isFlipped = reviewState === 'answering';
 
-  // Safe conversion of the currentCard to Supabase Flashcard type
-  const displayCard: Flashcard = currentCard ? {
+  // Safe conversion to ensure the Flashcard type is consistent
+  const displayCard = currentCard ? {
     id: currentCard.id,
-    user_id: currentCard.user_id || '',
-    topic_id: currentCard.topicId || currentCard.topic_id || null,
-    front_content: currentCard.front || currentCard.front_content || '',
-    back_content: currentCard.back || currentCard.back_content || '',
+    userId: currentCard.userId || currentCard.user_id || '',
+    topicId: currentCard.topicId || currentCard.topic_id || null,
+    frontContent: currentCard.frontContent || currentCard.front_content || '',
+    backContent: currentCard.backContent || currentCard.back_content || '',
     difficulty: currentCard.difficulty || 0,
-    next_review_date: currentCard.next_review_date || new Date().toISOString(),
-    repetition_count: currentCard.repetition_count || 0,
-    mastery_level: currentCard.mastery_level || 0,
-    created_at: currentCard.created_at || new Date().toISOString(),
-    updated_at: currentCard.updated_at || new Date().toISOString(),
-    easiness_factor: currentCard.easiness_factor || 2.5,
-    last_retention: currentCard.last_retention || 0,
-    last_reviewed_at: currentCard.last_reviewed_at || null
-  } : {} as Flashcard;
+    nextReviewDate: currentCard.nextReviewDate || currentCard.next_review_date || new Date().toISOString(),
+    repetitionCount: currentCard.repetitionCount || currentCard.repetition_count || 0,
+    masteryLevel: currentCard.masteryLevel || currentCard.mastery_level || 0,
+    createdAt: currentCard.createdAt || currentCard.created_at || new Date().toISOString(),
+    updatedAt: currentCard.updatedAt || currentCard.updated_at || new Date().toISOString(),
+    easinessFactor: currentCard.easinessFactor || currentCard.easiness_factor || 2.5,
+    lastRetention: currentCard.lastRetention || currentCard.last_retention || 0,
+    lastReviewedAt: currentCard.lastReviewedAt || currentCard.last_reviewed_at || null
+  } as Flashcard : {} as Flashcard;
 
   return (
     <div className="container max-w-5xl py-10">
