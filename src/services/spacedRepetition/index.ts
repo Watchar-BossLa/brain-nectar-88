@@ -19,7 +19,7 @@ import {
   getStrugglingFlashcards,
   getMasteredFlashcards,
   getFlashcardStats
-} from './flashcardService';
+} from './services';
 
 import { 
   updateFlashcardAfterReview,
