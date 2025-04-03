@@ -1,18 +1,12 @@
+/**
+ * Import TaskCategory from central location
+ */
+import { TaskCategory } from '../../types/enums';
 
 /**
- * Task categories that models can handle
+ * Export TaskCategory for backward compatibility
  */
-export enum TaskCategory {
-  TEXT_GENERATION = 'TEXT_GENERATION',
-  QUESTION_ANSWERING = 'QUESTION_ANSWERING',
-  CLASSIFICATION = 'CLASSIFICATION',
-  SUMMARIZATION = 'SUMMARIZATION',
-  REASONING = 'REASONING',
-  CODE_GENERATION = 'CODE_GENERATION',
-  MATH_COMPUTATION = 'MATH_COMPUTATION',
-  CONTENT_CREATION = 'CONTENT_CREATION',
-  EXTRACTION = 'EXTRACTION'
-}
+export { TaskCategory };
 
 /**
  * Model capability information

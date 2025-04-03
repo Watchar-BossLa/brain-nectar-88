@@ -1,0 +1,80 @@
+
+/**
+ * Central location for all enum definitions
+ * This helps maintain consistency across the codebase
+ */
+
+/**
+ * Task categories that models can handle
+ */
+export enum TaskCategory {
+  TEXT_GENERATION = 'TEXT_GENERATION',
+  QUESTION_ANSWERING = 'QUESTION_ANSWERING',
+  CLASSIFICATION = 'CLASSIFICATION',
+  SUMMARIZATION = 'SUMMARIZATION',
+  REASONING = 'REASONING',
+  CODE_GENERATION = 'CODE_GENERATION',
+  MATH_COMPUTATION = 'MATH_COMPUTATION',
+  CONTENT_CREATION = 'CONTENT_CREATION',
+  EXTRACTION = 'EXTRACTION'
+}
+
+/**
+ * Supported agent types in the system
+ */
+export enum AgentType {
+  COGNITIVE_PROFILE = 'COGNITIVE_PROFILE',
+  LEARNING_PATH = 'LEARNING_PATH',
+  CONTENT_ADAPTATION = 'CONTENT_ADAPTATION',
+  ASSESSMENT = 'ASSESSMENT',
+  ENGAGEMENT = 'ENGAGEMENT',
+  FEEDBACK = 'FEEDBACK',
+  UI_UX = 'UI_UX',
+  SCHEDULING = 'SCHEDULING'
+}
+
+/**
+ * Task types that agents can process
+ */
+export enum TaskType {
+  COGNITIVE_PROFILING = 'COGNITIVE_PROFILING',
+  LEARNING_PATH_GENERATION = 'LEARNING_PATH_GENERATION',
+  CONTENT_ADAPTATION = 'CONTENT_ADAPTATION',
+  ASSESSMENT_GENERATION = 'ASSESSMENT_GENERATION',
+  ENGAGEMENT_OPTIMIZATION = 'ENGAGEMENT_OPTIMIZATION',
+  FEEDBACK_GENERATION = 'FEEDBACK_GENERATION',
+  UI_OPTIMIZATION = 'UI_OPTIMIZATION',
+  SCHEDULE_OPTIMIZATION = 'SCHEDULE_OPTIMIZATION',
+  FLASHCARD_OPTIMIZATION = 'FLASHCARD_OPTIMIZATION',
+  MULTI_AGENT_COORDINATION = 'MULTI_AGENT_COORDINATION'
+}
+
+/**
+ * Priority levels for tasks
+ */
+export enum TaskPriority {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+  CRITICAL = 'CRITICAL'
+}
+
+/**
+ * Status of a task
+ */
+export enum TaskStatus {
+  PENDING = 'PENDING',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED'
+}
+
+/**
+ * Message types for inter-agent communication
+ */
+export enum MessageType {
+  TASK = 'TASK',
+  RESPONSE = 'RESPONSE',
+  NOTIFICATION = 'NOTIFICATION',
+  SYSTEM = 'SYSTEM'
+}

@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth';
 import { mcp } from '@/services/agents/mcp';
+import { TaskCategory } from '@/types/enums';
 import { 
-  TaskCategory, 
   modelOrchestration, 
   modelExecution, 
   performanceMonitoring 

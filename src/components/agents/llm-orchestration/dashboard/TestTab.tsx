@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { TaskCategory } from '@/services/llm';
+import { TaskCategory } from '@/types/enums';
 
 interface TestTabProps {
   testPrompt: string;

@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OverviewTab } from './OverviewTab';
 import { ModelsTab } from './ModelsTab';
 import { PanelTestTab } from './PanelTestTab';
-import { TaskCategory } from '@/services/llm';
+import { TaskCategory } from '@/types/enums';
 
 interface PanelTabsProps {
   selectedTab: string;

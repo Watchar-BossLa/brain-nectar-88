@@ -1,6 +1,6 @@
 
 import { AgentTask, AgentTaskResult } from './types';
-import { TaskCategory } from '../types';
+import { TaskCategory } from '../../../types/enums';
 import { modelExecution } from '../modelExecution';
 import { modelOrchestration } from '../modelOrchestration';
 import { mapAgentTaskToLLMCategory } from './taskMapping';

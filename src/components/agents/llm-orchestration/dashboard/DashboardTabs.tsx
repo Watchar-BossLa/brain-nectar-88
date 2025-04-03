@@ -3,7 +3,7 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ModelMetrics } from '../ModelMetrics';
 import { TestTab } from './TestTab';
-import { TaskCategory } from '@/services/llm';
+import { TaskCategory } from '@/types/enums';
 
 interface DashboardTabsProps {
   selectedTab: string;

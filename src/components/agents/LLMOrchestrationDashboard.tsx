@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLLMOrchestration } from '@/hooks/useLLMOrchestration';
 import { SystemStatus } from './llm-orchestration/SystemStatus';
 import { AvailableModels } from './llm-orchestration/AvailableModels';
 import { DashboardTabs } from './llm-orchestration/dashboard/DashboardTabs';
+import { TaskCategory } from '@/types/enums';
 
 /**
  * LLM Orchestration Dashboard component

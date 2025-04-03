@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Card, 
@@ -12,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { useLLMOrchestration } from '@/hooks/useLLMOrchestration';
 import { useToast } from "@/components/ui/use-toast";
 import { PanelTabs } from './llm-orchestration/panel/PanelTabs';
+import { TaskCategory } from '@/types/enums';
 
 /**
  * LLM Orchestration Panel Component

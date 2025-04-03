@@ -1,39 +1,22 @@
 /**
  * Types for the multi-agent system
  */
+import { 
+  AgentType, 
+  TaskType, 
+  TaskPriority, 
+  TaskStatus, 
+  MessageType 
+} from '../../types/enums';
 
-// Supported agent types in the system
-export type AgentType = 
-  | 'COGNITIVE_PROFILE'
-  | 'LEARNING_PATH'
-  | 'CONTENT_ADAPTATION'
-  | 'ASSESSMENT'
-  | 'ENGAGEMENT'
-  | 'FEEDBACK'
-  | 'UI_UX'
-  | 'SCHEDULING';
-
-// Task types that agents can process
-export type TaskType = 
-  | 'COGNITIVE_PROFILING'
-  | 'LEARNING_PATH_GENERATION'
-  | 'CONTENT_ADAPTATION'
-  | 'ASSESSMENT_GENERATION'
-  | 'ENGAGEMENT_OPTIMIZATION'
-  | 'FEEDBACK_GENERATION'
-  | 'UI_OPTIMIZATION'
-  | 'SCHEDULE_OPTIMIZATION'
-  | 'FLASHCARD_OPTIMIZATION'
-  | 'MULTI_AGENT_COORDINATION';
-
-// Priority levels for tasks
-export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-
-// Status of a task
-export type TaskStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
-
-// Message types for inter-agent communication
-export type MessageType = 'TASK' | 'RESPONSE' | 'NOTIFICATION' | 'SYSTEM';
+// Re-export for backward compatibility
+export { 
+  AgentType, 
+  TaskType, 
+  TaskPriority, 
+  TaskStatus, 
+  MessageType 
+};
 
 /**
  * A task that can be assigned to one or more agents

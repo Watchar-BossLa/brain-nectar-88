@@ -1,5 +1,5 @@
 
-import { TaskCategory } from '../types';
+import { TaskCategory } from '../../../types/enums';
 
 /**
  * Agent task interface for integration with LLM system
