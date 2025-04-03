@@ -40,7 +40,7 @@ export const useFlashcardReview = (onComplete?: () => void) => {
         
         if (data && Array.isArray(data)) {
           // Convert all cards to the consistent Flashcard type
-          const flashcards = data.map(fromDatabaseFormat);
+          const flashcards = data.map(card => fromDatabaseFormat(card));
           setReviewCards(flashcards);
         }
       } catch (error) {

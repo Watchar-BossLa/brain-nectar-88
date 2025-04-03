@@ -1,46 +1,39 @@
 
-import { Dispatch, SetStateAction } from 'react';
-import { TaskCategory } from '../enums';
-
 /**
- * Agent/LLM orchestration prop types
+ * Agent component prop types
  */
 
-export interface DashboardTabsProps {
-  activeTab?: string;
-  onTabChange?: (tab: string) => void;
-  selectedTab: string;
-  setSelectedTab: Dispatch<SetStateAction<string>>;
-  availableModels: string[];
-  modelMetrics: Record<string, any>;
-  testProps: {
-    testPrompt: string;
-    setTestPrompt: Dispatch<SetStateAction<string>>;
-    isGenerating: boolean;
-    testResult: string;
-    handleTestGeneration: () => Promise<void>;
-    handleTestWithModel: () => Promise<void>;
-    selectedModel: string;
-    setSelectedModel: Dispatch<SetStateAction<string>>;
-    selectedTaskCategory: TaskCategory;
-    setSelectedTaskCategory: Dispatch<SetStateAction<TaskCategory>>;
-    TaskCategory: typeof TaskCategory;
-  };
+export interface AgentCardProps {
+  name: string;
+  description: string;
+  status: 'active' | 'inactive' | 'processing';
+  type: string;
+  onActivate?: () => void;
+  onDeactivate?: () => void;
 }
 
-export interface PanelTabsProps {
-  activeTab?: string;
-  onTabChange?: (tab: string) => void;
-  selectedTab: string;
-  setSelectedTab: Dispatch<SetStateAction<string>>;
-  availableModels: string[];
-  modelMetrics: Record<string, any>;
-  testProps: {
-    testPrompt: string;
-    setTestPrompt: Dispatch<SetStateAction<string>>;
-    isGenerating: boolean;
-    generatedText: string;
-    handleTestGeneration: () => Promise<void>;
-    TaskCategory: typeof TaskCategory;
+export interface AgentMessageProps {
+  message: {
+    id: string;
+    content: string;
+    timestamp: string;
+    sender: string;
+    type: 'system' | 'user' | 'agent';
+    isProcessing?: boolean;
   };
+  isLast?: boolean;
+}
+
+export interface AgentTaskCardProps {
+  task: {
+    id: string;
+    title: string;
+    description: string;
+    status: 'pending' | 'in-progress' | 'completed' | 'failed';
+    priority: 'low' | 'medium' | 'high' | 'critical';
+    assignedAgent: string;
+    createdAt: string;
+    completedAt?: string;
+  };
+  onViewDetails: (taskId: string) => void;
 }

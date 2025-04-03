@@ -1,10 +1,19 @@
+
 import React from 'react';
-import { FinancialContentInputProps } from '@/types/components/flashcard';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
-type FinancialStatementType = 'balance-sheet' | 'income-statement' | 'cash-flow' | 'ratio';
+export type FinancialStatementType = 'balance-sheet' | 'income-statement' | 'cash-flow' | 'ratio';
+
+interface FinancialContentInputProps {
+  frontContent: string;
+  setFrontContent: React.Dispatch<React.SetStateAction<string>>;
+  backContent: string;
+  setBackContent: React.Dispatch<React.SetStateAction<string>>;
+  financialType: FinancialStatementType;
+  setFinancialType: React.Dispatch<React.SetStateAction<FinancialStatementType>>;
+}
 
 const FinancialContentInput: React.FC<FinancialContentInputProps> = ({
   frontContent,
@@ -14,49 +23,53 @@ const FinancialContentInput: React.FC<FinancialContentInputProps> = ({
   financialType,
   setFinancialType
 }) => {
+  // Handle type-safe select change
+  const handleFinancialTypeChange = (value: string) => {
+    setFinancialType(value as FinancialStatementType);
+  };
+
   return (
-    <>
-      <div className="grid w-full gap-1.5">
-        <Label htmlFor="front-content">Financial Concept Question</Label>
-        <Textarea 
-          id="front-content"
-          placeholder="Enter a question about the financial statement"
-          value={frontContent}
-          onChange={(e) => setFrontContent(e.target.value)}
-          className="min-h-[100px]"
-        />
-      </div>
-      <div className="grid w-full gap-3 mt-4">
+    <div className="space-y-4">
+      <div className="space-y-2">
         <Label htmlFor="financial-type">Financial Statement Type</Label>
-        <Select 
-          value={financialType} 
-          onValueChange={(value: FinancialStatementType) => setFinancialType(value)}
-        >
+        <Select value={financialType} onValueChange={handleFinancialTypeChange}>
           <SelectTrigger>
-            <SelectValue placeholder="Select statement type" />
+            <SelectValue placeholder="Select financial statement type" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="balance-sheet">Balance Sheet</SelectItem>
             <SelectItem value="income-statement">Income Statement</SelectItem>
             <SelectItem value="cash-flow">Cash Flow Statement</SelectItem>
-            <SelectItem value="ratio">Financial Ratios</SelectItem>
+            <SelectItem value="ratio">Financial Ratio</SelectItem>
           </SelectContent>
         </Select>
       </div>
-      <div className="grid w-full gap-1.5 mt-4">
-        <Label htmlFor="back-content">Explanation</Label>
-        <Textarea 
+
+      <div className="space-y-2">
+        <Label htmlFor="front-content">Question (Front Side)</Label>
+        <Textarea
+          id="front-content"
+          value={frontContent}
+          onChange={(e) => setFrontContent(e.target.value)}
+          rows={4}
+          placeholder="Enter the question or concept description"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="back-content">Answer (Back Side)</Label>
+        <Textarea
           id="back-content"
-          placeholder="Enter explanation about the financial concept"
           value={backContent}
           onChange={(e) => setBackContent(e.target.value)}
-          className="min-h-[100px]"
+          rows={6}
+          placeholder="Enter the financial data or explanation"
         />
-        <p className="text-xs text-muted-foreground mt-1">
-          A {financialType.replace('-', ' ')} visualization will be automatically added
+        <p className="text-sm text-muted-foreground">
+          The appropriate financial chart/visualization will be generated based on your data and the selected statement type.
         </p>
       </div>
-    </>
+    </div>
   );
 };
 

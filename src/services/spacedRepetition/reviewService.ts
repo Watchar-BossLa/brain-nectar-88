@@ -1,6 +1,27 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Flashcard, fromDatabaseFormat } from '@/types/flashcard';
+
+export async function getDueFlashcards(userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('flashcards')
+      .select('*')
+      .eq('user_id', userId)
+      .lte('next_review_date', new Date().toISOString())
+      .order('next_review_date', { ascending: true });
+    
+    return { 
+      data: data ? data.map(card => fromDatabaseFormat(card)) : [],
+      error
+    };
+  } catch (error) {
+    console.error('Error fetching due flashcards:', error);
+    return { 
+      data: [],
+      error: { message: 'Failed to fetch due flashcards' }
+    };
+  }
+}
 
 export const calculateFlashcardRetention = async (userId: string) => {
   try {

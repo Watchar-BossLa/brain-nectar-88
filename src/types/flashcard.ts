@@ -1,13 +1,22 @@
 
 /**
- * Types related to Flashcards and spaced repetition system
+ * Flashcard type definitions for the Study Bee application
  */
+
+export interface FlashcardLearningStats {
+  totalCards: number;
+  masteredCards: number;
+  dueCards: number;
+  reviewsToday: number;
+  averageRetention: number;
+  streakDays: number;
+}
 
 export interface Flashcard {
   // Primary camelCase properties
   id: string;
   userId: string;
-  topicId: string | null;
+  topicId: string;
   frontContent: string;
   backContent: string;
   difficulty: number;
@@ -18,11 +27,11 @@ export interface Flashcard {
   updatedAt: string;
   easinessFactor: number;
   lastRetention: number;
-  lastReviewedAt: string | null;
+  lastReviewedAt: string;
   
   // Alias properties for compatibility
   user_id: string;
-  topic_id: string | null;
+  topic_id: string;
   front?: string;
   back?: string;
   front_content: string;
@@ -34,88 +43,52 @@ export interface Flashcard {
   updated_at: string;
   easiness_factor: number;
   last_retention: number;
-  last_reviewed_at: string | null;
+  last_reviewed_at: string;
 }
 
-export interface FlashcardCreateParams {
-  frontContent: string;
-  backContent: string;
-  topicId?: string | null;
-  difficulty?: number;
-}
-
-export interface FlashcardUpdateParams {
-  frontContent?: string;
-  backContent?: string;
-  topicId?: string | null;
-  difficulty?: number;
-  nextReviewDate?: string;
-  repetitionCount?: number;
-  masteryLevel?: number;
-  easinessFactor?: number;
-  lastRetention?: number;
-  lastReviewedAt?: string | null;
-}
-
-export interface FlashcardLearningStats {
-  totalCards: number;
-  masteredCards: number;
-  dueCards: number;
-  reviewsToday: number;
-}
-
-/**
- * Normalizes a flashcard from any format (DB or client-side) to ensure both naming
- * conventions are present
- */
-export function normalizeFlashcard(dbFlashcard: any): Flashcard {
-  if (!dbFlashcard) return null;
-
+export function fromDatabaseFormat(dbFlashcard: any): Flashcard {
   return {
     // Primary fields
     id: dbFlashcard.id || '',
-    userId: dbFlashcard.userId || dbFlashcard.user_id || '',
-    topicId: dbFlashcard.topicId || dbFlashcard.topic_id || null,
-    frontContent: dbFlashcard.frontContent || dbFlashcard.front_content || '',
-    backContent: dbFlashcard.backContent || dbFlashcard.back_content || '',
-    difficulty: dbFlashcard.difficulty || 0,
-    nextReviewDate: dbFlashcard.nextReviewDate || dbFlashcard.next_review_date || new Date().toISOString(),
-    repetitionCount: dbFlashcard.repetitionCount || dbFlashcard.repetition_count || 0,
-    masteryLevel: dbFlashcard.masteryLevel || dbFlashcard.mastery_level || 0,
-    createdAt: dbFlashcard.createdAt || dbFlashcard.created_at || new Date().toISOString(),
-    updatedAt: dbFlashcard.updatedAt || dbFlashcard.updated_at || new Date().toISOString(),
-    easinessFactor: dbFlashcard.easinessFactor || dbFlashcard.easiness_factor || 2.5,
-    lastRetention: dbFlashcard.lastRetention || dbFlashcard.last_retention || 0,
-    lastReviewedAt: dbFlashcard.lastReviewedAt || dbFlashcard.last_reviewed_at || null,
+    userId: dbFlashcard.user_id || '',
+    topicId: dbFlashcard.topic_id || '',
+    frontContent: dbFlashcard.front_content || '',
+    backContent: dbFlashcard.back_content || '',
+    difficulty: dbFlashcard.difficulty || 2.5,
+    nextReviewDate: dbFlashcard.next_review_date || new Date().toISOString(),
+    repetitionCount: dbFlashcard.repetition_count || 0,
+    masteryLevel: dbFlashcard.mastery_level || 0,
+    createdAt: dbFlashcard.created_at || new Date().toISOString(),
+    updatedAt: dbFlashcard.updated_at || new Date().toISOString(),
+    easinessFactor: dbFlashcard.easiness_factor || 2.5,
+    lastRetention: dbFlashcard.last_retention || 0,
+    lastReviewedAt: dbFlashcard.last_reviewed_at || new Date().toISOString(),
     
     // Alias fields for compatibility
-    user_id: dbFlashcard.userId || dbFlashcard.user_id || '',
-    topic_id: dbFlashcard.topicId || dbFlashcard.topic_id || null,
-    front: dbFlashcard.frontContent || dbFlashcard.front_content || '',
-    back: dbFlashcard.backContent || dbFlashcard.back_content || '',
-    front_content: dbFlashcard.frontContent || dbFlashcard.front_content || '',
-    back_content: dbFlashcard.backContent || dbFlashcard.back_content || '',
-    next_review_date: dbFlashcard.nextReviewDate || dbFlashcard.next_review_date || new Date().toISOString(),
-    repetition_count: dbFlashcard.repetitionCount || dbFlashcard.repetition_count || 0,
-    mastery_level: dbFlashcard.masteryLevel || dbFlashcard.mastery_level || 0,
-    created_at: dbFlashcard.createdAt || dbFlashcard.created_at || new Date().toISOString(),
-    updated_at: dbFlashcard.updatedAt || dbFlashcard.updated_at || new Date().toISOString(),
-    easiness_factor: dbFlashcard.easinessFactor || dbFlashcard.easiness_factor || 2.5,
-    last_retention: dbFlashcard.lastRetention || dbFlashcard.last_retention || 0,
-    last_reviewed_at: dbFlashcard.lastReviewedAt || dbFlashcard.last_reviewed_at || null
+    user_id: dbFlashcard.user_id || '',
+    topic_id: dbFlashcard.topic_id || '',
+    front: dbFlashcard.front_content || '',
+    back: dbFlashcard.back_content || '',
+    front_content: dbFlashcard.front_content || '',
+    back_content: dbFlashcard.back_content || '',
+    next_review_date: dbFlashcard.next_review_date || new Date().toISOString(),
+    repetition_count: dbFlashcard.repetition_count || 0,
+    mastery_level: dbFlashcard.mastery_level || 0,
+    created_at: dbFlashcard.created_at || new Date().toISOString(),
+    updated_at: dbFlashcard.updated_at || new Date().toISOString(),
+    easiness_factor: dbFlashcard.easiness_factor || 2.5,
+    last_retention: dbFlashcard.last_retention || 0,
+    last_reviewed_at: dbFlashcard.last_reviewed_at || new Date().toISOString()
   };
 }
 
-/**
- * Converts a flashcard to snake_case format for database operations
- */
 export function toDatabaseFormat(flashcard: Partial<Flashcard>): Record<string, any> {
   return {
     id: flashcard.id,
     user_id: flashcard.userId || flashcard.user_id,
     topic_id: flashcard.topicId || flashcard.topic_id,
-    front_content: flashcard.frontContent || flashcard.front_content,
-    back_content: flashcard.backContent || flashcard.back_content,
+    front_content: flashcard.frontContent || flashcard.front_content || flashcard.front,
+    back_content: flashcard.backContent || flashcard.back_content || flashcard.back,
     difficulty: flashcard.difficulty,
     next_review_date: flashcard.nextReviewDate || flashcard.next_review_date,
     repetition_count: flashcard.repetitionCount || flashcard.repetition_count,

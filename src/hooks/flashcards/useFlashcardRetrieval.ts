@@ -40,9 +40,9 @@ export function useFlashcardRetrieval() {
       
       if (dueError) throw dueError;
       
-      // Convert to consistent format - ensure all fields are properly transformed
-      const formattedFlashcards = (allFlashcards || []).map(fromDatabaseFormat);
-      const formattedDueCards = (dueCards || []).map(fromDatabaseFormat);
+      // Convert to consistent format using our fromDatabaseFormat function
+      const formattedFlashcards = (allFlashcards || []).map(card => fromDatabaseFormat(card));
+      const formattedDueCards = (dueCards || []).map(card => fromDatabaseFormat(card));
       
       setFlashcards(formattedFlashcards);
       setDueFlashcards(formattedDueCards);

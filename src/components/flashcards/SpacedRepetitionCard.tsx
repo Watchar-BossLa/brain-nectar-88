@@ -65,7 +65,8 @@ const SpacedRepetitionCard: React.FC<SpacedRepetitionCardProps> = ({
     try {
       const result = await updateFlashcardAfterReview(flashcard.id, difficulty);
       
-      if (result && result.error) {
+      // Check for errors in the result
+      if (result && typeof result === 'object' && 'error' in result && result.error) {
         throw new Error(result.error.message || 'Failed to update flashcard');
       }
       
