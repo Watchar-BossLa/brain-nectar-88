@@ -6,16 +6,16 @@ import { CognitiveProfile } from '../types';
  */
 export interface LearningHistoryItem {
   content?: {
-    content_type?: string;
-    topic_id?: string;
-    module_id?: string;
+    contentType?: string;
+    topicId?: string;
+    moduleId?: string;
   };
-  topic_id?: string;
-  module_id?: string;
+  topicId?: string;
+  moduleId?: string;
   status?: string;
-  progress_percentage?: number;
-  created_at: string;
-  updated_at: string;
+  progressPercentage?: number;
+  createdAt: string;
+  updatedAt: string;
   [key: string]: any;
 }
 

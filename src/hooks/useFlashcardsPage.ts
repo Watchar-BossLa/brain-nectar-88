@@ -1,27 +1,26 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/context/AuthContext';
+import { spacedRepetitionService } from '@/services/flashcards/spacedRepetitionService';
+import { supabase } from '@/integrations/supabase/client';
 
-// Define proper types for our hook
 export interface Flashcard {
   id: string;
-  user_id?: string;
+  userId?: string;
   topicId?: string | null;
-  topic_id?: string | null;
   front?: string;
   back?: string;
-  front_content?: string;
-  back_content?: string;
+  frontContent?: string;
+  backContent?: string;
   difficulty?: number;
-  next_review_date?: string;
-  repetition_count?: number;
-  mastery_level?: number;
-  created_at?: string;
-  updated_at?: string;
-  easiness_factor?: number;
-  last_retention?: number;
-  last_reviewed_at?: string | null;
+  nextReviewDate?: string;
+  repetitionCount?: number;
+  masteryLevel?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  easinessFactor?: number;
+  lastRetention?: number;
+  lastReviewedAt?: string | null;
 }
 
 export interface FlashcardLearningStats {
@@ -101,45 +100,49 @@ export const useFlashcardsPage = (): UseFlashcardsReturn => {
       
       if (dueError) throw dueError;
       
-      setFlashcards(allFlashcards || []);
-      setDueFlashcards(dueCards || []);
+      // Convert to camelCase
+      const camelCaseFlashcards = (allFlashcards || []).map(formatFlashcardToCamelCase);
+      const camelCaseDueCards = (dueCards || []).map(formatFlashcardToCamelCase);
+      
+      setFlashcards(camelCaseFlashcards);
+      setDueFlashcards(camelCaseDueCards);
       
       // Calculate stats
-      const masteredCount = (allFlashcards || []).filter(card => card.mastery_level && card.mastery_level >= 0.9).length;
-      const avgDifficulty = (allFlashcards || []).reduce((sum, card) => sum + (card.difficulty || 0), 0) / 
-                          ((allFlashcards || []).length || 1);
+      const masteredCount = camelCaseFlashcards.filter(card => card.masteryLevel && card.masteryLevel >= 0.9).length;
+      const avgDifficulty = camelCaseFlashcards.reduce((sum, card) => sum + (card.difficulty || 0), 0) / 
+                          (camelCaseFlashcards.length || 1);
       
       // Count reviews done today
       const today = new Date().toISOString().split('T')[0];
-      const reviewsToday = (allFlashcards || []).filter(card => 
-        card.last_reviewed_at && card.last_reviewed_at.startsWith(today)
+      const reviewsToday = camelCaseFlashcards.filter(card => 
+        card.lastReviewedAt && card.lastReviewedAt.startsWith(today)
       ).length;
       
       const newStats: FlashcardLearningStats = {
-        totalCards: (allFlashcards || []).length,
+        totalCards: camelCaseFlashcards.length,
         masteredCards: masteredCount,
-        dueCards: (dueCards || []).length,
+        dueCards: camelCaseDueCards.length,
         averageDifficulty: Number(avgDifficulty.toFixed(2)),
         reviewsToday,
         // Set extended stats with default values
-        learningCards: (allFlashcards || []).filter(card => 
-          card.mastery_level && card.mastery_level > 0 && card.mastery_level < 0.9
+        learningCards: camelCaseFlashcards.filter(card => 
+          card.masteryLevel && card.masteryLevel > 0 && card.masteryLevel < 0.9
         ).length,
-        newCards: (allFlashcards || []).filter(card => 
-          !card.mastery_level || card.mastery_level === 0
+        newCards: camelCaseFlashcards.filter(card => 
+          !card.masteryLevel || card.masteryLevel === 0
         ).length,
         reviewedToday: reviewsToday,
         averageRetention: 0.85, // Default placeholder
         streakDays: 1, // Default placeholder
-        totalReviews: (allFlashcards || []).reduce((sum, card) => sum + (card.repetition_count || 0), 0),
-        averageEaseFactor: (allFlashcards || []).reduce((sum, card) => sum + (card.easiness_factor || 2.5), 0) / 
-                          ((allFlashcards || []).length || 1),
+        totalReviews: camelCaseFlashcards.reduce((sum, card) => sum + (card.repetitionCount || 0), 0),
+        averageEaseFactor: camelCaseFlashcards.reduce((sum, card) => sum + (card.easinessFactor || 2.5), 0) / 
+                          (camelCaseFlashcards.length || 1),
         retentionRate: 0.85, // Default placeholder
-        strugglingCardCount: (allFlashcards || []).filter(card => 
+        strugglingCardCount: camelCaseFlashcards.filter(card => 
           card.difficulty && card.difficulty >= 3
         ).length,
         learningEfficiency: 0.75, // Default placeholder
-        recommendedDailyReviews: Math.min(20, Math.ceil((dueCards || []).length * 1.2)) // Simple formula
+        recommendedDailyReviews: Math.min(20, Math.ceil(camelCaseDueCards.length * 1.2)) // Simple formula
       };
       
       setStats(newStats);
@@ -156,16 +159,36 @@ export const useFlashcardsPage = (): UseFlashcardsReturn => {
     }
   };
 
+  // Helper function to format snake_case database fields to camelCase
+  const formatFlashcardToCamelCase = (flashcard: any): Flashcard => {
+    return {
+      id: flashcard.id,
+      userId: flashcard.user_id,
+      topicId: flashcard.topic_id,
+      frontContent: flashcard.front_content,
+      backContent: flashcard.back_content,
+      difficulty: flashcard.difficulty,
+      nextReviewDate: flashcard.next_review_date,
+      repetitionCount: flashcard.repetition_count,
+      masteryLevel: flashcard.mastery_level,
+      createdAt: flashcard.created_at,
+      updatedAt: flashcard.updated_at,
+      easinessFactor: flashcard.easiness_factor,
+      lastRetention: flashcard.last_retention,
+      lastReviewedAt: flashcard.last_reviewed_at
+    };
+  };
+
   const createFlashcard = async (flashcard: Partial<Flashcard>) => {
     try {
       setLoading(true);
       
       // Ensure required fields
-      if (!flashcard.front && !flashcard.front_content) {
+      if (!flashcard.front && !flashcard.frontContent) {
         throw new Error('Front content is required');
       }
       
-      if (!flashcard.back && !flashcard.back_content) {
+      if (!flashcard.back && !flashcard.backContent) {
         throw new Error('Back content is required');
       }
       
@@ -175,12 +198,12 @@ export const useFlashcardsPage = (): UseFlashcardsReturn => {
         throw new Error('User not authenticated');
       }
       
-      // Prepare data for insert
+      // Prepare data for insert - converting camelCase to snake_case for database
       const newFlashcard = {
         user_id: session.user.id,
-        front_content: flashcard.front || flashcard.front_content,
-        back_content: flashcard.back || flashcard.back_content,
-        topic_id: flashcard.topicId || flashcard.topic_id || null,
+        front_content: flashcard.front || flashcard.frontContent,
+        back_content: flashcard.back || flashcard.backContent,
+        topic_id: flashcard.topicId || null,
         difficulty: flashcard.difficulty || 1,
         mastery_level: 0,
         next_review_date: new Date().toISOString(),
@@ -219,22 +242,22 @@ export const useFlashcardsPage = (): UseFlashcardsReturn => {
     try {
       setLoading(true);
       
-      // Prepare data for update
+      // Prepare data for update - converting camelCase to snake_case for database
       const updateData: any = {};
-      if (updates.front || updates.front_content) {
-        updateData.front_content = updates.front || updates.front_content;
+      if (updates.front || updates.frontContent) {
+        updateData.front_content = updates.front || updates.frontContent;
       }
-      if (updates.back || updates.back_content) {
-        updateData.back_content = updates.back || updates.back_content;
+      if (updates.back || updates.backContent) {
+        updateData.back_content = updates.back || updates.backContent;
       }
       if (updates.difficulty !== undefined) {
         updateData.difficulty = updates.difficulty;
       }
-      if (updates.topicId || updates.topic_id) {
-        updateData.topic_id = updates.topicId || updates.topic_id;
+      if (updates.topicId !== undefined) {
+        updateData.topic_id = updates.topicId;
       }
-      if (updates.next_review_date) {
-        updateData.next_review_date = updates.next_review_date;
+      if (updates.nextReviewDate) {
+        updateData.next_review_date = updates.nextReviewDate;
       }
       
       const { error: updateError } = await supabase

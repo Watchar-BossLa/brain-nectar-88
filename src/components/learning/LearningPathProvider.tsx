@@ -10,7 +10,7 @@ type LearningPathTopic = {
   description: string | null;
   position: number;
   status: 'not_started' | 'in_progress' | 'completed';
-  mastery_level: number;
+  masteryLevel: number;
 };
 
 type LearningPathModule = {
@@ -24,10 +24,10 @@ type LearningPathModule = {
 
 type LearningPath = {
   id: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
   status: 'active' | 'inactive' | 'completed';
-  path_data: Record<string, any>;
+  pathData: Record<string, any>;
   modules: LearningPathModule[];
 };
 

@@ -3,159 +3,159 @@ import { Session, User } from '@supabase/supabase-js';
 
 export type Profile = {
   id: string;
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  avatar_url: string | null;
-  created_at: string;
-  updated_at: string;
+  avatarUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type Qualification = {
   id: string;
   title: string;
   description: string | null;
-  image_url: string | null;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  imageUrl: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type Module = {
   id: string;
-  qualification_id: string;
+  qualificationId: string;
   title: string;
   description: string | null;
-  image_url: string | null;
-  order_index: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  imageUrl: string | null;
+  orderIndex: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type Topic = {
   id: string;
-  module_id: string;
+  moduleId: string;
   title: string;
   description: string | null;
-  order_index: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  orderIndex: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type Content = {
   id: string;
-  topic_id: string;
+  topicId: string;
   title: string;
-  content_type: 'text' | 'video' | 'pdf' | 'quiz' | 'flashcard';
-  content_data: any;
-  order_index: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  contentType: 'text' | 'video' | 'pdf' | 'quiz' | 'flashcard';
+  contentData: any;
+  orderIndex: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type UserProgress = {
   id: string;
-  user_id: string;
-  content_id: string;
+  userId: string;
+  contentId: string;
   status: 'not_started' | 'in_progress' | 'completed';
-  progress_percentage: number;
-  last_accessed_at: string;
-  created_at: string;
-  updated_at: string;
+  progressPercentage: number;
+  lastAccessedAt: string;
+  createdAt: string;
+  updatedAt: string;
   content?: Content;
 };
 
 export type Flashcard = {
   id: string;
-  user_id: string;
-  topic_id: string | null;
-  front_content: string;
-  back_content: string;
+  userId: string;
+  topicId: string | null;
+  frontContent: string;
+  backContent: string;
   difficulty: number;
-  next_review_date: string;
-  repetition_count: number;
-  mastery_level: number;
-  created_at: string;
-  updated_at: string;
+  nextReviewDate: string;
+  repetitionCount: number;
+  masteryLevel: number;
+  createdAt: string;
+  updatedAt: string;
   // Add the missing properties that we're using in our code
-  easiness_factor?: number;
-  last_retention?: number;
-  last_reviewed_at?: string;
+  easinessFactor?: number;
+  lastRetention?: number;
+  lastReviewedAt?: string;
 };
 
 export type FlashcardReview = {
   id: string;
-  user_id: string;
-  flashcard_id: string;
-  difficulty_rating: number;
-  reviewed_at: string;
-  retention_estimate: number;
-  created_at?: string;
+  userId: string;
+  flashcardId: string;
+  difficultyRating: number;
+  reviewedAt: string;
+  retentionEstimate: number;
+  createdAt?: string;
 };
 
 export type UserNote = {
   id: string;
-  user_id: string;
-  content_id: string | null;
+  userId: string;
+  contentId: string | null;
   title: string;
   content: string | null;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type Assessment = {
   id: string;
   title: string;
   description: string | null;
-  module_id: string | null;
-  time_limit_minutes: number | null;
-  passing_score: number | null;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  moduleId: string | null;
+  timeLimitMinutes: number | null;
+  passingScore: number | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type Question = {
   id: string;
-  assessment_id: string;
-  question_text: string;
-  question_type: 'multiple_choice' | 'true_false' | 'essay' | 'calculation';
+  assessmentId: string;
+  questionText: string;
+  questionType: 'multiple_choice' | 'true_false' | 'essay' | 'calculation';
   options: any | null;
-  correct_answer: any | null;
+  correctAnswer: any | null;
   points: number;
   difficulty: number | null;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type UserAssessment = {
   id: string;
-  user_id: string;
-  assessment_id: string;
+  userId: string;
+  assessmentId: string;
   status: 'not_started' | 'in_progress' | 'completed' | 'graded';
-  start_time: string | null;
-  end_time: string | null;
+  startTime: string | null;
+  endTime: string | null;
   score: number | null;
   feedback: string | null;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type StudyPlan = {
   id: string;
-  user_id: string;
-  qualification_id: string | null;
+  userId: string;
+  qualificationId: string | null;
   title: string;
   description: string | null;
-  start_date: string | null;
-  end_date: string | null;
-  daily_goal_minutes: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  startDate: string | null;
+  endDate: string | null;
+  dailyGoalMinutes: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type AuthState = {
