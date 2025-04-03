@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getDueFlashcards, updateFlashcardAfterReview } from '@/services/spacedRepetition';
 import { useAuth } from '@/context/auth';
-import { Flashcard } from '@/types/flashcard';
+import { Flashcard, fromDatabaseFormat } from '@/types/flashcard';
 
 type ReviewState = 'reviewing' | 'answering' | 'complete';
 
@@ -28,24 +28,6 @@ export const useFlashcardReview = (onComplete?: () => void) => {
   });
   const { user } = useAuth();
 
-  // Convert database flashcard to consistent Flashcard type
-  const convertToFlashcard = (dbCard: any): Flashcard => ({
-    id: dbCard.id,
-    userId: dbCard.user_id || '',
-    topicId: dbCard.topic_id || null,
-    frontContent: dbCard.front_content || '',
-    backContent: dbCard.back_content || '',
-    difficulty: dbCard.difficulty || 0,
-    nextReviewDate: dbCard.next_review_date || new Date().toISOString(),
-    repetitionCount: dbCard.repetition_count || 0,
-    masteryLevel: dbCard.mastery_level || 0,
-    createdAt: dbCard.created_at || new Date().toISOString(),
-    updatedAt: dbCard.updated_at || new Date().toISOString(),
-    easinessFactor: dbCard.easiness_factor || 2.5,
-    lastRetention: dbCard.last_retention || 0,
-    lastReviewedAt: dbCard.last_reviewed_at || null
-  });
-
   // Fetch due flashcards
   useEffect(() => {
     const fetchCards = async () => {
@@ -58,7 +40,7 @@ export const useFlashcardReview = (onComplete?: () => void) => {
         
         if (data && Array.isArray(data)) {
           // Convert all cards to the consistent Flashcard type
-          const flashcards = data.map(convertToFlashcard);
+          const flashcards = data.map(fromDatabaseFormat);
           setReviewCards(flashcards);
         }
       } catch (error) {

@@ -3,12 +3,13 @@ import { useState } from 'react';
 import { useFlashcardRetrieval } from './useFlashcardRetrieval';
 import { useFlashcardStats } from './useFlashcardStats';
 import { useFlashcardMutations } from './useFlashcardMutations';
-import { Flashcard, FlashcardLearningStats } from './useFlashcardTypes';
+import { Flashcard, FlashcardLearningStats } from '@/types/flashcard';
+import { useAuth } from '@/context/auth';
 
 export interface UseFlashcardsReturn {
   flashcards: Flashcard[];
   dueFlashcards: Flashcard[];
-  stats: FlashcardLearningStats;
+  stats: FlashcardLearningStats & { averageDifficulty: number };
   loading: boolean;
   error: Error | null;
   refreshFlashcards: () => Promise<void>;
@@ -27,10 +28,13 @@ export interface UseFlashcardsReturn {
 }
 
 export function useFlashcardsPage(): UseFlashcardsReturn {
+  const { user } = useAuth();
+  const userId = user?.id || '';
+  
   // Compose the specialized hooks
   const { flashcards, dueFlashcards, loading: retrievalLoading, error: retrievalError, fetchFlashcards } = useFlashcardRetrieval();
-  const { stats, updateStats } = useFlashcardStats();
-  const { createFlashcard, updateFlashcard, deleteFlashcard, loading: mutationLoading, error: mutationError } = useFlashcardMutations(refreshStats);
+  const { stats, isLoading: statsLoading, error: statsError, refreshStats } = useFlashcardStats();
+  const { createFlashcard: create, updateFlashcard: update, deleteFlashcard: remove, isCreating, isUpdating, isDeleting } = useFlashcardMutations(userId);
   
   // Local UI state
   const [activeTab, setActiveTab] = useState('all');
@@ -38,14 +42,9 @@ export function useFlashcardsPage(): UseFlashcardsReturn {
 
   // Refresh all flashcard data
   const refreshFlashcards = async () => {
-    const { flashcards, dueFlashcards } = await fetchFlashcards();
-    updateStats(flashcards, dueFlashcards);
+    await fetchFlashcards();
+    await refreshStats();
   };
-
-  // Update stats only
-  function refreshStats() {
-    updateStats(flashcards, dueFlashcards);
-  }
 
   // UI handlers
   const handleCreateFlashcard = () => {
@@ -64,13 +63,25 @@ export function useFlashcardsPage(): UseFlashcardsReturn {
   };
 
   // Derived state
-  const loading = retrievalLoading || mutationLoading;
-  const error = retrievalError || mutationError;
+  const loading = retrievalLoading || statsLoading || isCreating || isUpdating || isDeleting;
+  const error = retrievalError || statsError;
 
-  // Initialize stats if they haven't been set yet
-  if (stats.totalCards === 0 && flashcards.length > 0) {
-    updateStats(flashcards, dueFlashcards);
-  }
+  // Create wrapper functions for mutators
+  const createFlashcard = async (flashcardData: Partial<Flashcard>) => {
+    const result = await create(flashcardData);
+    return result?.data || null;
+  };
+
+  const updateFlashcard = async (id: string, updates: Partial<Flashcard>) => {
+    const flashcardToUpdate = { id, ...updates } as Flashcard;
+    const result = await update(flashcardToUpdate);
+    return result !== null;
+  };
+
+  const deleteFlashcard = async (id: string) => {
+    const result = await remove(id);
+    return result?.success || false;
+  };
 
   return {
     flashcards,
@@ -95,5 +106,5 @@ export function useFlashcardsPage(): UseFlashcardsReturn {
 }
 
 // Re-export the types for convenience
-export type { Flashcard, FlashcardLearningStats } from './useFlashcardTypes';
-export { formatFlashcardToCamelCase, formatFlashcardToSnakeCase } from './useFlashcardTypes';
+export type { Flashcard, FlashcardLearningStats } from '@/types/flashcard';
+export { fromDatabaseFormat, toDatabaseFormat } from '@/types/flashcard';

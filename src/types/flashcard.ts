@@ -53,6 +53,7 @@ export interface FlashcardLearningStats {
   strugglingCardCount?: number;
   learningEfficiency?: number;
   recommendedDailyReviews?: number;
+  averageDifficulty?: number;
 }
 
 /**

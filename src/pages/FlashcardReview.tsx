@@ -36,24 +36,6 @@ const FlashcardReview = () => {
   const totalToReview = reviewCards.length || 0;
   const isFlipped = reviewState === 'answering';
 
-  // Safe conversion to ensure the Flashcard type is consistent
-  const displayCard = currentCard ? {
-    id: currentCard.id,
-    userId: currentCard.userId || currentCard.user_id || '',
-    topicId: currentCard.topicId || currentCard.topic_id || null,
-    frontContent: currentCard.frontContent || currentCard.front_content || '',
-    backContent: currentCard.backContent || currentCard.back_content || '',
-    difficulty: currentCard.difficulty || 0,
-    nextReviewDate: currentCard.nextReviewDate || currentCard.next_review_date || new Date().toISOString(),
-    repetitionCount: currentCard.repetitionCount || currentCard.repetition_count || 0,
-    masteryLevel: currentCard.masteryLevel || currentCard.mastery_level || 0,
-    createdAt: currentCard.createdAt || currentCard.created_at || new Date().toISOString(),
-    updatedAt: currentCard.updatedAt || currentCard.updated_at || new Date().toISOString(),
-    easinessFactor: currentCard.easinessFactor || currentCard.easiness_factor || 2.5,
-    lastRetention: currentCard.lastRetention || currentCard.last_retention || 0,
-    lastReviewedAt: currentCard.lastReviewedAt || currentCard.last_reviewed_at || null
-  } as Flashcard : {} as Flashcard;
-
   return (
     <div className="container max-w-5xl py-10">
       <ReviewHeader 
@@ -63,7 +45,7 @@ const FlashcardReview = () => {
       
       {currentCard && (
         <FlashcardView
-          flashcard={displayCard}
+          flashcard={currentCard}
           isFlipped={isFlipped}
           onFlip={handleFlip}
         />

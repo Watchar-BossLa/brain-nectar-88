@@ -2,9 +2,11 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Flashcard, formatFlashcardToCamelCase } from './useFlashcardTypes';
+import { Flashcard, fromDatabaseFormat } from '@/types/flashcard';
+import { useAuth } from '@/context/auth';
 
 export function useFlashcardRetrieval() {
+  const { user } = useAuth();
   const { toast } = useToast();
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [dueFlashcards, setDueFlashcards] = useState<Flashcard[]>([]);
@@ -12,6 +14,10 @@ export function useFlashcardRetrieval() {
   const [error, setError] = useState<Error | null>(null);
 
   const fetchFlashcards = async () => {
+    if (!user) {
+      return { flashcards: [], dueFlashcards: [] };
+    }
+    
     try {
       setLoading(true);
       
@@ -19,6 +25,7 @@ export function useFlashcardRetrieval() {
       const { data: allFlashcards, error: allError } = await supabase
         .from('flashcards')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       
       if (allError) throw allError;
@@ -27,22 +34,23 @@ export function useFlashcardRetrieval() {
       const { data: dueCards, error: dueError } = await supabase
         .from('flashcards')
         .select('*')
+        .eq('user_id', user.id)
         .lte('next_review_date', new Date().toISOString())
         .order('next_review_date', { ascending: true });
       
       if (dueError) throw dueError;
       
-      // Convert to camelCase - ensure all fields are properly transformed
-      const camelCaseFlashcards = (allFlashcards || []).map(formatFlashcardToCamelCase);
-      const camelCaseDueCards = (dueCards || []).map(formatFlashcardToCamelCase);
+      // Convert to consistent format - ensure all fields are properly transformed
+      const formattedFlashcards = (allFlashcards || []).map(fromDatabaseFormat);
+      const formattedDueCards = (dueCards || []).map(fromDatabaseFormat);
       
-      setFlashcards(camelCaseFlashcards);
-      setDueFlashcards(camelCaseDueCards);
+      setFlashcards(formattedFlashcards);
+      setDueFlashcards(formattedDueCards);
       setError(null);
       
       return { 
-        flashcards: camelCaseFlashcards, 
-        dueFlashcards: camelCaseDueCards 
+        flashcards: formattedFlashcards, 
+        dueFlashcards: formattedDueCards 
       };
     } catch (err) {
       console.error('Error fetching flashcards:', err);
@@ -60,7 +68,7 @@ export function useFlashcardRetrieval() {
 
   useEffect(() => {
     fetchFlashcards();
-  }, []);
+  }, [user]);
 
   return {
     flashcards,

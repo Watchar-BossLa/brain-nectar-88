@@ -95,7 +95,7 @@ const Flashcards = () => {
     totalCards: stats.totalCards || 0,
     masteredCards: stats.masteredCards || 0,
     dueCards: stats.dueCards || 0,
-    reviewsToday: stats.reviewsToday || 0,
+    reviewsToday: stats.reviewedToday || 0,
     averageDifficulty: stats.averageDifficulty || 0
   };
 

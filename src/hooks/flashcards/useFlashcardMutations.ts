@@ -1,8 +1,8 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createFlashcard, deleteFlashcard, updateFlashcard } from '@/services/spacedRepetition';
+import { createFlashcard, deleteFlashcard } from '@/services/spacedRepetition';
 import { useToast } from '@/hooks/use-toast';
-import { Flashcard } from '@/types/flashcard';
+import { Flashcard, toDatabaseFormat, fromDatabaseFormat } from '@/types/flashcard';
 
 export const useFlashcardMutations = (userId: string) => {
   const queryClient = useQueryClient();
@@ -40,7 +40,18 @@ export const useFlashcardMutations = (userId: string) => {
   // Update flashcard mutation
   const updateMutation = useMutation({
     mutationFn: async (flashcard: Flashcard) => {
-      return updateFlashcard(flashcard);
+      // Convert to database format to ensure consistent property names
+      const dbFormat = toDatabaseFormat(flashcard);
+      
+      // Update using the Supabase client directly
+      const { data, error } = await window.supabase
+        .from('flashcards')
+        .update(dbFormat)
+        .eq('id', flashcard.id)
+        .select();
+        
+      if (error) throw error;
+      return data ? fromDatabaseFormat(data[0]) : null;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['flashcards', userId] });
