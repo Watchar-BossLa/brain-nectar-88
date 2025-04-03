@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { ContentTypeSelectorProps } from '@/types/components';
+import { ContentTypeSelectorProps } from '@/types/components/flashcard';
 import { Button } from '@/components/ui/button';
 import { BookText, FormInput, Calculator } from 'lucide-react';
 

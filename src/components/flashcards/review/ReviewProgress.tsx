@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { ReviewProgressProps } from '@/types/components';
+import { ReviewProgressProps } from '@/types/components/flashcard';
 import { Progress } from '@/components/ui/progress';
 
 const ReviewProgress: React.FC<ReviewProgressProps> = ({

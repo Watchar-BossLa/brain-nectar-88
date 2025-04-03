@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { ReviewLoadingProps } from '@/types/components';
+import { ReviewLoadingProps } from '@/types/components/flashcard';
 import { Loader2 } from 'lucide-react';
 
 const ReviewLoading: React.FC<ReviewLoadingProps> = () => {

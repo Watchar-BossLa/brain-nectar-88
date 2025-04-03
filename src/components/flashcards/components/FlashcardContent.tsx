@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FlashcardContentProps } from '@/types/components';
+import { FlashcardContentProps } from '@/types/components/flashcard';
 import { renderContent } from '../utils/content-renderer';
 
 export const FlashcardContent: React.FC<FlashcardContentProps> = ({

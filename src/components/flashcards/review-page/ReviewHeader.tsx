@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { ReviewHeaderProps } from '@/types/components';
+import { ReviewHeaderProps } from '@/types/components/flashcard';
 import { Progress } from '@/components/ui/progress';
 
 const ReviewHeader: React.FC<ReviewHeaderProps> = ({ 

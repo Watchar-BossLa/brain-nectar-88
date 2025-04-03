@@ -1,19 +1,10 @@
 import React from 'react';
-import { FinancialContentInputProps } from '@/types/components';
+import { FinancialContentInputProps } from '@/types/components/flashcard';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type FinancialStatementType = 'balance-sheet' | 'income-statement' | 'cash-flow' | 'ratio';
-
-interface FinancialContentInputProps {
-  frontContent: string;
-  setFrontContent: (value: string) => void;
-  backContent: string;
-  setBackContent: (value: string) => void;
-  financialType: FinancialStatementType;
-  setFinancialType: (value: FinancialStatementType) => void;
-}
 
 const FinancialContentInput: React.FC<FinancialContentInputProps> = ({
   frontContent,

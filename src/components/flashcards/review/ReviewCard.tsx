@@ -1,15 +1,15 @@
 import React from 'react';
-import { ReviewCardProps } from '@/types/components';
+import { ReviewCardProps } from '@/types/components/flashcard';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Flashcard } from '@/types/supabase';
+import { Flashcard } from '@/types/flashcard';
 import { motion } from 'framer-motion';
 
 const ReviewCard: React.FC<ReviewCardProps> = ({
   currentCard,
   isFlipped,
   onFlip,
-  onRating
+  onRate
 }) => {
   return (
     <motion.div
@@ -45,7 +45,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
                   key={rating}
                   variant={rating <= 2 ? "destructive" : rating >= 4 ? "default" : "outline"}
                   className="flex-1"
-                  onClick={() => onRating(rating)}
+                  onClick={() => onRate(rating)}
                 >
                   {rating === 1 && "Forgot"}
                   {rating === 2 && "Hard"}

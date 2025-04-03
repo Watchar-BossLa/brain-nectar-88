@@ -1,8 +1,9 @@
+
 import React from 'react';
-import { FlashcardViewProps } from '@/types/components';
+import { FlashcardViewProps } from '@/types/components/flashcard';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Flashcard } from '@/types/supabase';
+import { Flashcard } from '@/types/flashcard';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const FlashcardView: React.FC<FlashcardViewProps> = ({

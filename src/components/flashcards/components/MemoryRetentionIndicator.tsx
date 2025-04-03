@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { MemoryRetentionIndicatorProps } from '@/types/components';
+import { MemoryRetentionIndicatorProps } from '@/types/components/flashcard';
 import { Brain } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 

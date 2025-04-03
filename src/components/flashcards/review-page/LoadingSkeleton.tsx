@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { LoadingSkeletonProps } from '@/types/components';
+import { LoadingSkeletonProps } from '@/types/components/flashcard';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const LoadingSkeleton: React.FC<LoadingSkeletonProps> = () => {

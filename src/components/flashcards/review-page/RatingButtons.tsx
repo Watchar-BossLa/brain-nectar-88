@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { RatingButtonsProps } from '@/types/components';
+import { RatingButtonsProps } from '@/types/components/flashcard';
 import { Button } from '@/components/ui/button';
 import { XIcon, HelpCircleIcon, CheckIcon, SkipForwardIcon } from 'lucide-react';
 

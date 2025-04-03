@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { DifficultyRatingButtonsProps } from '@/types/components';
+import { DifficultyRatingButtonsProps } from '@/types/components/flashcard';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 

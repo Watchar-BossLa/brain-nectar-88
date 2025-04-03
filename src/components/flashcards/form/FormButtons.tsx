@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { FormButtonsProps } from '@/types/components';
+import { FormButtonsProps } from '@/types/components/flashcard';
 import { Button } from '@/components/ui/button';
 
 const FormButtons: React.FC<FormButtonsProps> = ({
