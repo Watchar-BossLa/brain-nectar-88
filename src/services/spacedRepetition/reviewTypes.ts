@@ -1,42 +1,52 @@
 
 /**
- * Type for flashcard retention calculation result
+ * Types for flashcard review system
  */
-export interface FlashcardRetentionResult {
-  overallRetention: number;
-  cardRetention: {
-    id: string;
-    retention: number;
-    masteryLevel: number;
-    daysUntilReview: number;
-  }[];
+
+/**
+ * Individual flashcard retention result
+ */
+export interface FlashcardRetentionItem {
+  id: string;
+  retention: number;
+  masteryLevel: number;
+  daysUntilReview: number;
 }
 
 /**
- * Type for flashcard learning statistics
+ * Overall retention calculation result
+ */
+export interface FlashcardRetentionResult {
+  overallRetention: number;
+  cardRetention: FlashcardRetentionItem[];
+}
+
+/**
+ * Extended learning statistics for flashcards
  */
 export interface FlashcardLearningStats {
-  // Core usage metrics
   totalCards: number;
   dueCards: number;
   masteredCards: number;
   learningCards: number;
   newCards: number;
-  
-  // Performance metrics
   reviewedToday: number;
-  totalReviews?: number;
   averageRetention: number;
   streakDays: number;
-  
-  // Additional stats
+  totalReviews?: number;
   averageEaseFactor?: number;
   retentionRate?: number;
   strugglingCardCount?: number;
   learningEfficiency?: number;
   recommendedDailyReviews?: number;
-  
-  // Legacy properties for backward compatibility
-  averageDifficulty?: number;
-  reviewsToday?: number;
+}
+
+/**
+ * Result of a flashcard review
+ */
+export interface FlashcardReviewResult {
+  flashcardId: string;
+  difficulty: number;
+  reviewedAt: string;
+  userId?: string;
 }

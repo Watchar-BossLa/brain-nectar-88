@@ -23,11 +23,17 @@ import {
 
 import { 
   updateFlashcardAfterReview,
+  recordFlashcardReview,
   calculateFlashcardRetention,
-  getFlashcardLearningStats,
-  type FlashcardRetentionResult,
-  type FlashcardLearningStats
+  getFlashcardLearningStats
 } from './reviewService';
+
+import {
+  FlashcardRetentionResult,
+  FlashcardLearningStats,
+  FlashcardRetentionItem,
+  FlashcardReviewResult
+} from './reviewTypes';
 
 export {
   // Algorithm
@@ -51,8 +57,13 @@ export {
   
   // Review management
   updateFlashcardAfterReview,
+  recordFlashcardReview,
   calculateFlashcardRetention,
   getFlashcardLearningStats,
+  
+  // Types
   type FlashcardRetentionResult,
-  type FlashcardLearningStats
+  type FlashcardLearningStats,
+  type FlashcardRetentionItem,
+  type FlashcardReviewResult
 };
