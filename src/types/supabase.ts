@@ -1,4 +1,3 @@
-
 import { Session, User } from '@supabase/supabase-js';
 
 export type Profile = {
@@ -71,19 +70,30 @@ export type UserProgress = {
 export type Flashcard = {
   id: string;
   userId: string;
+  user_id: string;
   topicId: string | null;
+  topic_id: string | null;
   frontContent: string;
+  front_content: string;
   backContent: string;
+  back_content: string;
   difficulty: number;
   nextReviewDate: string;
+  next_review_date: string;
   repetitionCount: number;
+  repetition_count: number;
   masteryLevel: number;
+  mastery_level: number;
   createdAt: string;
+  created_at: string;
   updatedAt: string;
-  // Add the missing properties that we're using in our code
-  easinessFactor?: number;
-  lastRetention?: number;
-  lastReviewedAt?: string;
+  updated_at: string;
+  easinessFactor: number;
+  easiness_factor: number;
+  lastRetention: number;
+  last_retention: number;
+  lastReviewedAt: string | null;
+  last_reviewed_at: string | null;
 };
 
 export type FlashcardReview = {

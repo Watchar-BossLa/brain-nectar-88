@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { calculateNextReviewDate } from '@/services/spacedRepetition';
 import { FlashcardContent } from './components/FlashcardContent';
 import DeleteFlashcardDialog from './DeleteFlashcardDialog';
 import { format } from 'date-fns';
@@ -10,8 +9,11 @@ import { format } from 'date-fns';
 interface Flashcard {
   id: string;
   front_content?: string;
+  frontContent?: string;
   back_content?: string;
+  backContent?: string;
   next_review_date?: string;
+  nextReviewDate?: string;
   [key: string]: any; // To allow for other properties
 }
 
@@ -53,14 +55,13 @@ const FlashcardCard: React.FC<FlashcardCardProps> = ({
     }
   };
 
-  // Ensure we have the next_review_date property before using it
-  const nextReviewDate = flashcard.next_review_date 
-    ? new Date(flashcard.next_review_date) 
-    : null;
+  // Safely get the content from either camelCase or snake_case properties
+  const frontContent = flashcard.frontContent || flashcard.front_content || '';
+  const backContent = flashcard.backContent || flashcard.back_content || '';
   
-  // Safely access front_content and back_content, providing fallbacks
-  const frontContent = flashcard.front_content || flashcard.frontContent || '';
-  const backContent = flashcard.back_content || flashcard.backContent || '';
+  // Ensure we have the next_review_date property before using it
+  const reviewDateStr = flashcard.nextReviewDate || flashcard.next_review_date;
+  const nextReviewDate = reviewDateStr ? new Date(reviewDateStr) : null;
   
   return (
     <>
