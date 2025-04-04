@@ -21,7 +21,7 @@ const Dashboard = () => {
         <StatsOverview />
 
         <div className="mb-6">
-          <Tabs defaultValue="learning-path" className="w-full">
+          <Tabs defaultValue="learning-path">
             <TabsList className="grid grid-cols-3 w-full max-w-md">
               <TabsTrigger value="learning-path" className="flex gap-2 items-center justify-center">
                 <BookOpen className="h-4 w-4" />
@@ -37,8 +37,8 @@ const Dashboard = () => {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="learning-path" className="mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <TabsContent value="learning-path">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                 <Card>
                   <CardHeader>
                     <CardTitle>Current Progress</CardTitle>
@@ -82,7 +82,7 @@ const Dashboard = () => {
             </TabsContent>
 
             <TabsContent value="achievements">
-              <Card>
+              <Card className="mt-6">
                 <CardHeader>
                   <CardTitle>Your Achievements</CardTitle>
                 </CardHeader>
@@ -95,7 +95,7 @@ const Dashboard = () => {
             </TabsContent>
 
             <TabsContent value="schedule">
-              <Card>
+              <Card className="mt-6">
                 <CardHeader>
                   <CardTitle>Study Schedule</CardTitle>
                 </CardHeader>
