@@ -3,21 +3,22 @@
  * Types for the multi-agent system
  */
 import { 
-  AgentType, 
-  TaskType, 
-  TaskPriority, 
-  TaskStatus, 
-  MessageType 
+  AgentType as AgentTypeEnum, 
+  TaskType as TaskTypeEnum, 
+  TaskPriority as TaskPriorityEnum, 
+  TaskStatus as TaskStatusEnum, 
+  MessageType as MessageTypeEnum 
 } from '../../types/enums';
 
-// Re-export for backward compatibility
-export { 
-  AgentType, 
-  TaskType, 
-  TaskPriority, 
-  TaskStatus, 
-  MessageType 
-};
+// Re-export the enum types
+export type AgentType = AgentTypeEnum;
+export type TaskType = TaskTypeEnum;
+export type TaskPriority = TaskPriorityEnum;
+export type TaskStatus = TaskStatusEnum;
+export type MessageType = MessageTypeEnum;
+
+// Also provide the enums for direct access
+export { AgentTypeEnum, TaskTypeEnum, TaskPriorityEnum, TaskStatusEnum, MessageTypeEnum };
 
 /**
  * A task that can be assigned to one or more agents
@@ -70,10 +71,13 @@ export interface SystemState {
 export interface CognitiveProfile {
   userId: string;
   learningSpeed: Record<string, number>;
-  preferredContentFormats: string[];
+  preferredContentFormats?: string[];
+  contentPreferences?: string[];
+  strengths?: string[];
+  weaknesses?: string[];
   knowledgeGraph: Record<string, string[]>;
-  attentionSpan: number;
-  retentionRates: Record<string, number>;
+  attentionSpan?: number;
+  retentionRates?: Record<string, number>;
   lastUpdated: string;
 }
 

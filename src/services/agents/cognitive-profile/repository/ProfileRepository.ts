@@ -1,6 +1,7 @@
 
 import { dbOperations } from './dbOperations';
 import { cacheService } from './cacheService';
+import { CognitiveProfile } from '../../types';
 
 /**
  * Profile Repository
@@ -11,11 +12,11 @@ export class ProfileRepository {
   /**
    * Get a user's cognitive profile
    */
-  async getProfile(userId: string) {
+  async getProfile(userId: string): Promise<CognitiveProfile | null> {
     // Try to get from cache first
     const cachedProfile = cacheService.getItem(`profile-${userId}`);
     if (cachedProfile) {
-      return cachedProfile;
+      return cachedProfile as CognitiveProfile;
     }
     
     // If not in cache, get from database
@@ -30,15 +31,24 @@ export class ProfileRepository {
   }
   
   /**
+   * Get a user's cognitive profile (alias for getProfile)
+   */
+  async getCognitiveProfile(userId: string): Promise<CognitiveProfile | null> {
+    return this.getProfile(userId);
+  }
+  
+  /**
    * Save or update a user's cognitive profile
    */
-  async saveProfile(userId: string, profileData: any) {
+  async saveProfile(userId: string, profileData: Partial<CognitiveProfile>): Promise<boolean> {
     // Save to database
     const success = await dbOperations.saveProfile(userId, profileData);
     
     // Update cache
     if (success) {
-      cacheService.setItem(`profile-${userId}`, profileData);
+      const existingProfile = await this.getProfile(userId) || { userId };
+      const updatedProfile = { ...existingProfile, ...profileData };
+      cacheService.setItem(`profile-${userId}`, updatedProfile);
     }
     
     return success;
@@ -47,14 +57,15 @@ export class ProfileRepository {
   /**
    * Update specific aspects of a user's cognitive profile
    */
-  async updateProfile(userId: string, updates: any) {
+  async updateProfile(userId: string, updates: Partial<CognitiveProfile>): Promise<boolean> {
     // Update in database
     const success = await dbOperations.updateProfile(userId, updates);
     
     // If successful, update cache
     if (success) {
-      const existingProfile = cacheService.getItem(`profile-${userId}`) || {};
-      cacheService.setItem(`profile-${userId}`, { ...existingProfile, ...updates });
+      const existingProfile = await this.getProfile(userId) || { userId };
+      const updatedProfile = { ...existingProfile, ...updates };
+      cacheService.setItem(`profile-${userId}`, updatedProfile);
     }
     
     return success;
@@ -63,7 +74,7 @@ export class ProfileRepository {
   /**
    * Clear cached profile data
    */
-  clearCache(userId?: string) {
+  clearCache(userId?: string): void {
     if (userId) {
       cacheService.removeItem(`profile-${userId}`);
     } else {
