@@ -1,15 +1,16 @@
 
-import { AgentMessage, AgentTask } from '../types';
+import { AgentMessage, AgentTask, AgentTypeEnum } from '../types';
 import { BaseAgent } from '../baseAgent';
 
 /**
  * Scheduling Agent
  * 
  * Optimizes study timing and session structure.
+ * Manages spaced repetition scheduling and overall study planning.
  */
 export class SchedulingAgent extends BaseAgent {
   constructor() {
-    super('SCHEDULING');
+    super(AgentTypeEnum.SCHEDULING);
   }
   
   async processTask(task: AgentTask): Promise<any> {

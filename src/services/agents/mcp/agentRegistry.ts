@@ -1,5 +1,5 @@
 
-import { AgentType } from '../types';
+import { AgentType, AgentTypeEnum } from '../types';
 import { BaseAgent } from '../baseAgent';
 import { CognitiveProfileAgent } from '../cognitive-profile';
 import { LearningPathAgent } from '../learning-path';
@@ -14,20 +14,21 @@ import { SchedulingAgent } from '../scheduling';
  * Agent Registry
  * 
  * Manages the creation and access to all specialized agents in the system.
+ * Acts as a factory and repository for agent instances.
  */
 export function createAgentRegistry() {
   const agents = new Map<AgentType, BaseAgent>();
   
   // Initialize all agents
   function initializeAgents() {
-    agents.set('COGNITIVE_PROFILE', new CognitiveProfileAgent());
-    agents.set('LEARNING_PATH', new LearningPathAgent());
-    agents.set('CONTENT_ADAPTATION', new ContentAdaptationAgent());
-    agents.set('ASSESSMENT', new AssessmentAgent());
-    agents.set('ENGAGEMENT', new EngagementAgent());
-    agents.set('FEEDBACK', new FeedbackAgent());
-    agents.set('UI_UX', new UiUxAgent());
-    agents.set('SCHEDULING', new SchedulingAgent());
+    agents.set(AgentTypeEnum.COGNITIVE_PROFILE, new CognitiveProfileAgent());
+    agents.set(AgentTypeEnum.LEARNING_PATH, new LearningPathAgent());
+    agents.set(AgentTypeEnum.CONTENT_ADAPTATION, new ContentAdaptationAgent());
+    agents.set(AgentTypeEnum.ASSESSMENT, new AssessmentAgent());
+    agents.set(AgentTypeEnum.ENGAGEMENT, new EngagementAgent());
+    agents.set(AgentTypeEnum.FEEDBACK, new FeedbackAgent());
+    agents.set(AgentTypeEnum.UI_UX, new UiUxAgent());
+    agents.set(AgentTypeEnum.SCHEDULING, new SchedulingAgent());
   }
   
   // Initialize agents on creation
@@ -36,6 +37,8 @@ export function createAgentRegistry() {
   return {
     /**
      * Get an agent by type
+     * @param type The type of agent to retrieve
+     * @returns The agent instance or undefined if not found
      */
     getAgent(type: AgentType): BaseAgent | undefined {
       return agents.get(type);
@@ -43,6 +46,7 @@ export function createAgentRegistry() {
     
     /**
      * Get all registered agent types
+     * @returns Array of all registered agent types
      */
     getRegisteredAgentTypes(): AgentType[] {
       return Array.from(agents.keys());

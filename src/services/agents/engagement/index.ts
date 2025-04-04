@@ -1,15 +1,16 @@
 
-import { AgentMessage, AgentTask } from '../types';
+import { AgentMessage, AgentTask, AgentTypeEnum } from '../types';
 import { BaseAgent } from '../baseAgent';
 
 /**
  * Engagement Agent
  * 
  * Optimizes learning motivation and maintains consistent engagement.
+ * Focuses on student motivation, gamification, and retention strategies.
  */
 export class EngagementAgent extends BaseAgent {
   constructor() {
-    super('ENGAGEMENT');
+    super(AgentTypeEnum.ENGAGEMENT);
   }
   
   async processTask(task: AgentTask): Promise<any> {

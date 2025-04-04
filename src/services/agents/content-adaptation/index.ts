@@ -1,15 +1,16 @@
 
-import { AgentMessage, AgentTask } from '../types';
+import { AgentMessage, AgentTask, AgentTypeEnum } from '../types';
 import { BaseAgent } from '../baseAgent';
 
 /**
  * Content Adaptation Agent
  * 
  * Transforms learning materials to match individual learner preferences.
+ * Specializes in adapting content format, complexity, and presentation.
  */
 export class ContentAdaptationAgent extends BaseAgent {
   constructor() {
-    super('CONTENT_ADAPTATION');
+    super(AgentTypeEnum.CONTENT_ADAPTATION);
   }
   
   async processTask(task: AgentTask): Promise<any> {

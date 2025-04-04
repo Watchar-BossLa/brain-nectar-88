@@ -1,15 +1,16 @@
 
-import { AgentMessage, AgentTask } from '../types';
+import { AgentMessage, AgentTask, AgentTypeEnum } from '../types';
 import { BaseAgent } from '../baseAgent';
 
 /**
  * UI/UX Agent
  * 
  * Optimizes interface presentation for learning effectiveness.
+ * Focuses on user interface and experience adaptations.
  */
 export class UiUxAgent extends BaseAgent {
   constructor() {
-    super('UI_UX');
+    super(AgentTypeEnum.UI_UX);
   }
   
   async processTask(task: AgentTask): Promise<any> {

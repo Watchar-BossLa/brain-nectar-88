@@ -1,15 +1,16 @@
 
-import { AgentMessage, AgentTask } from '../types';
+import { AgentMessage, AgentTask, AgentTypeEnum } from '../types';
 import { BaseAgent } from '../baseAgent';
 
 /**
  * Assessment Agent
  * 
  * Evaluates understanding and creates targeted assessment opportunities.
+ * Responsible for generating and analyzing assessment content.
  */
 export class AssessmentAgent extends BaseAgent {
   constructor() {
-    super('ASSESSMENT');
+    super(AgentTypeEnum.ASSESSMENT);
   }
   
   async processTask(task: AgentTask): Promise<any> {

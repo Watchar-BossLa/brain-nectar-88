@@ -1,15 +1,16 @@
 
-import { AgentMessage, AgentTask } from '../types';
+import { AgentMessage, AgentTask, AgentTypeEnum } from '../types';
 import { BaseAgent } from '../baseAgent';
 
 /**
  * Feedback Agent
  * 
  * Delivers personalized, constructive feedback on learning activities.
+ * Designed to provide meaningful guidance and constructive criticism.
  */
 export class FeedbackAgent extends BaseAgent {
   constructor() {
-    super('FEEDBACK');
+    super(AgentTypeEnum.FEEDBACK);
   }
   
   async processTask(task: AgentTask): Promise<any> {

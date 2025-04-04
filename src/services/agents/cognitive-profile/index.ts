@@ -1,15 +1,16 @@
 
-import { AgentMessage, AgentTask } from '../types';
+import { AgentMessage, AgentTask, AgentTypeEnum } from '../types';
 import { BaseAgent } from '../baseAgent';
 
 /**
  * Cognitive Profile Agent
  * 
  * Builds and maintains a comprehensive model of the learner's cognitive patterns.
+ * Responsible for understanding user learning preferences and capabilities.
  */
 export class CognitiveProfileAgent extends BaseAgent {
   constructor() {
-    super('COGNITIVE_PROFILE');
+    super(AgentTypeEnum.COGNITIVE_PROFILE);
   }
   
   async processTask(task: AgentTask): Promise<any> {

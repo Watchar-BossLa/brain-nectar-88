@@ -1,6 +1,9 @@
 
 /**
  * Types for the multi-agent system
+ * 
+ * This file defines the core types and interfaces used throughout the agent system.
+ * It centralizes type definitions to ensure consistency across the codebase.
  */
 import { 
   AgentType as AgentTypeEnum, 
@@ -22,6 +25,9 @@ export { AgentTypeEnum, TaskTypeEnum, TaskPriorityEnum, TaskStatusEnum, MessageT
 
 /**
  * A task that can be assigned to one or more agents
+ * 
+ * Tasks represent work items that need to be processed by agents in the system.
+ * They contain all necessary context and data for processing.
  */
 export interface AgentTask {
   id: string;
@@ -40,6 +46,9 @@ export interface AgentTask {
 
 /**
  * A message that can be sent between agents
+ * 
+ * Messages enable communication between different agents in the system.
+ * They can contain various types of content and metadata.
  */
 export interface AgentMessage {
   type: MessageType;
@@ -52,6 +61,9 @@ export interface AgentMessage {
 
 /**
  * System state maintained by the MCP
+ * 
+ * This represents the global state of the multi-agent system,
+ * including agent statuses and performance metrics.
  */
 export interface SystemState {
   activeAgents: AgentType[];
@@ -67,6 +79,9 @@ export interface SystemState {
 
 /**
  * Cognitive profile of a user
+ * 
+ * Contains information about a user's learning characteristics, preferences,
+ * and knowledge state to enable personalized adaptations.
  */
 export interface CognitiveProfile {
   userId: string;
@@ -83,6 +98,9 @@ export interface CognitiveProfile {
 
 /**
  * Agent capability description
+ * 
+ * Describes a specific capability that an agent can perform,
+ * including its inputs and outputs.
  */
 export interface AgentCapability {
   name: string;

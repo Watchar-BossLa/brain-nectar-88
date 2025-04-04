@@ -1,10 +1,11 @@
 
-import { AgentMessage, AgentTask, AgentType } from './types';
+import { AgentMessage, AgentTask, AgentType, AgentTypeEnum } from './types';
 
 /**
  * Base Agent
  * 
  * Base class for all specialized agents in the system.
+ * Provides common functionality and enforces consistent interface.
  */
 export abstract class BaseAgent {
   protected type: AgentType;
@@ -15,6 +16,7 @@ export abstract class BaseAgent {
   
   /**
    * Get the type of this agent
+   * @returns The agent type enum value
    */
   getType(): AgentType {
     return this.type;
@@ -22,11 +24,14 @@ export abstract class BaseAgent {
   
   /**
    * Process a task assigned to this agent
+   * @param task The task to process
+   * @returns The result of processing the task
    */
   abstract processTask(task: AgentTask): Promise<any>;
   
   /**
    * Receive a message from another agent
+   * @param message The message to process
    */
   abstract receiveMessage(message: AgentMessage): void;
 }
