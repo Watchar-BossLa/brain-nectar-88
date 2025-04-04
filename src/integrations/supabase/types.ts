@@ -547,6 +547,39 @@ export type Database = {
           },
         ]
       }
+      timer_sessions: {
+        Row: {
+          completed: boolean
+          created_at: string
+          duration_minutes: number
+          end_time: string | null
+          id: string
+          start_time: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          duration_minutes: number
+          end_time?: string | null
+          id?: string
+          start_time?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          duration_minutes?: number
+          end_time?: string | null
+          id?: string
+          start_time?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       topics: {
         Row: {
           created_at: string
