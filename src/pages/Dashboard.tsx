@@ -1,10 +1,15 @@
 
 import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { useAuth } from '@/context/auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BookOpen, Award, Calendar } from 'lucide-react';
+import { useAuth } from '@/context/auth';
+import WelcomeHeader from '@/components/dashboard/WelcomeHeader';
+import StatsOverview from '@/components/dashboard/StatsOverview';
+import CoursesSection from '@/components/dashboard/CoursesSection';
+import AssessmentsRecommendedSection from '@/components/dashboard/AssessmentsRecommendedSection';
+import DailyStudyGoal from '@/components/dashboard/DailyStudyGoal';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -12,31 +17,27 @@ const Dashboard = () => {
   return (
     <MainLayout>
       <div className="container mx-auto py-6 space-y-8">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold tracking-tight">Welcome, {user?.email?.split('@')[0] || 'Student'}</h1>
-          <p className="text-muted-foreground">
-            Track your progress and continue your learning journey
-          </p>
-        </div>
+        <WelcomeHeader />
+        <StatsOverview />
 
-        <Tabs defaultValue="learning-path">
-          <TabsList className="grid grid-cols-3 w-full max-w-md">
-            <TabsTrigger value="learning-path" className="flex gap-2 items-center justify-center">
-              <BookOpen className="h-4 w-4" />
-              <span className="hidden sm:inline">Learning Path</span>
-            </TabsTrigger>
-            <TabsTrigger value="achievements" className="flex gap-2 items-center justify-center">
-              <Award className="h-4 w-4" />
-              <span className="hidden sm:inline">Achievements</span>
-            </TabsTrigger>
-            <TabsTrigger value="schedule" className="flex gap-2 items-center justify-center">
-              <Calendar className="h-4 w-4" />
-              <span className="hidden sm:inline">Schedule</span>
-            </TabsTrigger>
-          </TabsList>
+        <div className="mb-6">
+          <Tabs defaultValue="learning-path" className="w-full">
+            <TabsList className="grid grid-cols-3 w-full max-w-md">
+              <TabsTrigger value="learning-path" className="flex gap-2 items-center justify-center">
+                <BookOpen className="h-4 w-4" />
+                <span className="hidden sm:inline">Learning Path</span>
+              </TabsTrigger>
+              <TabsTrigger value="achievements" className="flex gap-2 items-center justify-center">
+                <Award className="h-4 w-4" />
+                <span className="hidden sm:inline">Achievements</span>
+              </TabsTrigger>
+              <TabsTrigger value="schedule" className="flex gap-2 items-center justify-center">
+                <Calendar className="h-4 w-4" />
+                <span className="hidden sm:inline">Schedule</span>
+              </TabsTrigger>
+            </TabsList>
 
-          <div className="mt-6">
-            <TabsContent value="learning-path" className="space-y-6">
+            <TabsContent value="learning-path" className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card>
                   <CardHeader>
@@ -105,8 +106,14 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
             </TabsContent>
-          </div>
-        </Tabs>
+          </Tabs>
+        </div>
+
+        <CoursesSection />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <AssessmentsRecommendedSection />
+          <DailyStudyGoal />
+        </div>
       </div>
     </MainLayout>
   );
