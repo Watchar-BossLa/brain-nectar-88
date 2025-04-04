@@ -2,8 +2,20 @@
 import { supabase } from '@/integrations/supabase/client';
 import { TimerSession } from '@/types/components/timer';
 
+// Define the database types for timer sessions
+type TimerSessionsDBRow = {
+  id: string;
+  user_id: string;
+  duration_minutes: number;
+  completed: boolean;
+  start_time: string;
+  end_time?: string;
+  created_at: string;
+  updated_at: string;
+};
+
 // Helper function to convert snake_case database objects to camelCase
-const transformTimerSession = (session: any): TimerSession => {
+const transformTimerSession = (session: TimerSessionsDBRow): TimerSession => {
   return {
     id: session.id,
     userId: session.user_id,
@@ -18,7 +30,7 @@ const transformTimerSession = (session: any): TimerSession => {
 
 export const createTimerSession = async (durationMinutes: number): Promise<TimerSession> => {
   const { data, error } = await supabase
-    .from('timer_sessions')
+    .from('timer_sessions' as any)
     .insert({
       duration_minutes: durationMinutes,
       completed: false,
@@ -27,12 +39,12 @@ export const createTimerSession = async (durationMinutes: number): Promise<Timer
     .single();
 
   if (error) throw new Error(error.message);
-  return transformTimerSession(data);
+  return transformTimerSession(data as TimerSessionsDBRow);
 };
 
 export const completeTimerSession = async (sessionId: string): Promise<TimerSession> => {
   const { data, error } = await supabase
-    .from('timer_sessions')
+    .from('timer_sessions' as any)
     .update({
       completed: true,
       end_time: new Date().toISOString()
@@ -42,18 +54,18 @@ export const completeTimerSession = async (sessionId: string): Promise<TimerSess
     .single();
 
   if (error) throw new Error(error.message);
-  return transformTimerSession(data);
+  return transformTimerSession(data as TimerSessionsDBRow);
 };
 
 export const getRecentTimerSessions = async (limit = 10): Promise<TimerSession[]> => {
   const { data, error } = await supabase
-    .from('timer_sessions')
+    .from('timer_sessions' as any)
     .select('*')
     .order('created_at', { ascending: false })
     .limit(limit);
 
   if (error) throw new Error(error.message);
-  return data ? data.map(transformTimerSession) : [];
+  return data ? (data as TimerSessionsDBRow[]).map(transformTimerSession) : [];
 };
 
 export const getTimerSessionStats = async () => {
@@ -70,7 +82,7 @@ export const getTimerSessionStats = async () => {
   
   // Fetch all completed sessions from the current month
   const { data, error } = await supabase
-    .from('timer_sessions')
+    .from('timer_sessions' as any)
     .select('*')
     .eq('completed', true)
     .gte('end_time', startOfMonth.toISOString())
@@ -78,7 +90,7 @@ export const getTimerSessionStats = async () => {
 
   if (error) throw new Error(error.message);
   
-  const sessions = data ? data.map(transformTimerSession) : [];
+  const sessions = data ? (data as TimerSessionsDBRow[]).map(transformTimerSession) : [];
   
   // Process the data to get stats
   const todaySessions = sessions.filter(session => 
