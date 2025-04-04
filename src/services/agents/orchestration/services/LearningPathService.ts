@@ -1,6 +1,6 @@
 
 import { MasterControlProgram } from '../../mcp';
-import { AgentTask } from '../../types';
+import { AgentTask, AgentTypeEnum, TaskPriorityEnum, TaskTypeEnum } from '../../types';
 
 /**
  * Learning Path Service
@@ -35,10 +35,10 @@ export class LearningPathService {
     const profilingTask: AgentTask = {
       id: `${taskId}-profiling`,
       userId,
-      taskType: 'COGNITIVE_PROFILING',
+      taskType: TaskTypeEnum.COGNITIVE_PROFILING,
       description: 'Generate cognitive profile for learning path adaptation',
-      priority: 'HIGH',
-      targetAgentTypes: ['COGNITIVE_PROFILE'],
+      priority: TaskPriorityEnum.HIGH,
+      targetAgentTypes: [AgentTypeEnum.COGNITIVE_PROFILE],
       context: ['learning_path', 'qualification', 'adaptive'],
       data: { 
         qualificationId,
@@ -54,10 +54,10 @@ export class LearningPathService {
     const pathGenerationTask: AgentTask = {
       id: `${taskId}-generation`,
       userId,
-      taskType: 'LEARNING_PATH_GENERATION',
+      taskType: TaskTypeEnum.LEARNING_PATH_GENERATION,
       description: 'Generate personalized learning path',
-      priority: 'HIGH',
-      targetAgentTypes: ['LEARNING_PATH'],
+      priority: TaskPriorityEnum.HIGH,
+      targetAgentTypes: [AgentTypeEnum.LEARNING_PATH],
       context: ['cognitive_profile', 'qualification', 'adaptive'],
       data: { 
         qualificationId,
@@ -74,10 +74,10 @@ export class LearningPathService {
     const contentAdaptationTask: AgentTask = {
       id: `${taskId}-content-adaptation`,
       userId,
-      taskType: 'CONTENT_ADAPTATION',
+      taskType: TaskTypeEnum.CONTENT_ADAPTATION,
       description: 'Adapt content for personalized learning path',
-      priority: 'MEDIUM',
-      targetAgentTypes: ['CONTENT_ADAPTATION'],
+      priority: TaskPriorityEnum.MEDIUM,
+      targetAgentTypes: [AgentTypeEnum.CONTENT_ADAPTATION],
       context: ['learning_path', 'cognitive_profile', 'qualification'],
       data: { 
         qualificationId,

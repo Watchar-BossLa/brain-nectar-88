@@ -1,6 +1,6 @@
 
 import { MasterControlProgram } from '../../mcp';
-import { AgentTask } from '../../types';
+import { AgentTask, AgentTypeEnum, TaskPriorityEnum, TaskTypeEnum } from '../../types';
 
 /**
  * Assessment Service
@@ -36,10 +36,10 @@ export class AssessmentService {
     const assessmentTask: AgentTask = {
       id: taskId,
       userId,
-      taskType: 'ASSESSMENT_GENERATION',
+      taskType: TaskTypeEnum.ASSESSMENT_GENERATION,
       description: 'Generate adaptive difficulty assessment',
-      priority: 'HIGH',
-      targetAgentTypes: ['ASSESSMENT', 'COGNITIVE_PROFILE'],
+      priority: TaskPriorityEnum.HIGH,
+      targetAgentTypes: [AgentTypeEnum.ASSESSMENT, AgentTypeEnum.COGNITIVE_PROFILE],
       context: ['assessment', 'adaptive', 'difficulty'],
       data: { 
         topicIds,

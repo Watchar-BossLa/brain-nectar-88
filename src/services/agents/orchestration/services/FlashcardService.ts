@@ -1,6 +1,6 @@
 
 import { MasterControlProgram } from '../../mcp';
-import { AgentTask } from '../../types';
+import { AgentTask, AgentTypeEnum, TaskPriorityEnum, TaskTypeEnum } from '../../types';
 
 /**
  * Flashcard Service
@@ -35,10 +35,10 @@ export class FlashcardService {
     const flashcardTask: AgentTask = {
       id: taskId,
       userId,
-      taskType: 'FLASHCARD_OPTIMIZATION',
+      taskType: TaskTypeEnum.FLASHCARD_OPTIMIZATION,
       description: 'Generate optimized flashcard sequence',
-      priority: 'MEDIUM',
-      targetAgentTypes: ['LEARNING_PATH', 'COGNITIVE_PROFILE'],
+      priority: TaskPriorityEnum.MEDIUM,
+      targetAgentTypes: [AgentTypeEnum.LEARNING_PATH, AgentTypeEnum.COGNITIVE_PROFILE],
       context: ['flashcards', 'spaced_repetition', 'optimization'],
       data: { 
         topicIds,

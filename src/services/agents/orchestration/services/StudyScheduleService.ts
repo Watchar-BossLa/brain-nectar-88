@@ -1,6 +1,6 @@
 
 import { MasterControlProgram } from '../../mcp';
-import { AgentTask } from '../../types';
+import { AgentTask, AgentTypeEnum, TaskPriorityEnum, TaskTypeEnum } from '../../types';
 
 /**
  * Study Schedule Service
@@ -36,10 +36,10 @@ export class StudyScheduleService {
     const schedulingTask: AgentTask = {
       id: taskId,
       userId,
-      taskType: 'SCHEDULE_OPTIMIZATION',
+      taskType: TaskTypeEnum.SCHEDULE_OPTIMIZATION,
       description: 'Generate optimized study schedule',
-      priority: 'MEDIUM',
-      targetAgentTypes: ['SCHEDULING', 'COGNITIVE_PROFILE', 'ENGAGEMENT'],
+      priority: TaskPriorityEnum.MEDIUM,
+      targetAgentTypes: [AgentTypeEnum.SCHEDULING, AgentTypeEnum.COGNITIVE_PROFILE, AgentTypeEnum.ENGAGEMENT],
       context: ['schedule', 'optimization', 'study_plan'],
       data: { 
         options: options || {
