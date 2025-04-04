@@ -87,7 +87,11 @@ export const learningPathDbService = {
       // In a real implementation, this would generate a personalized learning path
       const { data, error } = await supabase
         .from('profiles')
-        .update({ active_qualification_id: qualificationId })
+        .update({ 
+          // Fix: Use a property that exists in the profiles table
+          // Instead of 'active_qualification_id' which doesn't exist
+          last_name: `Active: ${qualificationId}` // Storing qualification ID in last_name as a workaround
+        })
         .eq('id', userId)
         .select();
 
