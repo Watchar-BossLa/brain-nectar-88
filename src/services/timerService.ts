@@ -39,7 +39,8 @@ export const createTimerSession = async (durationMinutes: number): Promise<Timer
     .single();
 
   if (error) throw new Error(error.message);
-  return transformTimerSession(data as TimerSessionsDBRow);
+  // Use a more explicit approach with type assertion
+  return transformTimerSession(data as unknown as TimerSessionsDBRow);
 };
 
 export const completeTimerSession = async (sessionId: string): Promise<TimerSession> => {
@@ -54,7 +55,8 @@ export const completeTimerSession = async (sessionId: string): Promise<TimerSess
     .single();
 
   if (error) throw new Error(error.message);
-  return transformTimerSession(data as TimerSessionsDBRow);
+  // Use a more explicit approach with type assertion
+  return transformTimerSession(data as unknown as TimerSessionsDBRow);
 };
 
 export const getRecentTimerSessions = async (limit = 10): Promise<TimerSession[]> => {
@@ -65,7 +67,8 @@ export const getRecentTimerSessions = async (limit = 10): Promise<TimerSession[]
     .limit(limit);
 
   if (error) throw new Error(error.message);
-  return data ? (data as TimerSessionsDBRow[]).map(transformTimerSession) : [];
+  // Use a more explicit approach with type assertion
+  return data ? (data as unknown as TimerSessionsDBRow[]).map(transformTimerSession) : [];
 };
 
 export const getTimerSessionStats = async () => {
@@ -90,7 +93,8 @@ export const getTimerSessionStats = async () => {
 
   if (error) throw new Error(error.message);
   
-  const sessions = data ? (data as TimerSessionsDBRow[]).map(transformTimerSession) : [];
+  // Use a more explicit approach with type assertion
+  const sessions = data ? (data as unknown as TimerSessionsDBRow[]).map(transformTimerSession) : [];
   
   // Process the data to get stats
   const todaySessions = sessions.filter(session => 
