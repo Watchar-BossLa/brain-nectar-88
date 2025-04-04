@@ -63,6 +63,7 @@ const AdaptiveQuizPlatform = () => {
       
       {activeQuiz && currentQuestion && (
         <ActiveQuizCard
+          question={currentQuestion}
           currentQuestion={currentQuestion}
           currentIndex={currentIndex}
           availableQuestions={availableQuestions}

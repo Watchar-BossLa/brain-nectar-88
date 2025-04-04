@@ -4,7 +4,7 @@
  */
 
 export interface ActiveQuizCardProps {
-  question: any;  // Changed from optional to required
+  question?: any;  // Changed from optional to required
   onAnswer?: (answerId: string) => void;
   currentQuestionIndex?: number;
   totalQuestions?: number;
@@ -19,4 +19,8 @@ export interface ActiveQuizCardProps {
   isSubmitting?: boolean;
   skipQuestion?: () => void;
   isAnswerSubmitted?: boolean;
+  isCorrect?: boolean;
+  submitAnswer?: () => void;
+  nextQuestion?: () => void;
+  previousQuestion?: () => void;
 }

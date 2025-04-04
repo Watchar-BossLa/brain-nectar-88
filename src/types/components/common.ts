@@ -7,10 +7,20 @@
 
 export interface DashboardTabsProps {
   className?: string;
+  selectedTab: string;
+  setSelectedTab: React.Dispatch<React.SetStateAction<string>>;
+  availableModels: string[];
+  modelMetrics: Record<string, any>;
+  testProps: any;
 }
 
 export interface PanelTabsProps {
   className?: string;
+  selectedTab: string;
+  setSelectedTab: React.Dispatch<React.SetStateAction<string>>;
+  availableModels: string[];
+  modelMetrics: Record<string, any>;
+  testProps: any;
 }
 
 // Additional common component props
@@ -18,4 +28,3 @@ export interface TabsContainerProps {
   className?: string;
   children: React.ReactNode;
 }
-
