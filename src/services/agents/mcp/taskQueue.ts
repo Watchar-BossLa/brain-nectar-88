@@ -1,5 +1,5 @@
 
-import { AgentTask } from '../types';
+import { AgentTask, TaskPriorityEnum } from '../types';
 
 /**
  * TaskQueue
@@ -15,15 +15,20 @@ export class TaskQueue {
   public addTask(task: AgentTask): void {
     // If task has no priority specified, default to MEDIUM
     if (!task.priority) {
-      task.priority = 'MEDIUM';
+      task.priority = TaskPriorityEnum.MEDIUM;
     }
     
     // Priority order: CRITICAL > HIGH > MEDIUM > LOW
-    const priorityValues = { 'CRITICAL': 0, 'HIGH': 1, 'MEDIUM': 2, 'LOW': 3 };
+    const priorityValues = { 
+      [TaskPriorityEnum.CRITICAL]: 0, 
+      [TaskPriorityEnum.HIGH]: 1, 
+      [TaskPriorityEnum.MEDIUM]: 2, 
+      [TaskPriorityEnum.LOW]: 3 
+    };
     
     // Find the right position based on priority
     const insertIndex = this.taskQueue.findIndex(
-      queuedTask => priorityValues[queuedTask.priority || 'MEDIUM'] > priorityValues[task.priority || 'MEDIUM']
+      queuedTask => priorityValues[queuedTask.priority || TaskPriorityEnum.MEDIUM] > priorityValues[task.priority || TaskPriorityEnum.MEDIUM]
     );
     
     if (insertIndex === -1) {

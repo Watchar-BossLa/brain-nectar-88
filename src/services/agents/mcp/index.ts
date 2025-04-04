@@ -1,5 +1,4 @@
-
-import { AgentMessage, AgentTask, AgentType, SystemState } from '../types';
+import { AgentMessage, AgentTask, AgentType, SystemState, AgentTypeEnum, TaskTypeEnum, TaskPriorityEnum, MessageTypeEnum } from '../types';
 import { TaskProcessor } from './taskProcessor';
 import { SystemStateManager } from './systemState';
 import { CommunicationManager } from './communication';
@@ -82,10 +81,10 @@ export class MasterControlProgram {
     this.submitTask({
       id: `initial-cognitive-profiling-${Date.now()}`,
       userId,
-      taskType: 'COGNITIVE_PROFILING',
+      taskType: TaskTypeEnum.COGNITIVE_PROFILING,
       description: 'Initial cognitive profiling for user',
-      priority: 'HIGH',
-      targetAgentTypes: ['COGNITIVE_PROFILE'],
+      priority: TaskPriorityEnum.HIGH,
+      targetAgentTypes: [AgentTypeEnum.COGNITIVE_PROFILE],
       context: ['initial_setup', 'user_profile'],
       data: {},
       createdAt: new Date().toISOString(),
@@ -99,7 +98,7 @@ export class MasterControlProgram {
     this.taskManagementService.setLLMOrchestrationEnabled(enabled);
     
     this.broadcastMessage({
-      type: 'SYSTEM',
+      type: MessageTypeEnum.SYSTEM,
       content: `LLM orchestration has been ${enabled ? 'enabled' : 'disabled'}`,
       data: { llmOrchestrationEnabled: enabled },
       timestamp: new Date().toISOString()

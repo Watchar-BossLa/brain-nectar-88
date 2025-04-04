@@ -4,6 +4,8 @@
  * 
  * This file contains utility functions for converting between different types
  * in the agent system, particularly focusing on enum conversions and type safety.
+ * These utilities help ensure that string values are properly converted to their
+ * corresponding enum types, reducing type errors throughout the codebase.
  */
 
 import { 
@@ -83,6 +85,14 @@ export function stringToMessageType(messageTypeString: string): MessageTypeEnum 
  * Type guard to check if a value is a valid AgentType
  * @param value The value to check
  * @returns Whether the value is a valid AgentType
+ * 
+ * @example
+ * // Usage example
+ * const value = "COGNITIVE_PROFILE";
+ * if (isAgentType(value)) {
+ *   // value is now treated as AgentTypeEnum
+ *   const agentType: AgentTypeEnum = value;
+ * }
  */
 export function isAgentType(value: any): value is AgentTypeEnum {
   return Object.values(AgentTypeEnum).includes(value);

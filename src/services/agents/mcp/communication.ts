@@ -1,5 +1,5 @@
 
-import { AgentMessage, AgentType } from '../types';
+import { AgentMessage, AgentType, AgentTypeEnum, MessageTypeEnum } from '../types';
 import { createAgentRegistry } from './agentRegistry';
 
 /**
@@ -46,7 +46,7 @@ export class CommunicationManager {
     
     if (targetAgent) {
       targetAgent.receiveMessage({
-        type: 'TASK',
+        type: MessageTypeEnum.TASK,
         content,
         data,
         timestamp: new Date().toISOString(),
