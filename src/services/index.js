@@ -21,6 +21,9 @@ import * as credentials from './credentials';
 // Multi-Agent System
 import * as agents from './agents';
 
+// Document Analysis
+import * as documents from './documents';
+
 // Timer Service
 import * as timer from './timerService';
 
@@ -32,6 +35,7 @@ export {
   cognitive,
   credentials,
   agents,
+  documents,
   timer
 };
 
@@ -43,16 +47,17 @@ export {
 export async function initializeAllServices(userId) {
   try {
     console.log('Initializing all services for user:', userId);
-    
+
     // Initialize services in parallel
     await Promise.all([
       ai.AdaptiveLearningEngine.getInstance().initialize(userId),
       immersive.ImmersiveLearningService.getInstance().initialize(),
       collaborative.CollaborativeKnowledgeNetwork.getInstance().initialize(),
       cognitive.CognitiveOptimizationSystem.getInstance().initialize(),
-      credentials.BlockchainCredentialSystem.getInstance().initialize()
+      credentials.BlockchainCredentialSystem.getInstance().initialize(),
+      documents.DocumentAnalysisService.getInstance().initialize()
     ]);
-    
+
     console.log('All services initialized successfully');
     return true;
   } catch (error) {
@@ -69,14 +74,15 @@ export async function initializeAllServices(userId) {
 export async function runAllMigrations(supabase) {
   try {
     console.log('Running all database migrations');
-    
+
     // Run migrations in sequence
     await ai.runMigrations(supabase);
     await immersive.runMigrations(supabase);
     await collaborative.runMigrations(supabase);
     await cognitive.runMigrations(supabase);
     await credentials.runMigrations(supabase);
-    
+    await documents.runMigrations(supabase);
+
     console.log('All database migrations completed successfully');
     return true;
   } catch (error) {

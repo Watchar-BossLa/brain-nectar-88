@@ -38,6 +38,7 @@ import AccountingTools from './pages/AccountingTools';
 import AuthWrapper from './context/AuthWrapper';
 import StudyTimer from './pages/StudyTimer';
 import VisualRecognition from './pages/VisualRecognition';
+import DocumentAnalysis from './pages/DocumentAnalysis';
 
 /**
  * Main application component
@@ -96,6 +97,7 @@ function App() {
                     <Route path="/accounting-tools" element={<AccountingTools />} />
                     <Route path="/study-timer" element={<StudyTimer />} />
                     <Route path="/visual-recognition" element={<VisualRecognition />} />
+                    <Route path="/document-analysis" element={<DocumentAnalysis />} />
                   </Routes>
                 </QueryClientProvider>
               </div>
