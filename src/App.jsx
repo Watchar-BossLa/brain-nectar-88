@@ -40,6 +40,7 @@ import StudyTimer from './pages/StudyTimer';
 import VisualRecognition from './pages/VisualRecognition';
 import DocumentAnalysis from './pages/DocumentAnalysis';
 import AdaptiveSpacedRepetition from './pages/AdaptiveSpacedRepetition';
+import KnowledgeVisualization from './pages/KnowledgeVisualization';
 
 /**
  * Main application component
@@ -100,6 +101,7 @@ function App() {
                     <Route path="/visual-recognition" element={<VisualRecognition />} />
                     <Route path="/document-analysis" element={<DocumentAnalysis />} />
                     <Route path="/adaptive-spaced-repetition" element={<AdaptiveSpacedRepetition />} />
+                    <Route path="/knowledge-visualization" element={<KnowledgeVisualization />} />
                   </Routes>
                 </QueryClientProvider>
               </div>

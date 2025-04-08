@@ -27,6 +27,9 @@ import * as documents from './documents';
 // Spaced Repetition
 import * as spacedRepetition from './spaced-repetition';
 
+// Knowledge Graph
+import * as knowledgeGraph from './knowledge-graph';
+
 // Timer Service
 import * as timer from './timerService';
 
@@ -40,6 +43,7 @@ export {
   agents,
   documents,
   spacedRepetition,
+  knowledgeGraph,
   timer
 };
 
@@ -61,7 +65,10 @@ export async function initializeAllServices(userId) {
       credentials.BlockchainCredentialSystem.getInstance().initialize(),
       documents.DocumentAnalysisService.getInstance().initialize(),
       spacedRepetition.SpacedRepetitionService.getInstance().initialize(userId),
-      spacedRepetition.StudyItemGenerator.getInstance().initialize()
+      spacedRepetition.StudyItemGenerator.getInstance().initialize(),
+      knowledgeGraph.KnowledgeGraphService.getInstance().initialize(userId),
+      knowledgeGraph.GraphVisualizationEngine.getInstance().initialize(),
+      knowledgeGraph.LearningPathGenerator.getInstance().initialize()
     ]);
 
     console.log('All services initialized successfully');
@@ -89,6 +96,7 @@ export async function runAllMigrations(supabase) {
     await credentials.runMigrations(supabase);
     await documents.runMigrations(supabase);
     await spacedRepetition.runMigrations(supabase);
+    await knowledgeGraph.runMigrations(supabase);
 
     console.log('All database migrations completed successfully');
     return true;
