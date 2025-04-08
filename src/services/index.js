@@ -24,6 +24,9 @@ import * as agents from './agents';
 // Document Analysis
 import * as documents from './documents';
 
+// Spaced Repetition
+import * as spacedRepetition from './spaced-repetition';
+
 // Timer Service
 import * as timer from './timerService';
 
@@ -36,6 +39,7 @@ export {
   credentials,
   agents,
   documents,
+  spacedRepetition,
   timer
 };
 
@@ -55,7 +59,9 @@ export async function initializeAllServices(userId) {
       collaborative.CollaborativeKnowledgeNetwork.getInstance().initialize(),
       cognitive.CognitiveOptimizationSystem.getInstance().initialize(),
       credentials.BlockchainCredentialSystem.getInstance().initialize(),
-      documents.DocumentAnalysisService.getInstance().initialize()
+      documents.DocumentAnalysisService.getInstance().initialize(),
+      spacedRepetition.SpacedRepetitionService.getInstance().initialize(userId),
+      spacedRepetition.StudyItemGenerator.getInstance().initialize()
     ]);
 
     console.log('All services initialized successfully');
@@ -82,6 +88,7 @@ export async function runAllMigrations(supabase) {
     await cognitive.runMigrations(supabase);
     await credentials.runMigrations(supabase);
     await documents.runMigrations(supabase);
+    await spacedRepetition.runMigrations(supabase);
 
     console.log('All database migrations completed successfully');
     return true;

@@ -39,6 +39,7 @@ import AuthWrapper from './context/AuthWrapper';
 import StudyTimer from './pages/StudyTimer';
 import VisualRecognition from './pages/VisualRecognition';
 import DocumentAnalysis from './pages/DocumentAnalysis';
+import AdaptiveSpacedRepetition from './pages/AdaptiveSpacedRepetition';
 
 /**
  * Main application component
@@ -98,6 +99,7 @@ function App() {
                     <Route path="/study-timer" element={<StudyTimer />} />
                     <Route path="/visual-recognition" element={<VisualRecognition />} />
                     <Route path="/document-analysis" element={<DocumentAnalysis />} />
+                    <Route path="/adaptive-spaced-repetition" element={<AdaptiveSpacedRepetition />} />
                   </Routes>
                 </QueryClientProvider>
               </div>
