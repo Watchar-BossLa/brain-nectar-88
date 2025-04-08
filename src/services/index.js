@@ -15,6 +15,9 @@ import * as collaborative from './collaborative';
 // Collaborative Network
 import * as collaborativeNetwork from './collaborative-network';
 
+// Visual Recognition
+import * as visualRecognition from './visual-recognition';
+
 // Cognitive Optimization
 import * as cognitive from './cognitive';
 
@@ -42,6 +45,7 @@ export {
   immersive,
   collaborative,
   collaborativeNetwork,
+  visualRecognition,
   cognitive,
   credentials,
   agents,
@@ -77,7 +81,10 @@ export async function initializeAllServices(userId) {
       collaborativeNetwork.GroupResourceService.getInstance().initialize(userId),
       collaborativeNetwork.KnowledgeExchangeService.getInstance().initialize(userId),
       collaborativeNetwork.RealTimeCollaborationService.getInstance().initialize(userId),
-      collaborativeNetwork.SocialLearningService.getInstance().initialize(userId)
+      collaborativeNetwork.SocialLearningService.getInstance().initialize(userId),
+      visualRecognition.VisualRecognitionService.getInstance().initialize(userId),
+      visualRecognition.ImageAnalysisService.getInstance().initialize(),
+      visualRecognition.StudyMaterialGeneratorService.getInstance().initialize(userId)
     ]);
 
     console.log('All services initialized successfully');
@@ -107,6 +114,7 @@ export async function runAllMigrations(supabase) {
     await spacedRepetition.runMigrations(supabase);
     await knowledgeGraph.runMigrations(supabase);
     await collaborativeNetwork.runMigrations(supabase);
+    await visualRecognition.runMigrations(supabase);
 
     console.log('All database migrations completed successfully');
     return true;

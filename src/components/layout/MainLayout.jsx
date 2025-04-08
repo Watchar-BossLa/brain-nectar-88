@@ -14,7 +14,8 @@ import {
   FileText,
   Brain,
   Network,
-  Users
+  Users,
+  Camera
 } from 'lucide-react';
 import { useAuth } from '@/context/auth';
 import { Button } from '@/components/ui/button';
@@ -60,6 +61,7 @@ const MainLayout = ({ children }) => {
     { icon: <BarChart2 size={18} />, label: 'Progress', path: '/progress' },
     { icon: <Lightbulb size={18} />, label: 'Advanced Learning', path: '/advanced-learning' },
     { icon: <FileText size={18} />, label: 'Document Analysis', path: '/document-analysis' },
+    { icon: <Camera size={18} />, label: 'Visual Recognition', path: '/visual-recognition' },
     { icon: <Brain size={18} />, label: 'Spaced Repetition', path: '/adaptive-spaced-repetition' },
     { icon: <Network size={18} />, label: 'Knowledge Graph', path: '/knowledge-visualization' },
     { icon: <Users size={18} />, label: 'Collaborative Learning', path: '/collaborative-learning' },

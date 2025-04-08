@@ -1,30 +1,21 @@
-
 import React, { useState, useEffect } from 'react';
-import MainLayout from '@/components/layout/MainLayout';
-import CameraCapture from '@/components/visual-recognition/CameraCapture';
-import RecognizedContent from '@/components/visual-recognition/RecognizedContent';
-import VisualLearningAssistant from '@/components/visual-recognition/VisualLearningAssistant';
-import ErrorCorrectionInterface from '@/components/visual-recognition/ErrorCorrectionInterface';
-import { recognizeEquation } from '@/services/visual-recognition/equationRecognition';
-import { recognizeNotes, generateFlashcardsFromNotes } from '@/services/visual-recognition/noteProcessing';
-import { createFlashcard } from '@/services/spacedRepetition';
-import { useToast } from '@/hooks/use-toast';
+import { useVisualRecognition, useImageAnalysis, useStudyMaterialGenerator } from '@/services/visual-recognition';
 import { useAuth } from '@/context/auth';
+import MainLayout from '@/components/layout/MainLayout';
+import { ImageUploader, ImageGallery, ImageAnalysisResults, StudyMaterialGenerator } from '@/components/visual-recognition';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  Camera, 
-  BookText, 
-  Calculator, 
-  PlusCircle, 
-  Share2, 
-  FileText, 
-  History,
-  ImageIcon,
-  CircleSlash
+import { toast } from '@/components/ui/use-toast';
+import {
+  Camera,
+  Image as ImageIcon,
+  FileImage,
+  BrainCircuit,
+  Lightbulb,
+  RefreshCw,
+  ArrowLeft
 } from 'lucide-react';
 
 /**
@@ -32,21 +23,51 @@ import {
  * @returns {React.ReactElement} VisualRecognition page
  */
 const VisualRecognition = () => {
-  const { toast } = useToast();
   const { user } = useAuth();
-  const [capturedImage, setCapturedImage] = useState(null);
-  const [recognizedContent, setRecognizedContent] = useState(null);
-  const [contentType, setContentType] = useState('equation');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [recognitionHistory, setRecognitionHistory] = useState([]);
-  const [lastSavedFlashcard, setLastSavedFlashcard] = useState(null);
-  const [tab, setTab] = useState('capture');
-  
-  // Handle image capture from camera component
-  const handleCapturedImage = async (imageData) => {
-    setCapturedImage(imageData);
+  const visualRecognition = useVisualRecognition();
+  const imageAnalysis = useImageAnalysis();
+  const studyMaterialGenerator = useStudyMaterialGenerator();
+
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [activeTab, setActiveTab] = useState('upload');
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Initialize services
+  useEffect(() => {
+    if (user) {
+      const initializeServices = async () => {
+        try {
+          await visualRecognition.initialize(user.id);
+          await imageAnalysis.initialize();
+          await studyMaterialGenerator.initialize(user.id);
+          setIsInitialized(true);
+        } catch (error) {
+          console.error('Error initializing services:', error);
+          toast({
+            title: 'Initialization Error',
+            description: 'Failed to initialize visual recognition services',
+            variant: 'destructive'
+          });
+        }
+      };
+
+      initializeServices();
+    }
+  }, [user, visualRecognition, imageAnalysis, studyMaterialGenerator]);
+
+  // Handle image upload completion
+  const handleUploadComplete = (image) => {
+    setSelectedImage(image);
+    setActiveTab('analyze');
+  };
+
+  // Handle image selection from gallery
+  const handleSelectImage = (image) => {
+    setSelectedImage(image);
+    setActiveTab('analyze');
+  };
     setIsProcessing(true);
-    
+
     try {
       // Process image based on selected content type
       if (contentType === 'equation') {
@@ -56,7 +77,7 @@ const VisualRecognition = () => {
         const result = await recognizeNotes(imageData);
         setRecognizedContent(result);
       }
-      
+
       setTab('result');
     } catch (error) {
       console.error('Recognition error:', error);
@@ -69,17 +90,17 @@ const VisualRecognition = () => {
       setIsProcessing(false);
     }
   };
-  
+
   // Handle content type change
   const handleContentTypeChange = (type) => {
     setContentType(type);
     setRecognizedContent(null);
   };
-  
+
   // Update recognized content (e.g., after edits)
   const handleContentUpdate = (updatedContent) => {
     setRecognizedContent(updatedContent);
-    
+
     // Add to history
     if (recognitionHistory.length >= 10) {
       setRecognitionHistory(prev => [...prev.slice(1), {
@@ -95,7 +116,7 @@ const VisualRecognition = () => {
       }]);
     }
   };
-  
+
   // Create flashcard from recognized content
   const handleCreateFlashcard = async (content) => {
     if (!user) {
@@ -106,7 +127,7 @@ const VisualRecognition = () => {
       });
       return;
     }
-    
+
     try {
       if (contentType === 'equation') {
         // Create a single equation flashcard
@@ -117,16 +138,16 @@ const VisualRecognition = () => {
           difficulty: 3,
           useLatex: true
         };
-        
+
         const result = await createFlashcard(
           user.id,
           flashcardData.frontContent,
           flashcardData.backContent,
           flashcardData.topicId
         );
-        
+
         setLastSavedFlashcard(flashcardData);
-        
+
         toast({
           title: "Flashcard Created",
           description: "Equation flashcard has been saved to your collection",
@@ -135,7 +156,7 @@ const VisualRecognition = () => {
       } else {
         // Generate multiple flashcards from notes
         const flashcards = generateFlashcardsFromNotes(content);
-        
+
         if (flashcards.length > 0) {
           // Just create the first flashcard in this demo
           // In a full app, you'd create all or show a selection UI
@@ -145,9 +166,9 @@ const VisualRecognition = () => {
             flashcards[0].backContent,
             flashcards[0].topicId
           );
-          
+
           setLastSavedFlashcard(flashcards[0]);
-          
+
           toast({
             title: `${flashcards.length} Flashcards Created`,
             description: "Flashcards have been generated from your notes",
@@ -170,12 +191,12 @@ const VisualRecognition = () => {
       });
     }
   };
-  
+
   // Handle correction submission
   const handleCorrectionSubmit = (correctionData) => {
     // In a real app, this would be sent to backend for ML model improvement
     console.log('Correction submitted:', correctionData);
-    
+
     // Update the recognized content with corrected version
     if (contentType === 'equation') {
       setRecognizedContent(prev => ({
@@ -188,14 +209,14 @@ const VisualRecognition = () => {
         text: correctionData.corrected
       }));
     }
-    
+
     toast({
       title: "Correction Submitted",
       description: "Thank you for helping improve our recognition system",
       variant: "default"
     });
   };
-  
+
   return (
     <MainLayout>
       <div className="container py-6">
@@ -206,9 +227,9 @@ const VisualRecognition = () => {
               Capture and process handwritten notes, equations, and diagrams
             </p>
           </div>
-          
+
           <div className="flex mt-4 md:mt-0 space-x-2">
-            <Button 
+            <Button
               variant={contentType === 'equation' ? 'default' : 'outline'}
               onClick={() => handleContentTypeChange('equation')}
               className="flex items-center"
@@ -216,8 +237,8 @@ const VisualRecognition = () => {
               <Calculator className="mr-2 h-4 w-4" />
               Equations
             </Button>
-            
-            <Button 
+
+            <Button
               variant={contentType === 'notes' ? 'default' : 'outline'}
               onClick={() => handleContentTypeChange('notes')}
               className="flex items-center"
@@ -227,7 +248,7 @@ const VisualRecognition = () => {
             </Button>
           </div>
         </div>
-        
+
         <Tabs value={tab} onValueChange={setTab} className="mb-6">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="capture" className="flex items-center">
@@ -243,7 +264,7 @@ const VisualRecognition = () => {
               <span className="hidden sm:inline">History</span>
             </TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="capture" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <Card className="md:col-span-3">
@@ -251,21 +272,21 @@ const VisualRecognition = () => {
                   <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-lg">
                     {capturedImage ? (
                       <div className="w-full max-w-md">
-                        <img 
-                          src={capturedImage} 
-                          alt="Captured content" 
+                        <img
+                          src={capturedImage}
+                          alt="Captured content"
                           className="rounded-lg shadow-md w-full"
                         />
-                        
+
                         <div className="flex justify-center mt-4 space-x-2">
-                          <Button 
+                          <Button
                             onClick={() => setCapturedImage(null)}
                             variant="outline"
                           >
                             Retake
                           </Button>
-                          
-                          <Button 
+
+                          <Button
                             onClick={() => handleCapturedImage(capturedImage)}
                             disabled={isProcessing}
                           >
@@ -292,7 +313,7 @@ const VisualRecognition = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <div className="space-y-4">
                 <Card>
                   <CardContent className="pt-6">
@@ -325,14 +346,14 @@ const VisualRecognition = () => {
                     </ul>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardContent className="pt-6">
                     <h3 className="text-lg font-medium mb-3">Recently Processed</h3>
                     {recognitionHistory.length > 0 ? (
                       <div className="space-y-2">
                         {recognitionHistory.slice(-3).reverse().map((item, index) => (
-                          <div 
+                          <div
                             key={index}
                             className="flex items-center p-2 border rounded-md cursor-pointer hover:bg-accent"
                             onClick={() => {
@@ -347,8 +368,8 @@ const VisualRecognition = () => {
                               <BookText className="h-4 w-4 mr-2 text-muted-foreground" />
                             )}
                             <div className="truncate flex-1">
-                              {item.type === 'equation' 
-                                ? item.content.latex?.substring(0, 20) + '...' 
+                              {item.type === 'equation'
+                                ? item.content.latex?.substring(0, 20) + '...'
                                 : item.content.text?.substring(0, 20) + '...'}
                             </div>
                             <span className="text-xs text-muted-foreground">
@@ -367,7 +388,7 @@ const VisualRecognition = () => {
               </div>
             </div>
           </TabsContent>
-          
+
           <TabsContent value="result" className="space-y-6">
             {isProcessing ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -404,13 +425,13 @@ const VisualRecognition = () => {
                   onSave={handleContentUpdate}
                   onCreateFlashcard={handleCreateFlashcard}
                 />
-                
+
                 <div className="space-y-6">
                   <VisualLearningAssistant
                     recognizedContent={recognizedContent}
                     contentType={contentType}
                   />
-                  
+
                   <ErrorCorrectionInterface
                     originalContent={recognizedContent}
                     contentType={contentType}
@@ -418,7 +439,7 @@ const VisualRecognition = () => {
                     suggestionHistory={[]}
                   />
                 </div>
-                
+
                 {lastSavedFlashcard && (
                   <Card className="lg:col-span-2">
                     <CardContent className="pt-6">
@@ -460,23 +481,23 @@ const VisualRecognition = () => {
               </div>
             )}
           </TabsContent>
-          
+
           <TabsContent value="history" className="space-y-6">
             {recognitionHistory.length > 0 ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold">Recognition History</h2>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => setRecognitionHistory([])}
                   >
                     Clear History
                   </Button>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {recognitionHistory.slice().reverse().map((item, index) => (
-                    <Card 
+                    <Card
                       key={index}
                       className="cursor-pointer hover:shadow-md transition-shadow"
                       onClick={() => {
@@ -501,9 +522,9 @@ const VisualRecognition = () => {
                             {new Date(item.timestamp).toLocaleString()}
                           </span>
                         </div>
-                        
+
                         <div className="line-clamp-3 text-sm">
-                          {item.type === 'equation' 
+                          {item.type === 'equation'
                             ? item.content.latex
                             : item.content.text}
                         </div>
