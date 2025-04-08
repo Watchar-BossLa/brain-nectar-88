@@ -1,26 +1,27 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  BookOpen, 
-  GraduationCap, 
-  BarChart2, 
-  Settings, 
+import {
+  BookOpen,
+  GraduationCap,
+  BarChart2,
+  Settings,
   Home,
   User,
   Award,
-  LogOut
+  LogOut,
+  Lightbulb
 } from 'lucide-react';
 import { useAuth } from '@/context/auth';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { ThemeSwitcher } from '@/components/ui/theme-switcher';
 import MainLayoutTimerButton from './MainLayoutTimerButton';
@@ -43,8 +44,8 @@ const MainLayout = ({ children }) => {
     setIsSigningOut(false);
   };
 
-  const userInitials = user?.email 
-    ? user.email.split('@')[0].substring(0, 2).toUpperCase() 
+  const userInitials = user?.email
+    ? user.email.split('@')[0].substring(0, 2).toUpperCase()
     : 'U';
 
   const navigationItems = [
@@ -53,6 +54,7 @@ const MainLayout = ({ children }) => {
     { icon: <Award size={18} />, label: 'Qualifications', path: '/qualifications' },
     { icon: <GraduationCap size={18} />, label: 'Assessments', path: '/assessments' },
     { icon: <BarChart2 size={18} />, label: 'Progress', path: '/progress' },
+    { icon: <Lightbulb size={18} />, label: 'Advanced Learning', path: '/advanced-learning' },
     { icon: <User size={18} />, label: 'Profile', path: '/profile' },
     { icon: <Settings size={18} />, label: 'Settings', path: '/settings' },
   ];
@@ -60,14 +62,14 @@ const MainLayout = ({ children }) => {
   return (
     <div className="h-screen w-screen flex flex-col md:flex-row overflow-hidden bg-background">
       {/* Sidebar */}
-      <motion.aside 
+      <motion.aside
         className="w-full md:w-64 md:h-screen md:min-h-screen border-r border-border bg-secondary/30 backdrop-blur-sm z-10"
         initial={{ x: -20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
       >
         <div className="p-6">
-          <motion.div 
+          <motion.div
             className="flex items-center gap-3"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -75,9 +77,9 @@ const MainLayout = ({ children }) => {
           >
             <Link to="/" className="flex items-center gap-3">
               <div className="w-10 h-10 relative bg-transparent">
-                <img 
-                  src="/lovable-uploads/0d1e3e9b-51a0-4dff-87fc-047ce00b238a.png" 
-                  alt="Study Bee Logo" 
+                <img
+                  src="/lovable-uploads/0d1e3e9b-51a0-4dff-87fc-047ce00b238a.png"
+                  alt="Study Bee Logo"
                   className="w-full h-full object-contain"
                   style={{ mixBlendMode: 'multiply' }}
                 />
@@ -86,11 +88,11 @@ const MainLayout = ({ children }) => {
             </Link>
           </motion.div>
         </div>
-        
+
         <nav className="mt-6 px-4">
           <ul className="space-y-2">
             {navigationItems.map((item, index) => (
-              <motion.li 
+              <motion.li
                 key={item.path}
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
@@ -98,10 +100,10 @@ const MainLayout = ({ children }) => {
               >
                 <NavLink
                   to={item.path}
-                  className={({ isActive }) => 
+                  className={({ isActive }) =>
                     `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                      isActive 
-                        ? 'bg-primary/10 text-primary font-medium' 
+                      isActive
+                        ? 'bg-primary/10 text-primary font-medium'
                         : 'hover:bg-muted/50'
                     }`
                   }
@@ -111,7 +113,7 @@ const MainLayout = ({ children }) => {
                 </NavLink>
               </motion.li>
             ))}
-            
+
             {/* Study Timer Button */}
             <motion.li
               initial={{ x: -20, opacity: 0 }}
@@ -153,7 +155,7 @@ const MainLayout = ({ children }) => {
                 <span>Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onSelect={handleSignOut}
                 disabled={isSigningOut}
                 className="text-destructive focus:text-destructive"
@@ -165,10 +167,10 @@ const MainLayout = ({ children }) => {
           </DropdownMenu>
         </div>
       </motion.aside>
-      
+
       {/* Main content */}
       <main className="flex-1 overflow-auto">
-        <motion.div 
+        <motion.div
           className="h-full"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
