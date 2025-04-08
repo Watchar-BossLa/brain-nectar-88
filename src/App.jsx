@@ -1,14 +1,17 @@
-import React from 'react';
+
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/auth';
 import { ThemeProvider } from './context/theme/ThemeContext';
+import { SolanaProvider } from './context/blockchain';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {
   QueryClient,
   QueryClientProvider,
-} from '@tanstack/react-query'
-import { SolanaProvider } from './context/blockchain';
+} from '@tanstack/react-query';
+import { registerServiceWorker } from './registerServiceWorker';
+import OfflineStatusIndicator from './components/ui/OfflineStatusIndicator';
 import ServiceInitializer from './components/revolutionary/ServiceInitializer';
 
 // Page imports
@@ -34,6 +37,7 @@ import FinancialTools from './pages/FinancialTools';
 import AccountingTools from './pages/AccountingTools';
 import AuthWrapper from './context/AuthWrapper';
 import StudyTimer from './pages/StudyTimer';
+import VisualRecognition from './pages/VisualRecognition';
 
 /**
  * Main application component
@@ -41,6 +45,11 @@ import StudyTimer from './pages/StudyTimer';
  */
 function App() {
   const queryClient = new QueryClient();
+
+  // Register service worker on app initialization
+  useEffect(() => {
+    registerServiceWorker();
+  }, []);
 
   return (
     <Router>
@@ -63,6 +72,7 @@ function App() {
                     pauseOnHover
                     theme="light"
                   />
+                  <OfflineStatusIndicator />
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/dashboard" element={<Dashboard />} />
@@ -85,6 +95,7 @@ function App() {
                     <Route path="/financial-tools" element={<FinancialTools />} />
                     <Route path="/accounting-tools" element={<AccountingTools />} />
                     <Route path="/study-timer" element={<StudyTimer />} />
+                    <Route path="/visual-recognition" element={<VisualRecognition />} />
                   </Routes>
                 </QueryClientProvider>
               </div>
