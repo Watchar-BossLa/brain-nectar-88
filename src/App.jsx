@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/auth';
 import { ThemeProvider } from './context/theme/ThemeContext';
@@ -9,7 +9,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import {
   QueryClient,
   QueryClientProvider,
-} from '@tanstack/react-query'
+} from '@tanstack/react-query';
+import { registerServiceWorker } from './registerServiceWorker';
+import OfflineStatusIndicator from './components/ui/OfflineStatusIndicator';
 
 // Page imports
 import Index from './pages/Index';
@@ -42,6 +44,11 @@ import StudyTimer from './pages/StudyTimer';
 function App() {
   const queryClient = new QueryClient();
 
+  // Register service worker on app initialization
+  useEffect(() => {
+    registerServiceWorker();
+  }, []);
+
   return (
     <Router>
       <AuthProvider>
@@ -62,6 +69,7 @@ function App() {
                     pauseOnHover
                     theme="light"
                   />
+                  <OfflineStatusIndicator />
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/dashboard" element={<Dashboard />} />
