@@ -41,6 +41,7 @@ import VisualRecognition from './pages/VisualRecognition';
 import DocumentAnalysis from './pages/DocumentAnalysis';
 import AdaptiveSpacedRepetition from './pages/AdaptiveSpacedRepetition';
 import KnowledgeVisualization from './pages/KnowledgeVisualization';
+import CollaborativeLearning from './pages/CollaborativeLearning';
 
 /**
  * Main application component
@@ -102,6 +103,7 @@ function App() {
                     <Route path="/document-analysis" element={<DocumentAnalysis />} />
                     <Route path="/adaptive-spaced-repetition" element={<AdaptiveSpacedRepetition />} />
                     <Route path="/knowledge-visualization" element={<KnowledgeVisualization />} />
+                    <Route path="/collaborative-learning" element={<CollaborativeLearning />} />
                   </Routes>
                 </QueryClientProvider>
               </div>
