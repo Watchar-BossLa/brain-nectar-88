@@ -1,113 +1,41 @@
 
 /**
- * @fileoverview Service worker registration
+ * Registers the service worker for offline capabilities
+ * @returns {Promise<void>}
  */
-import { Workbox } from 'workbox-window';
-
-/**
- * Registers the service worker
- * @returns {Promise<ServiceWorkerRegistration|null>} The service worker registration or null if unable to register
- */
-export async function registerServiceWorker() {
+export const registerServiceWorker = async () => {
   if ('serviceWorker' in navigator) {
     try {
-      const wb = new Workbox('/service-worker.js');
+      const registration = await navigator.serviceWorker.register('/service-worker.js');
+      console.log('ServiceWorker registered: ', registration);
       
-      // Add event listeners
-      wb.addEventListener('installed', (event) => {
-        if (event.isUpdate) {
-          // If it's an update, show the user a notification
-          if (confirm('New content is available! Click OK to refresh.')) {
-            window.location.reload();
-          }
+      // Check for updates
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('New content is available; please refresh.');
+            }
+          });
         }
       });
-      
-      wb.addEventListener('controlling', () => {
-        window.location.reload();
-      });
-      
-      // Listen for messages from the service worker
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        if (event.data && event.data.type === 'CACHE_UPDATED') {
-          console.log('Cache was updated', event.data);
-        }
-      });
-      
-      // Register the service worker
-      const registration = await wb.register();
-      console.log('Service Worker registered successfully', registration);
-      
-      return registration;
     } catch (error) {
-      console.error('Service Worker registration failed:', error);
-      return null;
+      console.error('ServiceWorker registration failed: ', error);
     }
-  } else {
-    console.log('Service Workers are not supported in this browser.');
-    return null;
   }
-}
+};
 
 /**
- * Updates the service worker
+ * Unregisters all service workers
+ * @returns {Promise<void>}
  */
-export function updateServiceWorker() {
+export const unregisterServiceWorkers = async () => {
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.ready.then((registration) => {
-      registration.update();
-    });
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    for (const registration of registrations) {
+      await registration.unregister();
+    }
+    console.log('All service workers unregistered');
   }
-}
-
-/**
- * Sends a message to the service worker
- * @param {Object} message - Message to send
- * @returns {Promise<Object|null>} Response from the service worker or null
- */
-export async function sendMessageToServiceWorker(message) {
-  if (!('serviceWorker' in navigator) || !navigator.serviceWorker.controller) {
-    return null;
-  }
-  
-  try {
-    const messageChannel = new MessageChannel();
-    
-    return new Promise((resolve) => {
-      messageChannel.port1.onmessage = (event) => {
-        resolve(event.data);
-      };
-      
-      navigator.serviceWorker.controller.postMessage(message, [messageChannel.port2]);
-    });
-  } catch (error) {
-    console.error('Error sending message to Service Worker:', error);
-    return null;
-  }
-}
-
-/**
- * Tells the service worker to cache flashcards for offline use
- * @param {Array} flashcards - Array of flashcard objects
- */
-export function cacheFlashcardsForOffline(flashcards) {
-  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-    navigator.serviceWorker.controller.postMessage({
-      type: 'CACHE_FLASHCARDS',
-      flashcards
-    });
-  }
-}
-
-/**
- * Tells the service worker to cache quiz data for offline use
- * @param {Object} quizData - Quiz data object
- */
-export function cacheQuizDataForOffline(quizData) {
-  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-    navigator.serviceWorker.controller.postMessage({
-      type: 'CACHE_QUIZ_DATA',
-      quizData
-    });
-  }
-}
+};
