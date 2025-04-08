@@ -1,230 +1,146 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
-import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, Calculator, Clock, FileText, FlaskConical, GraduationCap, LayoutDashboard, Lightbulb, Presentation, Sparkles } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { BookOpen, BookType, Brain, Calculator, Clock, Camera } from 'lucide-react';
+import MainLayout from '@/components/layout/MainLayout';
 
-export default function Index() {
+/**
+ * Landing page component for StudyBee
+ * @returns {React.ReactElement} Index page component
+ */
+const Index = () => {
   return (
     <MainLayout>
-      <div className="container py-10">
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold mb-3">Welcome to Study Bee</h1>
-          <p className="text-xl text-muted-foreground">
-            Your adaptive learning platform for mastering accounting qualifications
+      <div className="container py-8">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-4">
+            Welcome to StudyBee
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Your adaptive learning platform for accounting qualifications and beyond
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <LayoutDashboard className="h-5 w-5" />
-                Dashboard
-              </CardTitle>
-              <CardDescription>
-                Track your learning progress
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                View your study statistics, upcoming reviews, and personalized recommendations
-                based on your learning patterns.
-              </p>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="bg-primary/10 p-3 rounded-full">
+                  <BookOpen className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">Flashcards</h2>
+                  <p className="text-muted-foreground">Study with spaced repetition</p>
+                </div>
+              </div>
+              <div className="mt-4">
+                <Link to="/flashcards">
+                  <Button className="w-full">Study Flashcards</Button>
+                </Link>
+              </div>
             </CardContent>
-            <CardFooter>
-              <Button asChild className="w-full">
-                <Link to="/dashboard">Go to Dashboard</Link>
-              </Button>
-            </CardFooter>
           </Card>
 
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5" />
-                Flashcards
-              </CardTitle>
-              <CardDescription>
-                Spaced repetition learning
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Create and review flashcards with our spaced repetition system to
-                efficiently memorize accounting concepts and definitions.
-              </p>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="bg-primary/10 p-3 rounded-full">
+                  <BookType className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">Qualifications</h2>
+                  <p className="text-muted-foreground">Browse qualification paths</p>
+                </div>
+              </div>
+              <div className="mt-4">
+                <Link to="/qualifications">
+                  <Button className="w-full">Explore Qualifications</Button>
+                </Link>
+              </div>
             </CardContent>
-            <CardFooter>
-              <Button asChild className="w-full">
-                <Link to="/flashcards">Study Flashcards</Link>
-              </Button>
-            </CardFooter>
           </Card>
 
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <GraduationCap className="h-5 w-5" />
-                Qualifications
-              </CardTitle>
-              <CardDescription>
-                Professional certification paths
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Explore structured learning paths for ACCA, CPA, CIMA and other
-                accounting qualifications with tailored study materials.
-              </p>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="bg-primary/10 p-3 rounded-full">
+                  <Calculator className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">Financial Tools</h2>
+                  <p className="text-muted-foreground">Use accounting calculators</p>
+                </div>
+              </div>
+              <div className="mt-4">
+                <Link to="/financial-tools">
+                  <Button className="w-full">Open Tools</Button>
+                </Link>
+              </div>
             </CardContent>
-            <CardFooter>
-              <Button asChild className="w-full">
-                <Link to="/qualifications">View Qualifications</Link>
-              </Button>
-            </CardFooter>
           </Card>
 
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                Study Planner
-              </CardTitle>
-              <CardDescription>
-                Organize your study schedule
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Create a personalized study plan based on your exam dates, available
-                study time, and learning priorities.
-              </p>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="bg-primary/10 p-3 rounded-full">
+                  <Brain className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">Quiz</h2>
+                  <p className="text-muted-foreground">Test your knowledge</p>
+                </div>
+              </div>
+              <div className="mt-4">
+                <Link to="/quiz">
+                  <Button className="w-full">Take a Quiz</Button>
+                </Link>
+              </div>
             </CardContent>
-            <CardFooter>
-              <Button asChild className="w-full">
-                <Link to="/study-planner">Plan Your Studies</Link>
-              </Button>
-            </CardFooter>
           </Card>
 
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Presentation className="h-5 w-5" />
-                Practice Exams
-              </CardTitle>
-              <CardDescription>
-                Test your knowledge
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Take practice exams with questions similar to those on your actual
-                certification exams to gauge your readiness.
-              </p>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="bg-primary/10 p-3 rounded-full">
+                  <Clock className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">Study Timer</h2>
+                  <p className="text-muted-foreground">Track your study sessions</p>
+                </div>
+              </div>
+              <div className="mt-4">
+                <Link to="/study-timer">
+                  <Button className="w-full">Start Timer</Button>
+                </Link>
+              </div>
             </CardContent>
-            <CardFooter>
-              <Button asChild className="w-full">
-                <Link to="/assessments">Take Practice Exam</Link>
-              </Button>
-            </CardFooter>
           </Card>
-
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5" />
-                AI Study Assistant
-              </CardTitle>
-              <CardDescription>
-                Get personalized help
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Ask questions, get explanations, and receive guidance from our
-                AI assistant specialized in accounting topics.
-              </p>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="bg-primary/10 p-3 rounded-full">
+                  <Camera className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">Visual Recognition</h2>
+                  <p className="text-muted-foreground">Capture handwritten content</p>
+                </div>
+              </div>
+              <div className="mt-4">
+                <Link to="/visual-recognition">
+                  <Button className="w-full">Open Camera</Button>
+                </Link>
+              </div>
             </CardContent>
-            <CardFooter>
-              <Button asChild className="w-full">
-                <Link to="/agent-dashboard">Chat with Assistant</Link>
-              </Button>
-            </CardFooter>
-          </Card>
-
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FlaskConical className="h-5 w-5" />
-                Advanced Learning
-              </CardTitle>
-              <CardDescription>
-                Interactive learning tools
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Access interactive simulations, case studies, and advanced learning
-                tools to deepen your understanding of complex topics.
-              </p>
-            </CardContent>
-            <CardFooter>
-              <Button asChild className="w-full">
-                <Link to="/advanced-learning">Explore Advanced Tools</Link>
-              </Button>
-            </CardFooter>
-          </Card>
-
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calculator className="h-5 w-5" />
-                Accounting Tools
-              </CardTitle>
-              <CardDescription>
-                Interactive tools for accounting practice
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Visualize accounting equations and create financial statements 
-                to reinforce your understanding of accounting concepts.
-              </p>
-            </CardContent>
-            <CardFooter>
-              <Button asChild className="w-full">
-                <Link to="/accounting-tools">Explore Tools</Link>
-              </Button>
-            </CardFooter>
-          </Card>
-
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Lightbulb className="h-5 w-5" />
-                Community Forum
-              </CardTitle>
-              <CardDescription>
-                Learn with peers
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Connect with fellow accounting students, share study tips, ask questions,
-                and participate in discussions about accounting topics.
-              </p>
-            </CardContent>
-            <CardFooter>
-              <Button asChild variant="outline" className="w-full">
-                <Link to="#">Coming Soon</Link>
-              </Button>
-            </CardFooter>
           </Card>
         </div>
       </div>
     </MainLayout>
   );
-}
+};
+
+export default Index;

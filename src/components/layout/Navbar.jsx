@@ -1,129 +1,174 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '@/context/auth/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useToast } from '@/components/ui/use-toast';
-import { useNavigate } from 'react-router-dom';
-import { LogOut } from 'lucide-react';
+  BookOpen,
+  BookType,
+  BarChart,
+  User,
+  Menu,
+  X,
+  Brain,
+  Clock,
+  Calculator,
+  Briefcase,
+  Compass,
+  Camera,
+} from 'lucide-react';
+import { useAuth } from '@/context/auth';
+import { Button } from '@/components/ui/button';
+import NavbarTimerButton from './NavbarTimerButton';
+import NavbarUserMenu from '../NavbarUserMenu';
 
 /**
- * Navigation bar component
+ * Main navigation bar component
  * @returns {React.ReactElement} Navbar component
  */
 const Navbar = () => {
-  const { user, signOut } = useAuth(); // Changed 'logout' to 'signOut' to match AuthContextType
   const location = useLocation();
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  
-  /**
-   * Handle user logout
-   * @returns {Promise<void>}
-   */
-  const handleLogout = async () => {
-    try {
-      await signOut(); // Changed to use signOut instead of logout
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out.",
-      });
-      navigate('/login');
-    } catch (error) {
-      console.error("Logout failed:", error);
-      toast({
-        title: "Logout Failed",
-        description: "There was an error logging you out. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const { user, signOut } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Navigation links definition
+  const navItems = [
+    { name: 'Dashboard', href: '/dashboard', icon: BarChart },
+    { name: 'Flashcards', href: '/flashcards', icon: BookOpen },
+    { name: 'Qualifications', href: '/qualifications', icon: BookType },
+    { name: 'Quiz', href: '/quiz', icon: Brain },
+    { name: 'Financial Tools', href: '/financial-tools', icon: Calculator },
+    { name: 'Learning Paths', href: '/advanced-learning', icon: Compass },
+    { name: 'Visual Recognition', href: '/visual-recognition', icon: Camera },
+  ];
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
   };
-  
+
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+  };
+
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background">
-      <div className="container flex h-16 items-center">
-        <div className="mr-4 hidden md:flex">
-          <Link to="/" className="mr-6 flex items-center space-x-2">
-            <span className="hidden font-bold sm:inline-block text-xl">StudyBee</span>
-          </Link>
-          <nav className="flex items-center space-x-6 text-sm font-medium">
-            <Link to="/dashboard" className={`transition-colors hover:text-primary ${location.pathname === '/dashboard' ? 'text-primary' : 'text-foreground/60'}`}>
-              Dashboard
-            </Link>
-            <Link to="/flashcards" className={`transition-colors hover:text-primary ${location.pathname === '/flashcards' ? 'text-primary' : 'text-foreground/60'}`}>
-              Flashcards
-            </Link>
-            <Link to="/qualifications" className={`transition-colors hover:text-primary ${location.pathname === '/qualifications' ? 'text-primary' : 'text-foreground/60'}`}>
-              Qualifications
-            </Link>
-            <Link to="/study-planner" className={`transition-colors hover:text-primary ${location.pathname === '/study-planner' ? 'text-primary' : 'text-foreground/60'}`}>
-              Study Planner
-            </Link>
-            <Link to="/accounting-tools" className={`transition-colors hover:text-primary ${location.pathname === '/accounting-tools' ? 'text-primary' : 'text-foreground/60'}`}>
-              Accounting Tools
-            </Link>
-          </nav>
-        </div>
-        
-        <div className="ml-auto flex items-center space-x-4">
-          {/* Mobile menu (example, implement your actual mobile menu) */}
-          <div className="md:hidden">
-            {/* Add your mobile menu icon and logic here */}
-            {/* Example: */}
-            <button>
-              {/* Mobile Menu Icon */}
+    <nav className="bg-background border-b">
+      <div className="container mx-auto px-4">
+        <div className="flex justify-between h-16">
+          <div className="flex">
+            <div className="flex-shrink-0 flex items-center">
+              <Link to="/" className="flex items-center">
+                <div className="text-primary text-2xl font-bold">StudyBee</div>
+              </Link>
+            </div>
+            <div className="hidden sm:ml-6 sm:flex sm:space-x-4">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.href;
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
+                      isActive
+                        ? 'border-b-2 border-primary text-foreground'
+                        : 'text-muted-foreground hover:text-foreground hover:border-b-2 hover:border-muted'
+                    }`}
+                  >
+                    <Icon className="mr-1 h-4 w-4" />
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+          <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
+            <NavbarTimerButton />
+            {user ? (
+              <NavbarUserMenu />
+            ) : (
+              <div className="flex space-x-2">
+                <Link to="/login">
+                  <Button variant="outline">Log In</Button>
+                </Link>
+                <Link to="/sign-up">
+                  <Button>Sign Up</Button>
+                </Link>
+              </div>
+            )}
+          </div>
+          <div className="flex items-center sm:hidden">
+            <button
+              onClick={toggleMobileMenu}
+              className="inline-flex items-center justify-center p-2 rounded-md text-muted-foreground hover:text-foreground focus:outline-none"
+            >
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" aria-hidden="true" />
+              ) : (
+                <Menu className="h-6 w-6" aria-hidden="true" />
+              )}
             </button>
           </div>
-          
+        </div>
+      </div>
+
+      {/* Mobile menu */}
+      <div className={`sm:hidden ${mobileMenuOpen ? 'block' : 'hidden'}`}>
+        <div className="pt-2 pb-4 space-y-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.href;
+            return (
+              <Link
+                key={item.name}
+                to={item.href}
+                onClick={closeMobileMenu}
+                className={`block pl-3 pr-4 py-2 text-base font-medium flex items-center ${
+                  isActive
+                    ? 'bg-primary/10 text-primary border-l-4 border-primary'
+                    : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                }`}
+              >
+                <Icon className="mr-3 h-5 w-5" />
+                {item.name}
+              </Link>
+            );
+          })}
+        </div>
+        <div className="border-t pt-4 pb-3">
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user?.email} alt={user?.email || "User Avatar"} />
-                    <AvatarFallback>{user?.email?.[0]?.toUpperCase() || "U"}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>{user?.email}</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/profile">Profile</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/user-profile">User Profile</Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-                  Logout
-                  <LogOut className="ml-auto h-4 w-4" />
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="px-4 space-y-2">
+              <div className="font-medium">{user.email}</div>
+              <Link
+                to="/profile"
+                onClick={closeMobileMenu}
+                className="block px-3 py-2 rounded-md text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent flex items-center"
+              >
+                <User className="mr-3 h-5 w-5" />
+                Profile
+              </Link>
+              <button
+                onClick={() => {
+                  signOut();
+                  closeMobileMenu();
+                }}
+                className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent"
+              >
+                Sign Out
+              </button>
+            </div>
           ) : (
-            <>
-              <Link to="/login">
-                <Button variant="outline" size="sm">
+            <div className="px-4 flex flex-col space-y-2">
+              <Link to="/login" onClick={closeMobileMenu}>
+                <Button variant="outline" className="w-full">
                   Log In
                 </Button>
               </Link>
-              <Link to="/sign-up">
-                <Button size="sm">Sign Up</Button>
+              <Link to="/sign-up" onClick={closeMobileMenu}>
+                <Button className="w-full">Sign Up</Button>
               </Link>
-            </>
+            </div>
           )}
         </div>
       </div>
-    </header>
+    </nav>
   );
 };
 

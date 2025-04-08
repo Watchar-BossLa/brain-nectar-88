@@ -36,6 +36,7 @@ import FinancialTools from './pages/FinancialTools';
 import AccountingTools from './pages/AccountingTools';
 import AuthWrapper from './context/AuthWrapper';
 import StudyTimer from './pages/StudyTimer';
+import VisualRecognition from './pages/VisualRecognition';
 
 function App() {
   const queryClient = new QueryClient();
@@ -82,6 +83,7 @@ function App() {
                     <Route path="/financial-tools" element={<FinancialTools />} />
                     <Route path="/accounting-tools" element={<AccountingTools />} />
                     <Route path="/study-timer" element={<StudyTimer />} />
+                    <Route path="/visual-recognition" element={<VisualRecognition />} />
                   </Routes>
                 </QueryClientProvider>
               </div>
