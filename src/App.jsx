@@ -42,6 +42,7 @@ import DocumentAnalysis from './pages/DocumentAnalysis';
 import AdaptiveSpacedRepetition from './pages/AdaptiveSpacedRepetition';
 import KnowledgeVisualization from './pages/KnowledgeVisualization';
 import CollaborativeLearning from './pages/CollaborativeLearning';
+import AugmentedRealityStudy from './pages/AugmentedRealityStudy';
 
 /**
  * Main application component
@@ -104,6 +105,7 @@ function App() {
                     <Route path="/adaptive-spaced-repetition" element={<AdaptiveSpacedRepetition />} />
                     <Route path="/knowledge-visualization" element={<KnowledgeVisualization />} />
                     <Route path="/collaborative-learning" element={<CollaborativeLearning />} />
+                    <Route path="/augmented-reality-study" element={<AugmentedRealityStudy />} />
                   </Routes>
                 </QueryClientProvider>
               </div>

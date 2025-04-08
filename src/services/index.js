@@ -18,6 +18,9 @@ import * as collaborativeNetwork from './collaborative-network';
 // Visual Recognition
 import * as visualRecognition from './visual-recognition';
 
+// Augmented Reality
+import * as augmentedReality from './augmented-reality';
+
 // Cognitive Optimization
 import * as cognitive from './cognitive';
 
@@ -46,6 +49,7 @@ export {
   collaborative,
   collaborativeNetwork,
   visualRecognition,
+  augmentedReality,
   cognitive,
   credentials,
   agents,
@@ -84,7 +88,11 @@ export async function initializeAllServices(userId) {
       collaborativeNetwork.SocialLearningService.getInstance().initialize(userId),
       visualRecognition.VisualRecognitionService.getInstance().initialize(userId),
       visualRecognition.ImageAnalysisService.getInstance().initialize(),
-      visualRecognition.StudyMaterialGeneratorService.getInstance().initialize(userId)
+      visualRecognition.StudyMaterialGeneratorService.getInstance().initialize(userId),
+      augmentedReality.ARStudyEnvironmentService.getInstance().initialize(userId),
+      augmentedReality.ARObjectManagerService.getInstance().initialize(userId),
+      augmentedReality.ARCollaborationService.getInstance().initialize(userId),
+      augmentedReality.ARSpatialMemoryService.getInstance().initialize(userId)
     ]);
 
     console.log('All services initialized successfully');
@@ -115,6 +123,7 @@ export async function runAllMigrations(supabase) {
     await knowledgeGraph.runMigrations(supabase);
     await collaborativeNetwork.runMigrations(supabase);
     await visualRecognition.runMigrations(supabase);
+    await augmentedReality.runMigrations(supabase);
 
     console.log('All database migrations completed successfully');
     return true;
