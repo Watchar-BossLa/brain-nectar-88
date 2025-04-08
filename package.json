@@ -81,7 +81,7 @@
     "tailwindcss-animate": "^1.0.7",
     "url": "^0.11.4",
     "vaul": "^0.9.3",
-    "vite-plugin-pwa": "^0.19.6",
+    "vite-plugin-pwa": "^1.0.0",
     "vitest": "^3.0.9",
     "workbox-core": "^7.0.0",
     "workbox-precaching": "^7.0.0",
