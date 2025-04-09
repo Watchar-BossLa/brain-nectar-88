@@ -46,6 +46,8 @@ import AugmentedRealityStudy from './pages/AugmentedRealityStudy';
 import AIStudyCoach from './pages/AIStudyCoach';
 import StudyGroups from './pages/StudyGroups';
 import StudyGroupDetail from './pages/StudyGroupDetail';
+import KnowledgeVisualizationSystem from './pages/KnowledgeVisualizationSystem';
+import KnowledgeMapDetail from './pages/KnowledgeMapDetail';
 
 /**
  * Main application component
@@ -112,6 +114,8 @@ function App() {
                     <Route path="/ai-study-coach" element={<AIStudyCoach />} />
                     <Route path="/study-groups" element={<StudyGroups />} />
                     <Route path="/study-groups/:groupId" element={<StudyGroupDetail />} />
+                    <Route path="/knowledge-visualization-system" element={<KnowledgeVisualizationSystem />} />
+                    <Route path="/knowledge-visualization-system/maps/:mapId" element={<KnowledgeMapDetail />} />
                   </Routes>
                 </QueryClientProvider>
               </div>
