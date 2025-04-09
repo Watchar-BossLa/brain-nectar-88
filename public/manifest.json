@@ -1,21 +1,38 @@
-
 {
   "short_name": "StudyBee",
-  "name": "StudyBee Learning Platform",
+  "name": "Study Bee Learning Platform",
+  "description": "Your intelligent study companion for effective learning",
   "icons": [
     {
       "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
   "start_url": "/",
   "display": "standalone",
-  "theme_color": "#ffffff",
-  "background_color": "#ffffff"
+  "theme_color": "#1e3a8a",
+  "background_color": "#ffffff",
+  "shortcuts": [
+    {
+      "name": "Start Study Session",
+      "short_name": "Study",
+      "description": "Start a new study session",
+      "url": "/study-timer"
+    },
+    {
+      "name": "Flashcard Review",
+      "short_name": "Review",
+      "description": "Review your flashcards",
+      "url": "/adaptive-spaced-repetition"
+    }
+  ],
+  "categories": ["education", "productivity"]
 }

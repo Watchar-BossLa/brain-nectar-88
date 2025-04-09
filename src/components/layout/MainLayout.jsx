@@ -31,6 +31,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { ThemeSwitcher } from '@/components/ui/theme-switcher';
+import OfflineStatus from '@/components/ui/offline-status';
 import MainLayoutTimerButton from './MainLayoutTimerButton';
 
 /**
@@ -60,12 +61,12 @@ const MainLayout = ({ children }) => {
     { icon: <BookOpen size={18} />, label: 'My Courses', path: '/courses' },
     { icon: <Award size={18} />, label: 'Qualifications', path: '/qualifications' },
     { icon: <GraduationCap size={18} />, label: 'Assessments', path: '/assessments' },
-    { icon: <BarChart2 size={18} />, label: 'Progress', path: '/progress' },
-    { icon: <Lightbulb size={18} />, label: 'Advanced Learning', path: '/advanced-learning' },
+    { icon: <BarChart2 size={18} />, label: 'Learning Analytics', path: '/learning-analytics' },
+    { icon: <Lightbulb size={18} />, label: 'Recommendations', path: '/learning-recommendations' },
     { icon: <FileText size={18} />, label: 'Document Analysis', path: '/document-analysis' },
     { icon: <Camera size={18} />, label: 'Visual Recognition', path: '/visual-recognition' },
     { icon: <Brain size={18} />, label: 'Spaced Repetition', path: '/adaptive-spaced-repetition' },
-    { icon: <Network size={18} />, label: 'Knowledge Graph', path: '/knowledge-visualization' },
+    { icon: <Network size={18} />, label: 'Knowledge Graph', path: '/knowledge-visualization-system' },
     { icon: <Users size={18} />, label: 'Collaborative Learning', path: '/collaborative-learning' },
     { icon: <Glasses size={18} />, label: 'AR Study', path: '/augmented-reality-study' },
     { icon: <Sparkles size={18} />, label: 'AI Coach', path: '/ai-study-coach' },
@@ -193,6 +194,9 @@ const MainLayout = ({ children }) => {
           {children}
         </motion.div>
       </main>
+
+      {/* Offline status indicator */}
+      <OfflineStatus />
     </div>
   );
 };
