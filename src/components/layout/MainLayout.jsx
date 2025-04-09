@@ -16,7 +16,8 @@ import {
   Network,
   Users,
   Camera,
-  Glasses
+  Glasses,
+  Sparkles
 } from 'lucide-react';
 import { useAuth } from '@/context/auth';
 import { Button } from '@/components/ui/button';
@@ -67,6 +68,7 @@ const MainLayout = ({ children }) => {
     { icon: <Network size={18} />, label: 'Knowledge Graph', path: '/knowledge-visualization' },
     { icon: <Users size={18} />, label: 'Collaborative Learning', path: '/collaborative-learning' },
     { icon: <Glasses size={18} />, label: 'AR Study', path: '/augmented-reality-study' },
+    { icon: <Sparkles size={18} />, label: 'AI Coach', path: '/ai-study-coach' },
     { icon: <User size={18} />, label: 'Profile', path: '/profile' },
     { icon: <Settings size={18} />, label: 'Settings', path: '/settings' },
   ];

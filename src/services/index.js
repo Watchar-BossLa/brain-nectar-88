@@ -21,6 +21,9 @@ import * as visualRecognition from './visual-recognition';
 // Augmented Reality
 import * as augmentedReality from './augmented-reality';
 
+// AI Coach
+import * as aiCoach from './ai-coach';
+
 // Cognitive Optimization
 import * as cognitive from './cognitive';
 
@@ -50,6 +53,7 @@ export {
   collaborativeNetwork,
   visualRecognition,
   augmentedReality,
+  aiCoach,
   cognitive,
   credentials,
   agents,
@@ -92,7 +96,12 @@ export async function initializeAllServices(userId) {
       augmentedReality.ARStudyEnvironmentService.getInstance().initialize(userId),
       augmentedReality.ARObjectManagerService.getInstance().initialize(userId),
       augmentedReality.ARCollaborationService.getInstance().initialize(userId),
-      augmentedReality.ARSpatialMemoryService.getInstance().initialize(userId)
+      augmentedReality.ARSpatialMemoryService.getInstance().initialize(userId),
+      aiCoach.AICoachProfileService.getInstance().initialize(userId),
+      aiCoach.AICoachSessionService.getInstance().initialize(userId),
+      aiCoach.AICoachInsightService.getInstance().initialize(userId),
+      aiCoach.AICoachGoalService.getInstance().initialize(userId),
+      aiCoach.AICoachStudyPlanService.getInstance().initialize(userId)
     ]);
 
     console.log('All services initialized successfully');
@@ -124,6 +133,7 @@ export async function runAllMigrations(supabase) {
     await collaborativeNetwork.runMigrations(supabase);
     await visualRecognition.runMigrations(supabase);
     await augmentedReality.runMigrations(supabase);
+    await aiCoach.runMigrations(supabase);
 
     console.log('All database migrations completed successfully');
     return true;
