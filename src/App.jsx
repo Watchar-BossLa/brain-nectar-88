@@ -48,6 +48,7 @@ import StudyGroups from './pages/StudyGroups';
 import StudyGroupDetail from './pages/StudyGroupDetail';
 import KnowledgeVisualizationSystem from './pages/KnowledgeVisualizationSystem';
 import KnowledgeMapDetail from './pages/KnowledgeMapDetail';
+import LearningRecommendations from './pages/LearningRecommendations';
 
 /**
  * Main application component
@@ -116,6 +117,7 @@ function App() {
                     <Route path="/study-groups/:groupId" element={<StudyGroupDetail />} />
                     <Route path="/knowledge-visualization-system" element={<KnowledgeVisualizationSystem />} />
                     <Route path="/knowledge-visualization-system/maps/:mapId" element={<KnowledgeMapDetail />} />
+                    <Route path="/learning-recommendations" element={<LearningRecommendations />} />
                   </Routes>
                 </QueryClientProvider>
               </div>
