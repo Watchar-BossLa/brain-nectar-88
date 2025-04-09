@@ -44,6 +44,8 @@ import KnowledgeVisualization from './pages/KnowledgeVisualization';
 import CollaborativeLearning from './pages/CollaborativeLearning';
 import AugmentedRealityStudy from './pages/AugmentedRealityStudy';
 import AIStudyCoach from './pages/AIStudyCoach';
+import StudyGroups from './pages/StudyGroups';
+import StudyGroupDetail from './pages/StudyGroupDetail';
 
 /**
  * Main application component
@@ -108,6 +110,8 @@ function App() {
                     <Route path="/collaborative-learning" element={<CollaborativeLearning />} />
                     <Route path="/augmented-reality-study" element={<AugmentedRealityStudy />} />
                     <Route path="/ai-study-coach" element={<AIStudyCoach />} />
+                    <Route path="/study-groups" element={<StudyGroups />} />
+                    <Route path="/study-groups/:groupId" element={<StudyGroupDetail />} />
                   </Routes>
                 </QueryClientProvider>
               </div>
