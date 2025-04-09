@@ -1,13 +1,20 @@
+
 import React, { useState, useEffect } from 'react';
 import { useVisualRecognition, useImageAnalysis, useStudyMaterialGenerator } from '@/services/visual-recognition';
 import { useAuth } from '@/context/auth';
 import MainLayout from '@/components/layout/MainLayout';
 import { ImageUploader, ImageGallery, ImageAnalysisResults, StudyMaterialGenerator } from '@/components/visual-recognition';
+import CameraCapture from '@/components/visual-recognition/CameraCapture';
+import RecognizedContent from '@/components/visual-recognition/RecognizedContent';
+import ErrorCorrectionInterface from '@/components/visual-recognition/ErrorCorrectionInterface';
+import { recognizeEquation } from '@/services/visual-recognition/equationRecognition';
+import { recognizeNotes, generateFlashcardsFromNotes } from '@/services/visual-recognition/noteProcessing';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/components/ui/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Camera,
   Image as ImageIcon,
@@ -15,7 +22,14 @@ import {
   BrainCircuit,
   Lightbulb,
   RefreshCw,
-  ArrowLeft
+  ArrowLeft,
+  Calculator,
+  BookText,
+  FileText,
+  History,
+  CircleSlash,
+  PlusCircle,
+  Share2
 } from 'lucide-react';
 
 /**
@@ -31,6 +45,15 @@ const VisualRecognition = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [activeTab, setActiveTab] = useState('upload');
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Additional state for the full functionality
+  const [tab, setTab] = useState('capture');
+  const [contentType, setContentType] = useState('notes');
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [recognizedContent, setRecognizedContent] = useState(null);
+  const [recognitionHistory, setRecognitionHistory] = useState([]);
+  const [lastSavedFlashcard, setLastSavedFlashcard] = useState(null);
 
   // Initialize services
   useEffect(() => {
@@ -66,15 +89,19 @@ const VisualRecognition = () => {
     setSelectedImage(image);
     setActiveTab('analyze');
   };
+  
+  // Handle captured image processing
+  const handleCapturedImage = async (imageData) => {
     setIsProcessing(true);
 
     try {
       // Process image based on selected content type
+      let result;
       if (contentType === 'equation') {
-        const result = await recognizeEquation(imageData);
+        result = await recognizeEquation(imageData);
         setRecognizedContent(result);
       } else {
-        const result = await recognizeNotes(imageData);
+        result = await recognizeNotes(imageData);
         setRecognizedContent(result);
       }
 
@@ -139,12 +166,13 @@ const VisualRecognition = () => {
           useLatex: true
         };
 
-        const result = await createFlashcard(
-          user.id,
-          flashcardData.frontContent,
-          flashcardData.backContent,
-          flashcardData.topicId
-        );
+        // In a real app, this would call an API to create the flashcard
+        // const result = await createFlashcard(
+        //   user.id,
+        //   flashcardData.frontContent,
+        //   flashcardData.backContent,
+        //   flashcardData.topicId
+        // );
 
         setLastSavedFlashcard(flashcardData);
 
@@ -160,12 +188,12 @@ const VisualRecognition = () => {
         if (flashcards.length > 0) {
           // Just create the first flashcard in this demo
           // In a full app, you'd create all or show a selection UI
-          const result = await createFlashcard(
-            user.id,
-            flashcards[0].frontContent,
-            flashcards[0].backContent,
-            flashcards[0].topicId
-          );
+          // const result = await createFlashcard(
+          //   user.id,
+          //   flashcards[0].frontContent,
+          //   flashcards[0].backContent,
+          //   flashcards[0].topicId
+          // );
 
           setLastSavedFlashcard(flashcards[0]);
 
@@ -216,6 +244,21 @@ const VisualRecognition = () => {
       variant: "default"
     });
   };
+
+  // Visual Learning Assistant component - placeholder for now
+  const VisualLearningAssistant = ({ recognizedContent, contentType }) => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Learning Assistant</CardTitle>
+        <CardDescription>AI-powered insights for your content</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground">
+          Content analysis is available for this {contentType === 'equation' ? 'equation' : 'note'}.
+        </p>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <MainLayout>
