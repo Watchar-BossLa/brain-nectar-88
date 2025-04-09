@@ -7,10 +7,16 @@ import ImageUploader from './ImageUploader';
 import ImageGallery from './ImageGallery';
 import ImageAnalysisResults from './ImageAnalysisResults';
 import StudyMaterialGenerator from './StudyMaterialGenerator';
+import HandwritingRecognition from './HandwritingRecognition';
+import FormulaRecognition from './FormulaRecognition';
+import ImageProcessingTools from './ImageProcessingTools';
 
 export {
   ImageUploader,
   ImageGallery,
   ImageAnalysisResults,
-  StudyMaterialGenerator
+  StudyMaterialGenerator,
+  HandwritingRecognition,
+  FormulaRecognition,
+  ImageProcessingTools
 };

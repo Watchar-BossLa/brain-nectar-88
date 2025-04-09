@@ -99,9 +99,11 @@ CREATE TABLE IF NOT EXISTS visual_recognition_formulas (
   image_id UUID NOT NULL REFERENCES visual_recognition_images(id) ON DELETE CASCADE,
   latex TEXT NOT NULL,
   rendered_image_url TEXT,
+  explanation TEXT,
   confidence FLOAT,
   bounding_box JSONB,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS visual_recognition_formulas_image_id_idx ON visual_recognition_formulas(image_id);
@@ -139,16 +141,16 @@ export async function runMigrations(supabase) {
       visualRecognitionFormulasTable,
       visualRecognitionChartsTable
     ];
-    
+
     for (const migration of migrations) {
       const { error } = await supabase.rpc('run_sql', { sql: migration });
-      
+
       if (error) {
         console.error('Migration error:', error);
         return false;
       }
     }
-    
+
     console.log('All visual recognition migrations completed successfully');
     return true;
   } catch (error) {

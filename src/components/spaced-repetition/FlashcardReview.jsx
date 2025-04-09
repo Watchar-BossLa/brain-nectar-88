@@ -5,14 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  RotateCcw, 
-  ChevronRight, 
-  ThumbsUp, 
-  ThumbsDown, 
-  Frown, 
-  Meh, 
-  Smile, 
+import {
+  RotateCcw,
+  ChevronRight,
+  ThumbsUp,
+  ThumbsDown,
+  Frown,
+  Meh,
+  Smile,
   CheckCircle2,
   Timer
 } from 'lucide-react';
@@ -35,15 +35,15 @@ const FlashcardReview = ({ sessionId, onComplete }) => {
   const [sessionSummary, setSessionSummary] = useState(null);
   const [startTime, setStartTime] = useState(null);
   const [itemStartTime, setItemStartTime] = useState(null);
-  
+
   // Load current item
   useEffect(() => {
     if (!sessionId) return;
-    
+
     const loadCurrentItem = () => {
       setLoading(true);
       const item = spacedRepetition.getCurrentItem(sessionId);
-      
+
       if (item) {
         setCurrentItem(item);
         setFlipped(false);
@@ -51,33 +51,37 @@ const FlashcardReview = ({ sessionId, onComplete }) => {
       } else {
         setCurrentItem(null);
       }
-      
+
       setLoading(false);
     };
-    
+
     loadCurrentItem();
     setStartTime(new Date());
   }, [sessionId, spacedRepetition]);
-  
+
   // Handle card flip
   const handleFlip = () => {
     setFlipped(!flipped);
   };
-  
+
   // Handle rating submission
   const handleSubmitRating = async (rating) => {
     if (!sessionId || !currentItem) return;
-    
+
     setLoading(true);
-    
+
     try {
-      const result = await spacedRepetition.submitReview(sessionId, rating);
-      
+      // Calculate time spent on this card
+      const timeSpent = itemStartTime ?
+        (new Date().getTime() - new Date(itemStartTime).getTime()) / 1000 : 0;
+
+      const result = await spacedRepetition.submitReview(sessionId, rating, { timeSpent });
+
       if (result.complete) {
         // Session is complete
         setSessionComplete(true);
         setSessionSummary(result.summary);
-        
+
         if (onComplete) {
           onComplete(result.summary);
         }
@@ -94,7 +98,7 @@ const FlashcardReview = ({ sessionId, onComplete }) => {
       setLoading(false);
     }
   };
-  
+
   // Get rating button based on rating value
   const getRatingButton = (rating, label, icon) => (
     <Button
@@ -107,7 +111,7 @@ const FlashcardReview = ({ sessionId, onComplete }) => {
       <span className="ml-1">{label}</span>
     </Button>
   );
-  
+
   // Render session complete view
   if (sessionComplete && sessionSummary) {
     return (
@@ -119,7 +123,7 @@ const FlashcardReview = ({ sessionId, onComplete }) => {
             <p className="text-muted-foreground mb-6">
               You've completed your review session.
             </p>
-            
+
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div className="border rounded-lg p-4">
                 <p className="text-sm text-muted-foreground">Cards Reviewed</p>
@@ -138,7 +142,7 @@ const FlashcardReview = ({ sessionId, onComplete }) => {
                 <p className="text-2xl font-bold">{Math.round(sessionSummary.duration / 60)} min</p>
               </div>
             </div>
-            
+
             <Button onClick={() => window.location.reload()} className="w-full">
               Start New Session
             </Button>
@@ -147,7 +151,7 @@ const FlashcardReview = ({ sessionId, onComplete }) => {
       </Card>
     );
   }
-  
+
   // Render loading state
   if (loading && !currentItem) {
     return (
@@ -166,7 +170,7 @@ const FlashcardReview = ({ sessionId, onComplete }) => {
       </Card>
     );
   }
-  
+
   // Render no items state
   if (!currentItem) {
     return (
@@ -183,10 +187,10 @@ const FlashcardReview = ({ sessionId, onComplete }) => {
       </Card>
     );
   }
-  
+
   // Calculate time spent on current item
   const timeSpent = itemStartTime ? Math.round((new Date() - itemStartTime) / 1000) : 0;
-  
+
   return (
     <Card className="w-full max-w-3xl mx-auto">
       <CardContent className="pt-6">
@@ -200,7 +204,7 @@ const FlashcardReview = ({ sessionId, onComplete }) => {
             <Progress value={(progress.current / progress.total) * 100} className="h-2" />
           </div>
         )}
-        
+
         {/* Tags */}
         {currentItem.tags && currentItem.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-4">
@@ -211,15 +215,15 @@ const FlashcardReview = ({ sessionId, onComplete }) => {
             ))}
           </div>
         )}
-        
+
         {/* Timer */}
         <div className="flex items-center justify-end text-sm text-muted-foreground mb-2">
           <Timer className="h-3 w-3 mr-1" />
           <span>{timeSpent}s</span>
         </div>
-        
+
         {/* Flashcard */}
-        <div 
+        <div
           className={`border rounded-lg p-6 mb-4 min-h-[200px] flex items-center justify-center cursor-pointer transition-all duration-300 ${
             flipped ? 'bg-muted/50' : ''
           }`}
@@ -243,18 +247,18 @@ const FlashcardReview = ({ sessionId, onComplete }) => {
             )}
           </div>
         </div>
-        
+
         {/* Controls */}
         <div className="flex flex-col gap-4">
-          <Button 
-            onClick={handleFlip} 
-            variant="outline" 
+          <Button
+            onClick={handleFlip}
+            variant="outline"
             className="w-full"
           >
             <RotateCcw className="h-4 w-4 mr-2" />
             {flipped ? 'Show Question' : 'Show Answer'}
           </Button>
-          
+
           {flipped && (
             <div className="grid grid-cols-5 gap-2">
               {getRatingButton(1, '1', <Frown className="h-4 w-4" />)}
@@ -264,7 +268,7 @@ const FlashcardReview = ({ sessionId, onComplete }) => {
               {getRatingButton(5, '5', <ThumbsUp className="h-4 w-4" />)}
             </div>
           )}
-          
+
           {!flipped && (
             <div className="text-center text-sm text-muted-foreground">
               Click the card or button to reveal the answer

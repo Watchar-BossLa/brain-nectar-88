@@ -1,8 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { useVisualRecognition, useImageAnalysis, useStudyMaterialGenerator } from '@/services/visual-recognition';
+import {
+  useVisualRecognition,
+  useImageAnalysis,
+  useStudyMaterialGenerator,
+  useHandwritingRecognition,
+  useFormulaRecognition,
+  useImageProcessing,
+  useTextExtraction
+} from '@/services/visual-recognition';
 import { useAuth } from '@/context/auth';
 import MainLayout from '@/components/layout/MainLayout';
-import { ImageUploader, ImageGallery, ImageAnalysisResults, StudyMaterialGenerator } from '@/components/visual-recognition';
+import {
+  ImageUploader,
+  ImageGallery,
+  ImageAnalysisResults,
+  StudyMaterialGenerator,
+  HandwritingRecognition,
+  FormulaRecognition,
+  ImageProcessingTools
+} from '@/components/visual-recognition';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,7 +31,14 @@ import {
   BrainCircuit,
   Lightbulb,
   RefreshCw,
-  ArrowLeft
+  ArrowLeft,
+  Edit,
+  Function,
+  Wand2,
+  FileText,
+  Calculator,
+  BookText,
+  History
 } from 'lucide-react';
 
 /**
@@ -27,6 +50,10 @@ const VisualRecognition = () => {
   const visualRecognition = useVisualRecognition();
   const imageAnalysis = useImageAnalysis();
   const studyMaterialGenerator = useStudyMaterialGenerator();
+  const handwritingRecognition = useHandwritingRecognition();
+  const formulaRecognition = useFormulaRecognition();
+  const imageProcessing = useImageProcessing();
+  const textExtraction = useTextExtraction();
 
   const [selectedImage, setSelectedImage] = useState(null);
   const [activeTab, setActiveTab] = useState('upload');
@@ -40,6 +67,10 @@ const VisualRecognition = () => {
           await visualRecognition.initialize(user.id);
           await imageAnalysis.initialize();
           await studyMaterialGenerator.initialize(user.id);
+          await handwritingRecognition.initialize(user.id);
+          await formulaRecognition.initialize(user.id);
+          await imageProcessing.initialize(user.id);
+          await textExtraction.initialize(user.id);
           setIsInitialized(true);
         } catch (error) {
           console.error('Error initializing services:', error);

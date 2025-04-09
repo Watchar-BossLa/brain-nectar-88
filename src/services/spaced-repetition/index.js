@@ -5,6 +5,7 @@
 
 import { SpacedRepetitionService, useSpacedRepetition } from './SpacedRepetitionService';
 import { StudyItemGenerator, useStudyItemGenerator } from './StudyItemGenerator';
+import { AdaptiveAlgorithm, useAdaptiveAlgorithm } from './AdaptiveAlgorithm';
 import { runMigrations } from './database-migrations';
 
 export {
@@ -12,5 +13,7 @@ export {
   useSpacedRepetition,
   StudyItemGenerator,
   useStudyItemGenerator,
+  AdaptiveAlgorithm,
+  useAdaptiveAlgorithm,
   runMigrations
 };
