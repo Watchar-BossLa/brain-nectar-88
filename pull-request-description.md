@@ -4,6 +4,8 @@
 
 This PR transforms Study Bee from a single-subject learning platform to a comprehensive multi-subject learning platform. It adds support for Mathematics, Physics, Chemistry, Data Science, and Finance, with dedicated pages, components, and services for each subject.
 
+Additionally, it implements the first interactive component from our enhancement plans: the Interactive Graphing Calculator for the Mathematics subject.
+
 ## Key Changes
 
 - **New Subject Pages**: Added dedicated pages for Mathematics, Physics, Chemistry, Data Science, and Finance
@@ -12,6 +14,9 @@ This PR transforms Study Bee from a single-subject learning platform to a compre
 - **Dashboard Update**: Updated the Dashboard to include the SubjectSelector
 - **Documentation**: Updated the README.md to reflect the multi-subject nature of the app
 - **Enhancement Plans**: Added detailed plans for future enhancements to each subject
+- **Interactive Graphing Calculator**: Implemented the first interactive component from our enhancement plans
+- **Unit Tests**: Added unit tests for the GraphingCalculator component
+- **Test Plans**: Created comprehensive test plans for multi-subject functionality and the graphing calculator
 
 ## Testing
 
@@ -19,6 +24,8 @@ This PR transforms Study Bee from a single-subject learning platform to a compre
 - Tested navigation between subjects using the SubjectSelector
 - Confirmed that mock data is displayed correctly on each subject page
 - Validated that all interactive elements are functional
+- Added unit tests for the GraphingCalculator component
+- Created comprehensive test plans for multi-subject functionality and the graphing calculator
 
 ## Screenshots
 
@@ -33,6 +40,12 @@ This PR also includes detailed enhancement plans for:
 - A master implementation plan with a timeline and resource requirements
 
 These plans are located in the `enhancement-plans/` directory.
+
+The next steps in the implementation plan are:
+1. Implement the Interactive Mechanics Simulator for Physics
+2. Implement the Interactive Periodic Table for Chemistry
+3. Implement the Interactive Data Visualization Studio for Data Science
+4. Implement the Interactive Investment Portfolio Simulator for Finance
 
 ## Related Issues
 
