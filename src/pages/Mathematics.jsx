@@ -1,10 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Calculator, BookOpen, BrainCircuit, Function, PieChart } from 'lucide-react';
+import GraphingCalculator from '@/components/mathematics/graphing-calculator/GraphingCalculator';
 
 const Mathematics = () => {
+  const [activeCalculator, setActiveCalculator] = useState(null);
+
+  const openCalculator = (calculator) => {
+    setActiveCalculator(calculator);
+  };
+
+  const closeCalculator = () => {
+    setActiveCalculator(null);
+  };
+
   return (
     <MainLayout>
       <div className="container py-8">
@@ -12,13 +24,13 @@ const Mathematics = () => {
           <Function className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold">Mathematics Learning Center</h1>
         </div>
-        
+
         <p className="text-muted-foreground mb-8 max-w-3xl">
-          Explore mathematical concepts through interactive tools, visualizations, and adaptive learning. 
-          From algebra and calculus to statistics and discrete mathematics, enhance your understanding with 
+          Explore mathematical concepts through interactive tools, visualizations, and adaptive learning.
+          From algebra and calculus to statistics and discrete mathematics, enhance your understanding with
           our comprehensive resources.
         </p>
-        
+
         <Tabs defaultValue="topics" className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="topics">Topics</TabsTrigger>
@@ -26,7 +38,7 @@ const Mathematics = () => {
             <TabsTrigger value="practice">Practice Problems</TabsTrigger>
             <TabsTrigger value="visualizations">Visualizations</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="topics">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Algebra */}
@@ -48,7 +60,7 @@ const Mathematics = () => {
                   </ul>
                 </CardContent>
               </Card>
-              
+
               {/* Calculus */}
               <Card>
                 <CardHeader className="pb-2">
@@ -68,7 +80,7 @@ const Mathematics = () => {
                   </ul>
                 </CardContent>
               </Card>
-              
+
               {/* Statistics */}
               <Card>
                 <CardHeader className="pb-2">
@@ -88,7 +100,7 @@ const Mathematics = () => {
                   </ul>
                 </CardContent>
               </Card>
-              
+
               {/* Geometry */}
               <Card>
                 <CardHeader className="pb-2">
@@ -108,7 +120,7 @@ const Mathematics = () => {
                   </ul>
                 </CardContent>
               </Card>
-              
+
               {/* Discrete Mathematics */}
               <Card>
                 <CardHeader className="pb-2">
@@ -128,7 +140,7 @@ const Mathematics = () => {
                   </ul>
                 </CardContent>
               </Card>
-              
+
               {/* Applied Mathematics */}
               <Card>
                 <CardHeader className="pb-2">
@@ -150,7 +162,7 @@ const Mathematics = () => {
               </Card>
             </div>
           </TabsContent>
-          
+
           <TabsContent value="tools">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
@@ -160,17 +172,20 @@ const Mathematics = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    Our interactive graphing calculator allows you to visualize functions, 
+                    Our interactive graphing calculator allows you to visualize functions,
                     find intersections, calculate derivatives, and more.
                   </p>
                   <div className="mt-4">
-                    <button className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md text-sm">
+                    <Button
+                      onClick={() => openCalculator('graphing')}
+                      className="bg-primary text-primary-foreground hover:bg-primary/90"
+                    >
                       Open Calculator
-                    </button>
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle>Matrix Operations</CardTitle>
@@ -178,7 +193,7 @@ const Mathematics = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    Add, subtract, multiply matrices, calculate determinants, 
+                    Add, subtract, multiply matrices, calculate determinants,
                     find eigenvalues, and perform other matrix operations.
                   </p>
                   <div className="mt-4">
@@ -188,7 +203,7 @@ const Mathematics = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle>Statistical Analysis</CardTitle>
@@ -196,7 +211,7 @@ const Mathematics = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    Calculate descriptive statistics, create visualizations, 
+                    Calculate descriptive statistics, create visualizations,
                     perform hypothesis tests, and analyze correlations.
                   </p>
                   <div className="mt-4">
@@ -206,7 +221,7 @@ const Mathematics = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle>Equation Solver</CardTitle>
@@ -214,7 +229,7 @@ const Mathematics = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    Solve linear, quadratic, polynomial, and systems of equations 
+                    Solve linear, quadratic, polynomial, and systems of equations
                     with step-by-step explanations.
                   </p>
                   <div className="mt-4">
@@ -226,7 +241,7 @@ const Mathematics = () => {
               </Card>
             </div>
           </TabsContent>
-          
+
           <TabsContent value="practice">
             <Card>
               <CardHeader>
@@ -237,10 +252,10 @@ const Mathematics = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-6">
-                  Our adaptive learning system adjusts the difficulty of problems based on your performance, 
+                  Our adaptive learning system adjusts the difficulty of problems based on your performance,
                   helping you focus on areas that need improvement while challenging you appropriately.
                 </p>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   <div className="bg-muted rounded-lg p-4">
                     <h3 className="font-medium mb-2 flex items-center gap-2">
@@ -251,7 +266,7 @@ const Mathematics = () => {
                       Take a diagnostic test to identify your strengths and weaknesses
                     </p>
                   </div>
-                  
+
                   <div className="bg-muted rounded-lg p-4">
                     <h3 className="font-medium mb-2 flex items-center gap-2">
                       <BrainCircuit className="h-4 w-4" />
@@ -261,7 +276,7 @@ const Mathematics = () => {
                       Get problems tailored to your skill level and learning goals
                     </p>
                   </div>
-                  
+
                   <div className="bg-muted rounded-lg p-4">
                     <h3 className="font-medium mb-2 flex items-center gap-2">
                       <BrainCircuit className="h-4 w-4" />
@@ -272,7 +287,7 @@ const Mathematics = () => {
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex justify-center">
                   <button className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-2 rounded-md">
                     Start Practicing
@@ -281,7 +296,7 @@ const Mathematics = () => {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="visualizations">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
@@ -291,7 +306,7 @@ const Mathematics = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    Visualize multivariable functions, parametric surfaces, and vector fields 
+                    Visualize multivariable functions, parametric surfaces, and vector fields
                     in an interactive 3D environment.
                   </p>
                   <div className="mt-4">
@@ -301,7 +316,7 @@ const Mathematics = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle>Geometric Transformations</CardTitle>
@@ -309,7 +324,7 @@ const Mathematics = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    Explore rotations, reflections, translations, and other transformations 
+                    Explore rotations, reflections, translations, and other transformations
                     with interactive visualizations.
                   </p>
                   <div className="mt-4">
@@ -319,7 +334,7 @@ const Mathematics = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle>Probability Simulations</CardTitle>
@@ -327,7 +342,7 @@ const Mathematics = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    Run simulations for various probability distributions, random processes, 
+                    Run simulations for various probability distributions, random processes,
                     and statistical concepts to build intuition.
                   </p>
                   <div className="mt-4">
@@ -337,7 +352,7 @@ const Mathematics = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle>Fractal Explorer</CardTitle>
@@ -345,7 +360,7 @@ const Mathematics = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    Generate and interact with various fractals, including the Mandelbrot set, 
+                    Generate and interact with various fractals, including the Mandelbrot set,
                     Julia sets, and other complex mathematical patterns.
                   </p>
                   <div className="mt-4">
@@ -358,6 +373,23 @@ const Mathematics = () => {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Calculator Modals */}
+        {activeCalculator === 'graphing' && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-background rounded-lg shadow-lg w-full max-w-6xl max-h-[90vh] overflow-auto">
+              <div className="p-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-2xl font-bold">Interactive Graphing Calculator</h2>
+                  <Button variant="ghost" onClick={closeCalculator}>
+                    ✕
+                  </Button>
+                </div>
+                <GraphingCalculator />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </MainLayout>
   );
