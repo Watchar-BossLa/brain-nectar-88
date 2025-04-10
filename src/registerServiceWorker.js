@@ -6,8 +6,8 @@
 export const registerServiceWorker = async () => {
   if ('serviceWorker' in navigator) {
     try {
-      const registration = await navigator.serviceWorker.register('/service-worker.js');
-      console.log('ServiceWorker registered: ', registration);
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      console.log('ServiceWorker registration successful: ', registration);
       
       // Check for updates
       registration.addEventListener('updatefound', () => {
