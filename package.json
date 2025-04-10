@@ -46,6 +46,7 @@
     "@hookform/resolvers": "^3.9.0",
     "mathjs": "^12.4.0",
     "matter-js": "^0.19.0",
+    "recharts": "^2.12.3",
     "@metaplex-foundation/js": "^0.20.1",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
