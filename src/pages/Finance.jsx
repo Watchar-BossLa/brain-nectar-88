@@ -1,10 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { DollarSign, TrendingUp, LineChart, Building2, PiggyBank, BarChart4, Landmark } from 'lucide-react';
+import PortfolioSimulator from '@/components/finance/portfolio-simulator/PortfolioSimulator';
 
 const Finance = () => {
+  const [showPortfolioSimulator, setShowPortfolioSimulator] = useState(false);
+
+  const openPortfolioSimulator = () => {
+    setShowPortfolioSimulator(true);
+  };
+
+  const closePortfolioSimulator = () => {
+    setShowPortfolioSimulator(false);
+  };
+
   return (
     <MainLayout>
       <div className="container py-8">
@@ -12,13 +24,13 @@ const Finance = () => {
           <DollarSign className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold">Finance Learning Center</h1>
         </div>
-        
+
         <p className="text-muted-foreground mb-8 max-w-3xl">
-          Master the principles of finance through comprehensive learning resources, interactive 
-          simulations, and practical applications. From personal finance to corporate financial 
+          Master the principles of finance through comprehensive learning resources, interactive
+          simulations, and practical applications. From personal finance to corporate financial
           management, develop the knowledge and skills to make informed financial decisions.
         </p>
-        
+
         <Tabs defaultValue="topics" className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="topics">Topics</TabsTrigger>
@@ -26,7 +38,7 @@ const Finance = () => {
             <TabsTrigger value="markets">Market Simulations</TabsTrigger>
             <TabsTrigger value="cases">Case Studies</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="topics">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Personal Finance */}
@@ -49,7 +61,7 @@ const Finance = () => {
                   </ul>
                 </CardContent>
               </Card>
-              
+
               {/* Corporate Finance */}
               <Card>
                 <CardHeader className="pb-2">
@@ -70,7 +82,7 @@ const Finance = () => {
                   </ul>
                 </CardContent>
               </Card>
-              
+
               {/* Investments */}
               <Card>
                 <CardHeader className="pb-2">
@@ -91,7 +103,7 @@ const Finance = () => {
                   </ul>
                 </CardContent>
               </Card>
-              
+
               {/* Financial Markets */}
               <Card>
                 <CardHeader className="pb-2">
@@ -112,7 +124,7 @@ const Finance = () => {
                   </ul>
                 </CardContent>
               </Card>
-              
+
               {/* Banking & Financial Institutions */}
               <Card>
                 <CardHeader className="pb-2">
@@ -133,7 +145,7 @@ const Finance = () => {
                   </ul>
                 </CardContent>
               </Card>
-              
+
               {/* International Finance */}
               <Card>
                 <CardHeader className="pb-2">
@@ -156,7 +168,7 @@ const Finance = () => {
               </Card>
             </div>
           </TabsContent>
-          
+
           <TabsContent value="calculators">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
@@ -166,7 +178,7 @@ const Finance = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground mb-4">
-                    Calculate future value of investments, compare different investment strategies, 
+                    Calculate future value of investments, compare different investment strategies,
                     and visualize the growth of your portfolio over time.
                   </p>
                   <div className="flex items-center gap-2 mb-4">
@@ -178,7 +190,7 @@ const Finance = () => {
                   </button>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle>Loan & Mortgage Calculator</CardTitle>
@@ -186,7 +198,7 @@ const Finance = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground mb-4">
-                    Calculate monthly payments, total interest, and amortization schedules 
+                    Calculate monthly payments, total interest, and amortization schedules
                     for various types of loans and mortgages.
                   </p>
                   <div className="flex items-center gap-2 mb-4">
@@ -198,7 +210,7 @@ const Finance = () => {
                   </button>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle>Retirement Planning Calculator</CardTitle>
@@ -206,7 +218,7 @@ const Finance = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground mb-4">
-                    Estimate retirement savings needs, analyze different saving strategies, 
+                    Estimate retirement savings needs, analyze different saving strategies,
                     and project income during retirement years.
                   </p>
                   <div className="flex items-center gap-2 mb-4">
@@ -218,7 +230,7 @@ const Finance = () => {
                   </button>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle>Stock & Bond Valuation</CardTitle>
@@ -226,7 +238,7 @@ const Finance = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground mb-4">
-                    Apply various valuation models to estimate the intrinsic value of stocks and bonds, 
+                    Apply various valuation models to estimate the intrinsic value of stocks and bonds,
                     including DCF, dividend discount, and yield-to-maturity calculations.
                   </p>
                   <div className="flex items-center gap-2 mb-4">
@@ -240,7 +252,7 @@ const Finance = () => {
               </Card>
             </div>
           </TabsContent>
-          
+
           <TabsContent value="markets">
             <Card>
               <CardHeader>
@@ -251,16 +263,16 @@ const Finance = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-6">
-                  Our market simulations provide a realistic trading experience without the risk of real money. 
-                  Practice investment strategies, learn market mechanics, and develop trading skills 
+                  Our market simulations provide a realistic trading experience without the risk of real money.
+                  Practice investment strategies, learn market mechanics, and develop trading skills
                   in various market scenarios.
                 </p>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   <div className="border rounded-lg p-4">
                     <h3 className="font-medium mb-2">Stock Market Simulator</h3>
                     <p className="text-sm text-muted-foreground mb-3">
-                      Trade virtual stocks with real-time market data. Build and manage a portfolio, 
+                      Trade virtual stocks with real-time market data. Build and manage a portfolio,
                       analyze performance, and compete with other users.
                     </p>
                     <div className="flex items-center gap-2 mb-3">
@@ -271,28 +283,32 @@ const Finance = () => {
                       Start Trading
                     </button>
                   </div>
-                  
+
                   <div className="border rounded-lg p-4">
                     <h3 className="font-medium mb-2">Portfolio Management Simulator</h3>
                     <p className="text-sm text-muted-foreground mb-3">
-                      Manage a diversified investment portfolio across multiple asset classes. 
+                      Manage a diversified investment portfolio across multiple asset classes.
                       Optimize for risk and return based on your investment goals.
                     </p>
                     <div className="flex items-center gap-2 mb-3">
                       <BarChart4 className="h-4 w-4 text-muted-foreground" />
                       <span className="text-xs text-muted-foreground">Includes performance analytics and benchmarking</span>
                     </div>
-                    <button className="text-primary text-sm hover:underline">
+                    <Button
+                      variant="link"
+                      className="text-primary text-sm p-0 h-auto"
+                      onClick={openPortfolioSimulator}
+                    >
                       Start Managing
-                    </button>
+                    </Button>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   <div className="border rounded-lg p-4">
                     <h3 className="font-medium mb-2">Options Trading Simulator</h3>
                     <p className="text-sm text-muted-foreground mb-3">
-                      Practice options strategies in a simulated environment. Learn about calls, puts, 
+                      Practice options strategies in a simulated environment. Learn about calls, puts,
                       spreads, and other derivatives without risking real capital.
                     </p>
                     <div className="flex items-center gap-2 mb-3">
@@ -303,11 +319,11 @@ const Finance = () => {
                       Start Trading
                     </button>
                   </div>
-                  
+
                   <div className="border rounded-lg p-4">
                     <h3 className="font-medium mb-2">Forex Trading Simulator</h3>
                     <p className="text-sm text-muted-foreground mb-3">
-                      Trade currency pairs in a simulated forex market. Learn about exchange rates, 
+                      Trade currency pairs in a simulated forex market. Learn about exchange rates,
                       leverage, and international currency markets.
                     </p>
                     <div className="flex items-center gap-2 mb-3">
@@ -319,11 +335,11 @@ const Finance = () => {
                     </button>
                   </div>
                 </div>
-                
+
                 <div className="bg-muted p-4 rounded-lg">
                   <h3 className="font-medium mb-2">Market Scenario Simulator</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Experience how markets react to different economic scenarios, such as recessions, 
+                    Experience how markets react to different economic scenarios, such as recessions,
                     inflation, interest rate changes, and other market-moving events.
                   </p>
                   <button className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md text-sm">
@@ -333,7 +349,7 @@ const Finance = () => {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="cases">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
@@ -343,7 +359,7 @@ const Finance = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground mb-4">
-                    Analyze real-world corporate finance scenarios, including capital budgeting decisions, 
+                    Analyze real-world corporate finance scenarios, including capital budgeting decisions,
                     financing choices, and financial restructuring cases.
                   </p>
                   <ul className="list-disc pl-5 space-y-1 text-sm mb-4">
@@ -357,7 +373,7 @@ const Finance = () => {
                   </button>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle>Investment Management Cases</CardTitle>
@@ -365,7 +381,7 @@ const Finance = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground mb-4">
-                    Study real investment management scenarios, including asset allocation decisions, 
+                    Study real investment management scenarios, including asset allocation decisions,
                     portfolio construction, and performance evaluation.
                   </p>
                   <ul className="list-disc pl-5 space-y-1 text-sm mb-4">
@@ -379,7 +395,7 @@ const Finance = () => {
                   </button>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle>Financial Crisis Case Studies</CardTitle>
@@ -387,7 +403,7 @@ const Finance = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground mb-4">
-                    Examine the causes, consequences, and responses to major financial crises 
+                    Examine the causes, consequences, and responses to major financial crises
                     throughout history, with lessons for investors and policymakers.
                   </p>
                   <ul className="list-disc pl-5 space-y-1 text-sm mb-4">
@@ -401,7 +417,7 @@ const Finance = () => {
                   </button>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle>Personal Finance Case Studies</CardTitle>
@@ -409,7 +425,7 @@ const Finance = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground mb-4">
-                    Analyze real-life personal finance scenarios, including retirement planning, 
+                    Analyze real-life personal finance scenarios, including retirement planning,
                     debt management, and major financial decisions.
                   </p>
                   <ul className="list-disc pl-5 space-y-1 text-sm mb-4">
@@ -426,6 +442,23 @@ const Finance = () => {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Portfolio Simulator Modal */}
+        {showPortfolioSimulator && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-background rounded-lg shadow-lg w-full max-w-6xl max-h-[90vh] overflow-auto">
+              <div className="p-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-2xl font-bold">Investment Portfolio Simulator</h2>
+                  <Button variant="ghost" onClick={closePortfolioSimulator}>
+                    ✕
+                  </Button>
+                </div>
+                <PortfolioSimulator />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </MainLayout>
   );
