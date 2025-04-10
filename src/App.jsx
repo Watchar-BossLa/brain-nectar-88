@@ -50,6 +50,12 @@ import KnowledgeVisualizationSystem from './pages/KnowledgeVisualizationSystem';
 import KnowledgeMapDetail from './pages/KnowledgeMapDetail';
 import LearningRecommendations from './pages/LearningRecommendations';
 import LearningAnalytics from './pages/LearningAnalytics';
+import SubjectHub from './pages/SubjectHub';
+import Mathematics from './pages/Mathematics';
+import Physics from './pages/Physics';
+import Chemistry from './pages/Chemistry';
+import DataScience from './pages/DataScience';
+import Finance from './pages/Finance';
 
 /**
  * Main application component
@@ -120,6 +126,12 @@ function App() {
                     <Route path="/knowledge-visualization-system/maps/:mapId" element={<KnowledgeMapDetail />} />
                     <Route path="/learning-recommendations" element={<LearningRecommendations />} />
                     <Route path="/learning-analytics" element={<LearningAnalytics />} />
+                    <Route path="/subject-hub" element={<SubjectHub />} />
+                    <Route path="/mathematics" element={<Mathematics />} />
+                    <Route path="/physics" element={<Physics />} />
+                    <Route path="/chemistry" element={<Chemistry />} />
+                    <Route path="/data-science" element={<DataScience />} />
+                    <Route path="/finance" element={<Finance />} />
                   </Routes>
                 </QueryClientProvider>
               </div>
