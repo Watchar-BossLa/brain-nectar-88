@@ -35,6 +35,13 @@ import AgentDashboard from './pages/AgentDashboard';
 import AdvancedLearning from './pages/AdvancedLearning';
 import FinancialTools from './pages/FinancialTools';
 import AccountingTools from './pages/AccountingTools';
+
+// Subject pages
+import Mathematics from './pages/Mathematics';
+import Physics from './pages/Physics';
+import Chemistry from './pages/Chemistry';
+import DataScience from './pages/DataScience';
+import Finance from './pages/Finance';
 import AuthWrapper from './context/AuthWrapper';
 import StudyTimer from './pages/StudyTimer';
 import VisualRecognition from './pages/VisualRecognition';
@@ -110,6 +117,13 @@ function App() {
                     <Route path="/visual-recognition" element={<VisualRecognition />} />
                     <Route path="/document-analysis" element={<DocumentAnalysis />} />
                     <Route path="/adaptive-spaced-repetition" element={<AdaptiveSpacedRepetition />} />
+
+                    {/* Subject Routes */}
+                    <Route path="/mathematics" element={<Mathematics />} />
+                    <Route path="/physics" element={<Physics />} />
+                    <Route path="/chemistry" element={<Chemistry />} />
+                    <Route path="/data-science" element={<DataScience />} />
+                    <Route path="/finance" element={<Finance />} />
                     <Route path="/knowledge-visualization" element={<KnowledgeVisualization />} />
                     <Route path="/collaborative-learning" element={<CollaborativeLearning />} />
                     <Route path="/augmented-reality-study" element={<AugmentedRealityStudy />} />

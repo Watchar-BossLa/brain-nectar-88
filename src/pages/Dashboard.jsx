@@ -9,6 +9,7 @@ import StatsOverview from '@/components/dashboard/StatsOverview';
 import CoursesSection from '@/components/dashboard/CoursesSection';
 import AssessmentsRecommendedSection from '@/components/dashboard/AssessmentsRecommendedSection';
 import DailyStudyGoal from '@/components/dashboard/DailyStudyGoal';
+import SubjectSelector from '@/components/subjects/SubjectSelector';
 
 /**
  * Dashboard page component
@@ -22,6 +23,8 @@ const Dashboard = () => {
       <div className="container mx-auto py-6 space-y-8">
         <WelcomeHeader />
         <StatsOverview />
+
+        <SubjectSelector />
 
         <div className="mb-6">
           <Tabs defaultValue="learning-path">
@@ -52,7 +55,7 @@ const Dashboard = () => {
                     </p>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardHeader>
                     <CardTitle>Recommended Next Steps</CardTitle>
@@ -68,7 +71,7 @@ const Dashboard = () => {
                           <p className="text-sm text-muted-foreground">Foundation concepts</p>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center gap-4 p-3 rounded-lg border">
                         <div className="bg-primary/10 p-2 rounded-full">
                           <BookOpen className="h-5 w-5 text-primary" />

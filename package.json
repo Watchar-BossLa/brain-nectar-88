@@ -1,7 +1,8 @@
 {
-  "name": "vite_react_shadcn_js",
+  "name": "study-bee-multi-subject",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Advanced multi-subject learning platform with support for Mathematics, Physics, Chemistry, Data Science, Finance, and more. Features include adaptive learning, visual recognition, knowledge visualization, and offline capabilities.",
   "type": "module",
   "engines": {
     "node": ">=14.0.0"
@@ -119,6 +120,6 @@
     "rollup-plugin-visualizer": "^5.12.0",
     "start-server-and-test": "^2.0.3",
     "tailwindcss": "^3.4.11",
-    "vite": "^5.4.1"
+    "vite": "^5.4.17"
   }
 }

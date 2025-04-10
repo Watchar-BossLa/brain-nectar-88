@@ -1,6 +1,27 @@
-# Welcome to your Lovable project
+# Study Bee - Multi-Subject Learning Platform
 
-## Project info
+## Project Overview
+
+Study Bee is a comprehensive multi-subject learning platform designed to help students master various academic disciplines through adaptive learning, interactive tools, and visual knowledge mapping. The platform supports multiple subjects including:
+
+- **Mathematics**: Algebra, calculus, statistics, geometry, and more
+- **Physics**: Mechanics, electromagnetism, thermodynamics, waves, and modern physics
+- **Chemistry**: General, organic, physical, inorganic, and analytical chemistry
+- **Data Science**: Statistics, machine learning, deep learning, and data engineering
+- **Finance**: Personal finance, corporate finance, investments, and financial markets
+- **Accounting**: Financial accounting, managerial accounting, auditing, and taxation
+
+## Key Features
+
+- **Adaptive Learning**: Personalized learning paths that adjust to your skill level
+- **Interactive Tools**: Subject-specific calculators, simulators, and visualization tools
+- **Knowledge Visualization**: Visual mapping of concepts and their relationships
+- **Spaced Repetition**: Optimized review schedules for better retention
+- **Offline Support**: Continue learning even without an internet connection
+- **Visual Recognition**: Upload images of problems for instant solutions and explanations
+- **Collaborative Learning**: Study with peers and share knowledge
+
+## Project Info
 
 **URL**: https://lovable.dev/projects/c55b15a9-ea61-4de4-b535-8c95e7085a95
 
@@ -50,15 +71,20 @@ npm run dev
 - Click on "New codespace" to launch a new Codespace environment.
 - Edit files directly within the Codespace and commit and push your changes once you're done.
 
-## What technologies are used for this project?
+## Technologies Used
 
-This project is built with .
+Study Bee is built with modern web technologies for optimal performance and user experience:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- **Vite**: Fast build tool and development server
+- **React**: Frontend library for building user interfaces
+- **JavaScript/JSX**: Programming language and syntax extension
+- **shadcn-ui**: Accessible and customizable UI components
+- **Tailwind CSS**: Utility-first CSS framework for styling
+- **IndexedDB**: Browser database for offline data storage
+- **Service Workers**: For offline functionality and caching
+- **Framer Motion**: Animation library for smooth transitions
+- **Supabase**: Backend as a service for authentication and data storage
+- **Vitest**: Testing framework for unit and integration tests
 
 ## How can I deploy this project?
 
