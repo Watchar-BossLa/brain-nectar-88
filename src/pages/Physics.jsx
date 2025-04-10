@@ -1,10 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Atom, Rocket, Zap, Waves, Magnet, Lightbulb } from 'lucide-react';
+import MechanicsSimulator from '@/components/physics/mechanics-simulator/MechanicsSimulator';
 
 const Physics = () => {
+  const [activeSimulator, setActiveSimulator] = useState(null);
+
+  const openSimulator = (simulator) => {
+    setActiveSimulator(simulator);
+  };
+
+  const closeSimulator = () => {
+    setActiveSimulator(null);
+  };
+
   return (
     <MainLayout>
       <div className="container py-8">
@@ -12,13 +24,13 @@ const Physics = () => {
           <Atom className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold">Physics Learning Center</h1>
         </div>
-        
+
         <p className="text-muted-foreground mb-8 max-w-3xl">
-          Explore the fundamental laws that govern our universe through interactive simulations, 
-          problem-solving, and conceptual explanations. From mechanics to quantum physics, 
+          Explore the fundamental laws that govern our universe through interactive simulations,
+          problem-solving, and conceptual explanations. From mechanics to quantum physics,
           deepen your understanding of physical phenomena.
         </p>
-        
+
         <Tabs defaultValue="topics" className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="topics">Topics</TabsTrigger>
@@ -26,7 +38,7 @@ const Physics = () => {
             <TabsTrigger value="problems">Problem Sets</TabsTrigger>
             <TabsTrigger value="experiments">Virtual Labs</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="topics">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Mechanics */}
@@ -49,7 +61,7 @@ const Physics = () => {
                   </ul>
                 </CardContent>
               </Card>
-              
+
               {/* Electromagnetism */}
               <Card>
                 <CardHeader className="pb-2">
@@ -70,7 +82,7 @@ const Physics = () => {
                   </ul>
                 </CardContent>
               </Card>
-              
+
               {/* Thermodynamics */}
               <Card>
                 <CardHeader className="pb-2">
@@ -91,7 +103,7 @@ const Physics = () => {
                   </ul>
                 </CardContent>
               </Card>
-              
+
               {/* Waves and Optics */}
               <Card>
                 <CardHeader className="pb-2">
@@ -112,7 +124,7 @@ const Physics = () => {
                   </ul>
                 </CardContent>
               </Card>
-              
+
               {/* Modern Physics */}
               <Card>
                 <CardHeader className="pb-2">
@@ -133,7 +145,7 @@ const Physics = () => {
                   </ul>
                 </CardContent>
               </Card>
-              
+
               {/* Astrophysics */}
               <Card>
                 <CardHeader className="pb-2">
@@ -156,27 +168,30 @@ const Physics = () => {
               </Card>
             </div>
           </TabsContent>
-          
+
           <TabsContent value="simulations">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Projectile Motion Simulator</CardTitle>
-                  <CardDescription>Visualize and analyze projectile trajectories</CardDescription>
+                  <CardTitle>Mechanics Simulator</CardTitle>
+                  <CardDescription>Visualize and analyze mechanics concepts</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    Adjust initial velocity, angle, and other parameters to see how they affect 
-                    the path of a projectile. Analyze the motion with real-time graphs and data.
+                    Explore projectile motion, collisions, and simple harmonic motion. Adjust parameters
+                    and observe how they affect the behavior of physical systems.
                   </p>
                   <div className="mt-4">
-                    <button className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md text-sm">
+                    <Button
+                      onClick={() => openSimulator('mechanics')}
+                      className="bg-primary text-primary-foreground hover:bg-primary/90"
+                    >
                       Launch Simulator
-                    </button>
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle>Electric Field Visualizer</CardTitle>
@@ -184,7 +199,7 @@ const Physics = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    Place charges and observe the resulting electric fields and forces. 
+                    Place charges and observe the resulting electric fields and forces.
                     Experiment with different charge configurations and see how they interact.
                   </p>
                   <div className="mt-4">
@@ -194,7 +209,7 @@ const Physics = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle>Wave Interference Simulator</CardTitle>
@@ -202,7 +217,7 @@ const Physics = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    Create multiple wave sources and observe interference patterns. 
+                    Create multiple wave sources and observe interference patterns.
                     Adjust frequency, amplitude, and phase to see how they affect the result.
                   </p>
                   <div className="mt-4">
@@ -212,7 +227,7 @@ const Physics = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle>Quantum Mechanics Simulator</CardTitle>
@@ -220,7 +235,7 @@ const Physics = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    Visualize quantum wavefunctions, probability distributions, and tunneling effects. 
+                    Visualize quantum wavefunctions, probability distributions, and tunneling effects.
                     Experiment with potential wells and barriers.
                   </p>
                   <div className="mt-4">
@@ -232,7 +247,7 @@ const Physics = () => {
               </Card>
             </div>
           </TabsContent>
-          
+
           <TabsContent value="problems">
             <Card>
               <CardHeader>
@@ -243,11 +258,11 @@ const Physics = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-6">
-                  Our problem sets are designed to help you develop problem-solving skills and deepen your 
-                  understanding of physics concepts. Each problem includes hints, step-by-step solutions, 
+                  Our problem sets are designed to help you develop problem-solving skills and deepen your
+                  understanding of physics concepts. Each problem includes hints, step-by-step solutions,
                   and explanations of the underlying principles.
                 </p>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   <div className="border rounded-lg p-4">
                     <h3 className="font-medium mb-2">Mechanics Problems</h3>
@@ -258,7 +273,7 @@ const Physics = () => {
                       Start Solving
                     </button>
                   </div>
-                  
+
                   <div className="border rounded-lg p-4">
                     <h3 className="font-medium mb-2">Electromagnetism Problems</h3>
                     <p className="text-sm text-muted-foreground mb-3">
@@ -268,7 +283,7 @@ const Physics = () => {
                       Start Solving
                     </button>
                   </div>
-                  
+
                   <div className="border rounded-lg p-4">
                     <h3 className="font-medium mb-2">Modern Physics Problems</h3>
                     <p className="text-sm text-muted-foreground mb-3">
@@ -279,11 +294,11 @@ const Physics = () => {
                     </button>
                   </div>
                 </div>
-                
+
                 <div className="bg-muted p-4 rounded-lg">
                   <h3 className="font-medium mb-2">Adaptive Problem Sets</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Our adaptive learning system adjusts the difficulty of problems based on your performance, 
+                    Our adaptive learning system adjusts the difficulty of problems based on your performance,
                     helping you focus on areas that need improvement while challenging you appropriately.
                   </p>
                   <button className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md text-sm">
@@ -293,7 +308,7 @@ const Physics = () => {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="experiments">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
@@ -303,7 +318,7 @@ const Physics = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    Perform virtual experiments to verify Newton's laws, conservation principles, 
+                    Perform virtual experiments to verify Newton's laws, conservation principles,
                     and other mechanics concepts. Collect and analyze data just like in a real lab.
                   </p>
                   <div className="mt-4">
@@ -313,7 +328,7 @@ const Physics = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle>Virtual Circuits Lab</CardTitle>
@@ -321,7 +336,7 @@ const Physics = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    Design and test electrical circuits with various components. 
+                    Design and test electrical circuits with various components.
                     Measure voltage, current, and resistance, and verify circuit laws.
                   </p>
                   <div className="mt-4">
@@ -331,7 +346,7 @@ const Physics = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle>Virtual Optics Lab</CardTitle>
@@ -339,7 +354,7 @@ const Physics = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    Conduct experiments with lenses, mirrors, and other optical elements. 
+                    Conduct experiments with lenses, mirrors, and other optical elements.
                     Observe reflection, refraction, interference, and diffraction.
                   </p>
                   <div className="mt-4">
@@ -349,7 +364,7 @@ const Physics = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle>Virtual Modern Physics Lab</CardTitle>
@@ -357,7 +372,7 @@ const Physics = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    Perform virtual versions of famous experiments in modern physics, 
+                    Perform virtual versions of famous experiments in modern physics,
                     such as the photoelectric effect, double-slit experiment, and more.
                   </p>
                   <div className="mt-4">
@@ -370,6 +385,23 @@ const Physics = () => {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Simulator Modals */}
+        {activeSimulator === 'mechanics' && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-background rounded-lg shadow-lg w-full max-w-6xl max-h-[90vh] overflow-auto">
+              <div className="p-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-2xl font-bold">Interactive Mechanics Simulator</h2>
+                  <Button variant="ghost" onClick={closeSimulator}>
+                    ✕
+                  </Button>
+                </div>
+                <MechanicsSimulator />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </MainLayout>
   );
