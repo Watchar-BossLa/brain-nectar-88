@@ -1,42 +1,34 @@
-/**
- * Service Initializer Component
- * This component initializes all revolutionary services when the app loads
- */
 
 import { useEffect } from 'react';
-import { useAuth } from '@/context/auth';
-import { supabase } from '@/integrations/supabase/client';
-import { initializeAllServices, runAllMigrations } from '@/services';
+import { checkForServiceWorkerUpdates } from '../../registerServiceWorker';
+import { toast } from 'react-toastify';
 
 /**
- * Service Initializer Component
+ * Service initializer component that sets up application services
  * @returns {null} This component doesn't render anything
  */
 const ServiceInitializer = () => {
-  const { user } = useAuth();
-  
-  // Initialize services when user is available
   useEffect(() => {
-    if (user) {
-      const initialize = async () => {
-        try {
-          console.log('Initializing services for user:', user.id);
-          
-          // Run database migrations first
-          await runAllMigrations(supabase);
-          
-          // Then initialize all services
-          await initializeAllServices(user.id);
-          
-          console.log('Services initialized successfully');
-        } catch (error) {
-          console.error('Error initializing services:', error);
-        }
-      };
-      
-      initialize();
+    // Set up service worker update listener
+    checkForServiceWorkerUpdates(() => {
+      toast.info('New content is available! Please refresh the page.', {
+        autoClose: false,
+        closeButton: true,
+        closeOnClick: false,
+        draggable: false,
+      });
+    });
+    
+    // Check offline mode on startup
+    if (!navigator.onLine) {
+      toast.warning('You are offline. Some features may be limited.', {
+        autoClose: 5000,
+      });
     }
-  }, [user]);
+    
+    // Initialize any other services here
+    console.log('Services initialized');
+  }, []);
   
   // This component doesn't render anything
   return null;

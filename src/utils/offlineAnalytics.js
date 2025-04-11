@@ -1,109 +1,67 @@
 
-/**
- * @fileoverview Offline analytics tracking
- */
-import { useOfflineMode } from '@/hooks/useOfflineMode';
+import { useState, useCallback } from 'react';
+import localforage from 'localforage';
 
 /**
- * Singleton class for tracking analytics events with offline support
- */
-class OfflineAnalytics {
-  constructor() {
-    if (OfflineAnalytics.instance) {
-      return OfflineAnalytics.instance;
-    }
-    
-    this.initialized = false;
-    this.trackEvent = null;
-    this.isOnline = true;
-    this.eventQueue = [];
-    
-    OfflineAnalytics.instance = this;
-  }
-  
-  /**
-   * Initializes the analytics with the offline hook
-   * @param {Function} trackEventFn - Function from useOfflineMode to track events
-   * @param {boolean} isOnlineStatus - Current online status
-   */
-  init(trackEventFn, isOnlineStatus) {
-    this.trackEvent = trackEventFn;
-    this.isOnline = isOnlineStatus;
-    this.initialized = true;
-    
-    // Process any queued events
-    if (this.eventQueue.length > 0) {
-      this.processQueue();
-    }
-  }
-  
-  /**
-   * Tracks an event, queueing it if offline
-   * @param {string} eventName - Name of the event
-   * @param {Object} eventData - Event data
-   */
-  track(eventName, eventData = {}) {
-    // Add timestamp if not provided
-    if (!eventData.timestamp) {
-      eventData.timestamp = Date.now();
-    }
-    
-    // If not initialized, queue the event
-    if (!this.initialized) {
-      this.eventQueue.push({ eventName, eventData });
-      return;
-    }
-    
-    // Track the event using the hook's method
-    this.trackEvent(eventName, eventData);
-  }
-  
-  /**
-   * Updates the online status
-   * @param {boolean} isOnlineStatus - New online status
-   */
-  updateOnlineStatus(isOnlineStatus) {
-    this.isOnline = isOnlineStatus;
-  }
-  
-  /**
-   * Processes queued events
-   */
-  processQueue() {
-    if (!this.initialized) return;
-    
-    while (this.eventQueue.length > 0) {
-      const { eventName, eventData } = this.eventQueue.shift();
-      this.trackEvent(eventName, eventData);
-    }
-  }
-}
-
-// Create and export the singleton instance
-export const analytics = new OfflineAnalytics();
-
-/**
- * Hook for using offline analytics
- * @returns {Object} Analytics methods
+ * Hook for tracking analytics events while offline
+ * @returns {Object} Offline analytics methods
  */
 export function useOfflineAnalytics() {
-  const { trackEvent, isOnline } = useOfflineMode();
+  const [eventsQueue, setEventsQueue] = useState([]);
   
-  // Initialize analytics with the hook's methods
-  if (!analytics.initialized) {
-    analytics.init(trackEvent, isOnline);
-  } else {
-    analytics.updateOnlineStatus(isOnline);
-  }
+  /**
+   * Track an analytics event, storing it offline if needed
+   * @param {string} eventName - Name of the event
+   * @param {Object} eventProperties - Properties of the event
+   */
+  const trackEvent = useCallback(async (eventName, eventProperties = {}) => {
+    const timestamp = new Date().toISOString();
+    const event = {
+      name: eventName,
+      properties: eventProperties,
+      timestamp
+    };
+    
+    // If online, we would normally send this to an analytics service
+    // For now, we'll just store it locally for later upload
+    try {
+      const storedEvents = await localforage.getItem('analyticsEvents') || [];
+      const updatedEvents = [...storedEvents, event];
+      await localforage.setItem('analyticsEvents', updatedEvents);
+      setEventsQueue(updatedEvents);
+      console.log(`Event tracked: ${eventName}`, eventProperties);
+    } catch (error) {
+      console.error('Error storing analytics event:', error);
+    }
+  }, []);
+  
+  /**
+   * Flush stored analytics events when back online
+   * @returns {Promise<boolean>} Success status
+   */
+  const flushEvents = useCallback(async () => {
+    try {
+      // In a real implementation, this would upload events to an analytics service
+      const events = await localforage.getItem('analyticsEvents') || [];
+      if (events.length === 0) return true;
+      
+      console.log(`Flushing ${events.length} analytics events`);
+      
+      // Here we would send the events to a server
+      // For now, we'll just clear them
+      await localforage.setItem('analyticsEvents', []);
+      setEventsQueue([]);
+      
+      return true;
+    } catch (error) {
+      console.error('Error flushing analytics events:', error);
+      return false;
+    }
+  }, []);
   
   return {
-    /**
-     * Tracks an analytics event with offline support
-     * @param {string} eventName - Name of the event
-     * @param {Object} eventData - Event data
-     */
-    trackEvent: (eventName, eventData = {}) => {
-      analytics.track(eventName, eventData);
-    }
+    trackEvent,
+    flushEvents,
+    pendingEventsCount: eventsQueue.length
   };
 }
