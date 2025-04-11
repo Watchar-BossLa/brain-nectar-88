@@ -50,6 +50,7 @@ import KnowledgeVisualizationSystem from './pages/KnowledgeVisualizationSystem';
 import KnowledgeMapDetail from './pages/KnowledgeMapDetail';
 import LearningRecommendations from './pages/LearningRecommendations';
 import LearningAnalytics from './pages/LearningAnalytics';
+import Music from './pages/Music';
 
 /**
  * Main application component
@@ -120,6 +121,7 @@ function App() {
                     <Route path="/knowledge-visualization-system/maps/:mapId" element={<KnowledgeMapDetail />} />
                     <Route path="/learning-recommendations" element={<LearningRecommendations />} />
                     <Route path="/learning-analytics" element={<LearningAnalytics />} />
+                    <Route path="/music" element={<Music />} />
                   </Routes>
                 </QueryClientProvider>
               </div>
