@@ -15,6 +15,7 @@ import CameraCapture from './CameraCapture';
 import RecognizedContent from './RecognizedContent';
 import ErrorCorrectionInterface from './ErrorCorrectionInterface';
 import VisualLearningAssistant from './VisualLearningAssistant';
+import SubjectSpecificRecognition from './SubjectSpecificRecognition';
 
 export {
   ImageUploader,
@@ -27,5 +28,6 @@ export {
   CameraCapture,
   RecognizedContent,
   ErrorCorrectionInterface,
-  VisualLearningAssistant
+  VisualLearningAssistant,
+  SubjectSpecificRecognition
 };
