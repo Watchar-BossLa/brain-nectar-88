@@ -58,6 +58,7 @@ const MainLayout = ({ children }) => {
 
   const navigationItems = [
     { icon: <Home size={18} />, label: 'Dashboard', path: '/' },
+    { icon: <BookOpen size={18} />, label: 'Subject Hub', path: '/subject-hub' },
     { icon: <BookOpen size={18} />, label: 'My Courses', path: '/courses' },
     { icon: <Award size={18} />, label: 'Qualifications', path: '/qualifications' },
     { icon: <GraduationCap size={18} />, label: 'Assessments', path: '/assessments' },

@@ -7,11 +7,11 @@ import { useAuth } from '@/context/auth';
 import Navbar from '@/components/layout/Navbar';
 import MainLayout from '@/components/layout/MainLayout';
 import {
-  BookOpen, 
-  GraduationCap, 
-  BarChart2, 
-  Calculator, 
-  Brain, 
+  BookOpen,
+  GraduationCap,
+  BarChart2,
+  Calculator,
+  Brain,
   Camera,
   FileText,
   Network,
@@ -27,6 +27,12 @@ const Index = () => {
   const { user } = useAuth();
 
   const features = [
+    {
+      title: "Subject Hub",
+      description: "Explore and study a wide range of subjects",
+      icon: <BookOpen className="h-10 w-10 text-primary" />,
+      path: "/subject-hub"
+    },
     {
       title: "Flashcards",
       description: "Create and study with adaptive flashcards",
