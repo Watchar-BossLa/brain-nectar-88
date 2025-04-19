@@ -39,22 +39,19 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event - network-first strategy with fallback to cache
+// Simple fetch event - network first with cache fallback
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Only cache successful responses and skip query strings
-        if (!response || response.status !== 200 || response.type !== 'basic' || event.request.url.includes('?')) {
-          return response;
+        // Only cache successful responses
+        if (response && response.status === 200) {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME)
+            .then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
         }
-
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME)
-          .then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-
         return response;
       })
       .catch(() => {
@@ -63,7 +60,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Background sync
+// Basic background sync
 self.addEventListener('sync', (event) => {
   console.log('[ServiceWorker] Background Sync', event.tag);
   if (event.tag === 'sync-data') {
