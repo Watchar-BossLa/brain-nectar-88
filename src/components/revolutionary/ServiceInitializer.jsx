@@ -1,8 +1,8 @@
 
 import { useEffect } from 'react';
-import { checkForServiceWorkerUpdates } from '../../registerServiceWorker';
+import { registerServiceWorker, checkForServiceWorkerUpdates } from '../../registerServiceWorker';
 import { toast } from 'react-toastify';
-import offlineSyncManager from '@/services/offline/OfflineSyncManager';
+import offlineSyncManager from '../../services/offline/OfflineSyncManager';
 
 /**
  * Service initializer component that sets up application services
@@ -10,26 +10,29 @@ import offlineSyncManager from '@/services/offline/OfflineSyncManager';
  */
 const ServiceInitializer = () => {
   useEffect(() => {
-    // Set up service worker update listener
-    checkForServiceWorkerUpdates(() => {
-      toast.info('New content is available! Please refresh the page.', {
-        autoClose: false,
-        closeButton: true,
-        closeOnClick: false,
-        draggable: false,
-      });
-    });
+    // Register service worker
+    const initializeServiceWorker = async () => {
+      try {
+        await registerServiceWorker();
+        
+        // Set up service worker update listener
+        checkForServiceWorkerUpdates(() => {
+          toast.info('New content is available! Please refresh the page.', {
+            autoClose: false,
+            closeButton: true,
+            closeOnClick: false,
+            draggable: false,
+          });
+        });
+      } catch (error) {
+        console.error('Service worker initialization failed:', error);
+      }
+    };
+    
+    initializeServiceWorker();
     
     // Initialize offline sync manager
     offlineSyncManager.initialize();
-    
-    // Listen for service worker messages
-    navigator.serviceWorker.addEventListener('message', (event) => {
-      if (event.data && event.data.type === 'SYNC_DATA') {
-        // Triggered by background sync
-        offlineSyncManager.syncData();
-      }
-    });
     
     // Check offline mode on startup
     if (!navigator.onLine) {
@@ -41,8 +44,6 @@ const ServiceInitializer = () => {
     // Set up online/offline listeners for better UX
     const handleOnline = () => {
       toast.success('You are back online!');
-      // Try to sync pending data
-      setTimeout(() => offlineSyncManager.syncData(), 1000);
     };
     
     const handleOffline = () => {

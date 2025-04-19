@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/auth';
@@ -10,9 +9,7 @@ import {
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query';
-import { registerServiceWorker } from './registerServiceWorker';
 import OfflineStatusIndicator from './components/ui/OfflineStatusIndicator';
-import OfflineSyncIndicator from './components/ui/OfflineSyncIndicator';
 import ServiceInitializer from './components/revolutionary/ServiceInitializer';
 
 // Page imports
@@ -71,73 +68,65 @@ function App() {
     },
   });
 
-  // Register service worker on app initialization
-  useEffect(() => {
-    registerServiceWorker();
-  }, []);
-
   return (
     <Router>
       <AuthProvider>
         <ThemeProvider>
           <SolanaProvider>
-            <AuthWrapper>
-              <ServiceInitializer />
-              <div className="app">
-                <QueryClientProvider client={queryClient}>
-                  <ToastContainer
-                    position="bottom-right"
-                    autoClose={5000}
-                    hideProgressBar={false}
-                    newestOnTop={false}
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                    theme="light"
-                  />
-                  <OfflineStatusIndicator />
-                  <OfflineSyncIndicator />
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/sign-up" element={<SignUp />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/not-found" element={<NotFound />} />
-                    <Route path="/flashcards" element={<Flashcards />} />
-                    <Route path="/flashcard-review" element={<FlashcardReview />} />
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="/quiz" element={<Quiz />} />
-                    <Route path="/blockchain" element={<Blockchain />} />
-                    <Route path="/qualifications" element={<Qualifications />} />
-                    <Route path="/user-profile" element={<UserProfile />} />
-                    <Route path="/study-planner" element={<StudyPlanner />} />
-                    <Route path="/courses" element={<Courses />} />
-                    <Route path="/assessments" element={<Assessments />} />
-                    <Route path="/agent-dashboard" element={<AgentDashboard />} />
-                    <Route path="/advanced-learning" element={<AdvancedLearning />} />
-                    <Route path="/financial-tools" element={<FinancialTools />} />
-                    <Route path="/accounting-tools" element={<AccountingTools />} />
-                    <Route path="/study-timer" element={<StudyTimer />} />
-                    <Route path="/visual-recognition" element={<VisualRecognition />} />
-                    <Route path="/document-analysis" element={<DocumentAnalysis />} />
-                    <Route path="/adaptive-spaced-repetition" element={<AdaptiveSpacedRepetition />} />
-                    <Route path="/knowledge-visualization" element={<KnowledgeVisualization />} />
-                    <Route path="/collaborative-learning" element={<CollaborativeLearning />} />
-                    <Route path="/augmented-reality-study" element={<AugmentedRealityStudy />} />
-                    <Route path="/ai-study-coach" element={<AIStudyCoach />} />
-                    <Route path="/study-groups" element={<StudyGroups />} />
-                    <Route path="/study-groups/:groupId" element={<StudyGroupDetail />} />
-                    <Route path="/knowledge-visualization-system" element={<KnowledgeVisualizationSystem />} />
-                    <Route path="/knowledge-visualization-system/maps/:mapId" element={<KnowledgeMapDetail />} />
-                    <Route path="/learning-recommendations" element={<LearningRecommendations />} />
-                    <Route path="/learning-analytics" element={<LearningAnalytics />} />
-                  </Routes>
-                </QueryClientProvider>
-              </div>
-            </AuthWrapper>
+            <div className="app">
+              <QueryClientProvider client={queryClient}>
+                <ToastContainer
+                  position="bottom-right"
+                  autoClose={5000}
+                  hideProgressBar={false}
+                  newestOnTop={false}
+                  closeOnClick
+                  rtl={false}
+                  pauseOnFocusLoss
+                  draggable
+                  pauseOnHover
+                  theme="light"
+                />
+                <ServiceInitializer />
+                <OfflineStatusIndicator />
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/sign-up" element={<SignUp />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/not-found" element={<NotFound />} />
+                  <Route path="/flashcards" element={<Flashcards />} />
+                  <Route path="/flashcard-review" element={<FlashcardReview />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/quiz" element={<Quiz />} />
+                  <Route path="/blockchain" element={<Blockchain />} />
+                  <Route path="/qualifications" element={<Qualifications />} />
+                  <Route path="/user-profile" element={<UserProfile />} />
+                  <Route path="/study-planner" element={<StudyPlanner />} />
+                  <Route path="/courses" element={<Courses />} />
+                  <Route path="/assessments" element={<Assessments />} />
+                  <Route path="/agent-dashboard" element={<AgentDashboard />} />
+                  <Route path="/advanced-learning" element={<AdvancedLearning />} />
+                  <Route path="/financial-tools" element={<FinancialTools />} />
+                  <Route path="/accounting-tools" element={<AccountingTools />} />
+                  <Route path="/study-timer" element={<StudyTimer />} />
+                  <Route path="/visual-recognition" element={<VisualRecognition />} />
+                  <Route path="/document-analysis" element={<DocumentAnalysis />} />
+                  <Route path="/adaptive-spaced-repetition" element={<AdaptiveSpacedRepetition />} />
+                  <Route path="/knowledge-visualization" element={<KnowledgeVisualization />} />
+                  <Route path="/collaborative-learning" element={<CollaborativeLearning />} />
+                  <Route path="/augmented-reality-study" element={<AugmentedRealityStudy />} />
+                  <Route path="/ai-study-coach" element={<AIStudyCoach />} />
+                  <Route path="/study-groups" element={<StudyGroups />} />
+                  <Route path="/study-groups/:groupId" element={<StudyGroupDetail />} />
+                  <Route path="/knowledge-visualization-system" element={<KnowledgeVisualizationSystem />} />
+                  <Route path="/knowledge-visualization-system/maps/:mapId" element={<KnowledgeMapDetail />} />
+                  <Route path="/learning-recommendations" element={<LearningRecommendations />} />
+                  <Route path="/learning-analytics" element={<LearningAnalytics />} />
+                </Routes>
+              </QueryClientProvider>
+            </div>
           </SolanaProvider>
         </ThemeProvider>
       </AuthProvider>

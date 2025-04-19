@@ -1,10 +1,10 @@
 
-import './polyfills'; // Import polyfills first
+// Import polyfills first
+import './polyfills';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
-import { registerServiceWorker } from './registerServiceWorker';
 import 'localforage';
 
 // Initialize the app
@@ -13,11 +13,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <App />
   </React.StrictMode>
 );
-
-// Register service worker for offline support
-registerServiceWorker().catch(error => {
-  console.error('Failed to register service worker:', error);
-});
 
 // Add an event listener for beforeinstallprompt to enhance PWA experience
 let deferredPrompt;
@@ -37,7 +32,7 @@ window.installApp = async () => {
     deferredPrompt.prompt();
     // Wait for the user to respond to the prompt
     const { outcome } = await deferredPrompt.userChoice;
-    // We no longer need the prompt.  Clear it up.
+    // We no longer need the prompt. Clear it up.
     deferredPrompt = null;
     return outcome;
   }

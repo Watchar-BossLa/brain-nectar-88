@@ -1,132 +1,53 @@
 
 /**
- * Registers the service worker for offline capabilities
- * @returns {Promise<void>}
+ * Service Worker Registration
+ * This file handles the registration and updates of the service worker.
  */
+
+// Check if service workers are supported
 export const registerServiceWorker = async () => {
   if ('serviceWorker' in navigator) {
     try {
-      // Use the Workbox service worker
-      const registration = await navigator.serviceWorker.register('/service-worker.js');
-      console.log('ServiceWorker registration successful: ', registration);
-      
-      // Check for updates
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
-        if (newWorker) {
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('New content is available; please refresh.');
-            }
-          });
-        }
+      const registration = await navigator.serviceWorker.register('/sw.js', {
+        scope: '/',
       });
       
-      // Request permission for background sync
-      if ('SyncManager' in window) {
-        try {
-          await registration.sync.register('sync-data');
-          console.log('Background sync registered');
-        } catch (err) {
-          console.warn('Background sync registration failed:', err);
-        }
-      }
+      console.log('Service worker registered successfully:', registration);
       
-      // Add function to cache flashcards for offline use
-      window.cacheFlashcardsForOffline = (flashcards) => {
-        if (navigator.serviceWorker.controller) {
-          navigator.serviceWorker.controller.postMessage({
-            type: 'CACHE_FLASHCARDS',
-            flashcards
-          });
-        }
-      };
-      
-      // Add function to cache quiz data for offline use
-      window.cacheQuizDataForOffline = (quizData) => {
-        if (navigator.serviceWorker.controller) {
-          navigator.serviceWorker.controller.postMessage({
-            type: 'CACHE_QUIZ_DATA',
-            quizData
-          });
-        }
-      };
-      
-      // Check if the service worker needs to be updated
-      if (registration.waiting) {
-        // Show update toast
-        console.log('New service worker waiting to activate');
-      }
-      
+      // Return the registration for later use
+      return registration;
     } catch (error) {
-      console.error('ServiceWorker registration failed: ', error);
+      console.error('Service worker registration failed:', error);
+      throw error;
     }
+  } else {
+    console.warn('Service workers are not supported in this browser');
+    return null;
   }
 };
 
-/**
- * Unregisters all service workers
- * @returns {Promise<void>}
- */
-export const unregisterServiceWorkers = async () => {
-  if ('serviceWorker' in navigator) {
-    const registrations = await navigator.serviceWorker.getRegistrations();
-    for (const registration of registrations) {
-      await registration.unregister();
-    }
-    console.log('All service workers unregistered');
-  }
-};
-
-/**
- * Checks if there's a new version of the service worker
- * @param {Function} callback - Callback to run when new content is available
- */
+// Function to check for service worker updates
 export const checkForServiceWorkerUpdates = (callback) => {
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      callback();
+    navigator.serviceWorker.ready.then((registration) => {
+      // Check for updates every hour
+      setInterval(() => {
+        registration.update();
+      }, 60 * 60 * 1000);
+
+      // Set up update found listener
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            // New content is available, callback to notify user
+            if (callback && typeof callback === 'function') {
+              callback();
+            }
+          }
+        });
+      });
     });
   }
-};
-
-/**
- * Updates the service worker immediately
- * @returns {Promise<void>}
- */
-export const updateServiceWorker = async () => {
-  if ('serviceWorker' in navigator) {
-    const registration = await navigator.serviceWorker.getRegistration();
-    if (registration && registration.waiting) {
-      registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-    }
-  }
-};
-
-/**
- * Cache flashcards for offline use
- * @param {Array} flashcards - Flashcard data to cache
- */
-export const cacheFlashcardsForOffline = (flashcards) => {
-  if (window.cacheFlashcardsForOffline) {
-    window.cacheFlashcardsForOffline(flashcards);
-  }
-};
-
-/**
- * Cache quiz data for offline use
- * @param {Object} quizData - Quiz data to cache
- */
-export const cacheQuizDataForOffline = (quizData) => {
-  if (window.cacheQuizDataForOffline) {
-    window.cacheQuizDataForOffline(quizData);
-  }
-};
-
-/**
- * Checks if the app is running in offline mode
- * @returns {boolean} - Whether the app is offline
- */
-export const isOffline = () => {
-  return !navigator.onLine;
 };

@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import offlineSyncManager from '@/services/offline/OfflineSyncManager';
+import offlineSyncManager from '../services/offline/OfflineSyncManager';
 
 /**
  * Hook for offline sync functionality
@@ -17,9 +17,6 @@ export function useOfflineSync() {
   const [lastSyncResult, setLastSyncResult] = useState(null);
 
   useEffect(() => {
-    // Initialize manager
-    offlineSyncManager.initialize();
-    
     // Load initial pending count
     const loadPendingCount = async () => {
       const count = await offlineSyncManager.getPendingOperationsCount();
@@ -57,11 +54,6 @@ export function useOfflineSync() {
 
   /**
    * Queue an operation to be synced when online
-   * @param {string} entityType - Type of entity (e.g., 'flashcard', 'quiz')
-   * @param {string} operation - Type of operation ('create', 'update', 'delete')
-   * @param {Object} data - Data for the operation
-   * @param {Object} options - Additional options
-   * @returns {Promise<string>} - ID of the queued operation
    */
   const queueOperation = useCallback(async (entityType, operation, data, options = {}) => {
     return await offlineSyncManager.queueOperation(entityType, operation, data, options);
@@ -69,7 +61,6 @@ export function useOfflineSync() {
 
   /**
    * Manually trigger synchronization
-   * @returns {Promise<Object>} - Sync results
    */
   const syncNow = useCallback(async () => {
     if (isSyncing) return { success: false, message: 'Already syncing' };
@@ -81,7 +72,6 @@ export function useOfflineSync() {
 
   /**
    * Retry failed operations
-   * @returns {Promise<number>} - Number of retried operations
    */
   const retryFailedOperations = useCallback(async () => {
     return await offlineSyncManager.retryFailedOperations();
@@ -89,7 +79,6 @@ export function useOfflineSync() {
 
   /**
    * Clear failed operations
-   * @returns {Promise<number>} - Number of cleared operations
    */
   const clearFailedOperations = useCallback(async () => {
     return await offlineSyncManager.clearFailedOperations();
