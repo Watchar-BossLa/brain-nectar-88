@@ -12,6 +12,7 @@ import {
 } from '@tanstack/react-query';
 import { registerServiceWorker } from './registerServiceWorker';
 import OfflineStatusIndicator from './components/ui/OfflineStatusIndicator';
+import OfflineSyncIndicator from './components/ui/OfflineSyncIndicator';
 import ServiceInitializer from './components/revolutionary/ServiceInitializer';
 
 // Page imports
@@ -56,7 +57,19 @@ import LearningAnalytics from './pages/LearningAnalytics';
  * @returns {React.ReactElement} The application component
  */
 function App() {
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: (failureCount, error) => {
+          // Don't retry on network errors when offline
+          if (!navigator.onLine) return false;
+          return failureCount < 3;
+        },
+        staleTime: 1000 * 60 * 5, // 5 minutes
+        cacheTime: 1000 * 60 * 60 * 24, // 24 hours
+      },
+    },
+  });
 
   // Register service worker on app initialization
   useEffect(() => {
@@ -85,6 +98,7 @@ function App() {
                     theme="light"
                   />
                   <OfflineStatusIndicator />
+                  <OfflineSyncIndicator />
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/dashboard" element={<Dashboard />} />

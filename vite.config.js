@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === 'development' && componentTagger(),
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt', 'icons/**/*'],
       manifest: {
         name: 'StudyBee Learning Platform',
@@ -80,9 +80,31 @@ export default defineConfig(({ mode }) => ({
               cacheableResponse: {
                 statuses: [0, 200],
               },
+              networkTimeoutSeconds: 10, // Timeout after 10 seconds
+            },
+          },
+          {
+            // Cache all API requests with network-first strategy
+            urlPattern: /\/(api|flashcards|quiz|study-timer|notes)\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-runtime-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60, // 1 hour
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+              networkTimeoutSeconds: 5,
             },
           },
         ],
+        // Don't precache any assets that are likely to change
+        skipWaiting: true,
+        clientsClaim: true,
+        sourcemap: true,
+        cleanupOutdatedCaches: true,
       }
     }),
   ].filter(Boolean),

@@ -83,26 +83,67 @@ registerRoute(
   })
 );
 
-// Background sync for offline form submissions
-const bgSyncPlugin = new BackgroundSyncPlugin('offlineFormSubmissions', {
+// Enhanced background sync for offline operations
+const studyBeeBackgroundSync = new BackgroundSyncPlugin('study-bee-offline-operations', {
   maxRetentionTime: 24 * 60, // Retry for max 24 Hours (specified in minutes)
+  onSync: async ({ queue }) => {
+    // Process the queue
+    let entry;
+    while ((entry = await queue.shiftRequest())) {
+      try {
+        // Get the stored request
+        const request = entry.request.clone();
+        const response = await fetch(request);
+        
+        // Check if the request was successful
+        if (response && response.status >= 200 && response.status < 300) {
+          // If successful, continue to the next request
+          continue;
+        } else {
+          // If unsuccessful, throw so it's added back to the queue
+          throw new Error(`Request failed with status ${response.status}`);
+        }
+      } catch (error) {
+        // Add the request back to the queue if it fails
+        await queue.unshiftRequest(entry);
+        throw error;
+      }
+    }
+  }
 });
 
-// Handle offline form submissions
+// Register route for background sync of data
 registerRoute(
   ({ url }) => {
     return (
       url.pathname.includes('/flashcards') || 
       url.pathname.includes('/quiz') || 
-      url.pathname.includes('/study-timer')
+      url.pathname.includes('/study-timer') ||
+      url.pathname.includes('/notes')
     );
   },
   new NetworkFirst({
-    cacheName: 'form-submissions',
-    plugins: [bgSyncPlugin],
+    cacheName: 'api-requests',
+    plugins: [studyBeeBackgroundSync],
   }),
   'POST'
 );
+
+// Handle background sync events
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-data') {
+    event.waitUntil(syncData());
+  }
+});
+
+// Sync data from indexedDB
+async function syncData() {
+  // Notify the client to perform sync
+  const clients = await self.clients.matchAll({ type: 'window' });
+  for (const client of clients) {
+    client.postMessage({ type: 'SYNC_DATA' });
+  }
+}
 
 // Listen for messages from the main thread
 self.addEventListener('message', (event) => {
@@ -146,3 +187,40 @@ async function cacheQuizData(quizData) {
     })
   );
 }
+
+/**
+ * Prefetch common application routes for offline use
+ * This improves the offline experience by ensuring key pages are available
+ */
+function prefetchRoutes() {
+  const routesToPrefetch = [
+    '/',
+    '/dashboard',
+    '/flashcards',
+    '/flashcard-review',
+    '/quiz',
+    '/study-timer',
+    '/profile'
+  ];
+  
+  const cache = caches.open('offline-routes');
+  
+  return Promise.all(
+    routesToPrefetch.map(route => {
+      // Create a safe request to avoid caching issues
+      const request = new Request(route, { cache: 'no-cache' });
+      return fetch(request)
+        .then(response => {
+          if (response.ok) {
+            return cache.then(c => c.put(route, response));
+          }
+        })
+        .catch(err => console.warn(`Failed to prefetch ${route}:`, err));
+    })
+  );
+}
+
+// Prefetch routes on install
+self.addEventListener('install', event => {
+  event.waitUntil(prefetchRoutes());
+});

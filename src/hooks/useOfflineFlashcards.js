@@ -3,6 +3,7 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { useOfflineMode } from './useOfflineMode';
+import { useOfflineSync } from './useOfflineSync';
 import { useOfflineAnalytics } from '@/utils/offlineAnalytics';
 import { getUserFlashcards, createFlashcard, deleteFlashcard } from '@/services/spacedRepetition';
 import { cacheFlashcardsForOffline } from '@/registerServiceWorker';
@@ -18,6 +19,7 @@ export function useOfflineFlashcards() {
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
   const { isOnline, saveFlashcardData, getFlashcards } = useOfflineMode();
+  const { queueOperation } = useOfflineSync();
   const { trackEvent } = useOfflineAnalytics();
   
   /**
@@ -98,7 +100,7 @@ export function useOfflineFlashcards() {
           return data;
         }
       } else {
-        // Offline mode: create locally
+        // Offline mode: create locally and queue for sync
         const tempId = `temp_${Date.now()}`;
         const now = new Date().toISOString();
         
@@ -117,7 +119,18 @@ export function useOfflineFlashcards() {
           updated_at: now
         };
         
+        // Save locally
         await saveFlashcardData(tempId, newFlashcard);
+        
+        // Queue for sync when back online
+        await queueOperation('flashcard', 'create', {
+          user_id: user?.id,
+          front_content: newFlashcard.front_content,
+          back_content: newFlashcard.back_content,
+          topic_id: newFlashcard.topic_id,
+          next_review_date: newFlashcard.next_review_date,
+          easiness_factor: newFlashcard.easiness_factor
+        });
         
         setFlashcards(prev => [newFlashcard, ...prev]);
         toast.success('Flashcard created offline. It will sync when you reconnect.');
@@ -151,13 +164,18 @@ export function useOfflineFlashcards() {
         
         return true;
       } else {
-        // Offline mode: mark for deletion when back online
-        // We keep the card but mark it for deletion
-        // When we go back online, we'll actually delete it
+        // Offline mode: mark for deletion and queue for sync when back online
         const updatedFlashcards = flashcards.filter(card => card.id !== id);
         setFlashcards(updatedFlashcards);
         
-        await saveFlashcardData(`delete_${id}`, { id, deleteRequested: true });
+        // If it's a temporary ID (created offline), just remove it
+        if (id.startsWith('temp_')) {
+          await saveFlashcardData(`delete_${id}`, { id, deleteRequested: true });
+        } else {
+          // Otherwise queue for deletion when back online
+          await queueOperation('flashcard', 'delete', { id });
+          await saveFlashcardData(`delete_${id}`, { id, deleteRequested: true });
+        }
         
         toast.success('Flashcard marked for deletion. It will be removed when you reconnect.');
         trackEvent('flashcard_marked_for_deletion', { id });

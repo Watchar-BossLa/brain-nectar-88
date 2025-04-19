@@ -22,6 +22,16 @@ export const registerServiceWorker = async () => {
         }
       });
       
+      // Request permission for background sync
+      if ('SyncManager' in window) {
+        try {
+          await registration.sync.register('sync-data');
+          console.log('Background sync registered');
+        } catch (err) {
+          console.warn('Background sync registration failed:', err);
+        }
+      }
+      
       // Add function to cache flashcards for offline use
       window.cacheFlashcardsForOffline = (flashcards) => {
         if (navigator.serviceWorker.controller) {
@@ -41,6 +51,12 @@ export const registerServiceWorker = async () => {
           });
         }
       };
+      
+      // Check if the service worker needs to be updated
+      if (registration.waiting) {
+        // Show update toast
+        console.log('New service worker waiting to activate');
+      }
       
     } catch (error) {
       console.error('ServiceWorker registration failed: ', error);
@@ -75,6 +91,19 @@ export const checkForServiceWorkerUpdates = (callback) => {
 };
 
 /**
+ * Updates the service worker immediately
+ * @returns {Promise<void>}
+ */
+export const updateServiceWorker = async () => {
+  if ('serviceWorker' in navigator) {
+    const registration = await navigator.serviceWorker.getRegistration();
+    if (registration && registration.waiting) {
+      registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+    }
+  }
+};
+
+/**
  * Cache flashcards for offline use
  * @param {Array} flashcards - Flashcard data to cache
  */
@@ -92,4 +121,12 @@ export const cacheQuizDataForOffline = (quizData) => {
   if (window.cacheQuizDataForOffline) {
     window.cacheQuizDataForOffline(quizData);
   }
+};
+
+/**
+ * Checks if the app is running in offline mode
+ * @returns {boolean} - Whether the app is offline
+ */
+export const isOffline = () => {
+  return !navigator.onLine;
 };
