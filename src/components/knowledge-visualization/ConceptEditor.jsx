@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useKnowledgeMap } from '@/services/knowledge-visualization';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ColorPicker } from '@/components/ui/color-picker';
-import { toast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Loader2, Save, Trash2, X } from 'lucide-react';
 
 /**
@@ -22,6 +23,7 @@ import { Loader2, Save, Trash2, X } from 'lucide-react';
  */
 const ConceptEditor = ({ mapId, concept, onSave, onCancel, onDelete }) => {
   const knowledgeMap = useKnowledgeMap();
+  const { toast } = useToast();
   
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -253,9 +255,9 @@ const ConceptEditor = ({ mapId, concept, onSave, onCancel, onDelete }) => {
           <div className="space-y-2">
             <Label>Color</Label>
             <div className="flex items-center space-x-2">
-              <div 
-                className="w-8 h-8 rounded-full border"
-                style={{ backgroundColor: formData.color }}
+              <ColorPicker 
+                value={formData.color}
+                onChange={handleColorChange}
               />
               <Input
                 type="text"
@@ -264,8 +266,6 @@ const ConceptEditor = ({ mapId, concept, onSave, onCancel, onDelete }) => {
                 onChange={handleChange}
                 className="w-32"
               />
-              {/* Note: This is a placeholder for a color picker component */}
-              {/* In a real implementation, you would use a proper color picker */}
             </div>
           </div>
           
