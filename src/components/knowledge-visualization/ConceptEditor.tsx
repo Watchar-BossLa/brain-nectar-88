@@ -8,8 +8,15 @@ import { ColorSelector } from './concept-editor/ColorSelector';
 import { PositionInputs } from './concept-editor/PositionInputs';
 import { FormHeader } from './concept-editor/FormHeader';
 import { FormFooter } from './concept-editor/FormFooter';
+import type { ConceptEditorProps } from './concept-editor/types';
 
-const ConceptEditor = ({ mapId, concept, onSave, onCancel, onDelete }) => {
+const ConceptEditor: React.FC<ConceptEditorProps> = ({ 
+  mapId, 
+  concept, 
+  onSave, 
+  onCancel, 
+  onDelete 
+}) => {
   const {
     formData,
     loading,
