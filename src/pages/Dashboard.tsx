@@ -1,15 +1,16 @@
-
 import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BookOpen, Award, Calendar } from 'lucide-react';
+import { BookOpen, Award, Calendar, Plus } from 'lucide-react';
 import { useAuth } from '@/context/auth';
 import WelcomeHeader from '@/components/dashboard/WelcomeHeader';
 import StatsOverview from '@/components/dashboard/StatsOverview';
 import CoursesSection from '@/components/dashboard/CoursesSection';
 import AssessmentsRecommendedSection from '@/components/dashboard/AssessmentsRecommendedSection';
 import DailyStudyGoal from '@/components/dashboard/DailyStudyGoal';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -19,6 +20,18 @@ const Dashboard = () => {
       <div className="container mx-auto py-6 space-y-8">
         <WelcomeHeader />
         <StatsOverview />
+
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold">Quick Actions</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <Link to="/study-material-generator">
+            <Button variant="outline" className="w-full h-24 flex flex-col items-center justify-center gap-2">
+              <Plus className="h-6 w-6" />
+              <span>Generate Study Materials</span>
+            </Button>
+          </Link>
+        </div>
 
         <div className="mb-6">
           <Tabs defaultValue="learning-path">

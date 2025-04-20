@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react-router-dom';
 import { Session } from '@supabase/supabase-js';
@@ -37,6 +36,7 @@ import AccountingTools from './pages/AccountingTools';
 import AuthWrapper from './context/AuthWrapper';
 import StudyTimer from './pages/StudyTimer';
 import VisualRecognition from './pages/VisualRecognition';
+import StudyMaterialGeneratorPage from '@/pages/StudyMaterialGeneratorPage';
 
 function App() {
   const queryClient = new QueryClient();
@@ -84,6 +84,14 @@ function App() {
                     <Route path="/accounting-tools" element={<AccountingTools />} />
                     <Route path="/study-timer" element={<StudyTimer />} />
                     <Route path="/visual-recognition" element={<VisualRecognition />} />
+                    <Route 
+                      path="/study-material-generator" 
+                      element={
+                        <ProtectedRoute>
+                          <StudyMaterialGeneratorPage />
+                        </ProtectedRoute>
+                      } 
+                    />
                   </Routes>
                 </QueryClientProvider>
               </div>
