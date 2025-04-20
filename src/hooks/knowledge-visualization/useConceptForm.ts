@@ -1,19 +1,7 @@
-
 import { useState } from 'react';
 import { useKnowledgeMap } from '@/services/knowledge-visualization';
-import { toast } from "@/components/ui/use-toast";
-
-interface ConceptFormData {
-  title: string;
-  description: string;
-  content: string;
-  conceptType: string;
-  color: string;
-  icon: string;
-  positionX: number;
-  positionY: number;
-  metadata: Record<string, any>;
-}
+import { toast } from "@/hooks/use-toast";
+import { validateConceptForm, type ConceptFormData } from '@/utils/form-validation/conceptValidator';
 
 interface UseConceptFormProps {
   mapId: string;
@@ -63,11 +51,15 @@ export function useConceptForm({ mapId, concept, onSave, onDelete }: UseConceptF
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title.trim()) {
-      toast({
-        title: "Error",
-        description: "Concept title is required",
-        variant: "destructive"
+    const { isValid, errors } = validateConceptForm(formData);
+    
+    if (!isValid) {
+      errors.forEach(error => {
+        toast({
+          title: "Validation Error",
+          description: error.message,
+          variant: "destructive"
+        });
       });
       return;
     }
