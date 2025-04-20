@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/auth';
@@ -9,7 +10,10 @@ import {
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query';
+
+// Components
 import OfflineStatusIndicator from './components/ui/OfflineStatusIndicator';
+import OfflineSyncIndicator from './components/ui/OfflineSyncIndicator';
 import ServiceInitializer from './components/revolutionary/ServiceInitializer';
 
 // Page imports
@@ -57,8 +61,8 @@ function App() {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
+        // Don't retry on network errors when offline
         retry: (failureCount, error) => {
-          // Don't retry on network errors when offline
           if (!navigator.onLine) return false;
           return failureCount < 3;
         },
@@ -73,8 +77,8 @@ function App() {
       <AuthProvider>
         <ThemeProvider>
           <SolanaProvider>
-            <div className="app">
-              <QueryClientProvider client={queryClient}>
+            <QueryClientProvider client={queryClient}>
+              <div className="app">
                 <ToastContainer
                   position="bottom-right"
                   autoClose={5000}
@@ -87,8 +91,15 @@ function App() {
                   pauseOnHover
                   theme="light"
                 />
+                
+                {/* Service initializer */}
                 <ServiceInitializer />
+                
+                {/* Offline & sync indicators */}
                 <OfflineStatusIndicator />
+                <OfflineSyncIndicator />
+                
+                {/* Application routes */}
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/dashboard" element={<Dashboard />} />
@@ -125,8 +136,8 @@ function App() {
                   <Route path="/learning-recommendations" element={<LearningRecommendations />} />
                   <Route path="/learning-analytics" element={<LearningAnalytics />} />
                 </Routes>
-              </QueryClientProvider>
-            </div>
+              </div>
+            </QueryClientProvider>
           </SolanaProvider>
         </ThemeProvider>
       </AuthProvider>
